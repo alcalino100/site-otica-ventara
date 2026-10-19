@@ -1,0 +1,262 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Ótica Ventara — Óculos de Grau e Solar no Interior de SP</title>
+<meta name="description" content="Ótica Ventara: óculos de grau, solar e lentes de contato com atendimento personalizado no interior de São Paulo." />
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@400;500;600;700&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet" />
+<link rel="stylesheet" href="css/style.css" />
+</head>
+<body>
+
+<!-- HEADER -->
+<header class="header" id="header">
+  <div class="container header-inner">
+    <a href="#home" class="logo">Ventara<span>.</span></a>
+    <nav class="nav" id="nav">
+      <a href="#home">Início</a>
+      <a href="#catalogo">Catálogo</a>
+      <a href="#sobre">Sobre</a>
+      <a href="#contato">Contato</a>
+    </nav>
+    <div class="header-actions">
+      <button class="icon-btn" id="searchBtn" aria-label="Buscar">⌕</button>
+      <button class="icon-btn cart-btn" id="cartBtn" aria-label="Carrinho">
+        <span class="cart-icon">Basket</span>
+        <span class="cart-count" id="cartCount">0</span>
+      </button>
+      <button class="menu-toggle" id="menuToggle" aria-label="Menu">☰</button>
+    </div>
+  </div>
+</header>
+
+<!-- HERO -->
+<section class="hero" id="home">
+  <div class="container hero-grid">
+    <div class="hero-text">
+      <span class="eyebrow">Ótica Ventara · Interior de SP</span>
+      <h1>Enxergue o mundo com <em>elegância</em>.</h1>
+      <p>Óculos de grau, solar e lentes de contato selecionados com cuidado. Atendimento personalizado, lentes de qualidade e armações que combinam com você.</p>
+      <div class="hero-cta">
+        <a href="#catalogo" class="btn btn-primary">Ver catálogo</a>
+        <a href="#contato" class="btn btn-ghost">Agendar visita</a>
+      </div>
+      <div class="hero-stats">
+        <div><strong>+2.000</strong><span>clientes atendidos</span></div>
+        <div><strong>15+</strong><span>marcas parceiras</span></div>
+        <div><strong>8 anos</strong><span>de tradição</span></div>
+      </div>
+    </div>
+    <div class="hero-visual">
+      <div class="hero-card">
+        <div class="glasses-illustration" aria-hidden="true">
+          <svg viewBox="0 0 320 120" xmlns="http://www.w3.org/2000/svg">
+            <path d="M20 60 Q40 30 90 30 L110 30 Q130 30 140 60 Q130 90 110 90 L90 90 Q40 90 20 60 Z" fill="none" stroke="currentColor" stroke-width="3"/>
+            <path d="M180 60 Q190 30 210 30 L230 30 Q280 30 300 60 Q280 90 230 90 L210 90 Q190 90 180 60 Z" fill="none" stroke="currentColor" stroke-width="3"/>
+            <line x1="140" y1="55" x2="180" y2="55" stroke="currentColor" stroke-width="3"/>
+            <circle cx="90" cy="60" r="18" fill="rgba(255,255,255,0.15)"/>
+            <circle cx="230" cy="60" r="18" fill="rgba(255,255,255,0.15)"/>
+          </svg>
+        </div>
+        <div class="hero-badge">Novidade · Coleção 2026</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- CATEGORIES -->
+<section class="section categories" id="categorias">
+  <div class="container">
+    <div class="section-head">
+      <span class="eyebrow">Categorias</span>
+      <h2>Encontre o seu estilo</h2>
+    </div>
+    <div class="cat-grid">
+      <a class="cat-card" href="#catalogo" data-filter="grau">
+        <div class="cat-img grau"></div>
+        <h3>Óculos de Grau</h3>
+        <p>Armações leves e resistentes para o dia a dia.</p>
+      </a>
+      <a class="cat-card" href="#catalogo" data-filter="solar">
+        <div class="cat-img solar"></div>
+        <h3>Óculos Solar</h3>
+        <p>Proteção UV com estilo para todos os momentos.</p>
+      </a>
+      <a class="cat-card" href="#catalogo" data-filter="lentes">
+        <div class="cat-img lentes"></div>
+        <h3>Lentes de Contato</h3>
+        <p>Conforto e nitidez para quem prefere sem armação.</p>
+      </a>
+      <a class="cat-card" href="#catalogo" data-filter="acessorios">
+        <div class="cat-img acessorios"></div>
+        <h3>Acessórios</h3>
+        <p>Estojos, cordões e kits de limpeza.</p>
+      </a>
+    </div>
+  </div>
+</section>
+
+<!-- CATALOG -->
+<section class="section catalog" id="catalogo">
+  <div class="container">
+    <div class="section-head catalog-head">
+      <div>
+        <span class="eyebrow">Catálogo</span>
+        <h2>Nossos produtos</h2>
+      </div>
+      <div class="filters" id="filters">
+        <button class="filter active" data-filter="all">Todos</button>
+        <button class="filter" data-filter="grau">Grau</button>
+        <button class="filter" data-filter="solar">Solar</button>
+        <button class="filter" data-filter="lentes">Lentes</button>
+        <button class="filter" data-filter="acessorios">Acessórios</button>
+      </div>
+    </div>
+    <div class="products" id="products"></div>
+  </div>
+</section>
+
+<!-- ABOUT -->
+<section class="section about" id="sobre">
+  <div class="container about-grid">
+    <div class="about-visual">
+      <div class="about-img"></div>
+      <div class="about-card">
+        <strong>8 anos</strong>
+        <span>cuidando da sua visão</span>
+      </div>
+    </div>
+    <div class="about-text">
+      <span class="eyebrow">Sobre nós</span>
+      <h2>Uma ótica feita para você</h2>
+      <p>A Ótica Ventara nasceu no interior de São Paulo com um propósito simples: oferecer óculos de qualidade com atendimento humano e preço justo. Trabalhamos com as principais marcas e laboratórios, garantindo lentes precisas e armações duráveis.</p>
+      <ul class="about-list">
+        <li>✓ Exame de vista com profissionais parceiros</li>
+        <li>✓ Ajuste e manutenção gratuitos</li>
+        <li>✓ Garantia em armações e lentes</li>
+        <li>✓ Entrega em toda a região</li>
+      </ul>
+      <a href="#contato" class="btn btn-primary">Fale conosco</a>
+    </div>
+  </div>
+</section>
+
+<!-- TESTIMONIALS -->
+<section class="section testimonials">
+  <div class="container">
+    <div class="section-head">
+      <span class="eyebrow">Depoimentos</span>
+      <h2>O que nossos clientes dizem</h2>
+    </div>
+    <div class="testi-grid">
+      <div class="testi">
+        <p>"Atendimento excelente e óculos chegou perfeito. Recomendo demais!"</p>
+        <div class="testi-author">
+          <div class="avatar">MC</div>
+          <div><strong>Mariana Costa</strong><span>Cliente há 3 anos</span></div>
+        </div>
+      </div>
+      <div class="testi">
+        <p>"Preço justo e qualidade impecável. Minha família toda compra aqui."</p>
+        <div class="testi-author">
+          <div class="avatar">RP</div>
+          <div><strong>Ricardo Pereira</strong><span>Cliente há 5 anos</span></div>
+        </div>
+      </div>
+      <div class="testi">
+        <p>"Ajustaram meu óculos na hora e sem custo. Atendimento nota 10."</p>
+        <div class="testi-author">
+          <div class="avatar">LS</div>
+          <div><strong>Larissa Souza</strong><span>Cliente há 1 ano</span></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- CONTACT -->
+<section class="section contact" id="contato">
+  <div class="container contact-grid">
+    <div class="contact-info">
+      <span class="eyebrow">Contato</span>
+      <h2>Venha nos visitar</h2>
+      <p>Estamos no interior de São Paulo, prontos para atender você com carinho.</p>
+      <div class="contact-item"><span>📍</span><div><strong>Endereço</strong><br/>Rua das Flores, 123 — Centro<br/>Interior de SP</div></div>
+      <div class="contact-item"><span>📞</span><div><strong>Telefone / WhatsApp</strong><br/>(11) 99999-0000</div></div>
+      <div class="contact-item"><span>✉️</span><div><strong>E-mail</strong><br/>contato@oticaventara.com.br</div></div>
+      <div class="contact-item"><span>🕐</span><div><strong>Horário</strong><br/>Seg–Sex 9h–18h · Sáb 9h–13h</div></div>
+    </div>
+    <form class="contact-form" id="contactForm">
+      <h3>Envie uma mensagem</h3>
+      <input type="text" placeholder="Seu nome" required />
+      <input type="email" placeholder="Seu e-mail" required />
+      <input type="tel" placeholder="Seu telefone" />
+      <textarea placeholder="Como podemos ajudar?" rows="4" required></textarea>
+      <button type="submit" class="btn btn-primary">Enviar mensagem</button>
+      <p class="form-msg" id="formMsg"></p>
+    </form>
+  </div>
+</section>
+
+<!-- FOOTER -->
+<footer class="footer">
+  <div class="container footer-grid">
+    <div>
+      <a href="#home" class="logo">Ventara<span>.</span></a>
+      <p>Ótica Ventara — enxergue o mundo com elegância.</p>
+    </div>
+    <div>
+      <h4>Navegação</h4>
+      <a href="#home">Início</a>
+      <a href="#catalogo">Catálogo</a>
+      <a href="#sobre">Sobre</a>
+      <a href="#contato">Contato</a>
+    </div>
+    <div>
+      <h4>Categorias</h4>
+      <a href="#catalogo">Óculos de Grau</a>
+      <a href="#catalogo">Óculos Solar</a>
+      <a href="#catalogo">Lentes de Contato</a>
+      <a href="#catalogo">Acessórios</a>
+    </div>
+    <div>
+      <h4>Siga-nos</h4>
+      <a href="#">Instagram</a>
+      <a href="#">Facebook</a>
+      <a href="#">WhatsApp</a>
+    </div>
+  </div>
+  <div class="container footer-bottom">
+    <span>© 2026 Ótica Ventara. Todos os direitos reservados.</span>
+  </div>
+</footer>
+
+<!-- CART DRAWER -->
+<div class="cart-drawer" id="cartDrawer">
+  <div class="cart-head">
+    <h3>Seu carrinho</h3>
+    <button id="closeCart" class="icon-btn">✕</button>
+  </div>
+  <div class="cart-items" id="cartItems"></div>
+  <div class="cart-foot">
+    <div class="cart-total">Total: <strong id="cartTotal">R$ 0,00</strong></div>
+    <button class="btn btn-primary btn-block" id="checkoutBtn">Finalizar pedido</button>
+  </div>
+</div>
+<div class="overlay" id="overlay"></div>
+
+<!-- PRODUCT MODAL -->
+<div class="modal" id="productModal">
+  <div class="modal-content">
+    <button class="modal-close" id="modalClose">✕</button>
+    <div class="modal-body" id="modalBody"></div>
+  </div>
+</div>
+
+<script src="js/products.js"></script>
+<script src="js/main.js"></script>
+</body>
+</html>
