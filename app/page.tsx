@@ -1,20 +1,514 @@
 "use client";
-import {useState} from 'react';
-import {ArrowRight, ArrowUpRight, ShoppingBag, Search, Menu, X, Glasses, Focus, HeartHandshake, ShieldCheck, SlidersHorizontal, Minus, Plus, Check, MapPin} from 'lucide-react';
-type Product = {id:number;name:string;category:string;color:string;shape:string};
-const products:Product[]=[{id:1,name:'Ventara Essencial',category:'Grau',color:'Preto clássico',shape:'square'},{id:2,name:'Ventara Aurora',category:'Solar',color:'Âmbar translúcido',shape:'round'},{id:3,name:'Ventara Urbano',category:'Grau',color:'Grafite',shape:'round'},{id:4,name:'Ventara Horizonte',category:'Solar',color:'Preto e dourado',shape:'square'}];
-function Frame({solar=false,round=false,amber=false,hero=false}:{solar?:boolean;round?:boolean;amber?:boolean;hero?:boolean}) { const stroke=amber?'#80522c':'#172735'; return <svg className={hero?'frame-art hero-frame':'frame-art'} viewBox="0 0 680 300" role="img" aria-label={solar?'Ilustração de óculos de sol':'Ilustração de armação de óculos'}><defs><linearGradient id={hero?'heroLens':'lens'} x1="0" y1="0" x2="1" y2="1"><stop stopColor={solar?'#17232d':'#76b7de'} stopOpacity={solar?'.95':'.35'}/><stop offset="1" stopColor={solar?'#354e5f':'#b9d8ed'} stopOpacity={solar?'.95':'.03'}/></linearGradient></defs><path d="M90 102 L52 40 Q46 28 64 25 L260 62 M580 102 L620 40 Q628 29 613 25 L415 62" fill="none" stroke={stroke} strokeWidth="12" strokeLinecap="round"/><path d="M74 100 Q158 70 282 97 Q306 116 285 200 Q275 237 222 240 L134 235 Q86 230 80 190 Z" fill={hero?'url(#heroLens)':'url(#lens)'} stroke={stroke} strokeWidth="15" strokeLinejoin="round" rx={round?'60':'20'}/><path d="M606 100 Q522 70 398 97 Q374 116 395 200 Q405 237 458 240 L546 235 Q594 230 600 190 Z" fill={hero?'url(#heroLens)':'url(#lens)'} stroke={stroke} strokeWidth="15" strokeLinejoin="round"/><path d="M288 120 Q340 92 392 120" stroke={stroke} strokeWidth="12" fill="none"/><path d="M92 108 Q175 86 271 105 M408 105 Q508 86 587 108" stroke="#c2d7e4" strokeWidth="3" fill="none" opacity=".7"/><path d="M104 107 L114 118 L121 106 M563 106 L573 117 L580 105" stroke="#e6c46c" strokeWidth="3" fill="none"/></svg> }
-export default function Home(){const[menu,setMenu]=useState(false);const[filter,setFilter]=useState('Todos');const[query,setQuery]=useState('');const[search,setSearch]=useState(false);const[cartOpen,setCartOpen]=useState(false);const[cart,setCart]=useState<number[]>([]);const[detail,setDetail]=useState<Product|null>(null);const[toast,setToast]=useState('');const[question,setQuestion]=useState<number|null>(0);
-const notify=(message:string)=>{setToast(message);setTimeout(()=>setToast(''),3000)};
-const add=(p:Product)=>{setCart([...cart,p.id]);notify(p.name+' adicionado à seleção')};
-const filtered=products.filter(p=>(filter==='Todos'||p.category===filter)&&p.name.toLowerCase().includes(query.toLowerCase()));
-return <><div className="preview">PROTÓTIPO VISUAL · PRODUTOS ILUSTRATIVOS · SEM VENDAS REAIS</div><header><a href="#inicio" className="brand" aria-label="Ótica Ventara, início"><Glasses/><span><small>ÓTICA</small>VENTARA<em>EYEWEAR</em></span></a><nav className={menu?'nav open':'nav'} aria-label="Navegação principal">{[['Início','inicio'],['Sobre nós','sobre'],['Armações','armacoes'],['Lentes','lentes'],['Contato','contato']].map(([t,id])=><a key={id} href={'#'+id} onClick={()=>setMenu(false)}>{t}</a>)}</nav><div className="header-actions"><button aria-label="Buscar armações" onClick={()=>{setSearch(!search);document.getElementById('armacoes')?.scrollIntoView({behavior:'smooth'})}}><Search size={19}/></button><button aria-label={'Abrir seleção, '+cart.length+' itens'} onClick={()=>setCartOpen(true)}><ShoppingBag size={19}/>{cart.length>0&&<b className="count">{cart.length}</b>}</button><button className="menu-toggle" aria-label={menu?'Fechar menu':'Abrir menu'} aria-expanded={menu} onClick={()=>setMenu(!menu)}>{menu?<X/>:<Menu/>}</button></div></header>
-<main><section className="hero" id="inicio"><div className="hero-copy"><p className="eyebrow">UM NOVO OLHAR PARA O SEU MUNDO</p><h1>Mais que óculos.<br/>É sobre <strong>você.</strong></h1><p className="hero-description">Seu estilo, sua rotina, seu jeito de ver a vida. Descubra novas possibilidades para o seu olhar.</p><a className="button outline" href="#armacoes">ENCONTRE SUA ARMAÇÃO <ArrowRight size={17}/></a><span className="hero-footnote">Ótica Ventara · Interior de São Paulo</span></div><div className="hero-stage"><div className="beam"/><span className="product-note">DESIGN QUE ACOMPANHA<br/>O SEU OLHAR</span><Frame hero/><div className="pedestal"/><span className="art-label">ARMAÇÃO CONCEITUAL · ILUSTRAÇÃO</span></div><div className="hero-bottom"><span>ESTILO. PRESENÇA. IDENTIDADE.</span><a href="#sobre" aria-label="Conhecer a Ótica Ventara">EXPLORE <ArrowRight size={15}/></a></div></section>
-<section className="trust"><div><p className="eyebrow">NOSSA ESSÊNCIA</p><h2>Um olhar atento.<br/>Uma escolha <span>pessoal.</span></h2></div>{[{Icon:Glasses,title:'Seu estilo',text:'Armações para diferentes momentos.'},{Icon:Focus,title:'Sua visão',text:'Conheça as opções de lentes.'},{Icon:HeartHandshake,title:'Sua experiência',text:'Converse com a nossa equipe.'}].map(({Icon,title,text})=><div className="trust-item" key={title}><Icon/><h3>{title}</h3><p>{text}</p></div>)}</section>
-<section className="about light-section" id="sobre"><div className="section-intro"><p className="eyebrow">PRAZER, VENTARA</p><h2>O seu olhar merece<br/>uma nova <span>perspectiva.</span></h2><p>Uma ótica feita para aproximar você de escolhas que combinam com a sua personalidade. Conheça a Ventara e descubra o que faz sentido para o seu dia a dia.</p><a href="#contato" className="button dark">CONHEÇA A VENTARA <ArrowUpRight size={17}/></a></div><div className="benefits">{[{Icon:Glasses,title:'Armações',text:'Formas e estilos para expressar quem você é.'},{Icon:Focus,title:'Lentes',text:'Opções para conhecer com a nossa equipe.'},{Icon:HeartHandshake,title:'Atendimento',text:'Uma conversa sobre sua rotina e suas preferências.'},{Icon:ShieldCheck,title:'Cuidado',text:'Orientações para conservar seus óculos no dia a dia.'}].map(({Icon,title,text})=><article key={title}><Icon/><h3>{title}</h3><p>{text}</p></article>)}</div></section>
-<section className="collection light-section" id="armacoes"><div className="section-heading"><div><p className="eyebrow">ENCONTRE O SEU PRÓXIMO FAVORITO</p><h2>Um estilo para cada <span>olhar.</span></h2></div><span className="demo-label">COLEÇÃO CONCEITUAL</span></div><div className="filters"><div role="group" aria-label="Filtrar produtos">{['Todos','Grau','Solar'].map(f=><button key={f} onClick={()=>setFilter(f)} className={filter===f?'active':''}>{f}</button>)}</div><span><SlidersHorizontal size={15}/>{filtered.length} modelos ilustrativos</span></div>{search&&<label className="search-box">Buscar modelo<input autoFocus placeholder="Digite o nome da armação" value={query} onChange={e=>setQuery(e.target.value)}/></label>}<div className="product-grid">{filtered.map(p=><article className="product" key={p.id}><button className="product-image" aria-label={'Ver detalhes de '+p.name} onClick={()=>setDetail(p)}><span className="tag">{p.category==='Grau'?'ÓCULOS DE GRAU':'ÓCULOS DE SOL'}</span><Frame solar={p.category==='Solar'} amber={p.id===2} round={p.shape==='round'}/><span className="image-action"><Plus size={18}/></span></button><div className="product-info"><h3>{p.name}</h3><span>{p.color}</span><div><p>Consulte disponibilidade</p><button aria-label={'Adicionar '+p.name+' à seleção'} onClick={()=>add(p)}><ShoppingBag size={17}/></button></div></div></article>)}</div>{filtered.length===0&&<div className="empty"><p>Nenhum modelo encontrado.</p><button className="button dark" onClick={()=>{setQuery('');setFilter('Todos')}}>LIMPAR FILTROS</button></div>}</section>
-<section className="lens-section" id="lentes"><div className="lens-art"><div/><Focus size={80} strokeWidth={.65}/><span>MAIS POSSIBILIDADES PARA O SEU OLHAR</span></div><div><p className="eyebrow">ALÉM DA ARMAÇÃO</p><h2>Cada rotina pede<br/>um novo <span>foco.</span></h2><p>Trabalho, leitura ou momentos ao ar livre. Converse com nossa equipe para conhecer as opções de lentes e tratamentos disponíveis.</p><a className="button outline" href="#contato">CONHECER AS OPÇÕES <ArrowUpRight size={17}/></a></div></section>
-<section className="faq light-section"><div><p className="eyebrow">ANTES DE ESCOLHER</p><h2>Vamos olhar<br/>mais de <span>perto?</span></h2></div><div>{[['Posso comprar pelo site?','Este é um protótipo de catálogo. Compras e pagamentos ainda não estão habilitados.'],['Os modelos estão disponíveis na loja?','Os nomes e as ilustrações apresentados são demonstrativos. O catálogo real será cadastrado pela ótica.'],['Como encontro a loja?','O endereço, o horário de funcionamento e os canais oficiais serão incluídos após confirmação pela Ótica Ventara.']].map(([q,a],i)=><article key={q}><button aria-expanded={question===i} onClick={()=>setQuestion(question===i?null:i)}>{q}{question===i?<Minus size={18}/>:<Plus size={18}/>}</button>{question===i&&<p>{a}</p>}</article>)}</div></section>
-<section className="contact" id="contato"><div><p className="eyebrow">ÓTICA VENTARA</p><h2>Seu próximo olhar<br/>começa <span>aqui.</span></h2></div><div><MapPin/><h3>Interior de São Paulo</h3><p>Endereço, WhatsApp e horários aguardando confirmação.</p><button className="button outline" onClick={()=>notify('O canal de atendimento será ativado após a confirmação do WhatsApp oficial.')}>FALE COM A VENTARA <ArrowUpRight size={17}/></button><small>Canal de atendimento ainda não configurado.</small></div></section></main><footer><a href="#inicio" className="footer-logo">VENTARA<span>EYEWEAR</span></a><p>Um novo olhar para você.</p><span>PROTÓTIPO · SEM VENDAS REAIS</span></footer>
-{toast&&<div className="toast" role="status"><Check size={18}/>{toast}</div>}
-{(cartOpen||detail)&&<div className="overlay" onClick={()=>{setCartOpen(false);setDetail(null)}}><section className="dialog" role="dialog" aria-modal="true" aria-label={cartOpen?'Sua seleção':'Detalhes do modelo'} onClick={e=>e.stopPropagation()} onKeyDown={e=>{if(e.key==='Escape'){setCartOpen(false);setDetail(null)}}} tabIndex={-1} ref={el=>el?.focus()}><button className="close" aria-label="Fechar" onClick={()=>{setCartOpen(false);setDetail(null)}}><X/></button>{detail?<><Frame solar={detail.category==='Solar'} amber={detail.id===2}/><p className="eyebrow">MODELO CONCEITUAL</p><h2>{detail.name}</h2><p>{detail.color} · {detail.category}</p><p>Ilustração demonstrativa. Materiais, medidas, preço e disponibilidade serão confirmados no cadastro do produto real.</p><button className="button dark" onClick={()=>add(detail)}>ADICIONAR À SELEÇÃO <Plus size={17}/></button></>:<><p className="eyebrow">SEUS FAVORITOS</p><h2>Sua seleção</h2>{cart.length===0?<p>Sua seleção está vazia. Explore as armações e adicione seus modelos favoritos.</p>:<><ul className="cart-list">{products.filter(p=>cart.includes(p.id)).map(p=><li key={p.id}><div>{p.name}<small>{cart.filter(id=>id===p.id).length} unidade(s)</small></div><button aria-label={'Remover '+p.name} onClick={()=>setCart(cart.filter(id=>id!==p.id))}><X size={18}/></button></li>)}</ul><p>Seleção demonstrativa. Nenhum pedido será enviado e não haverá cobrança.</p><button className="button dark" onClick={()=>notify('Solicitação não enviada: configure o canal oficial da loja antes de publicar.')}>CONSULTAR MODELOS <ArrowRight size={17}/></>}</>}</section></div>}</>}
+import { useState } from "react";
+import {
+  ArrowRight,
+  ArrowUpRight,
+  ShoppingBag,
+  Search,
+  Menu,
+  X,
+  Glasses,
+  Focus,
+  HeartHandshake,
+  ShieldCheck,
+  SlidersHorizontal,
+  Minus,
+  Plus,
+  Check,
+  MapPin,
+} from "lucide-react";
+
+type Product = { id: number; name: string; category: string; color: string; shape: string };
+
+const products: Product[] = [
+  { id: 1, name: "Ventara Essencial", category: "Grau", color: "Preto clássico", shape: "square" },
+  { id: 2, name: "Ventara Aurora", category: "Solar", color: "Âmbar translúcido", shape: "round" },
+  { id: 3, name: "Ventara Urbano", category: "Grau", color: "Grafite", shape: "round" },
+  { id: 4, name: "Ventara Horizonte", category: "Solar", color: "Preto e dourado", shape: "square" },
+];
+
+function Frame({
+  solar = false,
+  round = false,
+  amber = false,
+  hero = false,
+}: {
+  solar?: boolean;
+  round?: boolean;
+  amber?: boolean;
+  hero?: boolean;
+}) {
+  const stroke = amber ? "#80522c" : "#172735";
+  return (
+    <svg
+      className={hero ? "frame-art hero-frame" : "frame-art"}
+      viewBox="0 0 680 300"
+      role="img"
+      aria-label={solar ? "Ilustração de óculos de sol" : "Ilustração de armação de óculos"}
+    >
+      <defs>
+        <linearGradient id={hero ? "heroLens" : "lens"} x1="0" y1="0" x2="1" y2="1">
+          <stop
+            stopColor={solar ? "#17232d" : "#76b7de"}
+            stopOpacity={solar ? ".95" : ".35"}
+          />
+          <stop offset="1" stopColor={solar ? "#354e5f" : "#b9d8ed"} stopOpacity={solar ? ".95" : ".03"} />
+        </linearGradient>
+      </defs>
+      <path
+        d="M90 102 L52 40 Q46 28 64 25 L260 62 M580 102 L620 40 Q628 29 613 25 L415 62"
+        fill="none"
+        stroke={stroke}
+        strokeWidth="12"
+        strokeLinecap="round"
+      />
+      <path
+        d="M74 100 Q158 70 282 97 Q306 116 285 200 Q275 237 222 240 L134 235 Q86 230 80 190 Z"
+        fill={hero ? "url(#heroLens)" : "url(#lens)"}
+        stroke={stroke}
+        strokeWidth="15"
+        strokeLinejoin="round"
+        rx={round ? "60" : "20"}
+      />
+      <path
+        d="M606 100 Q522 70 398 97 Q374 116 395 200 Q405 237 458 240 L546 235 Q594 230 600 190 Z"
+        fill={hero ? "url(#heroLens)" : "url(#lens)"}
+        stroke={stroke}
+        strokeWidth="15"
+        strokeLinejoin="round"
+      />
+      <path d="M288 120 Q340 92 392 120" stroke={stroke} strokeWidth="12" fill="none" />
+      <path
+        d="M92 108 Q175 86 271 105 M408 105 Q508 86 587 108"
+        stroke="#c2d7e4"
+        strokeWidth="3"
+        fill="none"
+        opacity=".7"
+      />
+      <path
+        d="M104 107 L114 118 L121 106 M563 106 L573 117 L580 105"
+        stroke="#e6c46c"
+        strokeWidth="3"
+        fill="none"
+      />
+    </svg>
+  );
+}
+
+export default function Home() {
+  const [menu, setMenu] = useState(false);
+  const [filter, setFilter] = useState("Todos");
+  const [query, setQuery] = useState("");
+  const [search, setSearch] = useState(false);
+  const [cartOpen, setCartOpen] = useState(false);
+  const [cart, setCart] = useState<number[]>([]);
+  const [detail, setDetail] = useState<Product | null>(null);
+  const [toast, setToast] = useState("");
+  const [question, setQuestion] = useState<number | null>(0);
+
+  const notify = (message: string) => {
+    setToast(message);
+    setTimeout(() => setToast(""), 3000);
+  };
+
+  const add = (p: Product) => {
+    setCart([...cart, p.id]);
+    notify(p.name + " adicionado à seleção");
+  };
+
+  const filtered = products.filter(
+    (p) => (filter === "Todos" || p.category === filter) && p.name.toLowerCase().includes(query.toLowerCase()),
+  );
+
+  return (
+    <>
+      <div className="preview">
+        PROTÓTIPO VISUAL · PRODUTOS ILUSTRATIVOS · SEM VENDAS REAIS
+      </div>
+      <header>
+        <a href="#inicio" className="brand" aria-label="Ótica Ventara, início">
+          <Glasses />
+          <span>
+            <small>ÓTICA</small>VENTARA<em>EYEWEAR</em>
+          </span>
+        </a>
+        <nav className={menu ? "nav open" : "nav"} aria-label="Navegação principal">
+          {[["Início", "inicio"], ["Sobre nós", "sobre"], ["Armações", "armacoes"], ["Lentes", "lentes"], ["Contato", "contato"]].map(
+            ([t, id]) => (
+              <a key={id} href={"#" + id} onClick={() => setMenu(false)}>
+                {t}
+              </a>
+            ),
+          )}
+        </nav>
+        <div className="header-actions">
+          <button
+            aria-label="Buscar armações"
+            onClick={() => {
+              setSearch(!search);
+              document.getElementById("armacoes")?.scrollIntoView({ behavior: "smooth" });
+            }}
+          >
+            <Search size={19} />
+          </button>
+          <button aria-label={"Abrir seleção, " + cart.length + " itens"} onClick={() => setCartOpen(true)}>
+            <ShoppingBag size={19} />
+            {cart.length > 0 && <b className="count">{cart.length}</b>}
+          </button>
+          <button
+            className="menu-toggle"
+            aria-label={menu ? "Fechar menu" : "Abrir menu"}
+            aria-expanded={menu}
+            onClick={() => setMenu(!menu)}
+          >
+            {menu ? <X /> : <Menu />}
+          </button>
+        </div>
+      </header>
+
+      <main>
+        <section className="hero" id="inicio">
+          <div className="hero-copy">
+            <p className="eyebrow">UM NOVO OLHAR PARA O SEU MUNDO</p>
+            <h1>
+              Mais que óculos.<br />
+              É sobre <strong>você.</strong>
+            </h1>
+            <p className="hero-description">
+              Seu estilo, sua rotina, seu jeito de ver a vida. Descubra novas possibilidades para o seu olhar.
+            </p>
+            <a className="button outline" href="#armacoes">
+              ENCONTRE SUA ARMAÇÃO <ArrowRight size={17} />
+            </a>
+            <span className="hero-footnote">Ótica Ventara · Interior de São Paulo</span>
+          </div>
+          <div className="hero-stage">
+            <div className="beam" />
+            <span className="product-note">DESIGN QUE ACOMPANHA<br />O SEU OLHAR</span>
+            <Frame hero />
+            <div className="pedestal" />
+            <span className="art-label">ARMAÇÃO CONCEITUAL · ILUSTRAÇÃO</span>
+          </div>
+          <div className="hero-bottom">
+            <span>ESTILO. PRESENÇA. IDENTIDADE.</span>
+            <a href="#sobre" aria-label="Conhecer a Ótica Ventara">
+              EXPLORE <ArrowRight size={15} />
+            </a>
+          </div>
+        </section>
+
+        <section className="trust">
+          <div>
+            <p className="eyebrow">NOSSA ESSÊNCIA</p>
+            <h2>
+              Um olhar atento.<br />
+              Uma escolha <span>pessoal.</span>
+            </h2>
+          </div>
+          {[
+            { Icon: Glasses, title: "Seu estilo", text: "Armações para diferentes momentos." },
+            { Icon: Focus, title: "Sua visão", text: "Conheça as opções de lentes." },
+            { Icon: HeartHandshake, title: "Sua experiência", text: "Converse com a nossa equipe." },
+          ].map(({ Icon, title, text }) => (
+            <div className="trust-item" key={title}>
+              <Icon />
+              <h3>{title}</h3>
+              <p>{text}</p>
+            </div>
+          ))}
+        </section>
+
+        <section className="about light-section" id="sobre">
+          <div className="section-intro">
+            <p className="eyebrow">PRAZER, VENTARA</p>
+            <h2>
+              O seu olhar merece<br />
+              uma nova <span>perspectiva.</span>
+            </h2>
+            <p>
+              Uma ótica feita para aproximar você de escolhas que combinam com a sua personalidade. Conheça a Ventara
+              e descubra o que faz sentido para o seu dia a dia.
+            </p>
+            <a href="#contato" className="button dark">
+              CONHEÇA A VENTARA <ArrowUpRight size={17} />
+            </a>
+          </div>
+          <div className="benefits">
+            {[
+              { Icon: Glasses, title: "Armações", text: "Formas e estilos para expressar quem você é." },
+              { Icon: Focus, title: "Lentes", text: "Opções para conhecer com a nossa equipe." },
+              { Icon: HeartHandshake, title: "Atendimento", text: "Uma conversa sobre sua rotina e suas preferências." },
+              { Icon: ShieldCheck, title: "Cuidado", text: "Orientações para conservar seus óculos no dia a dia." },
+            ].map(({ Icon, title, text }) => (
+              <article key={title}>
+                <Icon />
+                <h3>{title}</h3>
+                <p>{text}</p>
+              </article>
+            ))}
+          </div>
+        </section>
+
+        <section className="collection light-section" id="armacoes">
+          <div className="section-heading">
+            <div>
+              <p className="eyebrow">ENCONTRE O SEU PRÓXIMO FAVORITO</p>
+              <h2>
+                Um estilo para cada <span>olhar.</span>
+              </h2>
+            </div>
+            <span className="demo-label">COLEÇÃO CONCEITUAL</span>
+          </div>
+          <div className="filters">
+            <div role="group" aria-label="Filtrar produtos">
+              {["Todos", "Grau", "Solar"].map((f) => (
+                <button key={f} onClick={() => setFilter(f)} className={filter === f ? "active" : ""}>
+                  {f}
+                </button>
+              ))}
+            </div>
+            <span>
+              <SlidersHorizontal size={15} /> {filtered.length} modelos ilustrativos
+            </span>
+          </div>
+          {search && (
+            <label className="search-box">
+              Buscar modelo
+              <input
+                autoFocus
+                placeholder="Digite o nome da armação"
+                value={query}
+                onChange={(e) => setQuery(e.target.value)}
+              />
+            </label>
+          )}
+          <div className="product-grid">
+            {filtered.map((p) => (
+              <article className="product" key={p.id}>
+                <button
+                  className="product-image"
+                  aria-label={"Ver detalhes de " + p.name}
+                  onClick={() => setDetail(p)}
+                >
+                  <span className="tag">{p.category === "Grau" ? "ÓCULOS DE GRAU" : "ÓCULOS DE SOL"}</span>
+                  <Frame solar={p.category === "Solar"} amber={p.id === 2} round={p.shape === "round"} />
+                  <span className="image-action">
+                    <Plus size={18} />
+                  </span>
+                </button>
+                <div className="product-info">
+                  <h3>{p.name}</h3>
+                  <span>{p.color}</span>
+                  <div>
+                    <p>Consulte disponibilidade</p>
+                    <button aria-label={"Adicionar " + p.name + " à seleção"} onClick={() => add(p)}>
+                      <ShoppingBag size={17} />
+                    </button>
+                  </div>
+                </div>
+              </article>
+            ))}
+          </div>
+          {filtered.length === 0 && (
+            <div className="empty">
+              <p>Nenhum modelo encontrado.</p>
+              <button
+                className="button dark"
+                onClick={() => {
+                  setQuery("");
+                  setFilter("Todos");
+                }}
+              >
+                LIMPAR FILTROS
+              </button>
+            </div>
+          )}
+        </section>
+
+        <section className="lens-section" id="lentes">
+          <div className="lens-art">
+            <div />
+            <Focus size={80} strokeWidth={0.65} />
+            <span>MAIS POSSIBILIDADES PARA O SEU OLHAR</span>
+          </div>
+          <div>
+            <p className="eyebrow">ALÉM DA ARMAÇÃO</p>
+            <h2>
+              Cada rotina pede<br />
+              um novo <span>foco.</span>
+            </h2>
+            <p>
+              Trabalho, leitura ou momentos ao ar livre. Converse com nossa equipe para conhecer as opções de lentes e
+              tratamentos disponíveis.
+            </p>
+            <a className="button outline" href="#contato">
+              CONHECER AS OPÇÕES <ArrowUpRight size={17} />
+            </a>
+          </div>
+        </section>
+
+        <section className="faq light-section">
+          <div>
+            <p className="eyebrow">ANTES DE ESCOLHER</p>
+            <h2>
+              Vamos olhar<br />
+              mais de <span>perto?</span>
+            </h2>
+          </div>
+          <div>
+            {[
+              [
+                "Posso comprar pelo site?",
+                "Este é um protótipo de catálogo. Compras e pagamentos ainda não estão habilitados.",
+              ],
+              [
+                "Os modelos estão disponíveis na loja?",
+                "Os nomes e as ilustrações apresentados são demonstrativos. O catálogo real será cadastrado pela ótica.",
+              ],
+              [
+                "Como encontro a loja?",
+                "O endereço, o horário de funcionamento e os canais oficiais serão incluídos após confirmação pela Ótica Ventara.",
+              ],
+            ].map(([q, a], i) => (
+              <article key={q}>
+                <button
+                  aria-expanded={question === i}
+                  onClick={() => setQuestion(question === i ? null : i)}
+                >
+                  {q}
+                  {question === i ? <Minus size={18} /> : <Plus size={18} />}
+                </button>
+                {question === i && <p>{a}</p>}
+              </article>
+            ))}
+          </div>
+        </section>
+
+        <section className="contact" id="contato">
+          <div>
+            <p className="eyebrow">ÓTICA VENTARA</p>
+            <h2>
+              Seu próximo olhar<br />
+              começa <span>aqui.</span>
+            </h2>
+          </div>
+          <div>
+            <MapPin />
+            <h3>Interior de São Paulo</h3>
+            <p>Endereço, WhatsApp e horários aguardando confirmação.</p>
+            <button
+              className="button outline"
+              onClick={() =>
+                notify("O canal de atendimento será ativado após a confirmação do WhatsApp oficial.")
+              }
+            >
+              FALE COM A VENTARA <ArrowUpRight size={17} />
+            </button>
+            <small>Canal de atendimento ainda não configurado.</small>
+          </div>
+        </section>
+      </main>
+
+      <footer>
+        <a href="#inicio" className="footer-logo">
+          VENTARA<span>EYEWEAR</span>
+        </a>
+        <p>Um novo olhar para você.</p>
+        <span>PROTÓTIPO · SEM VENDAS REAIS</span>
+      </footer>
+
+      {toast && (
+        <div className="toast" role="status">
+          <Check size={18} />
+          {toast}
+        </div>
+      )}
+
+      {(cartOpen || detail) && (
+        <div className="overlay" onClick={() => { setCartOpen(false); setDetail(null); }}>
+          <section
+            className="dialog"
+            role="dialog"
+            aria-modal="true"
+            aria-label={cartOpen ? "Sua seleção" : "Detalhes do modelo"}
+            onClick={(e) => e.stopPropagation()}
+            onKeyDown={(e) => {
+              if (e.key === "Escape") {
+                setCartOpen(false);
+                setDetail(null);
+              }
+            }}
+            tabIndex={-1}
+            ref={(el) => el?.focus()}
+          >
+            <button
+              className="close"
+              aria-label="Fechar"
+              onClick={() => { setCartOpen(false); setDetail(null); }}
+            >
+              <X />
+            </button>
+            {detail ? (
+              <>
+                <Frame solar={detail.category === "Solar"} amber={detail.id === 2} />
+                <p className="eyebrow">MODELO CONCEITUAL</p>
+                <h2>{detail.name}</h2>
+                <p>{detail.color} · {detail.category}</p>
+                <p>
+                  Ilustração demonstrativa. Materiais, medidas, preço e disponibilidade serão confirmados no cadastro do
+                  produto real.
+                </p>
+                <button
+                  className="button dark"
+                  onClick={() => add(detail)}
+                >
+                  ADICIONAR À SELEÇÃO <Plus size={17} />
+                </button>
+              </>
+            ) : (
+              <>
+                <p className="eyebrow">SEUS FAVORITOS</p>
+                <h2>Sua seleção</h2>
+                {cart.length === 0 ? (
+                  <p>Sua seleção está vazia. Explore as armações e adicione seus modelos favoritos.</p>
+                ) : (
+                  <>
+                    <ul className="cart-list">
+                      {products
+                        .filter((p) => cart.includes(p.id))
+                        .map((p) => (
+                          <li key={p.id}>
+                            <div>
+                              {p.name}
+                              <small>{cart.filter((id) => id === p.id).length} unidade(s)</small>
+                            </div>
+                            <button
+                              aria-label={"Remover " + p.name}
+                              onClick={() => setCart(cart.filter((id) => id !== p.id))}
+                            >
+                              <X size={18} />
+                            </button>
+                          </li>
+                        ))}
+                    </ul>
+                    <p>Seleção demonstrativa. Nenhum pedido será enviado e não haverá cobrança.</p>
+                    <button
+                      className="button dark"
+                      onClick={() =>
+                        notify(
+                          "Solicitação não enviada: configure o canal oficial da loja antes de publicar.",
+                        )
+                      }
+                    >
+                      CONSULTAR MODELOS <ArrowRight size={17} />
+                    </button>
+                  </>
+                )}
+              </>
+            )}
+          </section>
+        </div>
+      )}
+    </>
+  );
+}
