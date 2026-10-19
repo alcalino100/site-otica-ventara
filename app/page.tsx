@@ -180,7 +180,7 @@ export default function Home() {
             <a className="button outline" href="#armacoes">
               ENCONTRE SUA ARMAÇÃO <ArrowRight size={17} />
             </a>
-            <span className="hero-footnote">Ótica Ventara · Interior de São Paulo</span>
+            <span className="hero-footnote">Ótica Ventara · Araçatuba - SP</span>
           </div>
           <div className="hero-stage">
             <div className="beam" />
@@ -394,17 +394,17 @@ export default function Home() {
           </div>
           <div>
             <MapPin />
-            <h3>Interior de São Paulo</h3>
-            <p>Endereço, WhatsApp e horários aguardando confirmação.</p>
+            <h3>Araçatuba - SP</h3>
+            <p>R. Princesa Isabel, 221 - Centro, Araçatuba - SP, 16010-250</p>
+            <p><a href="tel:+5518996155748" className="contact-phone">(18) 99615-5748</a></p>
+            <p>Ter a Sex: 09h às 18h · Sáb: 09h às 13h · Dom: fechado</p>
             <button
               className="button outline"
-              onClick={() =>
-                notify("O canal de atendimento será ativado após a confirmação do WhatsApp oficial.")
-              }
+              onClick={() => notify("Atendimento pelo WhatsApp (18) 99615-5748")}
             >
               FALE COM A VENTARA <ArrowUpRight size={17} />
             </button>
-            <small>Canal de atendimento ainda não configurado.</small>
+            <small>⭐ 5,0 · 36 avaliações no Google · @oticaventara no Instagram</small>
           </div>
         </section>
       </main>
