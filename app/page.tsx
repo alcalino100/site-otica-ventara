@@ -5,12 +5,13 @@ import dynamic from "next/dynamic";
 import { Header } from "../components/layout/header";
 import { Footer } from "../components/layout/footer";
 import { Hero } from "../components/sections/hero";
-import { TrustSection } from "../components/sections/trust-section";
-import { AboutSection } from "../components/sections/about-section";
+import { CategoriesSection } from "../components/sections/categories-section";
 import { CatalogSection } from "../components/catalog/catalog-section";
 import { LensesSection } from "../components/sections/lenses-section";
+import { TrustSection } from "../components/sections/trust-section";
+import { StoreSection } from "../components/sections/store-section";
+import { WhatsAppSection } from "../components/sections/whatsapp-section";
 import { FAQAccordion } from "../components/sections/faq-accordion";
-import { ContactSection } from "../components/sections/contact-section";
 import { Toast } from "../components/ui/toast";
 import { Product } from "@/types/ecommerce";
 import { DEFAULT_CATALOG } from "@/lib/catalog-data";
@@ -118,6 +119,7 @@ export default function Home() {
         ÓTICA VENTARA · ARAÇATUBA-SP · CATÁLOGO ONLINE & ATENDIMENTO PERSONALIZADO
       </div>
 
+      {/* 1. Header com logo, navegação, busca e carrinho */}
       <Header
         cartCount={cartItems.length}
         onOpenCart={() => setIsCartOpen(true)}
@@ -126,9 +128,13 @@ export default function Home() {
       />
 
       <main>
+        {/* 2. Hero editorial com headline e CTAs */}
         <Hero />
-        <TrustSection />
-        <AboutSection />
+
+        {/* 3. Categorias em destaque */}
+        <CategoriesSection />
+
+        {/* 4. Seleção de produtos */}
         <CatalogSection
           products={products}
           onSelectProduct={() => {}}
@@ -136,11 +142,24 @@ export default function Home() {
           cartIds={cartIds}
           isSearchOpen={isSearchOpen}
         />
+
+        {/* 5. Seção de lentes */}
         <LensesSection />
+
+        {/* 6. Diferenciais confirmados da ótica */}
+        <TrustSection />
+
+        {/* 7. Apresentação da loja física */}
+        <StoreSection />
+
+        {/* 8. Atendimento via WhatsApp */}
+        <WhatsAppSection onNotify={notify} />
+
+        {/* 9. FAQ com dúvidas reais */}
         <FAQAccordion />
-        <ContactSection onNotify={notify} />
       </main>
 
+      {/* 10. Footer com contatos, políticas e navegação */}
       <Footer onOpenLegal={(tab) => setLegalModal({ isOpen: true, tab })} />
 
       {/* Cart Modal com Persistência em LocalStorage e Redirecionamento WhatsApp */}

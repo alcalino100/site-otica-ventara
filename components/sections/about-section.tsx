@@ -4,25 +4,23 @@ import { ArrowUpRight, Glasses, Focus, HeartHandshake, ShieldCheck } from "lucid
 export function AboutSection() {
   const benefits = [
     { Icon: Glasses, title: "Armações Autorais", text: "Formas e linhas contemporâneas para expressar sua individualidade." },
-    { Icon: Focus, title: "Lentes de Alta Precisão", text: "Laboratório óptico parceiro com certificações internacionais." },
+    { Icon: Focus, title: "Lentes de Alta Precisão", text: "Tratamentos antirreflexo avançados e precisão dióptrica sob medida." },
     { Icon: HeartHandshake, title: "Consultoria Estética", text: "Visagismo óptico para harmonizar a armação com os traços do seu rosto." },
-    { Icon: ShieldCheck, title: "Garantia & Cuidado", text: "Ajuste contínuo, limpeza ultrassônica e suporte pós-venda completo." },
+    { Icon: ShieldCheck, title: "Garantia & Cuidado", text: "Ajuste ergonômico presencial, higienização e suporte pós-venda completo." },
   ];
 
   return (
-    <section className="about light-section" id="sobre">
+    <section className="about light-section" id="marca">
       <div className="section-intro">
-        <p className="eyebrow">PRAZER, VENTARA</p>
+        <p className="eyebrow">ESSÊNCIA DA MARCA</p>
         <h2>
-          O seu olhar merece<br />
-          uma nova <span>perspectiva.</span>
+          A diferença está nos <span>detalhes.</span>
         </h2>
         <p>
-          A Ótica Ventara nasceu com o compromisso de unir design elegante, saúde ocular e consultoria humanizada.
-          Acreditamos que usar óculos é um ato de expressão pessoal que transforma a maneira como você se apresenta ao mundo.
+          A escolha dos seus óculos vai além da aparência. Queremos ajudar você a encontrar uma combinação de estilo, conforto e funcionalidade.
         </p>
         <div className="pt-2">
-          <a href="#contato" className="button dark inline-flex items-center gap-2">
+          <a href="#loja-fisica" className="button dark inline-flex items-center gap-2">
             CONHEÇA NOSSO ESPAÇO <ArrowUpRight size={17} />
           </a>
         </div>

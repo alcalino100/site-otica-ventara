@@ -52,10 +52,13 @@ export function CatalogSection({
     <section className="collection light-section" id="armacoes">
       <div className="section-heading">
         <div>
-          <p className="eyebrow">CURADORIA DE ARMAÇÕES</p>
+          <p className="eyebrow">COLEÇÕES VENTARA</p>
           <h2>
-            Um estilo para cada <span>olhar.</span>
+            Um estilo para <span>chamar de seu.</span>
           </h2>
+          <p className="section-description text-xs sm:text-sm text-slate-600 max-w-xl mt-2 leading-relaxed">
+            Descubra armações para diferentes estilos, ocasiões e preferências. Encontre seu próximo modelo e veja os detalhes de cada peça.
+          </p>
         </div>
         <span className="demo-label">ARMAÇÕES & ÓCULOS SOLARES</span>
       </div>
