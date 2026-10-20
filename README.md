@@ -32,12 +32,12 @@ Acesse http://localhost:3000. Para conferir a compilação: `npm run build`.
 8. Auditar acessibilidade. O diálogo é básico: implementar focus trap e restauração de foco antes da produção.
 9. Adicionar estados reais de carregamento/erro quando houver chamadas ao servidor. Não há carregamento artificial nesta versão.
 
-## GitHub
+## GitHub e Fluxo de Trabalho
 
-Nome de exibição: Site - Ótica Ventara.
-Nome sugerido do repositório: site-otica-ventara.
+O projeto está publicado em: [github.com/alcalino100/site-otica-ventara](https://github.com/alcalino100/site-otica-ventara) com deploy contínuo na Vercel.
 
-Crie o repositório na sua conta e envie o conteúdo deste diretório. Não há integração com GitHub ou deploy incluída neste pacote.
+Para diretrizes de governança, padrões de Pull Requests, regras de arquitetura, esteira de qualidade e princípios de animação (Emil Kowalski & Motion Principles), consulte o documento oficial:
+👉 [**AGENTS.md**](./AGENTS.md)
 
 ## Limitações
 
