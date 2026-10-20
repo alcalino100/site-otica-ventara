@@ -14,7 +14,7 @@ import {
 } from "lucide-react";
 import { Product } from "@/types/ecommerce";
 import { DEFAULT_CATALOG } from "@/lib/catalog-data";
-import { createServerSupabaseClient, isSupabaseConfigured } from "@/lib/supabase/server";
+import { createStaticSupabaseClient, isSupabaseConfigured } from "@/lib/supabase/server";
 import { FrameArt } from "@/components/catalog/frame-art";
 import { ProductDetailActions } from "@/components/catalog/product-detail-actions";
 import { BrandLogo } from "@/components/ui/brand-logo";
@@ -32,7 +32,7 @@ export async function generateStaticParams() {
 const getProductBySlug = cache(async (slug: string): Promise<Product | null> => {
   if (isSupabaseConfigured()) {
     try {
-      const supabase = await createServerSupabaseClient();
+      const supabase = createStaticSupabaseClient();
       const { data, error } = await supabase
         .from("products")
         .select(`

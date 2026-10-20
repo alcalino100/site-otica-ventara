@@ -202,26 +202,30 @@ export async function POST(req: NextRequest) {
         .single();
 
       if (orderErr) {
-        console.error("Erro ao registrar pedido:", orderErr);
-        return NextResponse.json(
-          { error: "Falha ao gravar pedido no banco de dados." },
-          { status: 500 }
-        );
+        if (orderErr.code === "PGRST205") {
+          console.warn("Tabela 'orders' ainda não criada no Supabase. Emitindo pedido com fallback.");
+        } else {
+          console.error("Erro ao registrar pedido:", orderErr);
+          return NextResponse.json(
+            { error: "Falha ao gravar pedido no banco de dados." },
+            { status: 500 }
+          );
+        }
       }
 
       if (orderData) {
         orderId = orderData.id;
-      }
 
-      // Gravação dos itens congelados
-      const itemsToInsert = resolvedItems.map((item) => ({
-        ...item,
-        order_id: orderId,
-      }));
+        // Gravação dos itens congelados
+        const itemsToInsert = resolvedItems.map((item) => ({
+          ...item,
+          order_id: orderId,
+        }));
 
-      const { error: itemsErr } = await adminSupabase.from("order_items").insert(itemsToInsert);
-      if (itemsErr) {
-        console.error("Erro ao registrar itens do pedido:", itemsErr);
+        const { error: itemsErr } = await adminSupabase.from("order_items").insert(itemsToInsert);
+        if (itemsErr) {
+          console.error("Erro ao registrar itens do pedido:", itemsErr);
+        }
       }
     }
 
