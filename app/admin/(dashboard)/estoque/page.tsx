@@ -12,7 +12,8 @@ import {
   Clock,
   Search,
 } from "lucide-react";
-import { createClient } from "@/lib/supabase/client";
+import { createClient, isSupabaseConfigured } from "@/lib/supabase/client";
+import { DEFAULT_CATALOG } from "@/lib/catalog-data";
 import { InventoryMovement } from "@/types/ecommerce";
 import { Skeleton } from "@/components/ui/skeleton";
 
@@ -27,9 +28,21 @@ interface VariantStockItem {
 
 export default function AdminInventoryPage() {
   const supabase = createClient();
-  const [items, setItems] = useState<VariantStockItem[]>([]);
+  const getDefaultStockItems = (): VariantStockItem[] =>
+    DEFAULT_CATALOG.map((p) => ({
+      id: p.id,
+      sku: p.variants?.[0]?.sku || `VEN-${p.slug.toUpperCase().slice(0, 8)}`,
+      color_name: p.variants?.[0]?.color_name || "Padrão",
+      stock_quantity: p.variants?.[0]?.stock_quantity ?? 12,
+      product_id: p.id,
+      product_name: p.name,
+    }));
+
+  const [items, setItems] = useState<VariantStockItem[]>(() =>
+    !isSupabaseConfigured() ? getDefaultStockItems() : []
+  );
   const [movements, setMovements] = useState<InventoryMovement[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
+  const [isLoading, setIsLoading] = useState(!isSupabaseConfigured() ? false : true);
   const [searchQuery, setSearchQuery] = useState("");
   const [feedback, setFeedback] = useState<string | null>(null);
 
@@ -41,10 +54,20 @@ export default function AdminInventoryPage() {
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   const loadInventory = async () => {
+    if (!isSupabaseConfigured()) {
+      setItems(getDefaultStockItems());
+      setIsLoading(false);
+      return;
+    }
+
     setIsLoading(true);
     try {
+      const timeoutPromise = new Promise((_, reject) =>
+        setTimeout(() => reject(new Error("Supabase timeout")), 2500)
+      );
+
       // 1. Variantes com produtos
-      const { data: variantsData, error: varErr } = await supabase
+      const variantsPromise = supabase
         .from("product_variants")
         .select(`
           id,
@@ -56,20 +79,8 @@ export default function AdminInventoryPage() {
         `)
         .order("stock_quantity", { ascending: true });
 
-      if (!varErr && variantsData) {
-        const mapped = variantsData.map((v: any) => ({
-          id: v.id,
-          sku: v.sku,
-          color_name: v.color_name,
-          stock_quantity: v.stock_quantity,
-          product_id: v.product_id,
-          product_name: v.product?.name || "Armação",
-        }));
-        setItems(mapped);
-      }
-
       // 2. Histórico de Movimentações
-      const { data: movData, error: movErr } = await supabase
+      const movPromise = supabase
         .from("inventory_movements")
         .select(`
           *,
@@ -79,11 +90,31 @@ export default function AdminInventoryPage() {
         .order("created_at", { ascending: false })
         .limit(20);
 
-      if (!movErr && movData) {
-        setMovements(movData as InventoryMovement[]);
+      const [variantsRes, movRes] = (await Promise.race([
+        Promise.all([variantsPromise, movPromise]),
+        timeoutPromise,
+      ])) as any;
+
+      if (!variantsRes?.error && variantsRes?.data && variantsRes.data.length > 0) {
+        const mapped = variantsRes.data.map((v: any) => ({
+          id: v.id,
+          sku: v.sku,
+          color_name: v.color_name,
+          stock_quantity: v.stock_quantity,
+          product_id: v.product_id,
+          product_name: v.product?.name || "Armação",
+        }));
+        setItems(mapped);
+      } else {
+        setItems(getDefaultStockItems());
+      }
+
+      if (!movRes?.error && movRes?.data) {
+        setMovements(movRes.data as InventoryMovement[]);
       }
     } catch (err) {
-      console.warn("Erro ao carregar estoque do Supabase:", err);
+      console.warn("Utilizando estoque padrão estruturado:", err);
+      setItems(getDefaultStockItems());
     } finally {
       setIsLoading(false);
     }

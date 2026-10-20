@@ -19,7 +19,8 @@ import {
   FileSpreadsheet,
   Sparkles,
 } from "lucide-react";
-import { createClient } from "@/lib/supabase/client";
+import { createClient, isSupabaseConfigured } from "@/lib/supabase/client";
+import { DEFAULT_CATALOG } from "@/lib/catalog-data";
 import { NumberTicker } from "@/components/ui/number-ticker";
 import { Skeleton } from "@/components/ui/skeleton";
 import { WordsStagger } from "@/registry/spell-ui/words-stagger";
@@ -47,43 +48,62 @@ function AdminDashboardOverview() {
 
   useEffect(() => {
     async function loadStats() {
+      // Se o Supabase não estiver configurado no ambiente, usa dados padrão imediatamente sem esperar timeout
+      if (!isSupabaseConfigured()) {
+        const publishedCount = DEFAULT_CATALOG.filter((p) => p.is_published).length;
+        setStats({
+          totalProducts: DEFAULT_CATALOG.length,
+          publishedProducts: publishedCount,
+          pendingOrders: 0,
+          lowStockCount: 0,
+          confirmedSalesCount: 0,
+          confirmedSalesTotalInCents: 0,
+        });
+        setIsLoading(false);
+        return;
+      }
+
       setIsLoading(true);
       try {
-        // 1. Produtos
-        const { data: products } = await supabase
-          .from("products")
-          .select("id, is_published");
+        // Timeout de proteção de 2.5s para evitar bloqueio de rede
+        const timeoutPromise = new Promise((_, reject) =>
+          setTimeout(() => reject(new Error("Supabase timeout")), 2500)
+        );
 
-        const totalProducts = products ? products.length : 0;
+        const fetchPromise = Promise.all([
+          supabase.from("products").select("id, is_published"),
+          supabase.from("orders").select("id, status, total_in_cents"),
+          supabase.from("product_variants").select("id, stock_quantity"),
+        ]);
+
+        const [productsRes, ordersRes, variantsRes] = (await Promise.race([
+          fetchPromise,
+          timeoutPromise,
+        ])) as any;
+
+        const products = productsRes?.data;
+        const totalProducts = products ? products.length : DEFAULT_CATALOG.length;
         const publishedProducts = products
-          ? products.filter((p) => p.is_published).length
-          : 0;
+          ? products.filter((p: any) => p.is_published).length
+          : DEFAULT_CATALOG.filter((p) => p.is_published).length;
 
-        // 2. Pedidos
-        const { data: orders } = await supabase
-          .from("orders")
-          .select("id, status, total_in_cents");
-
+        const orders = ordersRes?.data;
         const pendingOrders = orders
           ? orders.filter(
-              (o) => o.status === "pending" || o.status === "awaiting_payment"
+              (o: any) => o.status === "pending" || o.status === "awaiting_payment"
             ).length
           : 0;
 
-        const paidOrders = orders ? orders.filter((o) => o.status === "paid") : [];
+        const paidOrders = orders ? orders.filter((o: any) => o.status === "paid") : [];
         const confirmedSalesCount = paidOrders.length;
         const confirmedSalesTotalInCents = paidOrders.reduce(
-          (acc, curr) => acc + (curr.total_in_cents || 0),
+          (acc: number, curr: any) => acc + (curr.total_in_cents || 0),
           0
         );
 
-        // 3. Estoque Baixo (quantidades <= 3)
-        const { data: variants } = await supabase
-          .from("product_variants")
-          .select("id, stock_quantity");
-
+        const variants = variantsRes?.data;
         const lowStockCount = variants
-          ? variants.filter((v) => v.stock_quantity <= 3).length
+          ? variants.filter((v: any) => v.stock_quantity <= 3).length
           : 0;
 
         setStats({
@@ -95,7 +115,15 @@ function AdminDashboardOverview() {
           confirmedSalesTotalInCents,
         });
       } catch (err) {
-        console.warn("Aviso ao carregar estatísticas reais do Supabase:", err);
+        console.warn("Utilizando métricas estruturadas de fallback:", err);
+        setStats({
+          totalProducts: DEFAULT_CATALOG.length,
+          publishedProducts: DEFAULT_CATALOG.length,
+          pendingOrders: 0,
+          lowStockCount: 0,
+          confirmedSalesCount: 0,
+          confirmedSalesTotalInCents: 0,
+        });
       } finally {
         setIsLoading(false);
       }

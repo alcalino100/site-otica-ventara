@@ -13,21 +13,34 @@ import {
   FileSpreadsheet,
 } from "lucide-react";
 import { Product } from "@/types/ecommerce";
-import { createClient } from "@/lib/supabase/client";
+import { createClient, isSupabaseConfigured } from "@/lib/supabase/client";
+import { DEFAULT_CATALOG } from "@/lib/catalog-data";
 import { Skeleton } from "@/components/ui/skeleton";
 
 export default function AdminProductsPage() {
   const supabase = createClient();
-  const [products, setProducts] = useState<Product[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
+  const [products, setProducts] = useState<Product[]>(() =>
+    !isSupabaseConfigured() ? DEFAULT_CATALOG : []
+  );
+  const [isLoading, setIsLoading] = useState(!isSupabaseConfigured() ? false : true);
   const [searchQuery, setSearchQuery] = useState("");
   const [statusFilter, setStatusFilter] = useState<"all" | "published" | "draft">("all");
   const [feedbackMessage, setFeedbackMessage] = useState<string | null>(null);
 
   const fetchProducts = async () => {
+    if (!isSupabaseConfigured()) {
+      setProducts(DEFAULT_CATALOG);
+      setIsLoading(false);
+      return;
+    }
+
     setIsLoading(true);
     try {
-      const { data, error } = await supabase
+      const timeoutPromise = new Promise((_, reject) =>
+        setTimeout(() => reject(new Error("Supabase timeout")), 2500)
+      );
+
+      const fetchPromise = supabase
         .from("products")
         .select(`
           *,
@@ -37,15 +50,22 @@ export default function AdminProductsPage() {
         `)
         .order("created_at", { ascending: false });
 
+      const { data, error } = (await Promise.race([
+        fetchPromise,
+        timeoutPromise,
+      ])) as any;
+
       if (error) {
-        console.warn("Aviso ao consultar Supabase:", error.message);
-        setProducts([]);
-      } else if (data) {
+        console.warn("Aviso ao consultar Supabase, utilizando catálogo estruturado:", error.message);
+        setProducts(DEFAULT_CATALOG);
+      } else if (data && data.length > 0) {
         setProducts(data as Product[]);
+      } else {
+        setProducts(DEFAULT_CATALOG);
       }
     } catch (err) {
-      console.warn("Erro ao buscar produtos:", err);
-      setProducts([]);
+      console.warn("Utilizando catálogo padrão estruturado:", err);
+      setProducts(DEFAULT_CATALOG);
     } finally {
       setIsLoading(false);
     }

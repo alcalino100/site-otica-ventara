@@ -13,21 +13,31 @@ import {
   Package,
 } from "lucide-react";
 import { Order, OrderStatus } from "@/types/ecommerce";
-import { createClient } from "@/lib/supabase/client";
+import { createClient, isSupabaseConfigured } from "@/lib/supabase/client";
 import { Skeleton } from "@/components/ui/skeleton";
 
 export default function AdminOrdersPage() {
   const supabase = createClient();
   const [orders, setOrders] = useState<Order[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
+  const [isLoading, setIsLoading] = useState(!isSupabaseConfigured() ? false : true);
   const [searchQuery, setSearchQuery] = useState("");
   const [statusFilter, setStatusFilter] = useState<string>("all");
   const [updatingId, setUpdatingId] = useState<string | null>(null);
 
   const fetchOrders = async () => {
+    if (!isSupabaseConfigured()) {
+      setOrders([]);
+      setIsLoading(false);
+      return;
+    }
+
     setIsLoading(true);
     try {
-      const { data, error } = await supabase
+      const timeoutPromise = new Promise((_, reject) =>
+        setTimeout(() => reject(new Error("Supabase timeout")), 2500)
+      );
+
+      const fetchPromise = supabase
         .from("orders")
         .select(`
           *,
@@ -35,13 +45,18 @@ export default function AdminOrdersPage() {
         `)
         .order("created_at", { ascending: false });
 
+      const { data, error } = (await Promise.race([
+        fetchPromise,
+        timeoutPromise,
+      ])) as any;
+
       if (!error && data) {
         setOrders(data as Order[]);
       } else {
         setOrders([]);
       }
     } catch (err) {
-      console.warn("Erro ao buscar pedidos:", err);
+      console.warn("Nenhum pedido real localizado:", err);
       setOrders([]);
     } finally {
       setIsLoading(false);
