@@ -56,4 +56,13 @@ test.describe("Ótica Ventara - Catálogo e Interações", () => {
     await faqButton.click();
     await expect(faqButton).toHaveAttribute("aria-expanded", "false");
   });
+
+  test("deve acessar a página individual do produto com especificações técnicas", async ({ page }) => {
+    await page.goto("/produto/ventara-aurora");
+    await expect(page).toHaveTitle(/Ventara Aurora/i);
+    await expect(page.locator("h1")).toContainText("Ventara Aurora");
+    await expect(page.getByText("Acetato Premium").first()).toBeVisible();
+    await expect(page.getByRole("button", { name: /Adicionar à seleção/i })).toBeVisible();
+    await expect(page.getByRole("link", { name: /Consultar.*WhatsApp/i })).toBeVisible();
+  });
 });

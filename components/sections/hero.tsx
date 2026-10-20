@@ -8,21 +8,23 @@ export function Hero() {
   return (
     <section className="hero" id="inicio">
       <div className="hero-copy">
-        <p className="eyebrow">UM NOVO OLHAR PARA O SEU MUNDO</p>
+        <p className="eyebrow">SEU ESTILO. SEU OLHAR.</p>
         <h1>
           Mais que óculos.<br />
-          É sobre <strong>você.</strong>
+          Seu jeito de <strong>ver o mundo.</strong>
         </h1>
         <p className="hero-description">
-          Seu estilo, sua rotina, seu jeito de ver a vida. Descubra armações autorais e lentes de alta precisão
-          feitas sob medida para o seu bem-estar.
+          Encontre armações que combinam com sua personalidade e conheça opções de lentes pensadas para as suas necessidades. Na Ótica Ventara, seu próximo olhar começa com a escolha certa.
         </p>
-        <div className="hero-cta-wrapper">
+        <div className="hero-cta-wrapper flex flex-wrap items-center gap-4">
           <a className="button outline" href="#armacoes">
-            ENCONTRE SUA ARMAÇÃO <ArrowRight size={17} />
+            Explorar coleção <ArrowRight size={17} />
+          </a>
+          <a className="button dark" href="#sobre">
+            Conhecer nossa loja
           </a>
         </div>
-        <span className="hero-footnote">Ótica Ventara · Araçatuba - SP</span>
+        <span className="hero-footnote">Ótica Ventara · Rua Princesa Isabel, 221 · Araçatuba - SP</span>
       </div>
 
       <div className="hero-stage">
