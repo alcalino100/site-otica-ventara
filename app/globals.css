@@ -27,6 +27,7 @@
 html {
   scroll-behavior: smooth;
   scroll-padding-top: 90px;
+  overflow-x: hidden;
 }
 
 body {
@@ -36,6 +37,7 @@ body {
   font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+  overflow-x: hidden;
 }
 
 /* Touch & Interaction Baseline */
@@ -199,12 +201,8 @@ header.site-header {
   left: 0;
   right: 0;
   z-index: 30;
-  max-width: 1440px;
-  margin: auto;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 24px 5%;
+  width: 100%;
+  padding: 16px 0;
 }
 
 .brand {
@@ -331,14 +329,14 @@ header.site-header {
 
 /* Hero Section with Ambient Glow */
 .hero {
-  min-height: 700px;
+  min-height: 720px;
   position: relative;
   overflow: hidden;
-  display: grid;
-  grid-template-columns: 44% 56%;
-  align-items: center;
-  padding: 140px 5% 90px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
   background: radial-gradient(ellipse at 67% 36%, #154e79 0%, #082339 28%, #030e17 60%, #02090e 92%);
+  padding: 0;
 }
 
 .hero-copy {
@@ -384,9 +382,10 @@ h1 strong {
 .hero-stage {
   position: relative;
   min-height: 420px;
-  align-self: end;
-  display: grid;
+  display: flex;
   align-items: center;
+  justify-content: center;
+  width: 100%;
 }
 
 /* Subtle Hero Floating Motion */
@@ -429,9 +428,11 @@ h1 strong {
   background: linear-gradient(#142f46, #02090e 65%);
   box-shadow: 0 -6px 24px rgba(89, 187, 255, 0.28);
   position: absolute;
-  bottom: -18px;
-  width: 85%;
-  left: 5%;
+  bottom: 0px;
+  width: 90%;
+  max-width: 520px;
+  left: 50%;
+  transform: translateX(-50%);
 }
 
 .pedestal::before {
@@ -469,10 +470,8 @@ h1 strong {
 }
 
 .hero-bottom {
-  position: absolute;
-  bottom: 24px;
-  left: 5%;
-  right: 5%;
+  position: relative;
+  width: 100%;
   display: flex;
   justify-content: space-between;
   font-size: 9px;
@@ -615,7 +614,7 @@ h1 strong {
 
 /* Collection & Catalog */
 .collection {
-  padding: 30px 5% 90px;
+  padding: 80px 0;
 }
 
 .section-heading {
@@ -1180,7 +1179,7 @@ h1 strong {
     padding: 20px 0;
   }
   .collection {
-    padding: 20px 6% 60px;
+    padding: 40px 0 60px;
   }
   .product-grid {
     grid-template-columns: 1fr;
