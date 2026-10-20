@@ -311,6 +311,68 @@ DO $$ BEGIN
   IF NOT EXISTS (SELECT 1 FROM pg_policies WHERE policyname = 'banners_public_read' AND tablename = 'homepage_banners') THEN
     CREATE POLICY "banners_public_read" ON public.homepage_banners FOR SELECT USING (is_published = true);
   END IF;
+
+  -- Políticas Administrativas (Permissões de gerenciamento para administradores)
+  IF NOT EXISTS (SELECT 1 FROM pg_policies WHERE policyname = 'Admins podem gerenciar categorias' AND tablename = 'categories') THEN
+    CREATE POLICY "Admins podem gerenciar categorias" ON public.categories FOR ALL USING (public.is_admin()) WITH CHECK (public.is_admin());
+  END IF;
+
+  IF NOT EXISTS (SELECT 1 FROM pg_policies WHERE policyname = 'Admins podem gerenciar marcas' AND tablename = 'brands') THEN
+    CREATE POLICY "Admins podem gerenciar marcas" ON public.brands FOR ALL USING (public.is_admin()) WITH CHECK (public.is_admin());
+  END IF;
+
+  IF NOT EXISTS (SELECT 1 FROM pg_policies WHERE policyname = 'Admins podem gerenciar produtos' AND tablename = 'products') THEN
+    CREATE POLICY "Admins podem gerenciar produtos" ON public.products FOR ALL USING (public.is_admin()) WITH CHECK (public.is_admin());
+  END IF;
+
+  IF NOT EXISTS (SELECT 1 FROM pg_policies WHERE policyname = 'Admins podem gerenciar imagens de produtos' AND tablename = 'product_images') THEN
+    CREATE POLICY "Admins podem gerenciar imagens de produtos" ON public.product_images FOR ALL USING (public.is_admin()) WITH CHECK (public.is_admin());
+  END IF;
+
+  IF NOT EXISTS (SELECT 1 FROM pg_policies WHERE policyname = 'Admins podem gerenciar variantes de produtos' AND tablename = 'product_variants') THEN
+    CREATE POLICY "Admins podem gerenciar variantes de produtos" ON public.product_variants FOR ALL USING (public.is_admin()) WITH CHECK (public.is_admin());
+  END IF;
+
+  IF NOT EXISTS (SELECT 1 FROM pg_policies WHERE policyname = 'Admins podem gerenciar pedidos' AND tablename = 'orders') THEN
+    CREATE POLICY "Admins podem gerenciar pedidos" ON public.orders FOR ALL USING (public.is_admin()) WITH CHECK (public.is_admin());
+  END IF;
+
+  IF NOT EXISTS (SELECT 1 FROM pg_policies WHERE policyname = 'Admins podem gerenciar itens de pedidos' AND tablename = 'order_items') THEN
+    CREATE POLICY "Admins podem gerenciar itens de pedidos" ON public.order_items FOR ALL USING (public.is_admin()) WITH CHECK (public.is_admin());
+  END IF;
+
+  IF NOT EXISTS (SELECT 1 FROM pg_policies WHERE policyname = 'Admins podem gerenciar site_settings' AND tablename = 'site_settings') THEN
+    CREATE POLICY "Admins podem gerenciar site_settings" ON public.site_settings FOR ALL USING (public.is_admin()) WITH CHECK (public.is_admin());
+  END IF;
+
+  IF NOT EXISTS (SELECT 1 FROM pg_policies WHERE policyname = 'Admins podem gerenciar banners' AND tablename = 'homepage_banners') THEN
+    CREATE POLICY "Admins podem gerenciar banners" ON public.homepage_banners FOR ALL USING (public.is_admin()) WITH CHECK (public.is_admin());
+  END IF;
+
+  IF NOT EXISTS (SELECT 1 FROM pg_policies WHERE policyname = 'Admins podem gerenciar estoque' AND tablename = 'inventory_movements') THEN
+    CREATE POLICY "Admins podem gerenciar estoque" ON public.inventory_movements FOR ALL USING (public.is_admin()) WITH CHECK (public.is_admin());
+  END IF;
+END $$;
+
+-- Storage: Bucket de Imagens de Produtos
+DO $$ BEGIN
+  INSERT INTO storage.buckets (id, name, public)
+  VALUES ('product-images', 'product-images', true)
+  ON CONFLICT (id) DO NOTHING;
+EXCEPTION WHEN OTHERS THEN
+  NULL;
+END $$;
+
+DO $$ BEGIN
+  IF NOT EXISTS (SELECT 1 FROM pg_policies WHERE policyname = 'Imagens de produtos são publicamente visíveis' AND tablename = 'objects' AND schemaname = 'storage') THEN
+    CREATE POLICY "Imagens de produtos são publicamente visíveis" ON storage.objects FOR SELECT USING (bucket_id = 'product-images');
+  END IF;
+
+  IF NOT EXISTS (SELECT 1 FROM pg_policies WHERE policyname = 'Admins autenticados podem gerenciar imagens de produtos' AND tablename = 'objects' AND schemaname = 'storage') THEN
+    CREATE POLICY "Admins autenticados podem gerenciar imagens de produtos" ON storage.objects FOR ALL USING (bucket_id = 'product-images' AND public.is_admin()) WITH CHECK (bucket_id = 'product-images' AND public.is_admin());
+  END IF;
+EXCEPTION WHEN OTHERS THEN
+  NULL;
 END $$;
 
 -- ============================================================================
@@ -380,9 +442,9 @@ INSERT INTO public.products (
 )
 VALUES
   (
-    'p0000000-0000-0000-0000-000000000001',
-    'c0000000-0000-0000-0000-000000000001',
-    'b0000000-0000-0000-0000-000000000001',
+    '00000000-0000-0000-0000-000000000101',
+    COALESCE((SELECT id FROM public.categories WHERE slug = 'grau' LIMIT 1), 'c0000000-0000-0000-0000-000000000001'),
+    COALESCE((SELECT id FROM public.brands WHERE slug = 'ventara' LIMIT 1), 'b0000000-0000-0000-0000-000000000001'),
     'Ventara Essencial',
     'ventara-essencial',
     'Armação atemporal em acetato premium polido à mão. Conforto ergonômico excepcional para uso durante todo o dia.',
@@ -391,9 +453,9 @@ VALUES
     52, 18, 145
   ),
   (
-    'p0000000-0000-0000-0000-000000000002',
-    'c0000000-0000-0000-0000-000000000002',
-    'b0000000-0000-0000-0000-000000000001',
+    '00000000-0000-0000-0000-000000000102',
+    COALESCE((SELECT id FROM public.categories WHERE slug = 'solar' LIMIT 1), 'c0000000-0000-0000-0000-000000000002'),
+    COALESCE((SELECT id FROM public.brands WHERE slug = 'ventara' LIMIT 1), 'b0000000-0000-0000-0000-000000000001'),
     'Ventara Aurora',
     'ventara-aurora',
     'Óculos de sol contemporâneo com tonalidade âmbar translúcida e proteção UV400 completa.',
@@ -402,9 +464,9 @@ VALUES
     50, 20, 145
   ),
   (
-    'p0000000-0000-0000-0000-000000000003',
-    'c0000000-0000-0000-0000-000000000001',
-    'b0000000-0000-0000-0000-000000000001',
+    '00000000-0000-0000-0000-000000000103',
+    COALESCE((SELECT id FROM public.categories WHERE slug = 'grau' LIMIT 1), 'c0000000-0000-0000-0000-000000000001'),
+    COALESCE((SELECT id FROM public.brands WHERE slug = 'ventara' LIMIT 1), 'b0000000-0000-0000-0000-000000000001'),
     'Ventara Urbano',
     'ventara-urbano',
     'Linhas minimalistas em titânio ultraleve com acabamento grafite acetinado.',
@@ -413,9 +475,9 @@ VALUES
     49, 21, 140
   ),
   (
-    'p0000000-0000-0000-0000-000000000004',
-    'c0000000-0000-0000-0000-000000000002',
-    'b0000000-0000-0000-0000-000000000001',
+    '00000000-0000-0000-0000-000000000104',
+    COALESCE((SELECT id FROM public.categories WHERE slug = 'solar' LIMIT 1), 'c0000000-0000-0000-0000-000000000002'),
+    COALESCE((SELECT id FROM public.brands WHERE slug = 'ventara' LIMIT 1), 'b0000000-0000-0000-0000-000000000001'),
     'Ventara Horizonte',
     'ventara-horizonte',
     'Design aviador reinterpretado com estrutura de liga metálica leve e ponte dupla geométrica.',
@@ -428,8 +490,20 @@ ON CONFLICT (slug) DO NOTHING;
 -- Variantes com Estoque Inicial
 INSERT INTO public.product_variants (product_id, sku, color_name, color_hex, size, stock_quantity)
 VALUES
-  ('p0000000-0000-0000-0000-000000000001', 'VEN-ESS-BLK', 'Preto Clássico', '#111827', 'Único (M)', 8),
-  ('p0000000-0000-0000-0000-000000000002', 'VEN-AUR-AMB', 'Âmbar Translúcido', '#b45309', 'Único (M)', 6),
-  ('p0000000-0000-0000-0000-000000000003', 'VEN-URB-GRA', 'Grafite Acetinado', '#334155', 'Único (M)', 4),
-  ('p0000000-0000-0000-0000-000000000004', 'VEN-HOR-GLD', 'Dourado Champagne', '#d97706', 'Único (M)', 5)
+  (
+    COALESCE((SELECT id FROM public.products WHERE slug = 'ventara-essencial' LIMIT 1), '00000000-0000-0000-0000-000000000101'),
+    'VEN-ESS-BLK', 'Preto Clássico', '#111827', 'Único (M)', 8
+  ),
+  (
+    COALESCE((SELECT id FROM public.products WHERE slug = 'ventara-aurora' LIMIT 1), '00000000-0000-0000-0000-000000000102'),
+    'VEN-AUR-AMB', 'Âmbar Translúcido', '#b45309', 'Único (M)', 6
+  ),
+  (
+    COALESCE((SELECT id FROM public.products WHERE slug = 'ventara-urbano' LIMIT 1), '00000000-0000-0000-0000-000000000103'),
+    'VEN-URB-GRA', 'Grafite Acetinado', '#334155', 'Único (M)', 4
+  ),
+  (
+    COALESCE((SELECT id FROM public.products WHERE slug = 'ventara-horizonte' LIMIT 1), '00000000-0000-0000-0000-000000000104'),
+    'VEN-HOR-GLD', 'Dourado Champagne', '#d97706', 'Único (M)', 5
+  )
 ON CONFLICT (sku) DO NOTHING;
