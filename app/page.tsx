@@ -5,7 +5,9 @@ import dynamic from "next/dynamic";
 import { Header } from "../components/layout/header";
 import { Footer } from "../components/layout/footer";
 import { Hero } from "../components/sections/hero";
-import { CategoriesSection } from "../components/sections/categories-section";
+import { MetricsRibbon } from "../components/sections/metrics-ribbon";
+import { WhyChooseSection } from "../components/sections/why-choose-section";
+import { FramesBanner } from "../components/sections/frames-banner";
 import { CatalogSection } from "../components/catalog/catalog-section";
 import { LensesSection } from "../components/sections/lenses-section";
 import { AboutSection } from "../components/sections/about-section";
@@ -116,10 +118,10 @@ export default function Home() {
   return (
     <>
       <div className="preview">
-        ÓTICA VENTARA · ARAÇATUBA-SP · CATÁLOGO ONLINE & ATENDIMENTO PERSONALIZADO
+        ÓTICAS VENTARA · ARAÇATUBA-SP · CATÁLOGO ONLINE & ATENDIMENTO PERSONALIZADO
       </div>
 
-      {/* 1. Header Oficial: Logo, Navegação, Busca e Carrinho */}
+      {/* 1. Header Oficial: Logo, Navegação Conforme Mockup, Busca e Carrinho */}
       <Header
         cartCount={cartItems.length}
         onOpenCart={() => setIsCartOpen(true)}
@@ -128,13 +130,19 @@ export default function Home() {
       />
 
       <main>
-        {/* 2. Hero Editorial com iluminação cênica e pedestal */}
+        {/* 2. Hero Cinematográfico Conforme Mockup (Pedestal Neon Cyan, Armação Flutuante) */}
         <Hero />
 
-        {/* 3. Seção de Categorias / Coleções: "Um estilo para chamar de seu." */}
-        <CategoriesSection />
+        {/* 3. Faixa de Números Conforme Mockup ("Nossos Números: Confiança que se transforma em resultados.") */}
+        <MetricsRibbon />
 
-        {/* 4. Seção de Produtos / Seleção Editorial: "Escolhas que combinam com você." */}
+        {/* 4. Seção Conforme Mockup ("Por que escolher Óticas Ventara?" com 6 diferenciais em grid) */}
+        <WhyChooseSection />
+
+        {/* 5. Faixa Conforme Mockup ("Nossas Armações: Estilo para todos os momentos." -> "VER COLEÇÃO →") */}
+        <FramesBanner />
+
+        {/* 6. Catálogo Interativo com Filtros (Todos, Grau, Solar), Busca e Carrinho */}
         <CatalogSection
           products={products}
           onSelectProduct={() => {}}
@@ -143,23 +151,23 @@ export default function Home() {
           isSearchOpen={isSearchOpen}
         />
 
-        {/* 5. Seção de Lentes / Tecnologia Visual: "Seu dia pede uma visão que acompanha você." */}
+        {/* 7. Seção de Lentes & Tecnologia Visual ("Seu dia pede uma visão que acompanha você.") */}
         <LensesSection />
 
-        {/* 6. Seção Institucional: "A diferença está nos detalhes." */}
+        {/* 8. Seção Institucional ("A diferença está nos detalhes.") */}
         <AboutSection />
 
-        {/* 7. Seção da Loja Física: "Vamos encontrar seus próximos óculos?" */}
+        {/* 9. Seção da Loja Física em Araçatuba com rota no Google Maps */}
         <StoreSection />
 
-        {/* 8. CTA Final / Contato Direto: "Seu próximo olhar começa aqui." */}
+        {/* 10. CTA Final Direto para o WhatsApp ("Seu próximo olhar começa aqui.") */}
         <WhatsAppSection onNotify={notify} />
 
-        {/* 9. FAQ com Dúvidas Frequentes */}
+        {/* 11. FAQ com Dúvidas Frequentes */}
         <FAQAccordion />
       </main>
 
-      {/* 10. Rodapé Oficial */}
+      {/* 12. Rodapé Oficial */}
       <Footer onOpenLegal={(tab) => setLegalModal({ isOpen: true, tab })} />
 
       {/* Cart Modal com Persistência em LocalStorage e Redirecionamento WhatsApp */}
