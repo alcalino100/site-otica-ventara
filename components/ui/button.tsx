@@ -23,7 +23,7 @@ export const Button = forwardRef<HTMLButtonElement, ButtonProps>(
             <Loader2 className="animate-spin" size={16} />
           </span>
         )}
-        <span className={`btn-content ${isLoading ? "opacity-70" : ""}`}>
+        <span className={`btn-content inline-flex items-center justify-center gap-2.5 ${isLoading ? "opacity-70" : ""}`}>
           {children}
         </span>
       </button>
