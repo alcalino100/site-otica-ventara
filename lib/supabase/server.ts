@@ -1,4 +1,5 @@
 import { createServerClient } from "@supabase/ssr";
+import { createClient as createSupabaseJsClient } from "@supabase/supabase-js";
 import { cookies } from "next/headers";
 
 export function isSupabaseConfigured(): boolean {
@@ -16,6 +17,19 @@ export function isSupabaseConfigured(): boolean {
   }
 
   return true;
+}
+
+/**
+ * Cliente Supabase para rotas públicas e SSG (não consome cookies, permitindo pré-renderização estática limpa)
+ */
+export function createStaticSupabaseClient() {
+  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+  const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+
+  return createSupabaseJsClient(
+    supabaseUrl || "https://placeholder-project.supabase.co",
+    supabaseAnonKey || "placeholder-anon-key"
+  );
 }
 
 export async function createServerSupabaseClient() {

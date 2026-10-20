@@ -64,31 +64,37 @@ export async function POST(req: NextRequest) {
       const { data: order, error: findError } = await query.maybeSingle();
 
       if (findError || !order) {
-        return NextResponse.json({ error: "Pedido não localizado para o webhook." }, { status: 404 });
+        if (findError?.code === "PGRST205") {
+          console.warn("Tabela 'orders' ainda não criada no Supabase.");
+        } else {
+          return NextResponse.json({ error: "Pedido não localizado para o webhook." }, { status: 404 });
+        }
       }
 
-      // Se o pedido já estiver marcado como pago, responde com sucesso e encerra (idempotência)
-      if (order.status === "paid") {
-        return NextResponse.json(
-          { received: true, message: "Webhook já processado anteriormente (idempotente)." },
-          { status: 200 }
-        );
-      }
+      if (order) {
+        // Se o pedido já estiver marcado como pago, responde com sucesso e encerra (idempotência)
+        if (order.status === "paid") {
+          return NextResponse.json(
+            { received: true, message: "Webhook já processado anteriormente (idempotente)." },
+            { status: 200 }
+          );
+        }
 
-      // 3. Atualização de Status
-      const newStatus = status === "paid" ? "paid" : "cancelled";
-      const { error: updateError } = await adminSupabase
-        .from("orders")
-        .update({
-          status: newStatus,
-          payment_gateway_id: payment_id || null,
-          updated_at: new Date().toISOString(),
-        })
-        .eq("id", order.id);
+        // 3. Atualização de Status
+        const newStatus = status === "paid" ? "paid" : "cancelled";
+        const { error: updateError } = await adminSupabase
+          .from("orders")
+          .update({
+            status: newStatus,
+            payment_gateway_id: payment_id || null,
+            updated_at: new Date().toISOString(),
+          })
+          .eq("id", order.id);
 
-      if (updateError) {
-        console.error("Erro ao atualizar status do pedido no webhook:", updateError);
-        return NextResponse.json({ error: "Falha ao atualizar pedido." }, { status: 500 });
+        if (updateError) {
+          console.error("Erro ao atualizar status do pedido no webhook:", updateError);
+          return NextResponse.json({ error: "Falha ao atualizar pedido." }, { status: 500 });
+        }
       }
     }
 
