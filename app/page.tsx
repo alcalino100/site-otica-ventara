@@ -18,7 +18,7 @@ import { Toast } from "../components/ui/toast";
 import { Product } from "@/types/ecommerce";
 import { DEFAULT_CATALOG } from "@/lib/catalog-data";
 import { getStoredCart, saveStoredCart, CartProduct } from "@/lib/cart";
-import { createClient } from "@/lib/supabase/client";
+import { createClient, isSupabaseConfigured } from "@/lib/supabase/client";
 
 // Lazy loading modals to improve First Load JS and initial rendering performance
 const CartModal = dynamic(
@@ -51,6 +51,7 @@ export default function Home() {
 
   // Tenta carregar produtos publicados do Supabase se existirem
   useEffect(() => {
+    if (!isSupabaseConfigured()) return;
     const fetchSupabaseProducts = async () => {
       try {
         const { data, error } = await supabase
