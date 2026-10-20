@@ -1,0 +1,265 @@
+import { NextRequest, NextResponse } from "next/server";
+import { rateLimit } from "@/lib/rate-limit";
+import { createAdminClient } from "@/lib/supabase/admin";
+import { DEFAULT_CATALOG } from "@/lib/catalog-data";
+import { Product, ProductVariant, ShippingAddress } from "@/types/ecommerce";
+import crypto from "crypto";
+
+interface CheckoutItemInput {
+  product_id: string;
+  variant_id?: string;
+  quantity: number;
+}
+
+interface CheckoutRequestBody {
+  customer_name: string;
+  customer_email: string;
+  customer_phone: string;
+  customer_document?: string;
+  delivery_type?: "store_pickup" | "delivery";
+  shipping_address?: ShippingAddress;
+  payment_method?: "pix" | "credit_card" | "whatsapp_assisted";
+  notes?: string;
+  items: CheckoutItemInput[];
+}
+
+function generateOrderReference(): string {
+  const dateStr = new Date().toISOString().slice(2, 7).replace("-", "");
+  const randomSuffix = crypto.randomBytes(3).toString("hex").toUpperCase();
+  return `VEN-${dateStr}-${randomSuffix}`;
+}
+
+export async function POST(req: NextRequest) {
+  try {
+    // 1. Rate Limiting por IP para evitar abusos / bots
+    const ip = req.headers.get("x-forwarded-for") || "local-ip";
+    const limitCheck = rateLimit(`checkout:${ip}`, { maxTokens: 10, intervalMs: 60000 });
+    if (!limitCheck.success) {
+      return NextResponse.json(
+        { error: "Limite de tentativas excedido. Por favor, aguarde alguns instantes." },
+        { status: 429 }
+      );
+    }
+
+    // 2. Validação da requisição
+    const body: CheckoutRequestBody = await req.json();
+
+    if (!body.customer_name || body.customer_name.trim().length < 3) {
+      return NextResponse.json(
+        { error: "Nome do cliente inválido ou muito curto." },
+        { status: 400 }
+      );
+    }
+
+    if (!body.customer_email || !body.customer_email.includes("@")) {
+      return NextResponse.json(
+        { error: "E-mail de contato inválido." },
+        { status: 400 }
+      );
+    }
+
+    if (!body.customer_phone || body.customer_phone.replace(/\D/g, "").length < 8) {
+      return NextResponse.json(
+        { error: "Telefone de contato inválido." },
+        { status: 400 }
+      );
+    }
+
+    if (!Array.isArray(body.items) || body.items.length === 0) {
+      return NextResponse.json(
+        { error: "O pedido deve conter ao menos um item válido." },
+        { status: 400 }
+      );
+    }
+
+    if (body.items.length > 20) {
+      return NextResponse.json(
+        { error: "Quantidade máxima de itens por pedido excedida." },
+        { status: 400 }
+      );
+    }
+
+    // 3. Consulta estrita de preços no Servidor (Zero confiança nos valores do cliente)
+    const adminSupabase = createAdminClient();
+    const hasLiveDb = Boolean(
+      process.env.NEXT_PUBLIC_SUPABASE_URL && process.env.SUPABASE_SERVICE_ROLE_KEY
+    );
+
+    let dbProducts: Product[] = [];
+    const productIds = body.items.map((i) => i.product_id);
+
+    if (hasLiveDb) {
+      const { data, error } = await adminSupabase
+        .from("products")
+        .select(`
+          *,
+          category:categories(*),
+          variants:product_variants(*)
+        `)
+        .in("id", productIds)
+        .eq("is_published", true);
+
+      if (!error && data) {
+        dbProducts = data as Product[];
+      }
+    }
+
+    // Fallback para o catálogo estruturado caso o banco não retorne o registro
+    const resolvedItems = [];
+    let subtotalInCents = 0;
+
+    for (const itemInput of body.items) {
+      if (itemInput.quantity <= 0 || itemInput.quantity > 10) {
+        return NextResponse.json(
+          { error: `Quantidade inválida para o produto ${itemInput.product_id}.` },
+          { status: 400 }
+        );
+      }
+
+      // Procura primeiro no DB, senão no catálogo default
+      let product = dbProducts.find((p) => p.id === itemInput.product_id);
+      if (!product) {
+        product = DEFAULT_CATALOG.find(
+          (p) => p.id === itemInput.product_id || p.slug === itemInput.product_id
+        );
+      }
+
+      if (!product) {
+        return NextResponse.json(
+          { error: `Produto não localizado no catálogo ativo: ${itemInput.product_id}.` },
+          { status: 404 }
+        );
+      }
+
+      // Localiza variante (cor / aro)
+      let matchedVariant: ProductVariant | undefined;
+      if (itemInput.variant_id && product.variants) {
+        matchedVariant = product.variants.find((v) => v.id === itemInput.variant_id);
+      }
+      if (!matchedVariant && product.variants && product.variants.length > 0) {
+        matchedVariant = product.variants[0];
+      }
+
+      // Verifica estoque caso controlado
+      if (matchedVariant && matchedVariant.stock_quantity < itemInput.quantity) {
+        return NextResponse.json(
+          {
+            error: `Estoque insuficiente para o modelo ${product.name} (${matchedVariant.color_name}). Disponível: ${matchedVariant.stock_quantity}.`,
+          },
+          { status: 409 }
+        );
+      }
+
+      const unitPrice = product.price_in_cents;
+      const itemTotal = unitPrice * itemInput.quantity;
+      subtotalInCents += itemTotal;
+
+      resolvedItems.push({
+        product_id: product.id,
+        variant_id: matchedVariant?.id || null,
+        product_name: product.name,
+        sku: matchedVariant?.sku || `SKU-${product.id}`,
+        color_name: matchedVariant?.color_name || "Padrão",
+        unit_price_in_cents: unitPrice,
+        quantity: itemInput.quantity,
+        total_price_in_cents: itemTotal,
+      });
+    }
+
+    // 4. Cálculo de Frete e Total
+    // Frete grátis acima de R$ 350,00 ou retirada no espaço físico em Araçatuba
+    const isPickup = body.delivery_type === "store_pickup";
+    const shippingFeeInCents = isPickup || subtotalInCents >= 35000 ? 0 : 2500;
+    const discountInCents = 0;
+    const totalInCents = subtotalInCents + shippingFeeInCents - discountInCents;
+
+    const referenceCode = generateOrderReference();
+    const paymentMethod = body.payment_method || "pix";
+
+    // 5. Persistência do Pedido no Banco de Dados
+    let orderId = `ord-${crypto.randomUUID()}`;
+
+    if (hasLiveDb) {
+      const { data: orderData, error: orderErr } = await adminSupabase
+        .from("orders")
+        .insert({
+          id: orderId,
+          reference_code: referenceCode,
+          customer_name: body.customer_name.trim(),
+          customer_email: body.customer_email.trim().toLowerCase(),
+          customer_phone: body.customer_phone.trim(),
+          customer_document: body.customer_document || null,
+          shipping_address: body.shipping_address || null,
+          subtotal_in_cents: subtotalInCents,
+          shipping_fee_in_cents: shippingFeeInCents,
+          discount_in_cents: discountInCents,
+          total_in_cents: totalInCents,
+          status: "pending",
+          payment_method: paymentMethod,
+          notes: body.notes || (isPickup ? "Retirada na loja física em Araçatuba" : null),
+        })
+        .select()
+        .single();
+
+      if (orderErr) {
+        console.error("Erro ao registrar pedido:", orderErr);
+        return NextResponse.json(
+          { error: "Falha ao gravar pedido no banco de dados." },
+          { status: 500 }
+        );
+      }
+
+      if (orderData) {
+        orderId = orderData.id;
+      }
+
+      // Gravação dos itens congelados
+      const itemsToInsert = resolvedItems.map((item) => ({
+        ...item,
+        order_id: orderId,
+      }));
+
+      const { error: itemsErr } = await adminSupabase.from("order_items").insert(itemsToInsert);
+      if (itemsErr) {
+        console.error("Erro ao registrar itens do pedido:", itemsErr);
+      }
+    }
+
+    // 6. Dados de Pagamento (Pix com QR Code mockado para teste / integração com gateway)
+    const pixCopiaECola =
+      paymentMethod === "pix"
+        ? `00020126580014BR.GOV.BCB.PIX0136${crypto.randomUUID()}520400005303986540${(totalInCents / 100).toFixed(2)}5802BR5913OTICA VENTARA6009ARACATUBA62070503***6304`
+        : null;
+
+    return NextResponse.json(
+      {
+        success: true,
+        order: {
+          id: orderId,
+          reference_code: referenceCode,
+          customer_name: body.customer_name,
+          customer_email: body.customer_email,
+          subtotal_in_cents: subtotalInCents,
+          shipping_fee_in_cents: shippingFeeInCents,
+          total_in_cents: totalInCents,
+          status: "pending",
+          payment_method: paymentMethod,
+          items: resolvedItems,
+          delivery_type: body.delivery_type || "delivery",
+        },
+        payment: {
+          type: paymentMethod,
+          pix_copia_e_cola: pixCopiaECola,
+          expires_in_minutes: 30,
+        },
+      },
+      { status: 201 }
+    );
+  } catch (error) {
+    console.error("Erro inesperado no checkout:", error);
+    return NextResponse.json(
+      { error: "Erro interno no processamento do checkout." },
+      { status: 500 }
+    );
+  }
+}
