@@ -25,6 +25,11 @@ const CartModal = dynamic(
   { ssr: false }
 );
 
+const PrivacyTermsModal = dynamic(
+  () => import("../components/legal/privacy-terms-modal").then((mod) => mod.PrivacyTermsModal),
+  { ssr: false }
+);
+
 const products: Product[] = [
   { id: 1, name: "Ventara Essencial", category: "Grau", color: "Preto clássico", shape: "square" },
   { id: 2, name: "Ventara Aurora", category: "Solar", color: "Âmbar translúcido", shape: "round" },
@@ -38,6 +43,10 @@ export default function Home() {
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
   const [cart, setCart] = useState<number[]>([]);
   const [toastMessage, setToastMessage] = useState<string | null>(null);
+  const [legalModal, setLegalModal] = useState<{ isOpen: boolean; tab: "terms" | "privacy" }>({
+    isOpen: false,
+    tab: "privacy",
+  });
 
   const notify = (message: string) => {
     setToastMessage(message);
@@ -90,7 +99,7 @@ export default function Home() {
         <ContactSection onNotify={notify} />
       </main>
 
-      <Footer />
+      <Footer onOpenLegal={(tab) => setLegalModal({ isOpen: true, tab })} />
 
       {/* Lazy Loaded Interactive Modals */}
       <ProductModal
@@ -107,6 +116,12 @@ export default function Home() {
         onRemoveItem={handleRemoveFromCart}
         onClearCart={handleClearCart}
         onConsult={notify}
+      />
+
+      <PrivacyTermsModal
+        isOpen={legalModal.isOpen}
+        onClose={() => setLegalModal((prev) => ({ ...prev, isOpen: false }))}
+        defaultTab={legalModal.tab}
       />
 
       {/* Accessible Spring Feedback Toast */}
