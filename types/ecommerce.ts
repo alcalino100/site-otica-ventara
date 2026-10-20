@@ -153,3 +153,71 @@ export interface AdminProfile {
   created_at: string;
   updated_at: string;
 }
+
+export interface SiteSettings {
+  id: string;
+  key: string;
+  value: Record<string, unknown>;
+  description?: string | null;
+  updated_at: string;
+}
+
+export interface SiteIdentitySettings {
+  store_name: string;
+  tagline: string;
+  address_street: string;
+  address_neighborhood: string;
+  address_city: string;
+  address_state: string;
+  address_postal_code: string;
+  phone_whatsapp: string;
+  instagram_handle: string;
+  business_hours: string;
+  logo_url?: string;
+  favicon_url?: string;
+}
+
+export interface SiteAppearanceSettings {
+  color_navy: string;
+  color_electric: string;
+  color_yellow: string;
+  color_ice_white: string;
+}
+
+export interface SiteShippingSettings {
+  store_pickup_enabled: boolean;
+  free_shipping_threshold_cents: number;
+  default_shipping_fee_cents: number;
+  pickup_address: string;
+}
+
+export interface HomepageBanner {
+  id: string;
+  title: string;
+  subtitle?: string | null;
+  cta_text?: string | null;
+  cta_url?: string | null;
+  image_url_desktop: string;
+  image_url_mobile?: string | null;
+  alt_text: string;
+  sort_order: number;
+  is_published: boolean;
+  created_at: string;
+  updated_at: string;
+}
+
+export type InventoryMovementType = "in" | "out" | "adjustment" | "order_fulfillment";
+
+export interface InventoryMovement {
+  id: string;
+  product_id: string;
+  variant_id: string;
+  movement_type: InventoryMovementType;
+  quantity: number;
+  balance_after: number;
+  reason?: string | null;
+  created_by?: string | null;
+  created_at: string;
+  product?: Product | null;
+  variant?: ProductVariant | null;
+}
