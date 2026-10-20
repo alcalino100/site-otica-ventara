@@ -14,6 +14,7 @@ import {
 } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
 import { InventoryMovement } from "@/types/ecommerce";
+import { Skeleton } from "@/components/ui/skeleton";
 
 interface VariantStockItem {
   id: string;
@@ -149,7 +150,7 @@ export default function AdminInventoryPage() {
   const lowStockCount = items.filter((i) => i.stock_quantity <= 3).length;
 
   return (
-    <div className="space-y-6 max-w-6xl mx-auto">
+    <div className="space-y-6 w-full">
       {/* Toast Feedback */}
       {feedback && (
         <div className="fixed top-20 right-6 z-50 bg-amber-400 text-[#06111f] font-semibold text-xs px-4 py-2.5 rounded-lg shadow-xl animate-fade-in flex items-center gap-2">
@@ -270,7 +271,21 @@ export default function AdminInventoryPage() {
         </div>
 
         {isLoading ? (
-          <p className="text-xs text-slate-400 text-center py-8">Carregando estoque...</p>
+          <div className="p-6 space-y-3">
+            {[1, 2, 3, 4, 5].map((i) => (
+              <div
+                key={i}
+                className="flex items-center justify-between gap-4 py-2 border-b border-white/5 last:border-0"
+              >
+                <Skeleton className="h-4 w-40 bg-white/10 rounded" />
+                <Skeleton className="h-4 w-28 bg-white/10 rounded" />
+                <Skeleton className="h-4 w-24 bg-white/10 rounded" />
+                <Skeleton className="h-4 w-16 bg-white/10 rounded" />
+                <Skeleton className="h-6 w-20 bg-white/10 rounded-full" />
+                <Skeleton className="h-7 w-20 bg-white/10 rounded-lg" />
+              </div>
+            ))}
+          </div>
         ) : filteredItems.length === 0 ? (
           <p className="text-xs text-slate-400 text-center py-8">Nenhuma variante cadastrada.</p>
         ) : (

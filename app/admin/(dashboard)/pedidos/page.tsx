@@ -14,6 +14,7 @@ import {
 } from "lucide-react";
 import { Order, OrderStatus } from "@/types/ecommerce";
 import { createClient } from "@/lib/supabase/client";
+import { Skeleton } from "@/components/ui/skeleton";
 
 export default function AdminOrdersPage() {
   const supabase = createClient();
@@ -110,7 +111,7 @@ export default function AdminOrdersPage() {
   });
 
   return (
-    <div className="space-y-6 max-w-6xl mx-auto">
+    <div className="space-y-6 w-full">
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-white/10">
         <div>
@@ -166,9 +167,27 @@ export default function AdminOrdersPage() {
       {/* Tabela de Pedidos */}
       <div className="bg-[#06111f] border border-white/10 rounded-2xl overflow-hidden shadow-xl">
         {isLoading ? (
-          <div className="p-12 text-center text-xs text-slate-400">
-            <Clock size={24} className="mx-auto mb-2 animate-spin text-amber-400" />
-            Carregando pedidos reais do banco de dados...
+          <div className="p-6 space-y-4">
+            {[1, 2, 3, 4, 5].map((i) => (
+              <div
+                key={i}
+                className="flex items-center justify-between gap-4 py-3 border-b border-white/5 last:border-0"
+              >
+                <div className="space-y-1.5">
+                  <Skeleton className="h-4 w-28 bg-white/10 rounded" />
+                  <Skeleton className="h-3 w-20 bg-white/5 rounded" />
+                </div>
+                <div className="space-y-1.5">
+                  <Skeleton className="h-4 w-36 bg-white/10 rounded" />
+                  <Skeleton className="h-3 w-48 bg-white/5 rounded" />
+                </div>
+                <Skeleton className="h-4 w-24 bg-white/10 rounded" />
+                <Skeleton className="h-4 w-20 bg-white/10 rounded" />
+                <Skeleton className="h-6 w-24 bg-white/10 rounded-full" />
+                <Skeleton className="h-8 w-28 bg-white/10 rounded-xl" />
+                <Skeleton className="h-3 w-20 bg-white/5 rounded" />
+              </div>
+            ))}
           </div>
         ) : filteredOrders.length === 0 ? (
           <div className="p-12 text-center space-y-3">
