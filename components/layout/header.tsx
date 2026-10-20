@@ -31,7 +31,7 @@ export function Header({
 
   return (
     <header className="site-header">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 w-full flex items-center justify-between">
+      <div className="max-w-[1400px] mx-auto px-4 sm:px-8 lg:px-10 w-full flex items-center justify-between">
         <a href="#inicio" className="brand" aria-label="Ótica Ventara, ir para o início">
           <BrandLogo size="sm" />
         </a>

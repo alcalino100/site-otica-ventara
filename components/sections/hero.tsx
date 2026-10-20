@@ -8,8 +8,8 @@ import { WordsStagger } from "@/registry/spell-ui/words-stagger";
 export function Hero() {
   return (
     <section className="hero relative overflow-hidden" id="inicio">
-      {/* Container Unificado Padrão UI/UX */}
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 w-full pt-36 pb-10 sm:pt-40 sm:pb-14 relative z-10 flex flex-col justify-between flex-1 min-h-[700px] sm:min-h-[760px]">
+      {/* Container Unificado Padrão UI/UX Ampliado */}
+      <div className="max-w-[1400px] mx-auto px-4 sm:px-8 lg:px-10 w-full pt-36 pb-10 sm:pt-40 sm:pb-14 relative z-10 flex flex-col justify-between flex-1 min-h-[700px] sm:min-h-[760px]">
         {/* Grid de 2 Colunas Perfeitamente Margeado */}
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-12 items-center flex-1 my-auto">
           {/* Coluna Esquerda: Texto */}
@@ -51,20 +51,20 @@ export function Hero() {
           </div>
 
           {/* Coluna Direita: Stage e Pedestal Alinhados */}
-          <div className="hero-stage lg:col-span-7 relative flex items-center justify-center min-h-[360px] sm:min-h-[440px]">
+          <div className="hero-stage lg:col-span-7 relative flex items-center justify-center min-h-[380px] sm:min-h-[480px]">
             {/* Feixes Volumétricos de Luz Azul */}
             <div className="beam" aria-hidden="true" />
 
             {/* Badge Vertical Dourado Conforme Referência */}
-            <div className="hero-side-badge hidden sm:flex items-center gap-3 absolute top-2 right-2 z-20">
+            <div className="hero-side-badge hidden sm:flex items-center gap-3 absolute top-2 right-4 z-20">
               <div className="w-[2px] h-12 bg-[#FFD62E] shadow-[0_0_12px_#FFD62E]" />
               <span className="text-[10px] tracking-[0.22em] uppercase font-bold text-slate-300 leading-tight">
                 ARMAÇÕES<br />DE QUALIDADE<br />E ESTILO
               </span>
             </div>
 
-            {/* Armação de Destaque Flutuante */}
-            <div className="hero-frame-anim relative z-10 w-full max-w-[460px] mx-auto">
+            {/* Armação de Destaque Flutuante com proporção nobre */}
+            <div className="hero-frame-anim relative z-10 w-full max-w-[540px] mx-auto">
               <FrameArt hero />
             </div>
 
@@ -72,7 +72,7 @@ export function Hero() {
             <div className="pedestal" aria-hidden="true" />
 
             {/* Paginação Estilo Mockup da Campanha (01 / 04) */}
-            <div className="hero-stage-pagination hidden sm:flex items-center gap-4 absolute bottom-2 right-2 z-20">
+            <div className="hero-stage-pagination hidden sm:flex items-center gap-4 absolute bottom-2 right-4 z-20">
               <span className="text-[11px] font-mono text-slate-400 tracking-wider">
                 <strong className="text-white">01</strong> / 04
               </span>
@@ -94,7 +94,7 @@ export function Hero() {
               </div>
             </div>
 
-            <span className="art-label absolute bottom-14 right-2 text-[9px] text-slate-400 tracking-wider">
+            <span className="art-label absolute bottom-14 right-4 text-[9px] text-slate-400 tracking-wider">
               CURADORIA AUTORAL VENTARA · ACETATO NOBRE
             </span>
           </div>

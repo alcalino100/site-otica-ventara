@@ -67,7 +67,7 @@ export function CatalogSection({
     <section className="collection light-section py-20 bg-slate-50 border-b border-slate-200" id="armacoes">
       <div id="solar" className="sr-only">Seção Óculos de Sol</div>
 
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div className="max-w-[1400px] mx-auto px-4 sm:px-8 lg:px-10">
         <div className="section-heading mb-10">
         <div>
           <p className="eyebrow text-xs font-semibold tracking-widest uppercase text-amber-600 mb-2 flex items-center gap-1.5">

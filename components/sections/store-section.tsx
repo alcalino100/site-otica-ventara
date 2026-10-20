@@ -9,7 +9,7 @@ export function StoreSection() {
 
   return (
     <section className="py-24 bg-[#06111f] border-t border-b border-white/5 relative overflow-hidden" id="loja-fisica">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
+      <div className="max-w-[1400px] mx-auto px-4 sm:px-8 lg:px-10 relative z-10">
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
           <div>
             <span className="text-xs font-semibold tracking-widest uppercase text-amber-400 mb-3 flex items-center gap-1.5">
