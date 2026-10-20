@@ -11,18 +11,16 @@ export function LensesSection() {
       </div>
 
       <div className="lens-info">
-        <p className="eyebrow">ALÉM DA ARMAÇÃO</p>
+        <p className="eyebrow">TECNOLOGIA EM LENTES</p>
         <h2>
-          Cada rotina pede<br />
-          um novo <span>foco.</span>
+          Seu dia pede uma visão<br />
+          que <span>acompanha você.</span>
         </h2>
         <p>
-          Trabalho em telas digitais, leitura prolongada, direção noturna ou passeios ao ar livre.
-          Converse com nossos especialistas ópticos e encontre as lentes ideais: antirreflexo multicamadas,
-          filtro de luz azul nociva, fotossensíveis e multifocais digitais personalizadas.
+          Conheça as opções de lentes disponíveis e encontre, com orientação especializada, a alternativa adequada à sua prescrição e à sua rotina.
         </p>
         <div className="pt-3">
-          <a className="button outline inline-flex items-center gap-2" href="#contato">
+          <a className="button outline inline-flex items-center gap-2" href="#whatsapp">
             CONHECER AS OPÇÕES DE LENTES <ArrowUpRight size={17} />
           </a>
         </div>

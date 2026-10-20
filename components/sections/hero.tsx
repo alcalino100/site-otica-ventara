@@ -14,13 +14,13 @@ export function Hero() {
           Seu jeito de <strong>ver o mundo.</strong>
         </h1>
         <p className="hero-description">
-          Encontre armações que combinam com sua personalidade e conheça opções de lentes pensadas para as suas necessidades. Na Ótica Ventara, seu próximo olhar começa com a escolha certa.
+          Armações que expressam quem você é. Opções de lentes para acompanhar sua rotina. Encontre o seu próximo olhar na Ótica Ventara.
         </p>
         <div className="hero-cta-wrapper flex flex-wrap items-center gap-4">
           <a className="button outline" href="#armacoes">
             Explorar coleção <ArrowRight size={17} />
           </a>
-          <a className="button dark" href="#sobre">
+          <a className="button dark" href="#loja-fisica">
             Conhecer nossa loja
           </a>
         </div>

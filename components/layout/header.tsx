@@ -21,11 +21,12 @@ export function Header({
 
   const navItems = [
     ["Início", "inicio"],
-    ["Sobre nós", "sobre"],
-    ["Armações", "armacoes"],
+    ["Categorias", "categorias"],
+    ["Coleções", "armacoes"],
     ["Lentes", "lentes"],
-    ["FAQ", "duvidas"],
-    ["Contato", "contato"],
+    ["Loja Física", "loja-fisica"],
+    ["WhatsApp", "whatsapp"],
+    ["Dúvidas", "duvidas"],
   ];
 
   return (
