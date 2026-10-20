@@ -1,11 +1,10 @@
 "use client";
 
-import React, { useState, useTransition } from "react";
-import { SlidersHorizontal, Search, RotateCcw } from "lucide-react";
+import React, { useState, useTransition, useEffect } from "react";
+import { SlidersHorizontal, Search, Sparkles } from "lucide-react";
 import { Product } from "@/types/ecommerce";
 import { ProductCard } from "./product-card";
 import { ProductGridSkeleton } from "./product-grid-skeleton";
-import { Button } from "../ui/button";
 
 interface CatalogSectionProps {
   products: Product[];
@@ -25,6 +24,22 @@ export function CatalogSection({
   const [filter, setFilter] = useState<string>("Todos");
   const [query, setQuery] = useState<string>("");
   const [isPending, startTransition] = useTransition();
+
+  // Listen for hash changes like #solar or #armacoes
+  useEffect(() => {
+    const handleHash = () => {
+      if (typeof window !== "undefined") {
+        if (window.location.hash === "#solar") {
+          setFilter("Solar");
+        } else if (window.location.hash === "#grau") {
+          setFilter("Grau");
+        }
+      }
+    };
+    handleHash();
+    window.addEventListener("hashchange", handleHash);
+    return () => window.removeEventListener("hashchange", handleHash);
+  }, []);
 
   const handleFilterChange = (newFilter: string) => {
     startTransition(() => {
@@ -49,55 +64,66 @@ export function CatalogSection({
   });
 
   return (
-    <section className="collection light-section" id="armacoes">
-      <div className="section-heading">
+    <section className="collection light-section py-20 bg-slate-50 border-b border-slate-200" id="armacoes">
+      <div id="solar" className="sr-only">Seção Óculos de Sol</div>
+
+      <div className="section-heading mb-10">
         <div>
-          <p className="eyebrow">COLEÇÕES VENTARA</p>
-          <h2>
-            Um estilo para <span>chamar de seu.</span>
+          <p className="eyebrow text-xs font-semibold tracking-widest uppercase text-amber-600 mb-2 flex items-center gap-1.5">
+            <Sparkles size={14} /> SELEÇÃO EDITORIAL VENTARA
+          </p>
+          <h2 className="text-3xl sm:text-5xl font-light text-slate-950 tracking-tight">
+            Escolhas que <span className="font-semibold text-amber-500">combinam com você.</span>
           </h2>
-          <p className="section-description text-xs sm:text-sm text-slate-600 max-w-xl mt-2 leading-relaxed">
-            Descubra armações para diferentes estilos, ocasiões e preferências. Encontre seu próximo modelo e veja os detalhes de cada peça.
+          <p className="section-description text-xs sm:text-sm text-slate-600 max-w-xl mt-3 leading-relaxed">
+            Uma curadoria com modelos selecionados da nossa loja física e catálogo digital. Experimente o equilíbrio ideal entre leveza, precisão e design atemporal.
           </p>
         </div>
-        <span className="demo-label">ARMAÇÕES & ÓCULOS SOLARES</span>
+        <span className="demo-label text-[11px] font-semibold tracking-wider uppercase text-slate-500 bg-white border border-slate-200 px-3 py-1.5 rounded-full shadow-xs">
+          ARMAÇÕES DE GRAU & SOLARES
+        </span>
       </div>
 
-      <div className="filters">
-        <div role="group" aria-label="Filtrar por tipo de armação">
+      {/* Filters and Count */}
+      <div className="filters flex items-center justify-between mb-8 gap-4 flex-wrap">
+        <div role="group" aria-label="Filtrar por tipo de armação" className="flex items-center gap-2">
           {["Todos", "Grau", "Solar"].map((cat) => (
             <button
               key={cat}
               type="button"
               onClick={() => handleFilterChange(cat)}
-              className={`filter-pill ${filter === cat ? "active" : ""}`}
+              className={`filter-pill px-5 py-2 rounded-full text-xs font-semibold uppercase tracking-wider transition-all duration-200 border ${
+                filter === cat
+                  ? "bg-[#06111f] text-amber-400 border-[#06111f] shadow-sm active"
+                  : "bg-white text-slate-700 border-slate-300 hover:border-slate-400"
+              }`}
             >
               {cat}
             </button>
           ))}
         </div>
 
-        <span className="filter-count">
+        <span className="filter-count text-xs text-slate-500 flex items-center gap-1.5">
           <SlidersHorizontal size={15} />
-          {filteredProducts.length} modelo(s) disponível(is)
+          {filteredProducts.length} modelo(s) em exibição
         </span>
       </div>
 
       {isSearchOpen && (
-        <div className="search-box-wrapper mb-6 animate-fade-in">
-          <label className="search-box">
-            <span className="text-xs font-semibold uppercase tracking-wider text-slate-500 mb-1 block">
+        <div className="search-box-wrapper mb-8 animate-fade-in">
+          <label className="search-box block bg-white p-4 rounded-2xl border border-slate-200 shadow-sm max-w-xl">
+            <span className="text-xs font-semibold uppercase tracking-wider text-slate-600 mb-2 block">
               Buscar armação por nome, material ou formato
             </span>
-            <div className="relative max-w-md">
+            <div className="relative">
               <input
                 autoFocus
                 placeholder="Ex: Ventara Essencial, Acetato, Titânio, Redondo..."
                 value={query}
                 onChange={(e) => setQuery(e.target.value)}
-                className="w-full pr-10"
+                className="w-full pr-10 py-2.5 px-3 rounded-xl border border-slate-200 bg-slate-50 focus:bg-white text-slate-900 text-sm focus:outline-none focus:ring-2 focus:ring-amber-400/50"
               />
-              <Search size={17} className="absolute right-3 top-3.5 text-slate-400 pointer-events-none" />
+              <Search size={18} className="absolute right-3.5 top-3 text-slate-400 pointer-events-none" />
             </div>
           </label>
         </div>
@@ -106,7 +132,7 @@ export function CatalogSection({
       {isPending ? (
         <ProductGridSkeleton />
       ) : filteredProducts.length > 0 ? (
-        <div className="product-grid">
+        <div className="product-grid grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
           {filteredProducts.map((product) => (
             <ProductCard
               key={product.id}
@@ -118,21 +144,19 @@ export function CatalogSection({
           ))}
         </div>
       ) : (
-        <div className="empty-state py-16 text-center">
-          <p className="text-slate-600 text-base mb-2 font-medium">Nenhum modelo encontrado com os filtros atuais.</p>
-          <p className="text-xs text-slate-400 max-w-xs mx-auto mb-6">
-            Tente buscar com outros termos ou redefina os filtros de categoria.
-          </p>
-          <Button
-            variant="dark"
+        <div className="empty-catalog text-center py-16 bg-white rounded-3xl border border-slate-200 max-w-md mx-auto p-8">
+          <p className="text-base font-semibold text-slate-800 mb-1">Nenhum modelo encontrado</p>
+          <p className="text-xs text-slate-500 mb-4">Tente selecionar outra categoria ou limpar a busca textual.</p>
+          <button
+            type="button"
             onClick={() => {
-              setQuery("");
               setFilter("Todos");
+              setQuery("");
             }}
-            className="inline-flex items-center gap-2"
+            className="text-xs font-semibold uppercase tracking-wider text-amber-600 hover:text-amber-700 underline"
           >
-            <RotateCcw size={15} /> LIMPAR FILTROS
-          </Button>
+            Ver todos os modelos
+          </button>
         </div>
       )}
     </section>
