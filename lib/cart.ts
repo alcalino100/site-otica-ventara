@@ -55,12 +55,25 @@ export function buildWhatsAppCartUrl(items: CartProduct[]): string {
 
   const itemsList = items
     .map(
-      (item, idx) =>
-        `${idx + 1}. *${item.name}* (${item.category} · ${item.color})\n   ${siteUrl}/produto/${item.slug}`
+      (item, idx) => {
+        const priceStr = item.priceInCents
+          ? ` - ${(item.priceInCents / 100).toLocaleString("pt-BR", { style: "currency", currency: "BRL" })}`
+          : "";
+        return `${idx + 1}. *${item.name}* (${item.category} · ${item.color}${priceStr})\n   ${siteUrl}/produto/${item.slug}`;
+      }
     )
     .join("\n\n");
 
-  const message = `Olá equipe da Ótica Ventara! Fiz uma seleção de armações no site e gostaria de atendimento:\n\n${itemsList}\n\nGostaria de verificar a disponibilidade e consultar opções de lentes para a minha receita.`;
+  const totalCents = items.reduce((acc, it) => acc + (it.priceInCents || 0), 0);
+  const totalSummary =
+    totalCents > 0
+      ? `\n\n💰 *Total estimado da seleção:* ${(totalCents / 100).toLocaleString("pt-BR", {
+          style: "currency",
+          currency: "BRL",
+        })} (em até 10x sem juros)`
+      : "";
+
+  const message = `Olá equipe da Ótica Ventara! Fiz uma seleção de armações no site e gostaria de atendimento:\n\n${itemsList}${totalSummary}\n\nGostaria de verificar a disponibilidade e consultar opções de lentes para a minha receita.`;
 
   return `https://wa.me/${WHATSAPP_PHONE}?text=${encodeURIComponent(message)}`;
 }

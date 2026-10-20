@@ -1,73 +1,245 @@
 "use client";
 
 import React, { useState } from "react";
-import { ShoppingBag, MessageCircle, Check, ArrowRight } from "lucide-react";
+import {
+  ShoppingBag,
+  MessageCircle,
+  Check,
+  ArrowRight,
+  Sparkles,
+  Layers,
+  ShieldCheck,
+} from "lucide-react";
 import { Product } from "@/types/ecommerce";
-import { getStoredCart, saveStoredCart, buildWhatsAppProductUrl, CartProduct } from "@/lib/cart";
+import { getStoredCart, saveStoredCart, CartProduct } from "@/lib/cart";
 
 interface ProductDetailActionsProps {
   product: Product;
+  onAddedNotification?: (message: string) => void;
 }
 
-export function ProductDetailActions({ product }: ProductDetailActionsProps) {
+export function ProductDetailActions({
+  product,
+  onAddedNotification,
+}: ProductDetailActionsProps) {
   const [isAdded, setIsAdded] = useState(false);
+
+  // Variantes de Cor disponíveis
+  const variants =
+    product.variants && product.variants.length > 0
+      ? product.variants
+      : [
+          {
+            id: "v-default-1",
+            color_name: "Preto Clássico",
+            color_hex: "#111827",
+            sku: `${product.slug.toUpperCase()}-BLK`,
+          },
+          {
+            id: "v-default-2",
+            color_name: "Âmbar Translúcido",
+            color_hex: "#b45309",
+            sku: `${product.slug.toUpperCase()}-AMB`,
+          },
+          {
+            id: "v-default-3",
+            color_name: "Grafite Nobre",
+            color_hex: "#374151",
+            sku: `${product.slug.toUpperCase()}-GRF`,
+          },
+        ];
+
+  const [selectedVariant, setSelectedVariant] = useState(variants[0]);
+
+  // Opções de Lentes para Consultoria
+  const lensOptions = [
+    {
+      id: "none",
+      name: "Somente a armação",
+      desc: "Sem lentes de grau (ou provar na loja)",
+      icon: Sparkles,
+    },
+    {
+      id: "monofocal",
+      name: "Lentes Monofocais",
+      desc: "Miopia, hipermetropia ou astigmatismo",
+      icon: Layers,
+    },
+    {
+      id: "multifocal",
+      name: "Lentes Multifocais",
+      desc: "Transição contínua perto e longe",
+      icon: Layers,
+    },
+    {
+      id: "blue_filter",
+      name: "Filtro Luz Azul / Antirreflexo",
+      desc: "Conforto para telas e direção noturna",
+      icon: ShieldCheck,
+    },
+  ];
+
+  const [selectedLens, setSelectedLens] = useState(lensOptions[0]);
 
   const handleAdd = () => {
     const currentCart = getStoredCart();
-    const primaryImg = product.images?.find((i) => i.is_primary)?.url || product.images?.[0]?.url;
+    const primaryImg =
+      product.images?.find((i) => i.is_primary)?.url || product.images?.[0]?.url;
 
     const cartItem: CartProduct = {
-      id: product.id,
+      id: `${product.id}-${selectedVariant.id}`,
       name: product.name,
       slug: product.slug,
       category: product.category?.name || product.frame_type,
-      color: product.variants?.[0]?.color_name || "Padrão",
+      color: selectedVariant.color_name || "Padrão",
       priceInCents: product.price_in_cents,
       imageUrl: primaryImg,
     };
 
-    // Adiciona se ainda não estiver ou incrementa
     saveStoredCart([...currentCart, cartItem]);
     setIsAdded(true);
+    if (onAddedNotification) {
+      onAddedNotification(`${product.name} adicionado à sua seleção.`);
+    }
     setTimeout(() => setIsAdded(false), 2000);
   };
 
-  const whatsappUrl = buildWhatsAppProductUrl(product.name, product.slug);
+  // Monta mensagem detalhada e personalizada para o WhatsApp oficial
+  const categoryLabel =
+    product.frame_type === "Solar" ? "Óculos Solar" : "Armação de Grau";
+  const whatsappText = encodeURIComponent(
+    `Olá! Gostei da armação "${product.name}" (${categoryLabel}) na Ótica Ventara.\n` +
+      `• Cor selecionada: ${selectedVariant.color_name}\n` +
+      `• Interesse em lentes: ${selectedLens.name} (${selectedLens.desc})\n` +
+      `Gostaria de saber mais sobre disponibilidade e valores para minha receita.`
+  );
+  const whatsappUrl = `https://wa.me/5518996155748?text=${whatsappText}`;
 
   return (
-    <div className="space-y-3 pt-4">
-      <button
-        type="button"
-        onClick={handleAdd}
-        className="w-full bg-amber-400 hover:bg-amber-300 active:scale-[0.98] text-[#030c13] font-semibold text-xs tracking-wider uppercase py-3.5 px-6 rounded-full flex items-center justify-center gap-2 transition-all shadow-lg shadow-amber-400/10"
-      >
-        {isAdded ? (
-          <>
-            <Check size={17} className="text-emerald-950 stroke-[3]" />
-            <span>Adicionado à Seleção!</span>
-          </>
-        ) : (
-          <>
-            <ShoppingBag size={17} />
-            <span>Adicionar à Seleção</span>
-          </>
-        )}
-      </button>
+    <div className="space-y-6 pt-2">
+      {/* Seletor Interativo de Cores */}
+      <div className="space-y-2.5">
+        <div className="flex items-center justify-between text-xs">
+          <span className="font-semibold text-slate-300 uppercase tracking-wider">
+            Cor da Armação:
+          </span>
+          <span className="font-bold text-amber-400">{selectedVariant.color_name}</span>
+        </div>
 
-      <a
-        href={whatsappUrl}
-        target="_blank"
-        rel="noopener noreferrer"
-        className="w-full bg-[#11283c] hover:bg-[#16334d] border border-amber-400/30 text-white font-medium text-xs tracking-wider uppercase py-3.5 px-6 rounded-full flex items-center justify-center gap-2 transition-colors text-center"
-      >
-        <MessageCircle size={17} className="text-emerald-400" />
-        <span>Consultar Lentes no WhatsApp</span>
-        <ArrowRight size={14} className="text-slate-400" />
-      </a>
+        <div className="flex items-center gap-2.5">
+          {variants.map((v) => {
+            const isSelected = selectedVariant.id === v.id;
+            return (
+              <button
+                key={v.id}
+                type="button"
+                onClick={() => setSelectedVariant(v)}
+                className={`flex items-center gap-2 px-3.5 py-2 rounded-xl text-xs font-medium border transition-all active:scale-95 ${
+                  isSelected
+                    ? "bg-amber-400/15 text-amber-300 border-amber-400/50 shadow-sm"
+                    : "bg-[#061423] text-slate-300 border-white/10 hover:border-white/20"
+                }`}
+              >
+                <span
+                  className="w-3.5 h-3.5 rounded-full border border-white/20 shadow-xs flex-shrink-0"
+                  style={{ backgroundColor: v.color_hex || "#1e293b" }}
+                />
+                <span>{v.color_name}</span>
+              </button>
+            );
+          })}
+        </div>
+      </div>
 
-      <p className="text-[11px] text-slate-400 text-center pt-1 leading-relaxed">
-        Atendimento consultivo na loja em Araçatuba-SP ou suporte digital via WhatsApp.
-      </p>
+      {/* Guia Interativo de Escolha de Lentes */}
+      <div className="space-y-3 pt-3 border-t border-white/10">
+        <div className="flex items-center justify-between text-xs">
+          <span className="font-semibold text-slate-300 uppercase tracking-wider flex items-center gap-1.5">
+            <Layers size={14} className="text-amber-400" />
+            Precisa de lentes para esta armação?
+          </span>
+          <span className="text-[11px] text-amber-400/90 font-medium">
+            Consultoria Técnica
+          </span>
+        </div>
+
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+          {lensOptions.map((lens) => {
+            const isChosen = selectedLens.id === lens.id;
+            const LensIcon = lens.icon;
+            return (
+              <button
+                key={lens.id}
+                type="button"
+                onClick={() => setSelectedLens(lens)}
+                className={`p-3 rounded-xl border text-left transition-all active:scale-95 flex items-start gap-2.5 ${
+                  isChosen
+                    ? "bg-amber-400/15 border-amber-400/50 text-white shadow-sm"
+                    : "bg-[#061423] border-white/10 text-slate-300 hover:border-white/20"
+                }`}
+              >
+                <div
+                  className={`p-1.5 rounded-lg flex-shrink-0 mt-0.5 ${
+                    isChosen
+                      ? "bg-amber-400 text-slate-950 font-bold"
+                      : "bg-white/5 text-amber-400"
+                  }`}
+                >
+                  <LensIcon size={14} />
+                </div>
+                <div>
+                  <p className="text-xs font-semibold leading-tight">{lens.name}</p>
+                  <p className="text-[11px] text-slate-400 leading-tight mt-0.5">
+                    {lens.desc}
+                  </p>
+                </div>
+              </button>
+            );
+          })}
+        </div>
+      </div>
+
+      {/* Botões de Ação com Micro-Interações */}
+      <div className="space-y-3 pt-4 border-t border-white/10">
+        {/* Botão Primário: Adicionar à Seleção */}
+        <button
+          type="button"
+          onClick={handleAdd}
+          className="w-full bg-amber-400 hover:bg-amber-300 active:scale-95 !text-[#030c13] font-bold text-xs tracking-wider uppercase py-4 px-6 rounded-2xl flex items-center justify-center gap-2.5 transition-all duration-200 shadow-lg shadow-amber-400/10 cursor-pointer"
+          style={{ color: "#030c13" }}
+        >
+          {isAdded ? (
+            <>
+              <Check size={18} className="text-emerald-950 stroke-[3]" />
+              <span className="font-bold">Adicionado à Seleção!</span>
+            </>
+          ) : (
+            <>
+              <ShoppingBag size={18} />
+              <span className="font-bold">Adicionar à seleção</span>
+            </>
+          )}
+        </button>
+
+        {/* Botão Secundário: Consultar Lentes no WhatsApp */}
+        <a
+          href={whatsappUrl}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="w-full bg-[#0a1e33] hover:bg-[#0d2742] border border-amber-400/30 text-white font-semibold text-xs tracking-wider uppercase py-3.5 px-6 rounded-2xl flex items-center justify-center gap-2.5 transition-all active:scale-95 text-center shadow-md cursor-pointer group"
+        >
+          <MessageCircle size={18} className="text-emerald-400" />
+          <span>Consultar Lentes no WhatsApp</span>
+          <ArrowRight
+            size={14}
+            className="text-amber-400 group-hover:translate-x-1 transition-transform"
+          />
+        </a>
+
+        <p className="text-[11px] text-slate-400 text-center pt-1 leading-relaxed">
+          Atendimento consultivo na loja em Araçatuba-SP ou suporte digital via WhatsApp.
+        </p>
+      </div>
     </div>
   );
 }
