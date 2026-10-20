@@ -1,8 +1,9 @@
 "use client";
 
 import React, { useState } from "react";
-import { Glasses, Search, ShoppingBag, Menu, X } from "lucide-react";
+import { Search, ShoppingBag, Menu, X } from "lucide-react";
 import { motion, AnimatePresence } from "motion/react";
+import { BrandLogo } from "../ui/brand-logo";
 
 interface HeaderProps {
   cartCount: number;
@@ -21,21 +22,17 @@ export function Header({
 
   const navItems = [
     ["Início", "inicio"],
-    ["Categorias", "categorias"],
-    ["Coleções", "armacoes"],
+    ["Armações", "armacoes"],
+    ["Óculos de sol", "solar"],
     ["Lentes", "lentes"],
-    ["Loja Física", "loja-fisica"],
-    ["WhatsApp", "whatsapp"],
-    ["Dúvidas", "duvidas"],
+    ["Sobre a Ventara", "sobre"],
+    ["Contato", "contato"],
   ];
 
   return (
     <header className="site-header">
       <a href="#inicio" className="brand" aria-label="Ótica Ventara, ir para o início">
-        <Glasses className="text-amber-300" />
-        <span>
-          <small>ÓTICA</small>VENTARA<em>EYEWEAR</em>
-        </span>
+        <BrandLogo size="sm" />
       </a>
 
       {/* Desktop Navigation */}
@@ -103,12 +100,13 @@ export function Header({
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -10 }}
             transition={{ duration: 0.2, ease: [0.23, 1, 0.32, 1] }}
+            aria-label="Menu mobile"
           >
             {navItems.map(([title, id]) => (
               <a
                 key={id}
                 href={`#${id}`}
-                className="mobile-nav-item"
+                className="mobile-nav-link"
                 onClick={() => setMobileMenuOpen(false)}
               >
                 {title}
