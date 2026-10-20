@@ -72,10 +72,11 @@ export function WhyChooseSection() {
             </div>
             <a
               href="#armacoes"
-              className="inline-flex items-center gap-2.5 px-7 py-3.5 rounded-full bg-[#06111f] hover:bg-[#0756b8] active:scale-95 text-white text-xs font-bold uppercase tracking-wider transition-all duration-200 shadow-sm"
+              className="inline-flex items-center gap-2.5 px-8 py-3.5 rounded-full bg-[#06111f] hover:bg-[#0756b8] active:scale-95 !text-white text-xs font-bold uppercase tracking-wider transition-all duration-200 shadow-md group"
+              style={{ color: "#ffffff" }}
             >
-              <span>Saiba mais</span>
-              <ArrowRight size={15} />
+              <span className="text-white font-bold tracking-wider">Saiba mais</span>
+              <ArrowRight size={15} className="text-[#ffd62e] group-hover:translate-x-0.5 transition-transform" />
             </a>
           </div>
 
