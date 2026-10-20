@@ -2,7 +2,8 @@
 
 import React, { useState } from "react";
 import { useRouter } from "next/navigation";
-import { Glasses, Lock, Mail, ArrowRight, AlertCircle } from "lucide-react";
+import { Lock, Mail, ArrowRight, AlertCircle, ArrowLeft, Shield } from "lucide-react";
+import { BrandLogo } from "@/components/ui/brand-logo";
 import { createClient } from "@/lib/supabase/client";
 
 export default function AdminLoginPage() {
@@ -46,29 +47,37 @@ export default function AdminLoginPage() {
   };
 
   return (
-    <div className="min-h-screen bg-[#030c13] text-white flex flex-col justify-center items-center p-4">
-      <div className="w-full max-w-md bg-[#081724] border border-white/10 rounded-2xl p-8 shadow-2xl">
+    <div className="min-h-screen bg-[#030810] text-white flex flex-col justify-center items-center p-4 relative overflow-hidden selection:bg-amber-400 selection:text-slate-950">
+      {/* Luz ambiente editorial de fundo */}
+      <div className="absolute top-1/3 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[350px] bg-[#0756b8]/15 blur-[140px] pointer-events-none rounded-full" />
+      <div className="absolute bottom-10 right-10 w-80 h-80 bg-amber-400/5 blur-[120px] pointer-events-none rounded-full" />
+
+      <div className="w-full max-w-md bg-[#081724]/90 backdrop-blur-md border border-white/10 rounded-3xl p-8 sm:p-10 shadow-2xl relative z-10">
         <div className="text-center mb-8">
-          <div className="inline-flex items-center justify-center w-14 h-14 rounded-2xl bg-amber-400/10 text-amber-400 mb-4 border border-amber-400/20">
-            <Glasses size={32} />
+          <div className="flex justify-center mb-6">
+            <BrandLogo size="md" />
           </div>
-          <h1 className="text-xl font-bold tracking-wide">Ótica Ventara</h1>
-          <p className="text-xs text-amber-400/90 tracking-widest uppercase mt-1">Acesso Administrativo</p>
-          <p className="text-xs text-slate-400 mt-2">
-            Insira suas credenciais autorizadas para gerenciar o catálogo e pedidos.
+
+          <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-amber-400/10 border border-amber-400/25 text-amber-400 text-[10px] font-bold tracking-widest uppercase mb-2">
+            <Shield size={12} />
+            <span>ACESSO ADMINISTRATIVO</span>
+          </div>
+
+          <p className="text-xs text-slate-300 mt-2 leading-relaxed">
+            Insira suas credenciais autorizadas para gerenciar o catálogo, estoque e pedidos.
           </p>
         </div>
 
         {errorMessage && (
-          <div className="mb-6 p-3 bg-red-500/10 border border-red-500/30 rounded-lg flex items-start gap-2.5 text-xs text-red-300">
-            <AlertCircle size={16} className="flex-shrink-0 mt-0.5 text-red-400" />
+          <div className="mb-6 p-3.5 bg-rose-500/10 border border-rose-500/30 rounded-xl flex items-start gap-2.5 text-xs text-rose-300">
+            <AlertCircle size={16} className="flex-shrink-0 mt-0.5 text-rose-400" />
             <span>{errorMessage}</span>
           </div>
         )}
 
         <form onSubmit={handleLogin} className="space-y-4">
           <div>
-            <label className="block text-xs font-medium text-slate-300 mb-1.5">
+            <label className="block text-xs font-semibold uppercase tracking-wider text-slate-300 mb-1.5">
               E-mail Administrativo
             </label>
             <div className="relative">
@@ -78,15 +87,15 @@ export default function AdminLoginPage() {
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 placeholder="admin@oticaventara.com.br"
-                className="w-full bg-[#040e17] border border-slate-700 rounded-lg px-3.5 py-2.5 pl-10 text-sm text-white placeholder-slate-500 focus:outline-none focus:border-amber-400 transition-colors"
+                className="w-full bg-[#040e17] border border-white/15 focus:border-amber-400 rounded-xl px-4 py-3 pl-11 text-sm text-white placeholder-slate-500 focus:outline-none transition-colors"
               />
-              <Mail size={16} className="absolute left-3.5 top-3 text-slate-500 pointer-events-none" />
+              <Mail size={16} className="absolute left-3.5 top-3.5 text-slate-400 pointer-events-none" />
             </div>
           </div>
 
           <div>
-            <label className="block text-xs font-medium text-slate-300 mb-1.5">
-              Senha
+            <label className="block text-xs font-semibold uppercase tracking-wider text-slate-300 mb-1.5">
+              Senha de Acesso
             </label>
             <div className="relative">
               <input
@@ -95,25 +104,39 @@ export default function AdminLoginPage() {
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 placeholder="••••••••••••"
-                className="w-full bg-[#040e17] border border-slate-700 rounded-lg px-3.5 py-2.5 pl-10 text-sm text-white placeholder-slate-500 focus:outline-none focus:border-amber-400 transition-colors"
+                className="w-full bg-[#040e17] border border-white/15 focus:border-amber-400 rounded-xl px-4 py-3 pl-11 text-sm text-white placeholder-slate-500 focus:outline-none transition-colors"
               />
-              <Lock size={16} className="absolute left-3.5 top-3 text-slate-500 pointer-events-none" />
+              <Lock size={16} className="absolute left-3.5 top-3.5 text-slate-400 pointer-events-none" />
             </div>
           </div>
 
           <button
             type="submit"
             disabled={isLoading}
-            className="w-full mt-2 bg-amber-400 hover:bg-amber-300 active:scale-[0.98] text-[#030c13] font-semibold text-xs tracking-wider uppercase py-3 rounded-lg flex items-center justify-center gap-2 transition-all disabled:opacity-50 disabled:pointer-events-none"
+            className="w-full mt-4 bg-amber-400 hover:bg-amber-300 active:scale-95 text-[#030c13] font-bold text-xs tracking-wider uppercase py-3.5 rounded-xl flex items-center justify-center gap-2 transition-all duration-200 shadow-lg shadow-amber-400/10 disabled:opacity-50 disabled:pointer-events-none"
+            style={{ color: "#030c13" }}
           >
-            {isLoading ? "Validando Acesso..." : "Entrar no Painel"}
-            {!isLoading && <ArrowRight size={15} />}
+            {isLoading ? (
+              <span className="flex items-center gap-2">
+                <span className="w-3.5 h-3.5 border-2 border-slate-900 border-t-transparent rounded-full animate-spin" />
+                <span>Validando Acesso...</span>
+              </span>
+            ) : (
+              <>
+                <span>Entrar no Painel</span>
+                <ArrowRight size={15} />
+              </>
+            )}
           </button>
         </form>
 
-        <div className="mt-8 pt-6 border-t border-white/5 text-center">
-          <a href="/" className="text-xs text-slate-400 hover:text-amber-300 transition-colors">
-            ← Voltar para a loja pública
+        <div className="mt-8 pt-6 border-t border-white/10 text-center">
+          <a
+            href="/"
+            className="inline-flex items-center gap-1.5 text-xs text-slate-400 hover:text-amber-400 transition-colors"
+          >
+            <ArrowLeft size={13} />
+            <span>Voltar para a loja pública</span>
           </a>
         </div>
       </div>
