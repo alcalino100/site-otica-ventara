@@ -20,80 +20,82 @@
   --ease-drawer: cubic-bezier(0.32, 0.72, 0, 1);
 }
 
-* {
-  box-sizing: border-box;
-}
+@layer base {
+  * {
+    box-sizing: border-box;
+  }
 
-html {
-  scroll-behavior: smooth;
-  scroll-padding-top: 90px;
-  overflow-x: hidden;
-}
+  html {
+    scroll-behavior: smooth;
+    scroll-padding-top: 90px;
+    overflow-x: hidden;
+  }
 
-body {
-  margin: 0;
-  background: var(--deep);
-  color: #fff;
-  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
-  overflow-x: hidden;
-}
+  body {
+    margin: 0;
+    background: var(--deep);
+    color: #fff;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    overflow-x: hidden;
+  }
 
-/* Touch & Interaction Baseline */
-button, a, input {
-  -webkit-tap-highlight-color: transparent;
-}
+  /* Touch & Interaction Baseline */
+  button, a, input {
+    -webkit-tap-highlight-color: transparent;
+  }
 
-button, a {
-  touch-action: manipulation;
-}
+  button, a {
+    touch-action: manipulation;
+  }
 
-button {
-  font: inherit;
-  cursor: pointer;
-  color: inherit;
-  border: 0;
-  background: none;
-}
+  button {
+    font: inherit;
+    cursor: pointer;
+    color: inherit;
+    border: 0;
+    background: none;
+  }
 
-a {
-  color: inherit;
-  text-decoration: none;
-}
+  a {
+    color: inherit;
+    text-decoration: none;
+  }
 
-button:focus-visible,
-a:focus-visible,
-input:focus-visible {
-  outline: 2px solid var(--gold);
-  outline-offset: 4px;
-}
+  button:focus-visible,
+  a:focus-visible,
+  input:focus-visible {
+    outline: 2px solid var(--gold);
+    outline-offset: 4px;
+  }
 
-/* Senior Designer Typography Hierarchy */
-h1, h2, h3, p {
-  margin: 0;
-}
+  /* Senior Designer Typography Hierarchy */
+  h1, h2, h3, p {
+    margin: 0;
+  }
 
-h1, h2 {
-  font-weight: 400;
-  letter-spacing: -0.04em;
-  line-height: 1.1;
-}
+  h1, h2 {
+    font-weight: 400;
+    letter-spacing: -0.04em;
+    line-height: 1.1;
+  }
 
-h2 {
-  font-size: clamp(30px, 3.2vw, 48px);
-}
+  h2 {
+    font-size: clamp(30px, 3.2vw, 48px);
+  }
 
-h2 span {
-  color: var(--gold);
-}
+  h2 span {
+    color: var(--gold);
+  }
 
-p {
-  line-height: 1.68;
-}
+  p {
+    line-height: 1.68;
+  }
 
-svg {
-  flex-shrink: 0;
+  svg {
+    flex-shrink: 0;
+  }
 }
 
 /* Interactive Button States & Emil Kowalski Press Feedback */
