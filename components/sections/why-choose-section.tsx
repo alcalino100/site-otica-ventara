@@ -50,7 +50,7 @@ export function WhyChooseSection() {
     <section className="bg-white py-24 text-slate-900 relative z-10 border-b border-slate-200" id="sobre-nos">
       <div id="laboratorio" className="sr-only">Seção Laboratório Próprio</div>
 
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div className="max-w-[1400px] mx-auto px-4 sm:px-8 lg:px-10">
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 lg:gap-16 items-start">
           {/* Coluna Esquerda: Texto & CTA com WordsStagger */}
           <div className="lg:col-span-4 flex flex-col items-start pr-0 lg:pr-6">

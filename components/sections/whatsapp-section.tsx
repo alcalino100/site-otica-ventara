@@ -27,7 +27,7 @@ export function WhatsAppSection({ onNotify }: WhatsAppSectionProps) {
 
   return (
     <section className="py-24 bg-gradient-to-b from-[#06111f] to-[#030810] border-b border-white/5 relative overflow-hidden" id="contato">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div className="max-w-[1400px] mx-auto px-4 sm:px-8 lg:px-10">
         <div className="relative rounded-3xl bg-gradient-to-br from-[#091d33] via-[#07192c] to-[#040e18] border border-amber-400/25 p-8 sm:p-14 overflow-hidden shadow-2xl text-center md:text-left">
           {/* Subtle gold glow */}
           <div className="absolute top-0 right-0 -mt-16 -mr-16 w-80 h-80 bg-amber-400/10 rounded-full blur-3xl pointer-events-none" />

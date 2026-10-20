@@ -8,7 +8,7 @@ import { WordsStagger } from "@/registry/spell-ui/words-stagger";
 export function MetricsRibbon() {
   return (
     <section className="bg-[#050e18] border-t border-b border-white/10 py-10 relative z-20">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div className="max-w-[1400px] mx-auto px-4 sm:px-8 lg:px-10">
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-center">
           {/* Coluna Esquerda: Título com WordsStagger */}
           <div className="lg:col-span-4 pr-0 lg:pr-6 border-b lg:border-b-0 lg:border-r border-white/10 pb-6 lg:pb-0">

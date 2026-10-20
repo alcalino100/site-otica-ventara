@@ -78,7 +78,7 @@ export function LensesSection() {
       <div className="absolute inset-0 bg-[linear-gradient(to_right,rgba(255,255,255,0.02)_1px,transparent_1px),linear-gradient(to_bottom,rgba(255,255,255,0.02)_1px,transparent_1px)] bg-[size:4rem_4rem] pointer-events-none" />
       <div className="absolute top-1/3 right-10 w-96 h-96 bg-[#0756b8]/15 blur-[120px] rounded-full pointer-events-none" />
 
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
+      <div className="max-w-[1400px] mx-auto px-4 sm:px-8 lg:px-10 relative z-10">
         {/* Section Header */}
         <div className="max-w-3xl mb-16">
           <p className="text-xs font-semibold tracking-widest uppercase text-amber-400 mb-3 flex items-center gap-2">

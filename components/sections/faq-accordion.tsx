@@ -41,7 +41,7 @@ export function FAQAccordion() {
 
   return (
     <section className="light-section py-20 sm:py-24 bg-white border-b border-slate-200" id="duvidas">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div className="max-w-[1400px] mx-auto px-4 sm:px-8 lg:px-10">
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-10 lg:gap-16 items-start">
           <div className="lg:col-span-5 faq-intro">
             <p className="eyebrow">DÚVIDAS FREQUENTES</p>
