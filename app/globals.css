@@ -1033,6 +1033,7 @@ h1 strong {
 
 .cart-dialog-custom {
   position: relative;
+  z-index: 10;
   max-width: 520px;
   width: 100%;
   background: #071320;

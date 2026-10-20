@@ -1,4 +1,4 @@
-import React from "react";
+import React, { cache } from "react";
 import { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
@@ -14,7 +14,7 @@ import {
 } from "lucide-react";
 import { Product } from "@/types/ecommerce";
 import { DEFAULT_CATALOG } from "@/lib/catalog-data";
-import { createServerSupabaseClient } from "@/lib/supabase/server";
+import { createServerSupabaseClient, isSupabaseConfigured } from "@/lib/supabase/server";
 import { FrameArt } from "@/components/catalog/frame-art";
 import { ProductDetailActions } from "@/components/catalog/product-detail-actions";
 import { BrandLogo } from "@/components/ui/brand-logo";
@@ -23,32 +23,40 @@ interface ProductPageProps {
   params: Promise<{ slug: string }>;
 }
 
-async function getProductBySlug(slug: string): Promise<Product | null> {
-  try {
-    const supabase = await createServerSupabaseClient();
-    const { data, error } = await supabase
-      .from("products")
-      .select(`
-        *,
-        category:categories(*),
-        images:product_images(*),
-        variants:product_variants(*)
-      `)
-      .eq("slug", slug)
-      .eq("is_published", true)
-      .maybeSingle();
+export async function generateStaticParams() {
+  return DEFAULT_CATALOG.map((product) => ({
+    slug: product.slug,
+  }));
+}
 
-    if (!error && data) {
-      return data as Product;
+const getProductBySlug = cache(async (slug: string): Promise<Product | null> => {
+  if (isSupabaseConfigured()) {
+    try {
+      const supabase = await createServerSupabaseClient();
+      const { data, error } = await supabase
+        .from("products")
+        .select(`
+          *,
+          category:categories(*),
+          images:product_images(*),
+          variants:product_variants(*)
+        `)
+        .eq("slug", slug)
+        .eq("is_published", true)
+        .maybeSingle();
+
+      if (!error && data) {
+        return data as Product;
+      }
+    } catch (err) {
+      console.warn("Erro ao buscar produto do Supabase, usando catálogo padrão:", err);
     }
-  } catch (err) {
-    console.warn("Erro ao buscar produto do Supabase, usando catálogo padrão:", err);
   }
 
-  // Fallback para o catálogo estruturado oficial
+  // Fallback instantâneo para o catálogo estruturado oficial (0ms)
   const defaultFound = DEFAULT_CATALOG.find((p) => p.slug === slug);
   return defaultFound || null;
-}
+});
 
 export async function generateMetadata({ params }: ProductPageProps): Promise<Metadata> {
   const { slug } = await params;

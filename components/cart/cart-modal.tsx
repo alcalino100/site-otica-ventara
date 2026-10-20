@@ -72,25 +72,27 @@ export function CartModal({
   return (
     <AnimatePresence>
       {isOpen && (
-        <div className="cart-modal-root fixed inset-0 z-50 flex items-center justify-center p-4">
+        <div className="cart-modal-root fixed inset-0 z-[100] flex items-center justify-center p-4">
+          {/* Backdrop escuro com desfoque no fundo da página */}
           <motion.div
-            className="overlay fixed inset-0 bg-black/75 backdrop-blur-md"
+            className="fixed inset-0 bg-black/80 backdrop-blur-sm -z-10"
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            transition={{ duration: 0.22, ease: [0.23, 1, 0.32, 1] }}
+            transition={{ duration: 0.2 }}
             onClick={onClose}
           />
 
+          {/* Diálogo do modal com nitidez máxima e z-index superior */}
           <motion.div
             role="dialog"
             aria-modal="true"
             aria-label="Sua seleção de armações"
-            className="dialog cart-dialog-custom relative z-10 w-full max-w-lg bg-[#071320] text-white border border-white/10 rounded-2xl sm:rounded-3xl p-6 sm:p-8 shadow-2xl overflow-hidden max-h-[90dvh] flex flex-col"
-            initial={{ opacity: 0, scale: 0.95, y: 12 }}
+            className="dialog cart-dialog-custom relative z-10 w-full max-w-lg bg-[#071320] text-white border border-white/15 rounded-2xl sm:rounded-3xl p-6 sm:p-8 shadow-[0_25px_70px_rgba(0,0,0,0.85)] overflow-hidden max-h-[90dvh] flex flex-col pointer-events-auto"
+            initial={{ opacity: 0, scale: 0.96, y: 8 }}
             animate={{ opacity: 1, scale: 1, y: 0 }}
-            exit={{ opacity: 0, scale: 0.95, y: 12 }}
-            transition={{ duration: 0.25, ease: [0.23, 1, 0.32, 1] }}
+            exit={{ opacity: 0, scale: 0.96, y: 8 }}
+            transition={{ duration: 0.22, ease: [0.23, 1, 0.32, 1] }}
             onClick={(e) => e.stopPropagation()}
           >
             {/* Botão Fechar Acessível */}

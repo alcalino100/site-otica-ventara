@@ -5,8 +5,14 @@ export function isSupabaseConfigured(): boolean {
   const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
 
   if (!supabaseUrl || !supabaseAnonKey) return false;
-  if (supabaseUrl.includes("placeholder-project.supabase.co")) return false;
-  if (supabaseAnonKey === "placeholder-anon-key") return false;
+  if (
+    supabaseUrl.includes("placeholder") ||
+    supabaseUrl.includes("seu-projeto") ||
+    supabaseAnonKey.includes("placeholder") ||
+    supabaseAnonKey.includes("sua-chave")
+  ) {
+    return false;
+  }
 
   return true;
 }
