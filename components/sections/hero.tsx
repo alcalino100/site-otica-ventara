@@ -10,59 +10,54 @@ export function Hero() {
       <div className="hero-copy">
         <p className="eyebrow flex items-center gap-2">
           <span className="w-1.5 h-1.5 rounded-full bg-[#FFD62E] inline-block animate-pulse" />
-          SEU ESTILO. SEU OLHAR.
+          QUALIDADE QUE VOCÊ VÊ
         </p>
 
         <h1>
-          Mais que óculos.<br />
-          Seu jeito de <strong>ver o mundo.</strong>
+          Mais que óculos,<br />
+          é sobre <strong className="text-[#FFD62E] font-normal">você.</strong>
         </h1>
 
         <p className="hero-description">
-          Armações que expressam quem você é. Opções de lentes para acompanhar sua rotina. Encontre o seu próximo olhar na Ótica Ventara.
+          Na Óticas Ventara, unimos tecnologia, qualidade e atendimento especializado para cuidar da sua visão em todos os momentos.
         </p>
 
         <div className="hero-cta-wrapper flex flex-wrap items-center gap-4">
-          <a className="button outline hover:border-[#FFD62E] group" href="#armacoes">
-            <span>Explorar coleção</span>
-            <ArrowRight size={17} className="text-[#FFD62E] transform group-hover:translate-x-1 transition-transform" />
+          <a className="button outline hover:border-[#FFD62E] group" href="#loja-fisica">
+            <span>Conheça nossa loja</span>
+            <ArrowRight size={16} className="text-[#FFD62E] transform group-hover:translate-x-1 transition-transform" />
           </a>
-          <a className="button dark" href="#loja-fisica">
-            Conhecer nossa loja
+          <a className="button dark" href="#armacoes">
+            Ver armações
           </a>
         </div>
 
         <span className="hero-footnote">
-          Ótica Ventara · Rua Princesa Isabel, 221 · Centro · Araçatuba-SP
+          Óticas Ventara · Rua Princesa Isabel, 221 · Centro · Araçatuba-SP
         </span>
       </div>
 
       <div className="hero-stage">
-        {/* Feixe de Luz Azul Controlado */}
+        {/* Feixes Volumétricos de Luz Azul */}
         <div className="beam" aria-hidden="true" />
 
-        {/* Badge Vertical Dourado Inspirado na Referência */}
+        {/* Badge Vertical Dourado Conforme Referência */}
         <div className="hero-side-badge hidden sm:flex items-center gap-3">
-          <div className="w-[2px] h-11 bg-[#FFD62E] shadow-[0_0_10px_#FFD62E]" />
-          <span className="text-[10px] tracking-[0.2em] uppercase font-bold text-slate-300 leading-tight">
+          <div className="w-[2px] h-12 bg-[#FFD62E] shadow-[0_0_12px_#FFD62E]" />
+          <span className="text-[10px] tracking-[0.22em] uppercase font-bold text-slate-300 leading-tight">
             ARMAÇÕES<br />DE QUALIDADE<br />E ESTILO
           </span>
         </div>
-
-        {/* Selo Flutuante */}
-        <span className="product-note">
-          DESIGN QUE ACOMPANHA<br />O SEU OLHAR
-        </span>
 
         {/* Armação de Destaque Flutuante */}
         <div className="hero-frame-anim">
           <FrameArt hero />
         </div>
 
-        {/* Pedestal Cilíndrico com Anel Neon Azul */}
+        {/* Pedestal Cilíndrico com Anel Neon Cyan/Azul */}
         <div className="pedestal" aria-hidden="true" />
 
-        {/* Paginação Estilo Campanha Editorial */}
+        {/* Paginação Estilo Mockup da Campanha (01 / 04) */}
         <div className="hero-stage-pagination hidden sm:flex items-center gap-4">
           <span className="text-[11px] font-mono text-slate-400 tracking-wider">
             <strong className="text-white">01</strong> / 04
@@ -90,7 +85,7 @@ export function Hero() {
 
       <div className="hero-bottom">
         <span>ESTILO · PRESENÇA · IDENTIDADE</span>
-        <a href="#sobre" aria-label="Conhecer a Ótica Ventara" className="hero-explore-link">
+        <a href="#sobre-nos" aria-label="Conhecer a Ótica Ventara" className="hero-explore-link">
           EXPLORE A VENTARA <ArrowRight size={15} />
         </a>
       </div>
