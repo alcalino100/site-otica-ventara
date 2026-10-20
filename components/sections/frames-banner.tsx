@@ -2,7 +2,7 @@
 
 import React from "react";
 import { ArrowRight, Sparkles } from "lucide-react";
-import { FrameArt } from "../catalog/frame-art";
+import { WordsStagger } from "@/registry/spell-ui/words-stagger";
 
 export function FramesBanner() {
   return (
@@ -23,11 +23,18 @@ export function FramesBanner() {
             </h2>
           </div>
 
-          {/* Coluna Direita: Descrição e Link VER COLEÇÃO */}
+          {/* Coluna Direita: Descrição com WordsStagger e Link VER COLEÇÃO */}
           <div className="lg:col-span-6 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-6 pl-0 lg:pl-6 border-t lg:border-t-0 lg:border-l border-white/10 pt-6 lg:pt-0">
-            <p className="text-xs sm:text-sm text-slate-300 leading-relaxed max-w-md">
-              Das clássicas às modernas, temos armações que combinam com o seu estilo, sua personalidade e o seu dia a dia.
-            </p>
+            <div className="max-w-md">
+              <WordsStagger
+                delay={0.1}
+                duration={0.35}
+                stagger={0.03}
+                className="text-xs sm:text-sm text-slate-300 leading-relaxed"
+              >
+                Das clássicas às modernas, temos armações que combinam com o seu estilo, sua personalidade e o seu dia a dia.
+              </WordsStagger>
+            </div>
 
             <a
               href="#armacoes"

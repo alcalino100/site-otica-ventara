@@ -14,6 +14,7 @@ import {
   MessageSquare,
   Sparkles,
 } from "lucide-react";
+import { WordsStagger } from "@/registry/spell-ui/words-stagger";
 
 export function LensesSection() {
   const lensOptions = [
@@ -87,9 +88,16 @@ export function LensesSection() {
             Seu dia pede uma visão <br className="hidden sm:inline" />
             que <span className="font-normal text-amber-400">acompanha você.</span>
           </h2>
-          <p className="text-xs sm:text-sm text-slate-300 mt-5 leading-relaxed">
-            Conheça as opções de lentes disponíveis e encontre, com orientação especializada, a alternativa adequada à sua prescrição e à sua rotina.
-          </p>
+          <div className="mt-5">
+            <WordsStagger
+              delay={0.1}
+              duration={0.35}
+              stagger={0.03}
+              className="text-xs sm:text-sm text-slate-300 leading-relaxed"
+            >
+              Conheça as opções de lentes disponíveis e encontre, com orientação especializada, a alternativa adequada à sua prescrição e à sua rotina.
+            </WordsStagger>
+          </div>
         </div>
 
         {/* 4 Cards Visuais de Lentes */}
