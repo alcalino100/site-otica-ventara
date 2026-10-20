@@ -10,6 +10,7 @@ import {
   Tag,
   ArrowRight,
 } from "lucide-react";
+import { WordsStagger } from "@/registry/spell-ui/words-stagger";
 
 export function WhyChooseSection() {
   const features = [
@@ -51,7 +52,7 @@ export function WhyChooseSection() {
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 lg:gap-16 items-start">
-          {/* Coluna Esquerda: Texto & CTA */}
+          {/* Coluna Esquerda: Texto & CTA com WordsStagger */}
           <div className="lg:col-span-4 flex flex-col items-start pr-0 lg:pr-6">
             <span className="text-xs font-bold tracking-[0.2em] uppercase text-slate-500 mb-2">
               POR QUE ESCOLHER
@@ -59,9 +60,16 @@ export function WhyChooseSection() {
             <h2 className="text-3xl sm:text-5xl font-light text-slate-950 tracking-tight leading-tight mb-5">
               Óticas Ventara?
             </h2>
-            <p className="text-sm text-slate-600 leading-relaxed mb-8">
-              Aqui você encontra armações exclusivas, lentes das melhores marcas e um laboratório próprio, com toda a tecnologia e precisão para garantir o melhor para a sua visão.
-            </p>
+            <div className="mb-8">
+              <WordsStagger
+                delay={0.1}
+                duration={0.35}
+                stagger={0.03}
+                className="text-sm text-slate-600 leading-relaxed"
+              >
+                Aqui você encontra armações exclusivas, lentes das melhores marcas e um laboratório próprio, com toda a tecnologia e precisão para garantir o melhor para a sua visão.
+              </WordsStagger>
+            </div>
             <a
               href="#armacoes"
               className="inline-flex items-center gap-2.5 px-7 py-3.5 rounded-full bg-[#06111f] hover:bg-[#0756b8] active:scale-95 text-white text-xs font-bold uppercase tracking-wider transition-all duration-200 shadow-sm"

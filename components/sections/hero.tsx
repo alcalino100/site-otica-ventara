@@ -3,6 +3,7 @@
 import React from "react";
 import { ArrowRight, ChevronLeft, ChevronRight } from "lucide-react";
 import { FrameArt } from "../catalog/frame-art";
+import { WordsStagger } from "@/registry/spell-ui/words-stagger";
 
 export function Hero() {
   return (
@@ -18,11 +19,18 @@ export function Hero() {
           é sobre <strong className="text-[#FFD62E] font-normal">você.</strong>
         </h1>
 
-        <p className="hero-description">
-          Na Óticas Ventara, unimos tecnologia, qualidade e atendimento especializado para cuidar da sua visão em todos os momentos.
-        </p>
+        <div className="hero-description my-2">
+          <WordsStagger
+            delay={0.2}
+            duration={0.35}
+            stagger={0.03}
+            className="text-sm leading-relaxed text-slate-300"
+          >
+            Na Óticas Ventara, unimos tecnologia, qualidade e atendimento especializado para cuidar da sua visão em todos os momentos.
+          </WordsStagger>
+        </div>
 
-        <div className="hero-cta-wrapper flex flex-wrap items-center gap-4">
+        <div className="hero-cta-wrapper flex flex-wrap items-center gap-4 mt-6">
           <a className="button outline hover:border-[#FFD62E] group" href="#loja-fisica">
             <span>Conheça nossa loja</span>
             <ArrowRight size={16} className="text-[#FFD62E] transform group-hover:translate-x-1 transition-transform" />

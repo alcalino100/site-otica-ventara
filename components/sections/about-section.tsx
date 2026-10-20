@@ -3,6 +3,7 @@
 import React from "react";
 import { UserCheck, Sparkles, Shield, HeartHandshake, Eye, Check } from "lucide-react";
 import { BrandLogo } from "../ui/brand-logo";
+import { WordsStagger } from "@/registry/spell-ui/words-stagger";
 
 export function AboutSection() {
   const pillars = [
@@ -45,9 +46,16 @@ export function AboutSection() {
               A diferença está <br className="hidden sm:inline" />
               nos <span className="font-normal text-amber-400">detalhes.</span>
             </h2>
-            <p className="text-sm sm:text-base text-slate-300 leading-relaxed max-w-2xl mb-12">
-              A escolha dos seus óculos vai além da aparência. Queremos ajudar você a encontrar uma combinação de estilo, conforto e funcionalidade.
-            </p>
+            <div className="mb-12 max-w-2xl">
+              <WordsStagger
+                delay={0.1}
+                duration={0.35}
+                stagger={0.03}
+                className="text-sm sm:text-base text-slate-300 leading-relaxed"
+              >
+                A escolha dos seus óculos vai além da aparência. Queremos ajudar você a encontrar uma combinação de estilo, conforto e funcionalidade.
+              </WordsStagger>
+            </div>
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
               {pillars.map((item, idx) => {
