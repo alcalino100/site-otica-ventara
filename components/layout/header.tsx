@@ -31,73 +31,75 @@ export function Header({
 
   return (
     <header className="site-header">
-      <a href="#inicio" className="brand" aria-label="Ótica Ventara, ir para o início">
-        <BrandLogo size="sm" />
-      </a>
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 w-full flex items-center justify-between">
+        <a href="#inicio" className="brand" aria-label="Ótica Ventara, ir para o início">
+          <BrandLogo size="sm" />
+        </a>
 
-      {/* Desktop Navigation conforme Referência do Mockup */}
-      <nav className="nav hidden md:flex items-center gap-7" aria-label="Navegação principal">
-        {navItems.map((item) => (
-          <a
-            key={item.id}
-            href={`#${item.id}`}
-            className={`nav-link text-xs font-semibold tracking-wider transition-colors relative py-1 ${
-              item.isActive ? "text-white" : "text-slate-300 hover:text-white"
-            }`}
-          >
-            {item.title}
-            {item.isActive && (
-              <span className="absolute bottom-0 left-0 right-0 h-[2px] bg-[#FFD62E] rounded-full" />
-            )}
-          </a>
-        ))}
-      </nav>
-
-      {/* Header Actions: Busca, Carrinho e Mobile Menu */}
-      <div className="header-actions flex items-center gap-2">
-        <button
-          type="button"
-          aria-label="Buscar armações"
-          className={`action-btn ${isSearchOpen ? "active" : ""}`}
-          onClick={() => {
-            onToggleSearch();
-            document.getElementById("armacoes")?.scrollIntoView({ behavior: "smooth" });
-          }}
-          title="Buscar no catálogo"
-        >
-          <Search size={18} />
-        </button>
-
-        <button
-          type="button"
-          aria-label={`Abrir seleção, ${cartCount} itens`}
-          className="action-btn relative"
-          onClick={onOpenCart}
-          title="Ver seleção de armações"
-        >
-          <ShoppingBag size={18} />
-          {cartCount > 0 && (
-            <motion.b
-              key={cartCount}
-              initial={{ scale: 0.6 }}
-              animate={{ scale: 1 }}
-              transition={{ type: "spring", stiffness: 500, damping: 25 }}
-              className="count"
+        {/* Desktop Navigation conforme Referência do Mockup */}
+        <nav className="nav hidden md:flex items-center gap-7" aria-label="Navegação principal">
+          {navItems.map((item) => (
+            <a
+              key={item.id}
+              href={`#${item.id}`}
+              className={`nav-link text-xs font-semibold tracking-wider transition-colors relative py-1 ${
+                item.isActive ? "text-white" : "text-slate-300 hover:text-white"
+              }`}
             >
-              {cartCount}
-            </motion.b>
-          )}
-        </button>
+              {item.title}
+              {item.isActive && (
+                <span className="absolute bottom-0 left-0 right-0 h-[2px] bg-[#FFD62E] rounded-full" />
+              )}
+            </a>
+          ))}
+        </nav>
 
-        <button
-          type="button"
-          className="menu-toggle md:hidden action-btn"
-          aria-label={mobileMenuOpen ? "Fechar menu" : "Abrir menu"}
-          aria-expanded={mobileMenuOpen}
-          onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-        >
-          {mobileMenuOpen ? <X size={20} /> : <Menu size={20} />}
-        </button>
+        {/* Header Actions: Busca, Carrinho e Mobile Menu */}
+        <div className="header-actions flex items-center gap-2">
+          <button
+            type="button"
+            aria-label="Buscar armações"
+            className={`action-btn ${isSearchOpen ? "active" : ""}`}
+            onClick={() => {
+              onToggleSearch();
+              document.getElementById("armacoes")?.scrollIntoView({ behavior: "smooth" });
+            }}
+            title="Buscar no catálogo"
+          >
+            <Search size={18} />
+          </button>
+
+          <button
+            type="button"
+            aria-label={`Abrir seleção, ${cartCount} itens`}
+            className="action-btn relative"
+            onClick={onOpenCart}
+            title="Ver seleção de armações"
+          >
+            <ShoppingBag size={18} />
+            {cartCount > 0 && (
+              <motion.b
+                key={cartCount}
+                initial={{ scale: 0.6 }}
+                animate={{ scale: 1 }}
+                transition={{ type: "spring", stiffness: 500, damping: 25 }}
+                className="count"
+              >
+                {cartCount}
+              </motion.b>
+            )}
+          </button>
+
+          <button
+            type="button"
+            className="menu-toggle md:hidden action-btn"
+            aria-label={mobileMenuOpen ? "Fechar menu" : "Abrir menu"}
+            aria-expanded={mobileMenuOpen}
+            onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+          >
+            {mobileMenuOpen ? <X size={20} /> : <Menu size={20} />}
+          </button>
+        </div>
       </div>
 
       {/* Mobile Menu with AnimatePresence */}
