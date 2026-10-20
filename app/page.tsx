@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import dynamic from "next/dynamic";
 import { Header } from "../components/layout/header";
 import { Footer } from "../components/layout/footer";
@@ -12,14 +12,12 @@ import { LensesSection } from "../components/sections/lenses-section";
 import { FAQAccordion } from "../components/sections/faq-accordion";
 import { ContactSection } from "../components/sections/contact-section";
 import { Toast } from "../components/ui/toast";
-import { Product } from "../components/catalog/product-card";
+import { Product } from "@/types/ecommerce";
+import { DEFAULT_CATALOG } from "@/lib/catalog-data";
+import { getStoredCart, saveStoredCart, CartProduct } from "@/lib/cart";
+import { createClient } from "@/lib/supabase/client";
 
 // Lazy loading modals to improve First Load JS and initial rendering performance
-const ProductModal = dynamic(
-  () => import("../components/catalog/product-modal").then((mod) => mod.ProductModal),
-  { ssr: false }
-);
-
 const CartModal = dynamic(
   () => import("../components/cart/cart-modal").then((mod) => mod.CartModal),
   { ssr: false }
@@ -30,23 +28,49 @@ const PrivacyTermsModal = dynamic(
   { ssr: false }
 );
 
-const products: Product[] = [
-  { id: 1, name: "Ventara Essencial", category: "Grau", color: "Preto clássico", shape: "square" },
-  { id: 2, name: "Ventara Aurora", category: "Solar", color: "Âmbar translúcido", shape: "round" },
-  { id: 3, name: "Ventara Urbano", category: "Grau", color: "Grafite", shape: "round" },
-  { id: 4, name: "Ventara Horizonte", category: "Solar", color: "Preto e dourado", shape: "square" },
-];
-
 export default function Home() {
+  const supabase = createClient();
+  const [products, setProducts] = useState<Product[]>(DEFAULT_CATALOG);
   const [isSearchOpen, setIsSearchOpen] = useState(false);
   const [isCartOpen, setIsCartOpen] = useState(false);
-  const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
-  const [cart, setCart] = useState<number[]>([]);
+  const [cartItems, setCartItems] = useState<CartProduct[]>([]);
   const [toastMessage, setToastMessage] = useState<string | null>(null);
   const [legalModal, setLegalModal] = useState<{ isOpen: boolean; tab: "terms" | "privacy" }>({
     isOpen: false,
     tab: "privacy",
   });
+
+  // Carrega carrinho do localStorage ao iniciar
+  useEffect(() => {
+    const loaded = getStoredCart();
+    setCartItems(loaded);
+  }, []);
+
+  // Tenta carregar produtos publicados do Supabase se existirem
+  useEffect(() => {
+    const fetchSupabaseProducts = async () => {
+      try {
+        const { data, error } = await supabase
+          .from("products")
+          .select(`
+            *,
+            category:categories(*),
+            images:product_images(*),
+            variants:product_variants(*)
+          `)
+          .eq("is_published", true)
+          .order("created_at", { ascending: false });
+
+        if (!error && data && data.length > 0) {
+          setProducts(data as Product[]);
+        }
+      } catch (err) {
+        console.warn("Utilizando catálogo padrão estruturado:", err);
+      }
+    };
+
+    fetchSupabaseProducts();
+  }, []);
 
   const notify = (message: string) => {
     setToastMessage(message);
@@ -56,28 +80,46 @@ export default function Home() {
   };
 
   const handleAddToCart = (product: Product) => {
-    setCart((prev) => [...prev, product.id]);
+    const primaryImg = product.images?.find((i) => i.is_primary)?.url || product.images?.[0]?.url;
+    const newItem: CartProduct = {
+      id: product.id,
+      name: product.name,
+      slug: product.slug,
+      category: product.category?.name || product.frame_type,
+      color: product.variants?.[0]?.color_name || "Padrão",
+      priceInCents: product.price_in_cents,
+      imageUrl: primaryImg,
+    };
+
+    const updated = [...cartItems, newItem];
+    setCartItems(updated);
+    saveStoredCart(updated);
     notify(`${product.name} adicionado à sua seleção.`);
   };
 
-  const handleRemoveFromCart = (productId: number) => {
-    setCart((prev) => prev.filter((id) => id !== productId));
+  const handleRemoveFromCart = (productId: string) => {
+    const updated = cartItems.filter((item) => item.id !== productId);
+    setCartItems(updated);
+    saveStoredCart(updated);
     notify("Item removido da seleção.");
   };
 
   const handleClearCart = () => {
-    setCart([]);
+    setCartItems([]);
+    saveStoredCart([]);
     notify("Sua seleção foi limpa.");
   };
+
+  const cartIds = cartItems.map((item) => item.id);
 
   return (
     <>
       <div className="preview">
-        PROTÓTIPO VISUAL · PRODUTOS ILUSTRATIVOS · SEM VENDAS REAIS
+        ÓTICA VENTARA · ARAÇATUBA-SP · CATÁLOGO ONLINE & ATENDIMENTO PERSONALIZADO
       </div>
 
       <Header
-        cartCount={cart.length}
+        cartCount={cartItems.length}
         onOpenCart={() => setIsCartOpen(true)}
         onToggleSearch={() => setIsSearchOpen((prev) => !prev)}
         isSearchOpen={isSearchOpen}
@@ -89,9 +131,9 @@ export default function Home() {
         <AboutSection />
         <CatalogSection
           products={products}
-          onSelectProduct={(product) => setSelectedProduct(product)}
+          onSelectProduct={() => {}}
           onAddToCart={handleAddToCart}
-          cartIds={cart}
+          cartIds={cartIds}
           isSearchOpen={isSearchOpen}
         />
         <LensesSection />
@@ -101,30 +143,23 @@ export default function Home() {
 
       <Footer onOpenLegal={(tab) => setLegalModal({ isOpen: true, tab })} />
 
-      {/* Lazy Loaded Interactive Modals */}
-      <ProductModal
-        product={selectedProduct}
-        onClose={() => setSelectedProduct(null)}
-        onAddToCart={handleAddToCart}
-      />
-
+      {/* Cart Modal com Persistência em LocalStorage e Redirecionamento WhatsApp */}
       <CartModal
         isOpen={isCartOpen}
         onClose={() => setIsCartOpen(false)}
-        products={products}
-        cartIds={cart}
+        cartItems={cartItems}
         onRemoveItem={handleRemoveFromCart}
         onClearCart={handleClearCart}
-        onConsult={notify}
       />
 
+      {/* Modal de Políticas de Privacidade e Termos de Uso (LGPD) */}
       <PrivacyTermsModal
         isOpen={legalModal.isOpen}
         onClose={() => setLegalModal((prev) => ({ ...prev, isOpen: false }))}
         defaultTab={legalModal.tab}
       />
 
-      {/* Accessible Spring Feedback Toast */}
+      {/* Toast Notificações */}
       <Toast message={toastMessage} />
     </>
   );

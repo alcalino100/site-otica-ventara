@@ -78,8 +78,7 @@ export function ContactSection({ onNotify }: ContactSectionProps) {
           </div>
 
           <div className="contact-rating flex items-center gap-2 mt-4 text-xs text-slate-400 justify-center">
-            <span className="text-amber-400">★★★★★</span>
-            <span>5,0 no Google (36 avaliações) · @oticaventara</span>
+            <span>Ótica Ventara · Atendimento Oficial em Araçatuba · @oticaventara no Instagram</span>
           </div>
         </div>
       </div>

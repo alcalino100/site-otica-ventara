@@ -3,27 +3,23 @@
 import React, { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "motion/react";
 import { X, ArrowRight, ShoppingBag, Trash2, MessageCircle } from "lucide-react";
-import { Product } from "../catalog/product-card";
 import { Button } from "../ui/button";
+import { CartProduct, buildWhatsAppCartUrl } from "@/lib/cart";
 
 interface CartModalProps {
   isOpen: boolean;
   onClose: () => void;
-  products: Product[];
-  cartIds: number[];
-  onRemoveItem: (id: number) => void;
+  cartItems: CartProduct[];
+  onRemoveItem: (id: string) => void;
   onClearCart: () => void;
-  onConsult: (msg: string) => void;
 }
 
 export function CartModal({
   isOpen,
   onClose,
-  products,
-  cartIds,
+  cartItems,
   onRemoveItem,
   onClearCart,
-  onConsult,
 }: CartModalProps) {
   const [isSubmitting, setIsSubmitting] = useState(false);
 
@@ -41,15 +37,14 @@ export function CartModal({
     };
   }, [isOpen, onClose]);
 
-  const selectedProducts = products.filter((p) => cartIds.includes(p.id));
-
   const handleCheckout = () => {
     setIsSubmitting(true);
     setTimeout(() => {
       setIsSubmitting(false);
-      onConsult("Iniciando atendimento personalizado com a equipe Ventara...");
+      const whatsappUrl = buildWhatsAppCartUrl(cartItems);
+      window.open(whatsappUrl, "_blank", "noopener,noreferrer");
       onClose();
-    }, 600);
+    }, 400);
   };
 
   return (
@@ -86,17 +81,17 @@ export function CartModal({
 
               <div className="cart-header">
                 <p className="eyebrow !mb-1">SEUS FAVORITOS</p>
-                <h2>Sua seleção ({cartIds.length})</h2>
+                <h2>Sua seleção ({cartItems.length})</h2>
               </div>
 
-              {selectedProducts.length === 0 ? (
+              {cartItems.length === 0 ? (
                 <div className="cart-empty py-10 text-center">
                   <div className="cart-empty-icon mb-4 mx-auto w-14 h-14 rounded-full bg-slate-100 flex items-center justify-center text-slate-400">
                     <ShoppingBag size={28} />
                   </div>
-                  <p className="text-slate-600 mb-2 font-medium">Sua seleção está vazia no momento.</p>
-                  <p className="text-xs text-slate-400 max-w-xs mx-auto mb-6">
-                    Navegue pelo nosso catálogo e clique no ícone da sacola para separar as armações que mais combinam com você.
+                  <p className="text-slate-700 mb-2 font-medium">Sua seleção está vazia no momento.</p>
+                  <p className="text-xs text-slate-500 max-w-xs mx-auto mb-6">
+                    Navegue pelo nosso catálogo e adicione suas armações favoritas para consultar opções de lentes personalizadas.
                   </p>
                   <Button variant="dark" onClick={onClose}>
                     EXPLORAR ARMAÇÕES
@@ -105,32 +100,37 @@ export function CartModal({
               ) : (
                 <>
                   <ul className="cart-list max-h-[340px] overflow-y-auto pr-1">
-                    {selectedProducts.map((p) => {
-                      const count = cartIds.filter((id) => id === p.id).length;
-                      return (
-                        <li key={p.id} className="cart-item">
-                          <div className="cart-item-details">
-                            <span className="cart-item-name">{p.name}</span>
-                            <small className="cart-item-meta">
-                              {p.category} · {p.color} · {count} unidade(s)
-                            </small>
-                          </div>
-                          <button
-                            type="button"
-                            className="cart-item-remove"
-                            aria-label={`Remover ${p.name}`}
-                            onClick={() => onRemoveItem(p.id)}
-                            title="Remover item"
-                          >
-                            <Trash2 size={16} />
-                          </button>
-                        </li>
-                      );
-                    })}
+                    {cartItems.map((item, index) => (
+                      <li key={`${item.id}-${index}`} className="cart-item">
+                        <div className="cart-item-details">
+                          <span className="cart-item-name">{item.name}</span>
+                          <small className="cart-item-meta">
+                            {item.category} · {item.color}
+                          </small>
+                          {item.priceInCents && (
+                            <span className="text-xs font-semibold text-slate-900 block mt-1">
+                              {(item.priceInCents / 100).toLocaleString("pt-BR", {
+                                style: "currency",
+                                currency: "BRL",
+                              })}
+                            </span>
+                          )}
+                        </div>
+                        <button
+                          type="button"
+                          className="cart-item-remove"
+                          aria-label={`Remover ${item.name}`}
+                          onClick={() => onRemoveItem(item.id)}
+                          title="Remover item"
+                        >
+                          <Trash2 size={16} />
+                        </button>
+                      </li>
+                    ))}
                   </ul>
 
                   <div className="cart-summary border-t border-slate-200/80 pt-4 mt-4">
-                    <p className="text-xs text-slate-500 mb-4 leading-relaxed">
+                    <p className="text-xs text-slate-600 mb-4 leading-relaxed">
                       💡 <strong>Atendimento Humanizado:</strong> Envie sua seleção diretamente para os nossos ópticos
                       consultores no WhatsApp para checar disponibilidade de lentes e medidas faciais.
                     </p>
@@ -140,9 +140,9 @@ export function CartModal({
                         variant="dark"
                         isLoading={isSubmitting}
                         onClick={handleCheckout}
-                        className="w-full justify-center !bg-emerald-800 hover:!bg-emerald-900 border-none text-white"
+                        className="w-full justify-center !bg-emerald-800 hover:!bg-emerald-900 border-none text-white font-semibold text-xs tracking-wider"
                       >
-                        <MessageCircle size={17} /> CONSULTAR VIA WHATSAPP <ArrowRight size={16} />
+                        <MessageCircle size={17} /> CONSULTAR SELEÇÃO NO WHATSAPP <ArrowRight size={16} />
                       </Button>
 
                       <button

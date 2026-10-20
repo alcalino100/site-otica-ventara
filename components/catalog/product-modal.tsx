@@ -1,9 +1,10 @@
 "use client";
 
 import React, { useEffect, useRef } from "react";
+import Link from "next/link";
 import { motion, AnimatePresence } from "motion/react";
-import { X, Plus, ShieldCheck, Sparkles } from "lucide-react";
-import { Product } from "./product-card";
+import { X, Plus, ShieldCheck, Sparkles, ExternalLink } from "lucide-react";
+import { Product } from "@/types/ecommerce";
 import { FrameArt } from "./frame-art";
 import { Button } from "../ui/button";
 
@@ -67,50 +68,56 @@ export function ProductModal({ product, onClose, onAddToCart }: ProductModalProp
 
               <div className="modal-art-container">
                 <FrameArt
-                  solar={product.category === "Solar"}
-                  amber={product.id === 2}
-                  round={product.shape === "round"}
+                  solar={product.frame_type === "Solar"}
+                  amber={product.slug.includes("aurora") || Boolean(product.variants?.[0]?.color_name?.toLowerCase().includes("âmbar"))}
+                  round={product.frame_shape === "Redondo"}
                 />
               </div>
 
               <div className="modal-content-body">
                 <div className="flex items-center gap-2 mb-2">
-                  <span className="eyebrow !mb-0">MODELO CONCEITUAL</span>
+                  <span className="eyebrow !mb-0">CATÁLOGO OFICIAL</span>
                   <span className="badge-exclusive">
                     <Sparkles size={11} className="inline mr-1 text-amber-500" />
-                    Exclusivo Ventara
+                    Ótica Ventara
                   </span>
                 </div>
 
                 <h2>{product.name}</h2>
                 <p className="product-spec">
-                  <strong>Linha:</strong> {product.category === "Solar" ? "Solar Proteção UV400" : "Grau Premium Acetato"} ·{" "}
-                  <strong>Acabamento:</strong> {product.color}
+                  <strong>Linha:</strong> {product.frame_type === "Solar" ? "Solar Proteção UV400" : "Grau Premium Acetato"} ·{" "}
+                  <strong>Acabamento:</strong> {product.variants?.[0]?.color_name || product.frame_material || "Acetato Italiano"}
                 </p>
 
                 <p className="modal-description">
-                  Design autoral desenhado com proporções harmônicas para ergonomia perfeita e leveza no uso prolongado.
-                  Lentes com tratamento antirreflexo e proteção contra fadiga visual.
+                  {product.description ||
+                    "Design autoral desenhado com proporções harmônicas para ergonomia perfeita e leveza no uso prolongado. Lentes com tratamento de alta definição e proteção contra fadiga visual."}
                 </p>
 
                 <div className="modal-perks">
                   <div className="perk-item">
                     <ShieldCheck size={16} className="text-amber-600" />
-                    <span>Garantia de ajuste e adaptação no laboratório próprio</span>
+                    <span>Ajuste e consultoria personalizada no espaço físico em Araçatuba</span>
                   </div>
                 </div>
 
-                <div className="modal-actions pt-4">
+                <div className="modal-actions pt-4 flex flex-col sm:flex-row gap-2">
                   <Button
                     variant="dark"
                     onClick={() => {
                       onAddToCart(product);
                       onClose();
                     }}
-                    className="w-full justify-center"
+                    className="flex-1 justify-center"
                   >
                     ADICIONAR À SELEÇÃO <Plus size={17} />
                   </Button>
+                  <Link
+                    href={`/produto/${product.slug}`}
+                    className="inline-flex items-center justify-center gap-1.5 px-4 py-2.5 rounded-lg border border-slate-300 dark:border-slate-700 text-xs font-semibold uppercase tracking-wider text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
+                  >
+                    Ver detalhes completos <ExternalLink size={14} />
+                  </Link>
                 </div>
               </div>
             </motion.div>
