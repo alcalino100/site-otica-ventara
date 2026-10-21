@@ -17,62 +17,62 @@ export function WhyChooseSection() {
     {
       icon: Microscope,
       title: "LABORATÓRIO PRÓPRIO",
-      description: "Precisão e agilidade na produção das suas lentes.",
+      description: "Montagem precisa e ágil das suas lentes.",
     },
     {
       icon: CircleDot,
       title: "LENTES DE ALTA PERFORMANCE",
-      description: "Mais nitidez, proteção e conforto para seus olhos.",
+      description: "Nitidez, proteção UV e antirreflexo.",
     },
     {
       icon: UserCheck,
       title: "ATENDIMENTO ESPECIALIZADO",
-      description: "Nossa equipe está preparada para te ajudar.",
+      description: "Consultoria personalizada para sua visão.",
     },
     {
       icon: Glasses,
       title: "ARMAÇÕES EXCLUSIVAS",
-      description: "Estilo, conforto e as melhores marcas.",
+      description: "Curadoria autoral com acetato e titânio.",
     },
     {
       icon: Timer,
-      title: "SEU ÓCULOS PRONTO EM ATÉ 1H",
-      description: "Agilidade para você não perder tempo.",
+      title: "PRONTO EM ATÉ 1 HORA",
+      description: "Agilidade com precisão digital em laboratório.",
     },
     {
       icon: Tag,
-      title: "PREÇOS JUSTOS",
-      description: "Qualidade e tecnologia com o melhor custo-benefício.",
+      title: "PREÇO JUSTO E TRANSPARENTE",
+      description: "Alta tecnologia com o melhor custo-benefício.",
     },
   ];
 
   return (
-    <section className="bg-white py-24 text-slate-900 relative z-10 border-b border-slate-200" id="sobre-nos">
+    <section className="bg-white py-12 sm:py-20 lg:py-24 text-slate-900 relative z-10 border-b border-slate-200" id="sobre-nos">
       <div id="laboratorio" className="sr-only">Seção Laboratório Próprio</div>
 
       <div className="max-w-[1400px] mx-auto px-4 sm:px-8 lg:px-10">
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 lg:gap-16 items-start">
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-16 items-start">
           {/* Coluna Esquerda: Texto & CTA com WordsStagger */}
           <div className="lg:col-span-4 flex flex-col items-start pr-0 lg:pr-6">
-            <span className="text-xs font-bold tracking-[0.2em] uppercase text-slate-500 mb-2">
+            <span className="text-[11px] sm:text-xs font-bold tracking-[0.2em] uppercase text-slate-500 mb-2">
               POR QUE ESCOLHER
             </span>
-            <h2 className="text-3xl sm:text-5xl font-light text-slate-950 tracking-tight leading-tight mb-5">
+            <h2 className="text-2xl sm:text-4xl lg:text-5xl font-light text-slate-950 tracking-tight leading-tight mb-3 sm:mb-5">
               Óticas Ventara?
             </h2>
-            <div className="mb-8">
+            <div className="mb-6 sm:mb-8">
               <WordsStagger
                 delay={0.1}
                 duration={0.35}
                 stagger={0.03}
-                className="text-sm text-slate-600 leading-relaxed"
+                className="text-xs sm:text-sm text-slate-600 leading-relaxed"
               >
                 Aqui você encontra armações exclusivas, lentes das melhores marcas e um laboratório próprio, com toda a tecnologia e precisão para garantir o melhor para a sua visão.
               </WordsStagger>
             </div>
             <a
               href="#armacoes"
-              className="inline-flex items-center gap-2.5 px-8 py-3.5 rounded-full bg-[#06111f] hover:bg-[#0756b8] active:scale-95 !text-white text-xs font-bold uppercase tracking-wider transition-all duration-200 shadow-md group"
+              className="inline-flex items-center gap-2.5 px-6 sm:px-8 py-3 sm:py-3.5 rounded-full bg-[#06111f] hover:bg-[#0756b8] active:scale-95 !text-white text-xs font-bold uppercase tracking-wider transition-all duration-200 shadow-md group"
               style={{ color: "#ffffff" }}
             >
               <span className="text-white font-bold tracking-wider">Saiba mais</span>
@@ -80,22 +80,25 @@ export function WhyChooseSection() {
             </a>
           </div>
 
-          {/* Coluna Direita: Grid de 6 Recursos (2x3) */}
-          <div className="lg:col-span-8 grid grid-cols-1 sm:grid-cols-3 gap-8">
+          {/* Coluna Direita: Grid Otimizado (2 colunas no mobile, 3 no tablet/desktop) */}
+          <div className="lg:col-span-8 grid grid-cols-2 sm:grid-cols-3 gap-3 sm:gap-6 lg:gap-8">
             {features.map((feat, idx) => {
               const Icon = feat.icon;
               return (
                 <div
                   key={idx}
-                  className="p-5 rounded-2xl bg-slate-50/70 border border-slate-200/80 hover:border-slate-300 transition-all flex flex-col justify-start"
+                  className="p-3.5 sm:p-5 rounded-xl sm:rounded-2xl bg-slate-50/80 border border-slate-200/80 hover:border-amber-400/60 hover:shadow-xs transition-all flex flex-col justify-between"
                 >
-                  <div className="w-10 h-10 rounded-xl bg-slate-100 flex items-center justify-center text-[#0756b8] mb-4">
-                    <Icon size={20} strokeWidth={1.8} />
+                  <div>
+                    <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-lg sm:rounded-xl bg-amber-500/10 text-amber-600 sm:text-[#0756b8] flex items-center justify-center mb-2.5 sm:mb-4">
+                      <Icon size={18} strokeWidth={1.8} className="sm:hidden" />
+                      <Icon size={20} strokeWidth={1.8} className="hidden sm:block" />
+                    </div>
+                    <h3 className="text-[11px] sm:text-xs font-bold uppercase tracking-wider text-slate-900 mb-1 sm:mb-2 leading-snug">
+                      {feat.title}
+                    </h3>
                   </div>
-                  <h3 className="text-xs font-bold uppercase tracking-wider text-slate-900 mb-2">
-                    {feat.title}
-                  </h3>
-                  <p className="text-xs text-slate-600 leading-relaxed">
+                  <p className="text-[11px] sm:text-xs text-slate-500 leading-relaxed mt-1">
                     {feat.description}
                   </p>
                 </div>
