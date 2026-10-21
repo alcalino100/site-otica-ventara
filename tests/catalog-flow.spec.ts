@@ -93,4 +93,24 @@ test.describe("Ótica Ventara - Catálogo e Interações", () => {
     await addShowcaseBtn.click();
     await expect(showcase.getByText(/Adicionado!/i)).toBeVisible();
   });
+
+  test("deve navegar e alternar abas de valores na seção compacta de lentes", async ({ page }) => {
+    const lensesSection = page.locator("#lentes");
+    await lensesSection.scrollIntoViewIfNeeded();
+    await expect(lensesSection).toBeVisible();
+
+    // Verifica aba inicial Visão Simples com preço inicial
+    await expect(lensesSection.getByText(/Visão Simples/i).first()).toBeVisible();
+    await expect(lensesSection.getByText(/R\$ 99,90/i)).toBeVisible();
+
+    // Alterna para Multifocais
+    const multifocalBtn = lensesSection.getByRole("button", { name: /Multifocais/i });
+    await multifocalBtn.click();
+    await expect(lensesSection.getByText(/R\$ 289,00/i)).toBeVisible();
+
+    // Alterna para Filtro Luz Azul
+    const blueBtn = lensesSection.getByRole("button", { name: /Filtro Luz Azul/i });
+    await blueBtn.click();
+    await expect(lensesSection.getByText(/R\$ 149,90/i)).toBeVisible();
+  });
 });

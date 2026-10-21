@@ -18,6 +18,7 @@ import {
   Plus,
   FileSpreadsheet,
   Sparkles,
+  TrendingUp,
 } from "lucide-react";
 import { createClient, isSupabaseConfigured } from "@/lib/supabase/client";
 import { DEFAULT_CATALOG } from "@/lib/catalog-data";
@@ -186,6 +187,14 @@ function AdminDashboardOverview() {
   ];
 
   const operationalModules = [
+    {
+      title: "Métricas & Tráfego UTM",
+      description:
+        "Rastreamento de cliques em anúncios, visualizações de página de destino e gerador de links para criativos.",
+      icon: TrendingUp,
+      href: "/admin/metricas",
+      actionText: "Ver Métricas & Gerador UTM",
+    },
     {
       title: "Produtos & Catálogo",
       description:
