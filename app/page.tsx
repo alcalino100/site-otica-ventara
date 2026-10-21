@@ -138,14 +138,14 @@ export default function Home() {
         {/* 3. Faixa de Números Conforme Mockup ("Nossos Números: Confiança que se transforma em resultados.") */}
         <MetricsRibbon />
 
-        {/* 4. Seção Conforme Mockup ("Por que escolher Óticas Ventara?" com 6 diferenciais em grid) */}
-        <WhyChooseSection />
-
-        {/* 5. Vitrine Editorial Interativa (Referência Oakley/Ventara: Lifestyle Dinâmico & Variações) */}
+        {/* 4. Vitrine Editorial Interativa (Referência Oakley/Ventara: Lifestyle Dinâmico & Variações) */}
         <InteractiveShowcase
           onAddToCart={handleAddToCart}
           onOpenCart={() => setIsCartOpen(true)}
         />
+
+        {/* 5. Seção Conforme Mockup ("Por que escolher Óticas Ventara?" com diferenciais compactos no mobile) */}
+        <WhyChooseSection />
 
         {/* 6. Catálogo Interativo com Filtros (Todos, Grau, Solar), Busca e Carrinho */}
         <CatalogSection

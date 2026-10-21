@@ -120,13 +120,13 @@ export function ProductDetailActions({
       {/* Seletor Interativo de Cores */}
       <div className="space-y-2.5">
         <div className="flex items-center justify-between text-xs">
-          <span className="font-semibold text-slate-300 uppercase tracking-wider">
+          <span className="font-semibold text-slate-800 uppercase tracking-wider">
             Cor da Armação:
           </span>
-          <span className="font-bold text-amber-400">{selectedVariant.color_name}</span>
+          <span className="font-bold text-amber-600">{selectedVariant.color_name}</span>
         </div>
 
-        <div className="flex items-center gap-2.5">
+        <div className="flex items-center gap-2.5 flex-wrap">
           {variants.map((v) => {
             const isSelected = selectedVariant.id === v.id;
             return (
@@ -136,12 +136,12 @@ export function ProductDetailActions({
                 onClick={() => setSelectedVariant(v)}
                 className={`flex items-center gap-2 px-3.5 py-2 rounded-xl text-xs font-medium border transition-all active:scale-95 ${
                   isSelected
-                    ? "bg-amber-400/15 text-amber-300 border-amber-400/50 shadow-sm"
-                    : "bg-[#061423] text-slate-300 border-white/10 hover:border-white/20"
+                    ? "bg-amber-50 text-amber-900 border-amber-400 shadow-2xs font-semibold"
+                    : "bg-white text-slate-700 border-slate-200 hover:border-slate-300"
                 }`}
               >
                 <span
-                  className="w-3.5 h-3.5 rounded-full border border-white/20 shadow-xs flex-shrink-0"
+                  className="w-3.5 h-3.5 rounded-full border border-black/10 shadow-2xs flex-shrink-0"
                   style={{ backgroundColor: v.color_hex || "#1e293b" }}
                 />
                 <span>{v.color_name}</span>
@@ -152,13 +152,13 @@ export function ProductDetailActions({
       </div>
 
       {/* Guia Interativo de Escolha de Lentes */}
-      <div className="space-y-3 pt-3 border-t border-white/10">
+      <div className="space-y-3 pt-3 border-t border-slate-200/80">
         <div className="flex items-center justify-between text-xs">
-          <span className="font-semibold text-slate-300 uppercase tracking-wider flex items-center gap-1.5">
-            <Layers size={14} className="text-amber-400" />
+          <span className="font-semibold text-slate-800 uppercase tracking-wider flex items-center gap-1.5">
+            <Layers size={14} className="text-amber-600" />
             Precisa de lentes para esta armação?
           </span>
-          <span className="text-[11px] text-amber-400/90 font-medium">
+          <span className="text-[11px] text-amber-600 font-semibold">
             Consultoria Técnica
           </span>
         </div>
@@ -174,22 +174,22 @@ export function ProductDetailActions({
                 onClick={() => setSelectedLens(lens)}
                 className={`p-3 rounded-xl border text-left transition-all active:scale-95 flex items-start gap-2.5 ${
                   isChosen
-                    ? "bg-amber-400/15 border-amber-400/50 text-white shadow-sm"
-                    : "bg-[#061423] border-white/10 text-slate-300 hover:border-white/20"
+                    ? "bg-amber-50/80 border-amber-400 text-slate-900 shadow-2xs"
+                    : "bg-white border-slate-200/80 text-slate-700 hover:border-slate-300"
                 }`}
               >
                 <div
                   className={`p-1.5 rounded-lg flex-shrink-0 mt-0.5 ${
                     isChosen
                       ? "bg-amber-400 text-slate-950 font-bold"
-                      : "bg-white/5 text-amber-400"
+                      : "bg-slate-100 text-amber-600"
                   }`}
                 >
                   <LensIcon size={14} />
                 </div>
                 <div>
-                  <p className="text-xs font-semibold leading-tight">{lens.name}</p>
-                  <p className="text-[11px] text-slate-400 leading-tight mt-0.5">
+                  <p className="text-xs font-semibold leading-tight text-slate-900">{lens.name}</p>
+                  <p className="text-[11px] text-slate-500 leading-tight mt-0.5">
                     {lens.desc}
                   </p>
                 </div>
@@ -200,13 +200,12 @@ export function ProductDetailActions({
       </div>
 
       {/* Botões de Ação com Micro-Interações */}
-      <div className="space-y-3 pt-4 border-t border-white/10">
+      <div className="space-y-3 pt-4 border-t border-slate-200/80">
         {/* Botão Primário: Adicionar à Seleção */}
         <button
           type="button"
           onClick={handleAdd}
-          className="w-full bg-amber-400 hover:bg-amber-300 active:scale-95 !text-[#030c13] font-bold text-xs tracking-wider uppercase py-4 px-6 rounded-2xl flex items-center justify-center gap-2.5 transition-all duration-200 shadow-lg shadow-amber-400/10 cursor-pointer"
-          style={{ color: "#030c13" }}
+          className="w-full bg-[#ffd62e] hover:bg-[#ffcd00] active:scale-95 text-[#06111f] font-bold text-xs tracking-wider uppercase py-4 px-6 rounded-2xl flex items-center justify-center gap-2.5 transition-all duration-200 shadow-md hover:shadow-lg cursor-pointer"
         >
           {isAdded ? (
             <>
@@ -226,17 +225,17 @@ export function ProductDetailActions({
           href={whatsappUrl}
           target="_blank"
           rel="noopener noreferrer"
-          className="w-full bg-[#0a1e33] hover:bg-[#0d2742] border border-amber-400/30 text-white font-semibold text-xs tracking-wider uppercase py-3.5 px-6 rounded-2xl flex items-center justify-center gap-2.5 transition-all active:scale-95 text-center shadow-md cursor-pointer group"
+          className="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-semibold text-xs tracking-wider uppercase py-3.5 px-6 rounded-2xl flex items-center justify-center gap-2.5 transition-all active:scale-95 text-center shadow-md hover:shadow-lg cursor-pointer group"
         >
-          <MessageCircle size={18} className="text-emerald-400" />
+          <MessageCircle size={18} className="text-white" />
           <span>Consultar Lentes no WhatsApp</span>
           <ArrowRight
             size={14}
-            className="text-amber-400 group-hover:translate-x-1 transition-transform"
+            className="text-white group-hover:translate-x-1 transition-transform"
           />
         </a>
 
-        <p className="text-[11px] text-slate-400 text-center pt-1 leading-relaxed">
+        <p className="text-[11px] text-slate-500 text-center pt-1 leading-relaxed">
           Atendimento consultivo na loja em Araçatuba-SP ou suporte digital via WhatsApp.
         </p>
       </div>
