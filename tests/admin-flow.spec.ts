@@ -31,4 +31,32 @@ test.describe("Central Administrativa Modular (/admin)", () => {
     await expect(page.getByRole("button", { name: /Baixar Modelo CSV/i })).toBeVisible();
     await expect(page.getByText("Upload de Arquivo CSV")).toBeVisible();
   });
+
+  test("deve carregar a tela de novo produto e suportar upload via API de admin", async ({ page, request }) => {
+    await page.goto("/admin/produtos/novo");
+    await expect(page.locator("h1")).toContainText("Cadastrar Nova Armação");
+    await expect(page.getByText("Fotografia, Estoque e Publicação")).toBeVisible();
+    await expect(page.getByRole("button", { name: /Salvar e Publicar/i })).toBeVisible();
+
+    // Testa a rota de upload do servidor com buffer de imagem válido
+    const dummyImageBuffer = Buffer.from(
+      "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+M9QDwADhgGAWjR9awAAAABJRU5ErkJggg==",
+      "base64"
+    );
+
+    const uploadResponse = await request.post("/api/admin/upload", {
+      multipart: {
+        file: {
+          name: "teste-unitario.png",
+          mimeType: "image/png",
+          buffer: dummyImageBuffer,
+        },
+      },
+    });
+
+    expect(uploadResponse.status()).toBe(200);
+    const uploadJson = await uploadResponse.json();
+    expect(uploadJson.success).toBe(true);
+    expect(uploadJson.url).toContain("supabase.co/storage/v1/object/public/product-images/");
+  });
 });

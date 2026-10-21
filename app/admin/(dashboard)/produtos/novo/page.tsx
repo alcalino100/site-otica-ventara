@@ -59,30 +59,29 @@ export default function NewProductPage() {
     const file = e.target.files?.[0];
     if (!file) return;
 
+    setErrorMessage(null);
+    setSuccessMessage("Enviando foto para o Storage...");
+
     try {
-      const fileExt = file.name.split(".").pop();
-      const fileName = `${Date.now()}-${Math.random().toString(36).substring(2, 8)}.${fileExt}`;
-      const filePath = `products/${fileName}`;
+      const formData = new FormData();
+      formData.append("file", file);
 
-      const { data, error } = await supabase.storage
-        .from("product-images")
-        .upload(filePath, file);
+      const res = await fetch("/api/admin/upload", {
+        method: "POST",
+        body: formData,
+      });
 
-      if (error) {
-        setErrorMessage(`Falha no upload para o Storage: ${error.message}. Você também pode colar a URL direta da imagem abaixo.`);
-        return;
+      const resData = await res.json();
+      if (!res.ok || resData.error) {
+        throw new Error(resData.error || "Falha no upload");
       }
 
-      if (data) {
-        const { data: publicData } = supabase.storage
-          .from("product-images")
-          .getPublicUrl(filePath);
-        setImageUrl(publicData.publicUrl);
-        setSuccessMessage("Imagem carregada com sucesso no Supabase Storage!");
-      }
-    } catch (err: unknown) {
+      setImageUrl(resData.url);
+      setSuccessMessage("Imagem carregada com sucesso no Supabase Storage!");
+    } catch (err: any) {
       console.error(err);
-      setErrorMessage("Erro ao processar arquivo. Verifique se o bucket 'product-images' está configurado.");
+      setErrorMessage(`Falha no upload para o Storage: ${err.message}. Você também pode colar a URL direta da imagem abaixo.`);
+      setSuccessMessage(null);
     }
   };
 
@@ -109,10 +108,10 @@ export default function NewProductPage() {
         compareAtPriceInCents = Math.round(parseFloat(cleanCompare) * 100);
       }
 
-      // 1. Inserir Produto
-      const { data: productData, error: productError } = await supabase
-        .from("products")
-        .insert({
+      const res = await fetch("/api/admin/products", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
           name,
           slug,
           description: description || null,
@@ -127,46 +126,24 @@ export default function NewProductPage() {
           dimensions_lens_mm: lensMm || null,
           dimensions_bridge_mm: bridgeMm || null,
           dimensions_temple_mm: templeMm || null,
-        })
-        .select()
-        .single();
-
-      if (productError) {
-        setErrorMessage(`Erro ao cadastrar produto: ${productError.message}`);
-        setIsSubmitting(false);
-        return;
-      }
-
-      const productId = productData.id;
-
-      // 2. Inserir Imagem (se informada)
-      if (imageUrl.trim()) {
-        await supabase.from("product_images").insert({
-          product_id: productId,
-          url: imageUrl.trim(),
-          alt_text: name,
-          is_primary: true,
-          sort_order: 0,
-        });
-      }
-
-      // 3. Inserir Variante de Estoque
-      const skuGenerated = `VEN-${slug.toUpperCase().slice(0, 8)}-${Math.floor(100 + Math.random() * 900)}`;
-      await supabase.from("product_variants").insert({
-        product_id: productId,
-        sku: skuGenerated,
-        color_name: colorName,
-        size: "Único",
-        stock_quantity: stockQuantity,
+          imageUrl: imageUrl.trim() || null,
+          color_name: colorName,
+          stock_quantity: stockQuantity,
+        }),
       });
+
+      const resData = await res.json();
+      if (!res.ok || resData.error) {
+        throw new Error(resData.error || "Erro ao cadastrar armação.");
+      }
 
       setSuccessMessage("Armação cadastrada com sucesso! Redirecionando...");
       setTimeout(() => {
-        router.push("/admin");
+        router.push("/admin/produtos");
       }, 1200);
-    } catch (err: unknown) {
+    } catch (err: any) {
       console.error(err);
-      setErrorMessage("Erro inesperado ao salvar. Verifique se o Supabase está online.");
+      setErrorMessage(err.message || "Erro inesperado ao salvar. Verifique se o Supabase está online.");
       setIsSubmitting(false);
     }
   };

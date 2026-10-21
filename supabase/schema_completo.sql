@@ -368,8 +368,12 @@ DO $$ BEGIN
     CREATE POLICY "Imagens de produtos são publicamente visíveis" ON storage.objects FOR SELECT USING (bucket_id = 'product-images');
   END IF;
 
-  IF NOT EXISTS (SELECT 1 FROM pg_policies WHERE policyname = 'Admins autenticados podem gerenciar imagens de produtos' AND tablename = 'objects' AND schemaname = 'storage') THEN
-    CREATE POLICY "Admins autenticados podem gerenciar imagens de produtos" ON storage.objects FOR ALL USING (bucket_id = 'product-images' AND public.is_admin()) WITH CHECK (bucket_id = 'product-images' AND public.is_admin());
+  IF NOT EXISTS (SELECT 1 FROM pg_policies WHERE policyname = 'Permitir upload no bucket product-images' AND tablename = 'objects' AND schemaname = 'storage') THEN
+    CREATE POLICY "Permitir upload no bucket product-images" ON storage.objects FOR INSERT WITH CHECK (bucket_id = 'product-images');
+  END IF;
+
+  IF NOT EXISTS (SELECT 1 FROM pg_policies WHERE policyname = 'Permitir update no bucket product-images' AND tablename = 'objects' AND schemaname = 'storage') THEN
+    CREATE POLICY "Permitir update no bucket product-images" ON storage.objects FOR UPDATE USING (bucket_id = 'product-images');
   END IF;
 EXCEPTION WHEN OTHERS THEN
   NULL;
