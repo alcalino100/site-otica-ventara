@@ -10,7 +10,7 @@ import { WhyChooseSection } from "../components/sections/why-choose-section";
 import { FramesBanner } from "../components/sections/frames-banner";
 import { InteractiveShowcase } from "../components/sections/interactive-showcase";
 import { CatalogSection } from "../components/catalog/catalog-section";
-import { LensesSection } from "../components/sections/lenses-section";
+import { LensesPricingSection } from "../components/sections/lenses-pricing-section";
 import { AboutSection } from "../components/sections/about-section";
 import { StoreSection } from "../components/sections/store-section";
 import { WhatsAppSection } from "../components/sections/whatsapp-section";
@@ -147,7 +147,10 @@ export default function Home() {
         {/* 5. Seção Conforme Mockup ("Por que escolher Óticas Ventara?" com diferenciais compactos no mobile) */}
         <WhyChooseSection />
 
-        {/* 6. Catálogo Interativo com Filtros (Todos, Grau, Solar), Busca e Carrinho */}
+        {/* 6. Tabela Compacta de Lentes & Valores de Referência (Abas Interativas & Marcas Parceiras) */}
+        <LensesPricingSection />
+
+        {/* 7. Catálogo Interativo com Filtros (Todos, Grau, Solar), Busca e Carrinho */}
         <CatalogSection
           products={products}
           onSelectProduct={() => {}}
@@ -155,9 +158,6 @@ export default function Home() {
           cartIds={cartIds}
           isSearchOpen={isSearchOpen}
         />
-
-        {/* 7. Seção de Lentes & Tecnologia Visual ("Seu dia pede uma visão que acompanha você.") */}
-        <LensesSection />
 
         {/* 8. Seção Institucional ("A diferença está nos detalhes.") */}
         <AboutSection />

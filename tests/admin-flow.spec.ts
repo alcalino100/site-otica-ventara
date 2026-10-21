@@ -59,4 +59,25 @@ test.describe("Central Administrativa Modular (/admin)", () => {
     expect(uploadJson.success).toBe(true);
     expect(uploadJson.url).toContain("supabase.co/storage/v1/object/public/product-images/");
   });
+
+  test("deve acessar a página de métricas UTM e gerar links para criativos", async ({ page, request }) => {
+    // 1. Testa API de rastreamento com UTM
+    const trackRes = await request.post("/api/analytics/track", {
+      data: {
+        path: "/#armacoes",
+        utm_source: "meta",
+        utm_medium: "stories",
+        utm_campaign: "teste_criativo",
+        utm_content: "video_1",
+      },
+    });
+    expect(trackRes.status()).toBe(200);
+
+    // 2. Acessa a tela de métricas no admin
+    await page.goto("/admin/metricas");
+    await expect(page.locator("h1")).toContainText("Métricas & Análise de UTMs");
+    await expect(page.getByText("Gerador de Links UTM para Criativos")).toBeVisible();
+    await expect(page.getByRole("button", { name: /Copiar Link/i })).toBeVisible();
+    await expect(page.getByText("Desempenho por Campanha")).toBeVisible();
+  });
 });

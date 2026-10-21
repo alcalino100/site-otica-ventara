@@ -5,6 +5,7 @@ import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import {
   LayoutDashboard,
+  BarChart3,
   Palette,
   Image as ImageIcon,
   Package,
@@ -41,6 +42,7 @@ export function AdminHeader() {
 
   const navModules = [
     { href: "/admin", label: "Dashboard", icon: LayoutDashboard },
+    { href: "/admin/metricas", label: "Métricas & UTMs", icon: BarChart3 },
     { href: "/admin/identidade", label: "Identidade", icon: Palette },
     { href: "/admin/banners", label: "Banners", icon: ImageIcon },
     { href: "/admin/produtos", label: "Produtos", icon: Package },
