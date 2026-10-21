@@ -87,8 +87,11 @@ export async function POST(req: NextRequest) {
 
     let dbProducts: Product[] = [];
     const productIds = body.items.map((i) => i.product_id);
+    const validUuidProductIds = productIds.filter((id) =>
+      /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(id)
+    );
 
-    if (hasLiveDb) {
+    if (hasLiveDb && validUuidProductIds.length > 0) {
       const { data, error } = await adminSupabase
         .from("products")
         .select(`
@@ -96,7 +99,7 @@ export async function POST(req: NextRequest) {
           category:categories(*),
           variants:product_variants(*)
         `)
-        .in("id", productIds)
+        .in("id", validUuidProductIds)
         .eq("is_published", true);
 
       if (!error && data) {
@@ -177,7 +180,7 @@ export async function POST(req: NextRequest) {
     const paymentMethod = body.payment_method || "pix";
 
     // 5. Persistência do Pedido no Banco de Dados
-    let orderId = `ord-${crypto.randomUUID()}`;
+    let orderId = crypto.randomUUID();
 
     if (hasLiveDb) {
       const { data: orderData, error: orderErr } = await adminSupabase
@@ -216,9 +219,15 @@ export async function POST(req: NextRequest) {
       if (orderData) {
         orderId = orderData.id;
 
-        // Gravação dos itens congelados
+        // Gravação dos itens congelados com validação de UUIDs
+        const isUuid = (val: any) =>
+          typeof val === "string" &&
+          /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(val);
+
         const itemsToInsert = resolvedItems.map((item) => ({
           ...item,
+          product_id: isUuid(item.product_id) ? item.product_id : null,
+          variant_id: isUuid(item.variant_id) ? item.variant_id : null,
           order_id: orderId,
         }));
 

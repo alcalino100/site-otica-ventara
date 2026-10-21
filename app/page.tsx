@@ -8,6 +8,7 @@ import { Hero } from "../components/sections/hero";
 import { MetricsRibbon } from "../components/sections/metrics-ribbon";
 import { WhyChooseSection } from "../components/sections/why-choose-section";
 import { FramesBanner } from "../components/sections/frames-banner";
+import { InteractiveShowcase } from "../components/sections/interactive-showcase";
 import { CatalogSection } from "../components/catalog/catalog-section";
 import { LensesSection } from "../components/sections/lenses-section";
 import { AboutSection } from "../components/sections/about-section";
@@ -140,8 +141,11 @@ export default function Home() {
         {/* 4. Seção Conforme Mockup ("Por que escolher Óticas Ventara?" com 6 diferenciais em grid) */}
         <WhyChooseSection />
 
-        {/* 5. Faixa Conforme Mockup ("Nossas Armações: Estilo para todos os momentos." -> "VER COLEÇÃO →") */}
-        <FramesBanner />
+        {/* 5. Vitrine Editorial Interativa (Referência Oakley/Ventara: Lifestyle Dinâmico & Variações) */}
+        <InteractiveShowcase
+          onAddToCart={handleAddToCart}
+          onOpenCart={() => setIsCartOpen(true)}
+        />
 
         {/* 6. Catálogo Interativo com Filtros (Todos, Grau, Solar), Busca e Carrinho */}
         <CatalogSection

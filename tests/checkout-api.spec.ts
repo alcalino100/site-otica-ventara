@@ -55,8 +55,9 @@ test.describe("API de Checkout e Segurança no Servidor", () => {
       },
     });
 
-    // Se a chave não estiver no ambiente de dev, aceita payload com validação de campos
-    // Se estiver, deve retornar 401
-    expect([200, 401]).toContain(response.status());
+    // Se o pedido não existir no banco de dados ativo, retorna 404
+    // Se a assinatura for validada e inválida, retorna 401
+    // Se o segredo não estiver configurado no ambiente, retorna 200
+    expect([200, 401, 404]).toContain(response.status());
   });
 });

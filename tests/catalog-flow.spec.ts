@@ -65,4 +65,32 @@ test.describe("Ótica Ventara - Catálogo e Interações", () => {
     await expect(page.getByRole("button", { name: /Adicionar à seleção/i })).toBeVisible();
     await expect(page.getByRole("link", { name: /Consultar.*WhatsApp/i })).toBeVisible();
   });
+
+  test("deve interagir com a vitrine editorial (troca de categoria, gênero e miniaturas)", async ({ page }) => {
+    const showcase = page.locator("#vitrine-interativa");
+    await showcase.scrollIntoViewIfNeeded();
+    await expect(showcase).toBeVisible();
+
+    // Verifica headline inicial
+    await expect(showcase.getByRole("heading", { level: 2 })).toContainText("Mais que óculos");
+
+    // Alterna para Armações de Grau
+    const grauBtn = showcase.getByRole("button", { name: /Armações de Grau/i });
+    await grauBtn.click();
+    await expect(showcase.getByText(/ARMAÇÕES DE GRAU/i).first()).toBeVisible();
+
+    // Alterna para Coleção Feminina
+    const femBtn = showcase.getByRole("button", { name: /Coleção Feminina/i });
+    await femBtn.click();
+    await expect(showcase.getByText(/COLEÇÃO ACETATO NOBRE/i)).toBeVisible();
+
+    // Clica em uma miniatura de variação
+    const thumbnail = showcase.getByRole("button", { name: /Tartaruga/i }).first();
+    await thumbnail.click();
+
+    // Adiciona à sacola a partir da vitrine
+    const addShowcaseBtn = showcase.getByRole("button", { name: /Salvar na Sacola/i });
+    await addShowcaseBtn.click();
+    await expect(showcase.getByText(/Adicionado!/i)).toBeVisible();
+  });
 });
