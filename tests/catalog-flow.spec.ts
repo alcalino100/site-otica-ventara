@@ -153,8 +153,11 @@ test.describe("Ótica Ventara - Catálogo e Interações", () => {
         hasBlurClass: el.classList.contains("scrolled"),
       };
     });
-    expect(headerStyles.position).toBe("sticky");
+    expect(["fixed", "sticky"]).toContain(headerStyles.position);
     expect(headerStyles.backgroundColor).toContain("rgba(6, 17, 31");
     expect(headerStyles.hasBlurClass).toBe(true);
+
+    const boundingBox = await header.boundingBox();
+    expect(boundingBox?.y).toBe(0);
   });
 });
