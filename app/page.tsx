@@ -67,7 +67,9 @@ export default function Home() {
           .order("created_at", { ascending: false });
 
         if (!error && data && data.length > 0) {
-          setProducts(data as Product[]);
+          const dbSlugs = new Set(data.map((p: any) => p.slug));
+          const missingDefaults = DEFAULT_CATALOG.filter((p) => !dbSlugs.has(p.slug));
+          setProducts([...(data as Product[]), ...missingDefaults]);
         }
       } catch (err) {
         console.warn("Utilizando catálogo padrão estruturado:", err);

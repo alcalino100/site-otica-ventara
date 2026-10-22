@@ -40,7 +40,7 @@ export function CatalogSection({
   const [query, setQuery] = useState<string>("");
   const [isPending, startTransition] = useTransition();
 
-  // Listen for hash changes like #solar or #armacoes ou #grau
+  // Listen for hash changes like #solar or #armacoes ou #grau ou #infantil
   useEffect(() => {
     const handleHash = () => {
       if (typeof window !== "undefined") {
@@ -48,6 +48,8 @@ export function CatalogSection({
           setFilter("Solar");
         } else if (window.location.hash === "#grau") {
           setFilter("Grau");
+        } else if (window.location.hash === "#infantil") {
+          setFilter("Infantil");
         }
       }
     };
@@ -94,12 +96,14 @@ export function CatalogSection({
   // Filtragem multi-critério dinâmica
   const filteredProducts = useMemo(() => {
     const result = products.filter((p) => {
-      // 1. Categoria (Grau / Solar / Todos)
+      // 1. Categoria (Grau / Solar / Infantil / Todos)
       const matchesCategory =
         filter === "Todos" ||
-        p.frame_type === filter ||
-        p.category?.name === filter ||
-        p.category?.slug === filter.toLowerCase();
+        (filter === "Infantil"
+          ? p.gender === "Infantil" || p.category?.slug === "infantil" || p.slug.includes("kids")
+          : p.frame_type === filter ||
+            p.category?.name === filter ||
+            p.category?.slug === filter.toLowerCase());
 
       if (!matchesCategory) return false;
 
@@ -168,6 +172,7 @@ export function CatalogSection({
     <section className="collection light-section py-20 bg-slate-50 border-b border-slate-200" id="armacoes">
       <div id="solar" className="sr-only">Seção Óculos de Sol</div>
       <div id="grau" className="sr-only">Seção Armações de Grau</div>
+      <div id="infantil" className="sr-only">Seção Óculos Infantis</div>
 
       <div className="max-w-[1400px] mx-auto px-4 sm:px-8 lg:px-10">
         {/* Cabeçalho Editorial */}
@@ -184,7 +189,7 @@ export function CatalogSection({
             </p>
           </div>
           <span className="demo-label text-[11px] font-semibold tracking-wider uppercase text-slate-600 bg-white border border-slate-200 px-3.5 py-2 rounded-full shadow-xs self-start md:self-auto">
-            ARMAÇÕES DE GRAU & SOLARES
+            GRAU, SOLARES & LINHA INFANTIL
           </span>
         </div>
 
@@ -193,8 +198,8 @@ export function CatalogSection({
           {/* Linha 1: Categorias Principais + Campo de Busca Rápida */}
           <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
             {/* Abas Primárias com classes que os testes esperam (active) */}
-            <div role="group" aria-label="Filtrar por tipo de armação" className="flex items-center gap-2">
-              {["Todos", "Grau", "Solar"].map((cat) => (
+            <div role="group" aria-label="Filtrar por tipo de armação" className="flex items-center gap-2 flex-wrap">
+              {["Todos", "Grau", "Solar", "Infantil"].map((cat) => (
                 <button
                   key={cat}
                   type="button"
