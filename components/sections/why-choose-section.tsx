@@ -48,8 +48,6 @@ export function WhyChooseSection() {
 
   return (
     <section className="bg-white py-12 sm:py-20 lg:py-24 text-slate-900 relative z-10 border-b border-slate-200" id="sobre-nos">
-      <div id="laboratorio" className="sr-only">Seção Laboratório Próprio</div>
-
       <div className="max-w-[1400px] mx-auto px-4 sm:px-8 lg:px-10">
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-16 items-start">
           {/* Coluna Esquerda: Texto & CTA com WordsStagger */}
@@ -108,7 +106,7 @@ export function WhyChooseSection() {
         </div>
 
         {/* Destaque Fotográfico: Laboratório Próprio Real em Araçatuba-SP */}
-        <div className="mt-12 sm:mt-16 bg-slate-50 border border-slate-200/90 rounded-3xl overflow-hidden shadow-xs">
+        <div id="laboratorio" className="mt-12 sm:mt-16 bg-slate-50 border border-slate-200/90 rounded-3xl overflow-hidden shadow-xs scroll-mt-28">
           <div className="grid grid-cols-1 lg:grid-cols-12 items-stretch">
             {/* Foto Real do Laboratório com proporções naturais e altura ampliada */}
             <div className="lg:col-span-6 relative aspect-[4/3] sm:aspect-[16/10] lg:aspect-auto min-h-[280px] sm:min-h-[380px] lg:min-h-[440px] overflow-hidden bg-slate-900">

@@ -24,17 +24,41 @@ export function Header({
 
   useEffect(() => {
     const handleScroll = () => {
-      setIsScrolled(window.scrollY > 20);
+      const scrollY = window.scrollY;
+      setIsScrolled(scrollY > 20);
 
-      // Detecção dinâmica da seção visível para highlight elegante
-      const sections = ["contato", "laboratorio", "lentes", "armacoes", "sobre-nos", "inicio"];
-      const scrollPosition = window.scrollY + 140;
-      for (const sectionId of sections) {
-        const el = document.getElementById(sectionId);
-        if (el && el.offsetTop <= scrollPosition) {
-          setActiveSection(sectionId);
-          break;
-        }
+      // 1. Topo da página: sempre Início
+      if (scrollY < 300) {
+        setActiveSection("inicio");
+        return;
+      }
+
+      // 2. Fim da página: sempre Contato
+      const isAtBottom =
+        window.innerHeight + scrollY >= document.documentElement.scrollHeight - 100;
+      if (isAtBottom) {
+        setActiveSection("contato");
+        return;
+      }
+
+      // 3. Detecção dinâmica pela posição vertical real de cada seção no DOM
+      const sectionIds = ["inicio", "sobre-nos", "laboratorio", "lentes", "armacoes", "contato"];
+      const scrollPosition = scrollY + 180;
+
+      // Ordena decrescente pela posição vertical (do final da página para o início)
+      const sortedSections = sectionIds
+        .map((id) => {
+          const el = document.getElementById(id);
+          return el ? { id, top: el.offsetTop } : null;
+        })
+        .filter((s): s is { id: string; top: number } => s !== null)
+        .sort((a, b) => b.top - a.top);
+
+      const current = sortedSections.find((s) => s.top <= scrollPosition);
+      if (current) {
+        setActiveSection(current.id);
+      } else {
+        setActiveSection("inicio");
       }
     };
 
