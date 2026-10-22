@@ -212,13 +212,17 @@
   text-align: center;
   padding: 6px 12px;
   font-size: 9px;
-  letter-spacing: 2px;
+  letter-spacing: 1.5px;
   background: rgba(16, 35, 51, 0.75);
   backdrop-filter: blur(8px);
   -webkit-backdrop-filter: blur(8px);
   color: #b6c5cf;
   font-weight: 500;
   border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 100%;
 }
 
 header.site-header {
@@ -228,6 +232,7 @@ header.site-header {
   right: 0;
   z-index: 50;
   width: 100%;
+  max-width: 100vw;
   padding: 12px 0;
   background: rgba(6, 17, 31, 0.45);
   backdrop-filter: blur(16px) saturate(180%);
@@ -289,10 +294,16 @@ header.site-header.scrolled {
 }
 
 .nav {
-  display: flex;
+  display: none;
   gap: 28px;
   font-size: 13px;
   color: #c1cbd2;
+}
+
+@media (min-width: 768px) {
+  .nav {
+    display: flex;
+  }
 }
 
 .nav-link {

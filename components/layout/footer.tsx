@@ -62,7 +62,13 @@ export function Footer({ onOpenLegal }: FooterProps) {
                 </a>
               </li>
               <li>
-                <a href="#sobre" className="hover:text-amber-300 transition-colors">
+                <a href="/medicao-por-foto" className="text-amber-400 hover:text-amber-300 transition-colors flex items-center gap-1 font-medium">
+                  <span>Medição por Foto (DNP)</span>
+                  <span className="text-[9px] bg-amber-400/20 text-amber-300 px-1.5 py-0.5 rounded-full border border-amber-400/30">Novo</span>
+                </a>
+              </li>
+              <li>
+                <a href="#sobre-nos" className="hover:text-amber-300 transition-colors">
                   Sobre a Ventara
                 </a>
               </li>
@@ -80,17 +86,36 @@ export function Footer({ onOpenLegal }: FooterProps) {
             <div className="space-y-3 text-xs text-slate-400">
               <p className="flex items-start gap-2">
                 <MapPin size={15} className="text-amber-400 mt-0.5 flex-shrink-0" />
-                <span>
+                <a
+                  href="https://maps.app.goo.gl/sXFBJrNTxQcBhwTh9?g_st=iw"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="hover:text-amber-300 transition-colors underline-offset-2 hover:underline"
+                >
                   Rua Princesa Isabel, 221, Centro<br />
                   Araçatuba - SP · CEP 16010-250
-                </span>
-              </p>
-              <p className="flex items-center gap-2">
-                <Phone size={15} className="text-amber-400 flex-shrink-0" />
-                <a href="tel:+5518996155748" className="hover:text-amber-300 transition-colors font-medium">
-                  (18) 99615-5748
                 </a>
               </p>
+              <div className="space-y-1">
+                <p className="flex items-center gap-2">
+                  <Phone size={15} className="text-amber-400 flex-shrink-0" />
+                  <span className="text-slate-300">Fixo:</span>
+                  <a href="tel:+551833042808" className="hover:text-amber-300 transition-colors font-medium text-white">
+                    (18) 3304-2808
+                  </a>
+                </p>
+                <p className="flex items-center gap-2 pl-[23px]">
+                  <span className="text-slate-300">WhatsApp:</span>
+                  <a
+                    href="https://wa.me/5518996155748"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="hover:text-emerald-400 transition-colors font-medium text-emerald-400"
+                  >
+                    (18) 99615-5748
+                  </a>
+                </p>
+              </div>
               <p className="flex items-start gap-2">
                 <Clock size={15} className="text-amber-400 mt-0.5 flex-shrink-0" />
                 <span>

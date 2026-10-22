@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
-import { Search, ShoppingBag, Menu, X } from "lucide-react";
+import { Search, ShoppingBag, Menu, X, Sparkles } from "lucide-react";
 import { motion, AnimatePresence } from "motion/react";
 import { BrandLogo } from "../ui/brand-logo";
 
@@ -39,19 +39,22 @@ export function Header({
       }
 
       // 2. Seções ordenadas do final da página para o início pela visão física (getBoundingClientRect)
+      // Ordem física no DOM: Início -> Armações -> Sobre nós -> Laboratório -> Lentes -> Contato
       const sections = [
-        { id: "contato", el: document.getElementById("contato") },
-        { id: "armacoes", el: document.getElementById("armacoes") },
-        { id: "lentes", el: document.getElementById("lentes") },
-        { id: "laboratorio", el: document.getElementById("laboratorio") },
-        { id: "sobre-nos", el: document.getElementById("sobre-nos") },
+        { id: "duvidas", el: document.getElementById("duvidas"), targetId: "contato" },
+        { id: "contato", el: document.getElementById("contato"), targetId: "contato" },
+        { id: "lentes", el: document.getElementById("lentes"), targetId: "lentes" },
+        { id: "loja-fisica", el: document.getElementById("loja-fisica"), targetId: "sobre-nos" },
+        { id: "laboratorio", el: document.getElementById("laboratorio"), targetId: "laboratorio" },
+        { id: "sobre-nos", el: document.getElementById("sobre-nos"), targetId: "sobre-nos" },
+        { id: "armacoes", el: document.getElementById("armacoes"), targetId: "armacoes" },
       ];
 
       for (const section of sections) {
         if (section.el) {
           const rect = section.el.getBoundingClientRect();
           if (rect.top <= checkPoint) {
-            setActiveSection(section.id);
+            setActiveSection(section.targetId);
             return;
           }
         }
@@ -68,10 +71,10 @@ export function Header({
 
   const navItems = [
     { title: "Início", id: "inicio" },
-    { title: "Sobre nós", id: "sobre-nos" },
     { title: "Armações", id: "armacoes" },
-    { title: "Lentes", id: "lentes" },
+    { title: "Sobre nós", id: "sobre-nos" },
     { title: "Laboratório", id: "laboratorio" },
+    { title: "Lentes", id: "lentes" },
     { title: "Contato", id: "contato" },
   ];
 
@@ -94,7 +97,7 @@ export function Header({
         </a>
 
         {/* Desktop Navigation com Highlight Dinâmico e Glassmorphism */}
-        <nav className="nav hidden md:flex items-center gap-7" aria-label="Navegação principal">
+        <nav className="nav hidden md:flex items-center gap-6 lg:gap-7" aria-label="Navegação principal">
           {navItems.map((item) => {
             const isActive = activeSection === item.id;
             return (
@@ -116,6 +119,16 @@ export function Header({
               </a>
             );
           })}
+
+          {/* Link para a página de Medição por Foto */}
+          <a
+            href="/medicao-por-foto"
+            className="text-[11px] font-semibold text-amber-300 hover:text-amber-200 transition-colors flex items-center gap-1 px-3 py-1 rounded-full bg-amber-400/10 border border-amber-400/30 hover:bg-amber-400/20"
+            title="Conheça a tecnologia de medição de DNP por foto"
+          >
+            <Sparkles size={12} className="text-amber-400" />
+            <span>Medição por Foto</span>
+          </a>
         </nav>
 
         {/* Header Actions: Busca, Carrinho e Mobile Menu */}
@@ -189,6 +202,20 @@ export function Header({
                 {item.title}
               </a>
             ))}
+
+            <a
+              href="/medicao-por-foto"
+              className="mobile-nav-link text-sm font-semibold text-amber-400 flex items-center justify-between py-2 border-t border-white/10 mt-2"
+              onClick={() => setMobileMenuOpen(false)}
+            >
+              <span className="flex items-center gap-1.5">
+                <Sparkles size={14} />
+                <span>Medição de DNP por Foto</span>
+              </span>
+              <span className="text-[10px] bg-amber-400/20 text-amber-300 px-2 py-0.5 rounded-full border border-amber-400/30">
+                Novo
+              </span>
+            </a>
           </motion.nav>
         )}
       </AnimatePresence>
