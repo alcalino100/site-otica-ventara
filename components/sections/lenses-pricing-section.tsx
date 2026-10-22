@@ -113,11 +113,11 @@ export function LensesPricingSection() {
   const currentLens = lensTiers.find((t) => t.id === activeTab) || lensTiers[0];
 
   const partnerBrands = [
-    { name: "Essilor / Crizal", type: "Multinacional Francesa" },
-    { name: "Carl Zeiss", type: "Tecnologia Alemã" },
-    { name: "Hoya Vision", type: "Precisão Japonesa" },
-    { name: "Kodak Lens", type: "Tradição e Nitidez" },
-    { name: "Ventara HD Digital", type: "Laboratório Próprio" },
+    { name: "OPTiSYNC HD", type: "Marca Própria Exclusiva Ventara", isExclusive: true },
+    { name: "Essilor / Crizal", type: "Multinacional Francesa", isExclusive: false },
+    { name: "Carl Zeiss", type: "Tecnologia Alemã", isExclusive: false },
+    { name: "Hoya Vision", type: "Precisão Japonesa", isExclusive: false },
+    { name: "Kodak Lens", type: "Tradição e Nitidez", isExclusive: false },
   ];
 
   const whatsappMessage = encodeURIComponent(
@@ -244,6 +244,69 @@ export function LensesPricingSection() {
           </div>
         </div>
 
+        {/* Destaque Exclusivo: Marca Própria OPTiSYNC HD */}
+        <div className="mt-8 bg-gradient-to-r from-[#06111f] via-[#091b30] to-[#0d2238] rounded-3xl p-6 sm:p-8 text-white shadow-lg border border-slate-800">
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-center">
+            {/* Foto Oficial / Logo OPTISYNC HD */}
+            <div className="lg:col-span-4 flex items-center justify-center">
+              <div className="relative rounded-2xl overflow-hidden border border-amber-400/40 bg-white/5 p-2 shadow-inner max-w-[280px] w-full">
+                <img
+                  src="/images/lenses/optisync-hd.jpg"
+                  alt="OPTiSYNC HD - Lente Exclusiva Ótica Ventara Filtro Azul e Antirreflexo"
+                  className="w-full h-auto rounded-xl object-contain bg-white"
+                />
+              </div>
+            </div>
+
+            {/* Informações de Tecnologia & Vantagens */}
+            <div className="lg:col-span-8 flex flex-col justify-between space-y-4">
+              <div>
+                <div className="flex items-center gap-2 flex-wrap mb-2">
+                  <span className="text-[10px] font-extrabold uppercase tracking-widest px-3 py-1 rounded-full bg-amber-400 text-slate-950 shadow-xs">
+                    MARCA PRÓPRIA EXCLUSIVA
+                  </span>
+                  <span className="text-[11px] text-amber-300 font-semibold flex items-center gap-1">
+                    <Sparkles size={13} /> Alta Resolução & Menor Custo
+                  </span>
+                </div>
+
+                <h3 className="text-xl sm:text-2xl font-bold tracking-tight text-white">
+                  OPTiSYNC HD · Filtro Azul & Antirreflexo
+                </h3>
+
+                <p className="text-xs sm:text-sm text-slate-300 leading-relaxed mt-2">
+                  Desenvolvida com padrão óptico internacional e cortada diretamente em nossa faceta computadorizada no laboratório próprio de Araçatuba. Lentes com proteção contra luz azul nociva de monitores e celulares, antirreflexo de alta durabilidade e economia direta de fábrica — sem margens de terceiros.
+                </p>
+              </div>
+
+              <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 pt-3 border-t border-slate-700/60">
+                <div className="flex items-center gap-2 flex-wrap">
+                  <span className="text-[11px] px-2.5 py-1 rounded-lg bg-white/10 text-slate-200 border border-white/10">
+                    Filtro Azul Integrado
+                  </span>
+                  <span className="text-[11px] px-2.5 py-1 rounded-lg bg-white/10 text-slate-200 border border-white/10">
+                    Antirreflexo Multicamadas
+                  </span>
+                  <span className="text-[11px] px-2.5 py-1 rounded-lg bg-white/10 text-slate-200 border border-white/10">
+                    Montagem em até 1 Hora
+                  </span>
+                </div>
+
+                <a
+                  href="https://wa.me/5518996155748?text=Ol%C3%A1!%20Vi%20as%20lentes%20exclusivas%20OPTiSYNC%20HD%20no%20site%20da%20%C3%93tica%20Ventara%20e%20gostaria%20de%20um%20or%C3%A7amento%20para%20a%20minha%20receita."
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-flex items-center gap-2 px-5 py-3 rounded-xl bg-amber-400 hover:bg-amber-300 text-slate-950 font-bold text-xs uppercase tracking-wider transition-all shadow-md active:scale-95 shrink-0"
+                >
+                  <MessageSquare size={15} />
+                  <span>Pedir Orçamento OPTiSYNC</span>
+                  <ArrowRight size={14} />
+                </a>
+              </div>
+            </div>
+          </div>
+        </div>
+
         {/* Marcas Parceiras de Lentes (Badges Nobres) */}
         <div className="mt-8 pt-6 border-t border-slate-200/70 flex flex-col sm:flex-row items-center justify-between gap-4">
           <div className="flex items-center gap-2 text-xs font-semibold text-slate-700">
@@ -255,10 +318,14 @@ export function LensesPricingSection() {
             {partnerBrands.map((b, idx) => (
               <span
                 key={idx}
-                className="text-xs font-semibold text-slate-800 px-3 py-1.5 rounded-xl bg-white border border-slate-200/80 shadow-2xs"
+                className={`text-xs font-semibold px-3 py-1.5 rounded-xl border shadow-2xs ${
+                  b.isExclusive
+                    ? "bg-[#06111f] text-amber-400 border-[#06111f]"
+                    : "bg-white text-slate-800 border-slate-200/80"
+                }`}
                 title={b.type}
               >
-                {b.name}
+                {b.isExclusive ? `★ ${b.name} (Exclusiva)` : b.name}
               </span>
             ))}
           </div>

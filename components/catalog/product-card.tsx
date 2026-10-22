@@ -39,7 +39,14 @@ export function ProductCard({
     currency: "BRL",
   });
 
-  const categoryLabel = product.frame_type === "Solar" ? "Óculos de Sol" : "Armação de Grau";
+  const categoryLabel =
+    product.gender === "Infantil"
+      ? product.frame_type === "Solar"
+        ? "Solar Infantil"
+        : "Grau Infantil"
+      : product.frame_type === "Solar"
+      ? "Óculos de Sol"
+      : "Armação de Grau";
 
   // Derive color swatches from variants or defaults
   const swatches = product.variants && product.variants.length > 0
@@ -77,8 +84,15 @@ export function ProductCard({
           <div className="w-full max-w-[210px] transform transition-transform duration-500 group-hover:scale-105">
             <FrameArt
               solar={product.frame_type === "Solar"}
-              amber={product.slug.includes("aurora") || product.slug.includes("solar")}
+              amber={product.slug.includes("aurora") || (product.slug.includes("solar") && !product.slug.includes("kids"))}
               round={product.frame_shape === "Redondo"}
+              customColor={
+                product.gender === "Infantil"
+                  ? product.frame_type === "Solar"
+                    ? "#0284c7"
+                    : "#2563eb"
+                  : undefined
+              }
             />
           </div>
         )}

@@ -25,6 +25,12 @@ test.describe("Ótica Ventara - Catálogo e Interações", () => {
     const solarFilter = page.getByRole("button", { name: "Solar", exact: true });
     await solarFilter.click();
     await expect(solarFilter).toHaveClass(/active/);
+
+    // Filtra por Infantil
+    const infantilFilter = page.getByRole("button", { name: "Infantil", exact: true });
+    await infantilFilter.click();
+    await expect(infantilFilter).toHaveClass(/active/);
+    await expect(page.getByText("Ventara Kids Flex")).toBeVisible();
   });
 
   test("deve adicionar item à seleção e exibir feedback visual", async ({ page }) => {
@@ -112,5 +118,17 @@ test.describe("Ótica Ventara - Catálogo e Interações", () => {
     const blueBtn = lensesSection.getByRole("button", { name: /Filtro Luz Azul/i });
     await blueBtn.click();
     await expect(lensesSection.getByText(/R\$ 149,90/i)).toBeVisible();
+  });
+
+  test("deve exibir destaque da marca de lentes OPTiSYNC HD e foto real do laboratório", async ({ page }) => {
+    const lensesSection = page.locator("#lentes");
+    await lensesSection.scrollIntoViewIfNeeded();
+    await expect(lensesSection.getByText(/OPTiSYNC HD/i).first()).toBeVisible();
+    await expect(lensesSection.getByText(/Filtro Azul & Antirreflexo/i).first()).toBeVisible();
+
+    const aboutSection = page.locator("#sobre-nos");
+    await aboutSection.scrollIntoViewIfNeeded();
+    await expect(aboutSection.getByText(/Nosso Laboratório Próprio em Araçatuba-SP/i)).toBeVisible();
+    await expect(aboutSection.getByText(/FOTO REAL DA LOJA FÍSICA/i)).toBeVisible();
   });
 });

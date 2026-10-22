@@ -5,6 +5,7 @@ interface FrameProps {
   round?: boolean;
   amber?: boolean;
   hero?: boolean;
+  customColor?: string;
   className?: string;
 }
 
@@ -13,11 +14,12 @@ export const FrameArt = memo(function FrameArt({
   round = false,
   amber = false,
   hero = false,
+  customColor,
   className = "",
 }: FrameProps) {
-  const frameColor = amber ? "#78350f" : "#0d1b2a";
-  const strokeColor = amber ? "#92400e" : "#1e293b";
-  const rimHighlight = amber ? "#f59e0b" : "#475569";
+  const frameColor = customColor || (amber ? "#78350f" : "#0d1b2a");
+  const strokeColor = customColor || (amber ? "#92400e" : "#1e293b");
+  const rimHighlight = customColor ? "#ffffff" : amber ? "#f59e0b" : "#475569";
   const gradientId = hero ? "heroLensGrad" : solar ? "solarLensGrad" : "clearLensGrad";
 
   return (

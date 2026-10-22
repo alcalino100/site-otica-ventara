@@ -178,7 +178,14 @@ export default async function ProductDetailPage({ params }: ProductPageProps) {
                   <FrameArt
                     solar={product.frame_type === "Solar"}
                     round={product.frame_shape === "Redondo"}
-                    amber={product.slug.includes("aurora")}
+                    amber={product.slug.includes("aurora") || (product.slug.includes("solar") && !product.slug.includes("kids"))}
+                    customColor={
+                      product.gender === "Infantil"
+                        ? product.frame_type === "Solar"
+                          ? "#0284c7"
+                          : "#2563eb"
+                        : undefined
+                    }
                   />
                 </div>
               )}
