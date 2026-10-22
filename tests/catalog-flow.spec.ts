@@ -160,4 +160,41 @@ test.describe("Ótica Ventara - Catálogo e Interações", () => {
     const boundingBox = await header.boundingBox();
     expect(boundingBox?.y).toBe(0);
   });
+
+  test("deve sincronizar o indicador de seção ativa do menu conforme a rolagem sem travar em Laboratório", async ({ page }) => {
+    await page.goto("/");
+    await page.waitForLoadState("domcontentloaded");
+
+    const nav = page.locator("nav[aria-label='Navegação principal']");
+
+    // 1. No topo da página: Início deve estar ativo
+    await page.evaluate(() => window.scrollTo(0, 50));
+    await page.waitForTimeout(200);
+    const inicioLink = nav.locator("a[href='#inicio']");
+    await expect(inicioLink).toHaveClass(/text-white/);
+    const labLink = nav.locator("a[href='#laboratorio']");
+    await expect(labLink).toHaveClass(/text-slate-300/);
+
+    // 2. Rolando até a seção de Armações: Armações deve ficar ativa e não Laboratório
+    const armacoesSec = page.locator("#armacoes");
+    await armacoesSec.scrollIntoViewIfNeeded();
+    await page.waitForTimeout(300);
+    const armacoesLink = nav.locator("a[href='#armacoes']");
+    await expect(armacoesLink).toHaveClass(/text-white/);
+    await expect(labLink).toHaveClass(/text-slate-300/);
+
+    // 3. Rolando até a seção de Lentes: Lentes deve ficar ativa
+    const lentesSec = page.locator("#lentes");
+    await lentesSec.scrollIntoViewIfNeeded();
+    await page.waitForTimeout(300);
+    const lentesLink = nav.locator("a[href='#lentes']");
+    await expect(lentesLink).toHaveClass(/text-white/);
+    await expect(labLink).toHaveClass(/text-slate-300/);
+
+    // 4. Rolando até o Laboratório: agora sim Laboratório deve ficar ativo
+    const labSec = page.locator("#laboratorio");
+    await labSec.scrollIntoViewIfNeeded();
+    await page.waitForTimeout(300);
+    await expect(labLink).toHaveClass(/text-white/);
+  });
 });
