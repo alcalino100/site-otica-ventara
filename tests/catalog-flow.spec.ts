@@ -175,6 +175,12 @@ test.describe("Ótica Ventara - Catálogo e Interações", () => {
     const labLink = nav.locator("a[href='#laboratorio']");
     await expect(labLink).toHaveClass(/text-slate-300/);
 
+    // 1.5. Rolando pela Vitrine Interativa / Números (scrollY ~800px): Início deve continuar ativo e nunca Laboratório!
+    await page.evaluate(() => window.scrollTo(0, 800));
+    await page.waitForTimeout(200);
+    await expect(inicioLink).toHaveClass(/text-white/);
+    await expect(labLink).toHaveClass(/text-slate-300/);
+
     // 2. Rolando até a seção de Armações: Armações deve ficar ativa e não Laboratório
     const armacoesSec = page.locator("#armacoes");
     await armacoesSec.scrollIntoViewIfNeeded();
