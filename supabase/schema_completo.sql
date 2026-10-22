@@ -352,6 +352,10 @@ DO $$ BEGIN
   IF NOT EXISTS (SELECT 1 FROM pg_policies WHERE policyname = 'Admins podem gerenciar estoque' AND tablename = 'inventory_movements') THEN
     CREATE POLICY "Admins podem gerenciar estoque" ON public.inventory_movements FOR ALL USING (public.is_admin()) WITH CHECK (public.is_admin());
   END IF;
+
+  IF NOT EXISTS (SELECT 1 FROM pg_policies WHERE policyname = 'Admins podem gerenciar admin_profiles' AND tablename = 'admin_profiles') THEN
+    CREATE POLICY "Admins podem gerenciar admin_profiles" ON public.admin_profiles FOR ALL USING (public.is_admin()) WITH CHECK (public.is_admin());
+  END IF;
 END $$;
 
 -- Storage: Bucket de Imagens de Produtos

@@ -169,4 +169,53 @@ test.describe("Central Administrativa Modular (/admin)", () => {
     expect(deleteJson.deleted.length).toBeGreaterThan(0);
     expect(deleteJson.deleted[0].id).toBe(productId);
   });
+
+  test("deve carregar a tela de gestão de usuários e operadores (/admin/usuarios)", async ({ page }) => {
+    await page.goto("/admin/usuarios");
+    await expect(page.locator("h1")).toContainText("Usuários e Permissões de Acesso");
+    await expect(page.getByRole("button", { name: "Adicionar Novo Usuário" })).toBeVisible();
+    await expect(page.getByText("Operadores Autorizados")).toBeVisible();
+    await expect(page.getByText("Total de Usuários")).toBeVisible();
+  });
+
+  test("deve cadastrar, atualizar nível e excluir usuário operador permanentemente via API admin (/api/admin/users)", async ({ request }) => {
+    const testEmail = `teste.user.${Date.now()}@ventara.com.br`;
+
+    // 1. Cadastra novo operador
+    const createRes = await request.post("/api/admin/users", {
+      data: {
+        email: testEmail,
+        full_name: "Operador Teste Automatizado",
+        role: "editor",
+        password: "Ventara@Test2026",
+      },
+    });
+
+    expect(createRes.status()).toBe(201);
+    const createJson = await createRes.json();
+    expect(createJson.success).toBe(true);
+    const userId = createJson.user.id;
+    expect(userId).toBeDefined();
+    expect(createJson.user.email).toBe(testEmail);
+    expect(createJson.user.role).toBe("editor");
+
+    // 2. Atualiza cargo / nível de permissão para admin
+    const patchRes = await request.patch("/api/admin/users", {
+      data: {
+        id: userId,
+        role: "admin",
+      },
+    });
+    expect(patchRes.status()).toBe(200);
+    const patchJson = await patchRes.json();
+    expect(patchJson.success).toBe(true);
+    expect(patchJson.user.role).toBe("admin");
+
+    // 3. Remove o usuário permanentemente
+    const deleteRes = await request.delete(`/api/admin/users?id=${userId}`);
+    expect(deleteRes.status()).toBe(200);
+    const deleteJson = await deleteRes.json();
+    expect(deleteJson.success).toBe(true);
+    expect(deleteJson.id).toBe(userId);
+  });
 });
