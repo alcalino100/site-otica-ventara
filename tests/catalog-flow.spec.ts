@@ -131,4 +131,30 @@ test.describe("Ótica Ventara - Catálogo e Interações", () => {
     await expect(aboutSection.getByText(/Nosso Laboratório Próprio em Araçatuba-SP/i)).toBeVisible();
     await expect(aboutSection.getByText(/FOTO REAL DA LOJA FÍSICA/i)).toBeVisible();
   });
+
+  test("deve manter o header fixo no topo com efeito glassmorphism ao rolar a página", async ({ page }) => {
+    const header = page.locator("header.site-header");
+    await expect(header).toBeVisible();
+
+    // Rola para baixo 400px
+    await page.evaluate(() => window.scrollTo(0, 400));
+    await page.waitForTimeout(300);
+
+    // Header deve ter a classe scrolled e permanecer visível no topo
+    await expect(header).toHaveClass(/scrolled/);
+    await expect(header).toBeVisible();
+
+    // Verifica que o estilo computado tem position sticky e fundo translúcido escuro
+    const headerStyles = await header.evaluate((el) => {
+      const cs = window.getComputedStyle(el);
+      return {
+        position: cs.position,
+        backgroundColor: cs.backgroundColor,
+        hasBlurClass: el.classList.contains("scrolled"),
+      };
+    });
+    expect(headerStyles.position).toBe("sticky");
+    expect(headerStyles.backgroundColor).toContain("rgba(6, 17, 31");
+    expect(headerStyles.hasBlurClass).toBe(true);
+  });
 });

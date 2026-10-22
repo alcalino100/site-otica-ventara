@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { Search, ShoppingBag, Menu, X } from "lucide-react";
 import { motion, AnimatePresence } from "motion/react";
 import { BrandLogo } from "../ui/brand-logo";
@@ -19,39 +19,69 @@ export function Header({
   isSearchOpen,
 }: HeaderProps) {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [isScrolled, setIsScrolled] = useState(false);
+  const [activeSection, setActiveSection] = useState("inicio");
+
+  useEffect(() => {
+    const handleScroll = () => {
+      setIsScrolled(window.scrollY > 20);
+
+      // Detecção dinâmica da seção visível para highlight elegante
+      const sections = ["contato", "laboratorio", "lentes", "armacoes", "sobre-nos", "inicio"];
+      const scrollPosition = window.scrollY + 140;
+      for (const sectionId of sections) {
+        const el = document.getElementById(sectionId);
+        if (el && el.offsetTop <= scrollPosition) {
+          setActiveSection(sectionId);
+          break;
+        }
+      }
+    };
+
+    handleScroll();
+    window.addEventListener("scroll", handleScroll, { passive: true });
+    return () => window.removeEventListener("scroll", handleScroll);
+  }, []);
 
   const navItems = [
-    { title: "Início", id: "inicio", isActive: true },
-    { title: "Sobre nós", id: "sobre-nos", isActive: false },
-    { title: "Armações", id: "armacoes", isActive: false },
-    { title: "Lentes", id: "lentes", isActive: false },
-    { title: "Laboratório", id: "laboratorio", isActive: false },
-    { title: "Contato", id: "contato", isActive: false },
+    { title: "Início", id: "inicio" },
+    { title: "Sobre nós", id: "sobre-nos" },
+    { title: "Armações", id: "armacoes" },
+    { title: "Lentes", id: "lentes" },
+    { title: "Laboratório", id: "laboratorio" },
+    { title: "Contato", id: "contato" },
   ];
 
   return (
-    <header className="site-header">
+    <header className={`site-header ${isScrolled ? "scrolled" : ""}`}>
       <div className="max-w-[1400px] mx-auto px-4 sm:px-8 lg:px-10 w-full flex items-center justify-between">
         <a href="#inicio" className="brand" aria-label="Ótica Ventara, ir para o início">
           <BrandLogo size="sm" />
         </a>
 
-        {/* Desktop Navigation conforme Referência do Mockup */}
+        {/* Desktop Navigation com Highlight Dinâmico e Glassmorphism */}
         <nav className="nav hidden md:flex items-center gap-7" aria-label="Navegação principal">
-          {navItems.map((item) => (
-            <a
-              key={item.id}
-              href={`#${item.id}`}
-              className={`nav-link text-xs font-semibold tracking-wider transition-colors relative py-1 ${
-                item.isActive ? "text-white" : "text-slate-300 hover:text-white"
-              }`}
-            >
-              {item.title}
-              {item.isActive && (
-                <span className="absolute bottom-0 left-0 right-0 h-[2px] bg-[#FFD62E] rounded-full" />
-              )}
-            </a>
-          ))}
+          {navItems.map((item) => {
+            const isActive = activeSection === item.id;
+            return (
+              <a
+                key={item.id}
+                href={`#${item.id}`}
+                className={`nav-link text-xs font-semibold tracking-wider transition-colors relative py-1 ${
+                  isActive ? "text-white" : "text-slate-300 hover:text-white"
+                }`}
+              >
+                {item.title}
+                {isActive && (
+                  <motion.span
+                    layoutId="activeNavIndicator"
+                    className="absolute bottom-0 left-0 right-0 h-[2px] bg-[#FFD62E] rounded-full shadow-[0_0_8px_rgba(255,214,46,0.6)]"
+                    transition={{ type: "spring", stiffness: 380, damping: 30 }}
+                  />
+                )}
+              </a>
+            );
+          })}
         </nav>
 
         {/* Header Actions: Busca, Carrinho e Mobile Menu */}
@@ -107,9 +137,9 @@ export function Header({
         {mobileMenuOpen && (
           <motion.nav
             className="mobile-nav-panel md:hidden"
-            initial={{ opacity: 0, y: -10 }}
+            initial={{ opacity: 0, y: -8 }}
             animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -10 }}
+            exit={{ opacity: 0, y: -8 }}
             transition={{ duration: 0.2 }}
             aria-label="Menu móvel"
           >
@@ -117,7 +147,9 @@ export function Header({
               <a
                 key={item.id}
                 href={`#${item.id}`}
-                className="mobile-nav-link"
+                className={`mobile-nav-link text-sm font-semibold tracking-wider transition-colors py-1 ${
+                  activeSection === item.id ? "text-[#FFD62E]" : "text-slate-200"
+                }`}
                 onClick={() => setMobileMenuOpen(false)}
               >
                 {item.title}
