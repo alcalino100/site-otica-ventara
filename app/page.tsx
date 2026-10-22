@@ -137,11 +137,7 @@ export default function Home() {
 
   return (
     <>
-      <div className="preview">
-        ÓTICAS VENTARA · ARAÇATUBA-SP · CATÁLOGO ONLINE & ATENDIMENTO PERSONALIZADO
-      </div>
-
-      {/* 1. Header Oficial: Logo, Navegação Conforme Mockup, Busca e Carrinho */}
+      {/* 1. Header Oficial Fixo: Logo, Navegação Conforme Mockup, Busca e Carrinho */}
       <Header
         cartCount={cartItems.length}
         onOpenCart={() => setIsCartOpen(true)}
