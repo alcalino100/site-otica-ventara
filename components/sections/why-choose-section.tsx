@@ -108,42 +108,43 @@ export function WhyChooseSection() {
         </div>
 
         {/* Destaque Fotográfico: Laboratório Próprio Real em Araçatuba-SP */}
-        <div className="mt-10 sm:mt-14 bg-slate-50 border border-slate-200/90 rounded-3xl overflow-hidden shadow-xs">
-          <div className="grid grid-cols-1 lg:grid-cols-12 items-center">
-            {/* Foto Real do Laboratório */}
-            <div className="lg:col-span-6 relative aspect-[16/10] sm:aspect-[16/9] lg:aspect-auto lg:h-[300px] overflow-hidden bg-slate-900">
+        <div className="mt-12 sm:mt-16 bg-slate-50 border border-slate-200/90 rounded-3xl overflow-hidden shadow-xs">
+          <div className="grid grid-cols-1 lg:grid-cols-12 items-stretch">
+            {/* Foto Real do Laboratório com proporções naturais e altura ampliada */}
+            <div className="lg:col-span-6 relative aspect-[4/3] sm:aspect-[16/10] lg:aspect-auto min-h-[280px] sm:min-h-[380px] lg:min-h-[440px] overflow-hidden bg-slate-900">
               <img
                 src="/images/laboratory/laboratorio-ventara.jpg"
                 alt="Laboratório Próprio Óticas Ventara em Araçatuba-SP com Biseladora Computadorizada"
-                className="w-full h-full object-cover object-center hover:scale-105 transition-transform duration-500"
+                className="w-full h-full block hover:scale-105 transition-transform duration-500"
+                style={{ objectFit: "cover", objectPosition: "center", width: "100%", height: "100%" }}
               />
-              <div className="absolute top-3 left-3 bg-[#06111f]/90 backdrop-blur-xs text-amber-400 text-[10px] font-bold uppercase tracking-wider px-3 py-1 rounded-full border border-amber-400/30">
+              <div className="absolute top-4 left-4 bg-[#06111f]/90 backdrop-blur-xs text-amber-400 text-[10px] sm:text-xs font-bold uppercase tracking-wider px-3.5 py-1.5 rounded-full border border-amber-400/30 shadow-md">
                 FOTO REAL DA LOJA FÍSICA
               </div>
             </div>
 
             {/* Texto Descritivo e Diferenciais do Laboratório */}
-            <div className="lg:col-span-6 p-6 sm:p-8 flex flex-col justify-between">
+            <div className="lg:col-span-6 p-6 sm:p-10 lg:p-12 flex flex-col justify-between">
               <div>
-                <span className="text-[11px] font-bold text-amber-600 tracking-widest uppercase block mb-1">
+                <span className="text-[11px] sm:text-xs font-bold text-amber-600 tracking-widest uppercase block mb-2">
                   ESTRUTURA FÍSICA & PRECISÃO DIÓPTRICA
                 </span>
-                <h3 className="text-xl sm:text-2xl font-bold text-slate-950 tracking-tight mb-2">
+                <h3 className="text-2xl sm:text-3xl font-bold text-slate-950 tracking-tight mb-3">
                   Nosso Laboratório Próprio em Araçatuba-SP
                 </h3>
-                <p className="text-xs sm:text-sm text-slate-600 leading-relaxed">
+                <p className="text-xs sm:text-sm text-slate-600 leading-relaxed max-w-xl">
                   Diferente de óticas que terceirizam e demoram dias, a Ótica Ventara conta com maquinário próprio de alta precisão (biseladora computadorizada automática e lensômetro digital) na Rua Princesa Isabel, 221.
                 </p>
               </div>
 
-              <div className="grid grid-cols-2 gap-3 pt-4 mt-4 border-t border-slate-200/80">
+              <div className="grid grid-cols-2 gap-4 pt-6 mt-6 border-t border-slate-200/80">
                 <div>
-                  <p className="text-base sm:text-lg font-extrabold text-slate-900 font-mono">Em até 1 hora</p>
-                  <p className="text-[11px] text-slate-500">Montagem expressa para monofocais</p>
+                  <p className="text-lg sm:text-2xl font-extrabold text-slate-900 font-mono">Em até 1 hora</p>
+                  <p className="text-[11px] sm:text-xs text-slate-500 mt-1">Montagem expressa para monofocais</p>
                 </div>
                 <div>
-                  <p className="text-base sm:text-lg font-extrabold text-slate-900 font-mono">100% Calibrado</p>
-                  <p className="text-[11px] text-slate-500">Medição milimétrica da DNP e altura</p>
+                  <p className="text-lg sm:text-2xl font-extrabold text-slate-900 font-mono">100% Calibrado</p>
+                  <p className="text-[11px] sm:text-xs text-slate-500 mt-1">Medição milimétrica da DNP e altura</p>
                 </div>
               </div>
             </div>
