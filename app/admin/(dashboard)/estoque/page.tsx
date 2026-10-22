@@ -141,21 +141,25 @@ export default function AdminInventoryPage() {
         newBalance = quantityChange;
       }
 
-      // 1. Atualiza variante
-      await supabase
-        .from("product_variants")
-        .update({ stock_quantity: newBalance })
-        .eq("id", selectedVariant.id);
-
-      // 2. Grava histórico na tabela inventory_movements
-      await supabase.from("inventory_movements").insert({
-        product_id: selectedVariant.product_id,
-        variant_id: selectedVariant.id,
-        movement_type: movementType,
-        quantity: quantityChange,
-        balance_after: newBalance,
-        reason: movementReason.trim() || `Ajuste manual (${movementType})`,
+      // Atualiza estoque via API segura no servidor
+      const res = await fetch("/api/admin/inventory", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          variant_id: selectedVariant.id,
+          product_id: selectedVariant.product_id,
+          movement_type: movementType,
+          quantity: quantityChange,
+          balance_after: newBalance,
+          reason: movementReason.trim() || `Ajuste manual (${movementType})`,
+        }),
       });
+
+      const json = await res.json();
+
+      if (!res.ok || json.error) {
+        throw new Error(json.error || "Erro ao registrar movimentação.");
+      }
 
       setFeedback(`Estoque de ${selectedVariant.sku} atualizado para ${newBalance} un.`);
       setSelectedVariant(null);

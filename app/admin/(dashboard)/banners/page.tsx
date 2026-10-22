@@ -95,9 +95,10 @@ export default function AdminBannersPage() {
     }
 
     try {
-      const { data, error } = await supabase
-        .from("homepage_banners")
-        .insert({
+      const res = await fetch("/api/admin/banners", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
           title: newTitle.trim(),
           subtitle: newSubtitle.trim() || null,
           cta_text: newCtaText.trim() || null,
@@ -107,18 +108,18 @@ export default function AdminBannersPage() {
           alt_text: newAltText.trim(),
           sort_order: newSortOrder,
           is_published: true,
-        })
-        .select()
-        .single();
+        }),
+      });
 
-      if (error) {
-        console.error(error);
-        setFormError("Erro ao cadastrar banner no Supabase.");
+      const json = await res.json();
+
+      if (!res.ok || json.error) {
+        setFormError(json.error || "Erro ao cadastrar banner no Supabase.");
         return;
       }
 
-      if (data) {
-        setBanners((prev) => [...prev, data as HomepageBanner]);
+      if (json.banner) {
+        setBanners((prev) => [...prev, json.banner as HomepageBanner]);
       }
 
       setFeedback("Banner criado com sucesso!");
@@ -129,28 +130,37 @@ export default function AdminBannersPage() {
       setNewMobileImg("");
       setNewAltText("");
       setTimeout(() => setFeedback(null), 3000);
-    } catch (err) {
+    } catch (err: any) {
       console.error(err);
-      setFormError("Falha na comunicação com o servidor.");
+      setFormError(err.message || "Falha na comunicação com o servidor.");
     }
   };
 
   const togglePublish = async (id: string, current: boolean) => {
     try {
-      const { error } = await supabase
-        .from("homepage_banners")
-        .update({ is_published: !current })
-        .eq("id", id);
+      const res = await fetch("/api/admin/banners", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ id, is_published: !current }),
+      });
 
-      if (!error) {
-        setBanners((prev) =>
-          prev.map((b) => (b.id === id ? { ...b, is_published: !current } : b))
-        );
-        setFeedback(!current ? "Banner publicado." : "Banner despublicado.");
+      const json = await res.json();
+
+      if (!res.ok || json.error) {
+        setFeedback("Não foi possível atualizar o banner.");
         setTimeout(() => setFeedback(null), 3000);
+        return;
       }
+
+      setBanners((prev) =>
+        prev.map((b) => (b.id === id ? { ...b, is_published: !current } : b))
+      );
+      setFeedback(!current ? "Banner publicado." : "Banner despublicado.");
+      setTimeout(() => setFeedback(null), 3000);
     } catch (err) {
       console.error(err);
+      setFeedback("Erro na comunicação com o servidor.");
+      setTimeout(() => setFeedback(null), 3000);
     }
   };
 
@@ -158,14 +168,27 @@ export default function AdminBannersPage() {
     if (!window.confirm(`Deseja remover o banner "${title}"?`)) return;
 
     try {
-      const { error } = await supabase.from("homepage_banners").delete().eq("id", id);
-      if (!error) {
-        setBanners((prev) => prev.filter((b) => b.id !== id));
-        setFeedback("Banner removido.");
+      const res = await fetch("/api/admin/banners", {
+        method: "DELETE",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ id }),
+      });
+
+      const json = await res.json();
+
+      if (!res.ok || json.error) {
+        setFeedback("Não foi possível remover o banner.");
         setTimeout(() => setFeedback(null), 3000);
+        return;
       }
+
+      setBanners((prev) => prev.filter((b) => b.id !== id));
+      setFeedback("Banner removido.");
+      setTimeout(() => setFeedback(null), 3000);
     } catch (err) {
       console.error(err);
+      setFeedback("Erro ao remover banner.");
+      setTimeout(() => setFeedback(null), 3000);
     }
   };
 
