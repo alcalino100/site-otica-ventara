@@ -95,7 +95,10 @@ function AdminDashboardOverview() {
             ).length
           : 0;
 
-        const paidOrders = orders ? orders.filter((o: any) => o.status === "paid") : [];
+        const CONFIRMED_STATUSES = ["paid", "preparing", "shipped", "delivered"];
+        const paidOrders = orders
+          ? orders.filter((o: any) => CONFIRMED_STATUSES.includes(o.status))
+          : [];
         const confirmedSalesCount = paidOrders.length;
         const confirmedSalesTotalInCents = paidOrders.reduce(
           (acc: number, curr: any) => acc + (curr.total_in_cents || 0),

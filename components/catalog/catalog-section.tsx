@@ -129,15 +129,29 @@ export function CatalogSection({
         if (selectedPriceRange === "above_450" && price <= 450) return false;
       }
 
-      // 5. Busca textual
+      // 5. Busca textual inteligente
       if (query.trim()) {
         const q = query.toLowerCase().trim();
         const matchesName = p.name.toLowerCase().includes(q);
         const matchesSlug = p.slug.toLowerCase().includes(q);
         const matchesShape = p.frame_shape ? p.frame_shape.toLowerCase().includes(q) : false;
         const matchesMaterial = p.frame_material ? p.frame_material.toLowerCase().includes(q) : false;
+        const matchesType = p.frame_type ? p.frame_type.toLowerCase().includes(q) : false;
+        const matchesCategoryName = p.category?.name ? p.category.name.toLowerCase().includes(q) : false;
+        const matchesGender = p.gender ? p.gender.toLowerCase().includes(q) : false;
+        const matchesDesc = p.description ? p.description.toLowerCase().includes(q) : false;
         const matchesVariant = p.variants?.some((v) => v.color_name?.toLowerCase().includes(q));
-        if (!matchesName && !matchesSlug && !matchesShape && !matchesMaterial && !matchesVariant) {
+        if (
+          !matchesName &&
+          !matchesSlug &&
+          !matchesShape &&
+          !matchesMaterial &&
+          !matchesType &&
+          !matchesCategoryName &&
+          !matchesGender &&
+          !matchesDesc &&
+          !matchesVariant
+        ) {
           return false;
         }
       }

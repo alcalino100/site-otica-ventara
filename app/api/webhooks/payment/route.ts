@@ -13,13 +13,20 @@ export async function POST(req: NextRequest) {
     const webhookSecret = process.env.PAYMENT_WEBHOOK_SECRET;
 
     // 1. Validação de Assinatura Criptográfica quando chave configurada em produção
-    if (webhookSecret && signature) {
+    if (webhookSecret) {
+      if (!signature) {
+        return NextResponse.json({ error: "Assinatura do webhook ausente." }, { status: 401 });
+      }
+
       const computedSignature = crypto
         .createHmac("sha256", webhookSecret)
         .update(rawBody)
         .digest("hex");
 
-      if (signature !== computedSignature) {
+      const sigBuf = Buffer.from(signature, "hex");
+      const compBuf = Buffer.from(computedSignature, "hex");
+
+      if (sigBuf.length !== compBuf.length || !crypto.timingSafeEqual(sigBuf, compBuf)) {
         return NextResponse.json({ error: "Assinatura do webhook inválida." }, { status: 401 });
       }
     }
