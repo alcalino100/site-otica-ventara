@@ -80,4 +80,46 @@ test.describe("Central Administrativa Modular (/admin)", () => {
     await expect(page.getByRole("button", { name: /Copiar Link/i })).toBeVisible();
     await expect(page.getByText("Desempenho por Campanha")).toBeVisible();
   });
+
+  test("deve cadastrar, atualizar status e excluir produto permanentemente do banco via API admin", async ({ request }) => {
+    // 1. Cadastra produto temporário
+    const createRes = await request.post("/api/admin/products", {
+      data: {
+        name: "Produto Teste Automatizado",
+        slug: `teste-auto-${Date.now()}`,
+        description: "Produto criado para teste de ciclo de vida e exclusão permanente",
+        price_in_cents: 29990,
+        frame_type: "Grau",
+        is_published: true,
+      },
+    });
+
+    expect(createRes.status()).toBe(200);
+    const createJson = await createRes.json();
+    expect(createJson.success).toBe(true);
+    const productId = createJson.product.id;
+    expect(productId).toBeDefined();
+
+    // 2. Atualiza status para rascunho (PATCH)
+    const patchRes = await request.patch("/api/admin/products", {
+      data: {
+        id: productId,
+        is_published: false,
+      },
+    });
+    expect(patchRes.status()).toBe(200);
+    const patchJson = await patchRes.json();
+    expect(patchJson.success).toBe(true);
+    expect(patchJson.product.is_published).toBe(false);
+
+    // 3. Exclui o produto permanentemente (DELETE)
+    const deleteRes = await request.delete("/api/admin/products", {
+      data: { id: productId },
+    });
+    expect(deleteRes.status()).toBe(200);
+    const deleteJson = await deleteRes.json();
+    expect(deleteJson.success).toBe(true);
+    expect(deleteJson.deleted.length).toBeGreaterThan(0);
+    expect(deleteJson.deleted[0].id).toBe(productId);
+  });
 });

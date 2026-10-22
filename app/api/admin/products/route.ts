@@ -96,3 +96,106 @@ export async function POST(req: NextRequest) {
     );
   }
 }
+
+export async function PATCH(req: NextRequest) {
+  try {
+    const body = await req.json();
+    const { id, ...updates } = body;
+
+    if (!id) {
+      return NextResponse.json(
+        { error: "O ID do produto é obrigatório para atualização." },
+        { status: 400 }
+      );
+    }
+
+    const adminSupabase = createAdminClient();
+
+    const { data, error } = await adminSupabase
+      .from("products")
+      .update({
+        ...updates,
+        updated_at: new Date().toISOString(),
+      })
+      .eq("id", id)
+      .select()
+      .single();
+
+    if (error) {
+      console.error("Erro ao atualizar produto no Supabase:", error);
+      return NextResponse.json(
+        { error: `Erro ao atualizar produto: ${error.message}` },
+        { status: 400 }
+      );
+    }
+
+    return NextResponse.json({
+      success: true,
+      product: data,
+    });
+  } catch (err: any) {
+    console.error("Erro interno ao atualizar produto:", err);
+    return NextResponse.json(
+      { error: err.message || "Erro interno ao atualizar produto." },
+      { status: 500 }
+    );
+  }
+}
+
+export async function DELETE(req: NextRequest) {
+  try {
+    const { searchParams } = new URL(req.url);
+    const idFromQuery = searchParams.get("id");
+
+    let productId = idFromQuery;
+    if (!productId) {
+      try {
+        const body = await req.json();
+        productId = body.id;
+      } catch {
+        // body pode ser vazio se enviado via query string
+      }
+    }
+
+    if (!productId) {
+      return NextResponse.json(
+        { error: "O ID do produto é obrigatório para exclusão." },
+        { status: 400 }
+      );
+    }
+
+    const adminSupabase = createAdminClient();
+
+    // 1. Limpa vínculos nas tabelas filhas defensivamente antes da remoção
+    await adminSupabase.from("product_images").delete().eq("product_id", productId);
+    await adminSupabase.from("product_variants").delete().eq("product_id", productId);
+    await adminSupabase.from("stock_movements").delete().eq("product_id", productId);
+
+    // 2. Remove o produto da tabela 'products' com chave de admin
+    const { data, error } = await adminSupabase
+      .from("products")
+      .delete()
+      .eq("id", productId)
+      .select();
+
+    if (error) {
+      console.error("Erro ao excluir produto no Supabase:", error);
+      return NextResponse.json(
+        { error: `Erro ao excluir produto: ${error.message}` },
+        { status: 500 }
+      );
+    }
+
+    return NextResponse.json({
+      success: true,
+      message: "Produto excluído com sucesso do banco de dados.",
+      deleted: data,
+    });
+  } catch (err: any) {
+    console.error("Erro interno ao excluir produto:", err);
+    return NextResponse.json(
+      { error: err.message || "Erro interno ao excluir produto." },
+      { status: 500 }
+    );
+  }
+}

@@ -70,16 +70,21 @@ export default function AdminOrdersPage() {
   const handleUpdateStatus = async (orderId: string, newStatus: OrderStatus) => {
     setUpdatingId(orderId);
     try {
-      const { error } = await supabase
-        .from("orders")
-        .update({ status: newStatus, updated_at: new Date().toISOString() })
-        .eq("id", orderId);
+      const res = await fetch("/api/admin/orders", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ id: orderId, status: newStatus }),
+      });
 
-      if (!error) {
-        setOrders((prev) =>
-          prev.map((o) => (o.id === orderId ? { ...o, status: newStatus } : o))
-        );
+      const json = await res.json();
+
+      if (!res.ok || json.error) {
+        throw new Error(json.error || "Erro ao atualizar pedido.");
       }
+
+      setOrders((prev) =>
+        prev.map((o) => (o.id === orderId ? { ...o, status: newStatus } : o))
+      );
     } catch (err) {
       console.error("Erro ao atualizar status do pedido:", err);
     } finally {

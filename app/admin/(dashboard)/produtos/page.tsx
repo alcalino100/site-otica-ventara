@@ -77,22 +77,27 @@ export default function AdminProductsPage() {
 
   const togglePublish = async (productId: string, currentStatus: boolean) => {
     try {
-      const { error } = await supabase
-        .from("products")
-        .update({ is_published: !currentStatus })
-        .eq("id", productId);
+      const res = await fetch("/api/admin/products", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ id: productId, is_published: !currentStatus }),
+      });
 
-      if (!error) {
-        setProducts((prev) =>
-          prev.map((p) =>
-            p.id === productId ? { ...p, is_published: !currentStatus } : p
-          )
-        );
-        showFeedback(!currentStatus ? "Produto publicado com sucesso!" : "Produto despublicado.");
+      const json = await res.json();
+
+      if (!res.ok || json.error) {
+        throw new Error(json.error || "Não foi possível atualizar o status.");
       }
-    } catch (err) {
-      console.error(err);
-      showFeedback("Não foi possível atualizar o status.");
+
+      setProducts((prev) =>
+        prev.map((p) =>
+          p.id === productId ? { ...p, is_published: !currentStatus } : p
+        )
+      );
+      showFeedback(!currentStatus ? "Produto publicado com sucesso!" : "Produto despublicado.");
+    } catch (err: any) {
+      console.error("Erro ao alternar status do produto:", err);
+      showFeedback(err.message || "Não foi possível atualizar o status.");
     }
   };
 
@@ -102,14 +107,23 @@ export default function AdminProductsPage() {
     }
 
     try {
-      const { error } = await supabase.from("products").delete().eq("id", productId);
-      if (!error) {
-        setProducts((prev) => prev.filter((p) => p.id !== productId));
-        showFeedback(`"${productName}" removido.`);
+      const res = await fetch("/api/admin/products", {
+        method: "DELETE",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ id: productId }),
+      });
+
+      const json = await res.json();
+
+      if (!res.ok || json.error) {
+        throw new Error(json.error || "Erro ao remover produto.");
       }
-    } catch (err) {
-      console.error(err);
-      showFeedback("Erro ao remover produto.");
+
+      setProducts((prev) => prev.filter((p) => p.id !== productId));
+      showFeedback(`"${productName}" removido com sucesso.`);
+    } catch (err: any) {
+      console.error("Erro ao excluir produto:", err);
+      showFeedback(err.message || "Erro ao remover produto.");
     }
   };
 
