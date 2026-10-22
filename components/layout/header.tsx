@@ -27,39 +27,38 @@ export function Header({
       const scrollY = window.scrollY;
       setIsScrolled(scrollY > 20);
 
-      // 1. Topo da página: sempre Início
-      if (scrollY < 300) {
-        setActiveSection("inicio");
-        return;
-      }
+      // Ponto de verificação vertical abaixo do header fixo
+      const checkPoint = 160;
 
-      // 2. Fim da página: sempre Contato
+      // 1. Fim absoluto da página: sempre Contato
       const isAtBottom =
-        window.innerHeight + scrollY >= document.documentElement.scrollHeight - 100;
+        window.innerHeight + scrollY >= document.documentElement.scrollHeight - 80;
       if (isAtBottom) {
         setActiveSection("contato");
         return;
       }
 
-      // 3. Detecção dinâmica pela posição vertical real de cada seção no DOM
-      const sectionIds = ["inicio", "sobre-nos", "laboratorio", "lentes", "armacoes", "contato"];
-      const scrollPosition = scrollY + 180;
+      // 2. Seções ordenadas do final da página para o início pela visão física (getBoundingClientRect)
+      const sections = [
+        { id: "contato", el: document.getElementById("contato") },
+        { id: "armacoes", el: document.getElementById("armacoes") },
+        { id: "lentes", el: document.getElementById("lentes") },
+        { id: "laboratorio", el: document.getElementById("laboratorio") },
+        { id: "sobre-nos", el: document.getElementById("sobre-nos") },
+      ];
 
-      // Ordena decrescente pela posição vertical (do final da página para o início)
-      const sortedSections = sectionIds
-        .map((id) => {
-          const el = document.getElementById(id);
-          return el ? { id, top: el.offsetTop } : null;
-        })
-        .filter((s): s is { id: string; top: number } => s !== null)
-        .sort((a, b) => b.top - a.top);
-
-      const current = sortedSections.find((s) => s.top <= scrollPosition);
-      if (current) {
-        setActiveSection(current.id);
-      } else {
-        setActiveSection("inicio");
+      for (const section of sections) {
+        if (section.el) {
+          const rect = section.el.getBoundingClientRect();
+          if (rect.top <= checkPoint) {
+            setActiveSection(section.id);
+            return;
+          }
+        }
       }
+
+      // 3. Caso nenhuma seção posterior tenha alcançado a linha de visão, permanece Início
+      setActiveSection("inicio");
     };
 
     handleScroll();
