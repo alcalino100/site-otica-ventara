@@ -167,44 +167,4 @@ test.describe("Óticas Ventara - Novas Alterações e Responsividade Mobile", ()
     const waFloating = page.locator("aside[aria-label='Atendimento pelo WhatsApp']");
     await expect(waFloating).toBeVisible();
   });
-
-  test("deve gerar capturas visuais da loja com fachada, lentes e medição", async ({ page }) => {
-    // 1. Desktop - Homepage Loja Física e Lentes
-    await page.setViewportSize({ width: 1280, height: 800 });
-    await page.goto("/");
-    await page.waitForLoadState("domcontentloaded");
-
-    const store = page.locator("#loja-fisica");
-    await store.scrollIntoViewIfNeeded();
-    await page.waitForTimeout(400);
-    await page.screenshot({
-      path: "/Users/gui/.gemini/antigravity/brain/90ffe01e-c1a0-4c0e-8ac8-51c4b6663b36/loja-fachada-desktop.png",
-    });
-
-    const lenses = page.locator("#lentes");
-    await lenses.scrollIntoViewIfNeeded();
-    await page.waitForTimeout(400);
-    await page.screenshot({
-      path: "/Users/gui/.gemini/antigravity/brain/90ffe01e-c1a0-4c0e-8ac8-51c4b6663b36/lentes-apresentacao-desktop.png",
-    });
-
-    // 2. Mobile - Homepage Loja e Fachada
-    await page.setViewportSize({ width: 375, height: 667 });
-    await page.goto("/");
-    await page.waitForLoadState("domcontentloaded");
-    const mobileStore = page.locator("#loja-fisica");
-    await mobileStore.scrollIntoViewIfNeeded();
-    await page.waitForTimeout(400);
-    await page.screenshot({
-      path: "/Users/gui/.gemini/antigravity/brain/90ffe01e-c1a0-4c0e-8ac8-51c4b6663b36/loja-fachada-mobile.png",
-    });
-
-    // 3. Página de Medição de DNP por Foto
-    await page.goto("/medicao-por-foto");
-    await page.waitForLoadState("domcontentloaded");
-    await page.waitForTimeout(400);
-    await page.screenshot({
-      path: "/Users/gui/.gemini/antigravity/brain/90ffe01e-c1a0-4c0e-8ac8-51c4b6663b36/medicao-por-foto-mobile.png",
-    });
-  });
 });
