@@ -4,6 +4,7 @@ import React from "react";
 import Link from "next/link";
 import { MapPin, Phone, Clock, Instagram, ShieldCheck } from "lucide-react";
 import { BrandLogo } from "../ui/brand-logo";
+import { useSiteSettings } from "../providers/site-settings-provider";
 
 interface FooterProps {
   onOpenLegal?: (tab: "terms" | "privacy") => void;
@@ -11,6 +12,8 @@ interface FooterProps {
 
 export function Footer({ onOpenLegal }: FooterProps) {
   const currentYear = new Date().getFullYear();
+  const { identity, cleanWhatsAppNumber } = useSiteSettings();
+  const instaUrl = `https://instagram.com/${identity.instagram_handle.replace("@", "")}`;
 
   return (
     <footer className="site-footer bg-[#030810] text-slate-300 border-t border-white/10 pt-16 pb-12">
@@ -22,15 +25,15 @@ export function Footer({ onOpenLegal }: FooterProps) {
               <BrandLogo variant="header" />
             </Link>
             <p className="text-xs text-slate-400 leading-relaxed max-w-xs">
-              Mais que óculos. Seu jeito de ver o mundo. Curadoria autoral de armações, proteção solar e consultoria técnica em lentes em Araçatuba-SP.
+              {identity.tagline || "Mais que óculos. Seu jeito de ver o mundo."} Curadoria autoral de armações, proteção solar e consultoria técnica em lentes em Araçatuba-SP.
             </p>
             <div className="flex items-center gap-3 pt-2">
               <a
-                href="https://instagram.com/oticaventara"
+                href={instaUrl}
                 target="_blank"
                 rel="noopener noreferrer"
                 className="w-9 h-9 rounded-full bg-white/5 hover:bg-white/10 border border-white/10 flex items-center justify-center text-slate-300 hover:text-amber-400 transition-colors"
-                aria-label="Instagram da Ótica Ventara"
+                aria-label={`Instagram da ${identity.store_name}`}
               >
                 <Instagram size={16} />
               </a>
@@ -92,8 +95,8 @@ export function Footer({ onOpenLegal }: FooterProps) {
                   rel="noopener noreferrer"
                   className="hover:text-amber-300 transition-colors underline-offset-2 hover:underline"
                 >
-                  Rua Princesa Isabel, 221, Centro<br />
-                  Araçatuba - SP · CEP 16010-250
+                  {identity.address_street}, {identity.address_neighborhood}<br />
+                  {identity.address_city} - {identity.address_state} · CEP {identity.address_postal_code}
                 </a>
               </p>
               <div className="space-y-1">
@@ -107,20 +110,19 @@ export function Footer({ onOpenLegal }: FooterProps) {
                 <p className="flex items-center gap-2 pl-[23px]">
                   <span className="text-slate-300">WhatsApp:</span>
                   <a
-                    href="https://wa.me/5518996155748"
+                    href={`https://wa.me/${cleanWhatsAppNumber}`}
                     target="_blank"
                     rel="noopener noreferrer"
                     className="hover:text-emerald-400 transition-colors font-medium text-emerald-400"
                   >
-                    (18) 99615-5748
+                    {identity.phone_whatsapp}
                   </a>
                 </p>
               </div>
               <p className="flex items-start gap-2">
                 <Clock size={15} className="text-amber-400 mt-0.5 flex-shrink-0" />
                 <span>
-                  Seg a Sex: 09h às 18h<br />
-                  Sábados: 09h às 13h
+                  {identity.business_hours}
                 </span>
               </p>
             </div>

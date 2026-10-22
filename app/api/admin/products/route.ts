@@ -21,10 +21,47 @@ export async function POST(req: NextRequest) {
 
     const adminSupabase = createAdminClient();
 
+    // Determina category_id se não fornecido
+    let categoryId = body.category_id || null;
+    if (!categoryId) {
+      const targetSlug =
+        body.gender === "Infantil" || body.frame_type === "Infantil"
+          ? "infantil"
+          : body.frame_type === "Solar"
+          ? "solar"
+          : "grau";
+
+      const { data: catData } = await adminSupabase
+        .from("categories")
+        .select("id")
+        .eq("slug", targetSlug)
+        .maybeSingle();
+
+      if (catData?.id) {
+        categoryId = catData.id;
+      }
+    }
+
+    // Determina brand_id se não fornecido (marca oficial Ventara)
+    let brandId = body.brand_id || null;
+    if (!brandId) {
+      const { data: brandData } = await adminSupabase
+        .from("brands")
+        .select("id")
+        .eq("slug", "ventara")
+        .maybeSingle();
+
+      if (brandData?.id) {
+        brandId = brandData.id;
+      }
+    }
+
     // 1. Cadastrar produto na tabela 'products'
     const { data: productData, error: productError } = await adminSupabase
       .from("products")
       .insert({
+        category_id: categoryId,
+        brand_id: brandId,
         name: body.name.trim(),
         slug: body.slug.trim(),
         description: body.description ? body.description.trim() : null,

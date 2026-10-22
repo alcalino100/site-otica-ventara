@@ -12,8 +12,10 @@ import {
   ShieldCheck,
   Coffee,
 } from "lucide-react";
+import { useSiteSettings } from "../providers/site-settings-provider";
 
 export function StoreSection() {
+  const { identity, cleanWhatsAppNumber } = useSiteSettings();
   const googleMapsUrl = "https://maps.app.goo.gl/sXFBJrNTxQcBhwTh9?g_st=iw";
 
   return (
@@ -61,7 +63,7 @@ export function StoreSection() {
               {/* Informação na Base da Foto */}
               <div className="absolute bottom-4 left-4 right-4 text-white">
                 <span className="text-[11px] font-bold uppercase tracking-widest text-amber-300 block">
-                  Rua Princesa Isabel, 221
+                  {identity.address_street}
                 </span>
                 <p className="text-xs sm:text-sm text-slate-200 font-medium">
                   Atendimento de segunda a sábado no coração da cidade.
@@ -99,7 +101,7 @@ export function StoreSection() {
                       Endereço Completo
                     </h4>
                     <p className="text-sm font-semibold text-white leading-relaxed">
-                      Rua Princesa Isabel, 221, Centro, Araçatuba - SP, CEP 16010-250
+                      {identity.address_street}, {identity.address_neighborhood}, {identity.address_city} - {identity.address_state}, CEP {identity.address_postal_code}
                     </p>
                     <span className="text-xs text-slate-400 mt-0.5 block">
                       Localização central privilegiada, fácil de estacionar.
@@ -129,12 +131,12 @@ export function StoreSection() {
                       <div className="border-l border-white/10 pl-4">
                         <span className="text-[11px] text-slate-400 block">WhatsApp:</span>
                         <a
-                          href="https://wa.me/5518996155748"
+                          href={`https://wa.me/${cleanWhatsAppNumber}`}
                           target="_blank"
                           rel="noopener noreferrer"
                           className="text-base font-bold text-emerald-400 hover:text-emerald-300 transition-colors"
                         >
-                          (18) 99615-5748
+                          {identity.phone_whatsapp}
                         </a>
                       </div>
                     </div>
@@ -151,10 +153,10 @@ export function StoreSection() {
                       Horário de Funcionamento
                     </h4>
                     <p className="text-sm font-medium text-white">
-                      Segunda a Sexta: 09h às 18h
+                      {identity.business_hours}
                     </p>
                     <p className="text-xs text-slate-400 mt-0.5">
-                      Sábados: 09h às 13h · Domingos e Feriados: Fechado
+                      Laboratório próprio computadorizado para montagem expressa.
                     </p>
                   </div>
                 </div>

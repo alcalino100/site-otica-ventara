@@ -2,11 +2,11 @@ import { Product } from "@/types/ecommerce";
 
 export const DEFAULT_CATALOG: Product[] = [
   {
-    id: "prod-1",
+    id: "00000000-0000-0000-0000-000000000101",
     name: "Ventara Essencial",
     slug: "ventara-essencial",
-    category_id: "cat-grau",
-    brand_id: null,
+    category_id: "c0000000-0000-0000-0000-000000000001",
+    brand_id: "b0000000-0000-0000-0000-000000000001",
     description:
       "Armação atemporal em acetato premium polido à mão. Conforto ergonômico excepcional para uso durante todo o dia, ponte anatômica e compatibilidade total com lentes multifocais e antirreflexo.",
     price_in_cents: 38900,
@@ -23,7 +23,7 @@ export const DEFAULT_CATALOG: Product[] = [
     created_at: new Date().toISOString(),
     updated_at: new Date().toISOString(),
     category: {
-      id: "cat-grau",
+      id: "c0000000-0000-0000-0000-000000000001",
       name: "Grau",
       slug: "grau",
       description: "Armações desenvolvidas para alta precisão dióptrica e conforto visual contínuo.",
@@ -35,7 +35,7 @@ export const DEFAULT_CATALOG: Product[] = [
     variants: [
       {
         id: "var-1",
-        product_id: "prod-1",
+        product_id: "00000000-0000-0000-0000-000000000101",
         sku: "VEN-ESS-BLK",
         color_name: "Preto Clássico",
         color_hex: "#111827",
@@ -47,11 +47,11 @@ export const DEFAULT_CATALOG: Product[] = [
     ],
   },
   {
-    id: "prod-2",
+    id: "00000000-0000-0000-0000-000000000102",
     name: "Ventara Aurora",
     slug: "ventara-aurora",
-    category_id: "cat-solar",
-    brand_id: null,
+    category_id: "c0000000-0000-0000-0000-000000000002",
+    brand_id: "b0000000-0000-0000-0000-000000000001",
     description:
       "Óculos de sol contemporâneo com tonalidade âmbar translúcida e proteção UV400 completa. Lentes solares de alto contraste que preservam a fidelidade de cores em ambientes abertos.",
     price_in_cents: 44900,
@@ -68,7 +68,7 @@ export const DEFAULT_CATALOG: Product[] = [
     created_at: new Date().toISOString(),
     updated_at: new Date().toISOString(),
     category: {
-      id: "cat-solar",
+      id: "c0000000-0000-0000-0000-000000000002",
       name: "Solar",
       slug: "solar",
       description: "Proteção solar com filtros UVA/UVB avançados e design autoral.",
@@ -80,7 +80,7 @@ export const DEFAULT_CATALOG: Product[] = [
     variants: [
       {
         id: "var-2",
-        product_id: "prod-2",
+        product_id: "00000000-0000-0000-0000-000000000102",
         sku: "VEN-AUR-AMB",
         color_name: "Âmbar Translúcido",
         color_hex: "#b45309",
@@ -92,17 +92,17 @@ export const DEFAULT_CATALOG: Product[] = [
     ],
   },
   {
-    id: "prod-3",
+    id: "00000000-0000-0000-0000-000000000103",
     name: "Ventara Urbano",
     slug: "ventara-urbano",
-    category_id: "cat-grau",
-    brand_id: null,
+    category_id: "c0000000-0000-0000-0000-000000000001",
+    brand_id: "b0000000-0000-0000-0000-000000000001",
     description:
       "Linhas minimalistas em titânio ultraleve com acabamento grafite acetinado. Ideal para quem valoriza discrição, leveza estrutural na face e resistência à corrosão.",
     price_in_cents: 42900,
     compare_at_price_in_cents: null,
     is_published: true,
-    is_featured: false,
+    is_featured: true,
     frame_type: "Grau",
     frame_shape: "Redondo",
     frame_material: "Metal Titânio",
@@ -113,7 +113,7 @@ export const DEFAULT_CATALOG: Product[] = [
     created_at: new Date().toISOString(),
     updated_at: new Date().toISOString(),
     category: {
-      id: "cat-grau",
+      id: "c0000000-0000-0000-0000-000000000001",
       name: "Grau",
       slug: "grau",
       description: "Armações de grau com ergonomia e ajuste perfeito.",
@@ -125,7 +125,7 @@ export const DEFAULT_CATALOG: Product[] = [
     variants: [
       {
         id: "var-3",
-        product_id: "prod-3",
+        product_id: "00000000-0000-0000-0000-000000000103",
         sku: "VEN-URB-GRF",
         color_name: "Grafite Fosco",
         color_hex: "#374151",
@@ -137,11 +137,11 @@ export const DEFAULT_CATALOG: Product[] = [
     ],
   },
   {
-    id: "prod-4",
+    id: "00000000-0000-0000-0000-000000000104",
     name: "Ventara Horizonte",
     slug: "ventara-horizonte",
-    category_id: "cat-solar",
-    brand_id: null,
+    category_id: "c0000000-0000-0000-0000-000000000002",
+    brand_id: "b0000000-0000-0000-0000-000000000001",
     description:
       "Uma releitura do clássico formato aviador com detalhes geométricos refinados em dourado fosco e aro preto nobre. Alta presença visual e lentes categoria 3 de proteção solar.",
     price_in_cents: 46900,
@@ -158,7 +158,7 @@ export const DEFAULT_CATALOG: Product[] = [
     created_at: new Date().toISOString(),
     updated_at: new Date().toISOString(),
     category: {
-      id: "cat-solar",
+      id: "c0000000-0000-0000-0000-000000000002",
       name: "Solar",
       slug: "solar",
       description: "Óculos solares de presença e elegância.",
@@ -170,7 +170,7 @@ export const DEFAULT_CATALOG: Product[] = [
     variants: [
       {
         id: "var-4",
-        product_id: "prod-4",
+        product_id: "00000000-0000-0000-0000-000000000104",
         sku: "VEN-HOR-GLD",
         color_name: "Preto e Dourado",
         color_hex: "#d97706",
@@ -182,17 +182,17 @@ export const DEFAULT_CATALOG: Product[] = [
     ],
   },
   {
-    id: "prod-5",
+    id: "00000000-0000-0000-0000-000000000105",
     name: "Ventara Kids Flex",
     slug: "ventara-kids-flex",
-    category_id: "cat-infantil",
-    brand_id: null,
+    category_id: "c0000000-0000-0000-0000-000000000003",
+    brand_id: "b0000000-0000-0000-0000-000000000001",
     description:
       "Armação infantil desenvolvida em TR90 e silicone cirúrgico flexível ultra-resistente. Haste anatômica que não escorrega, ponteira macia e total segurança sem peças rígidas cortantes. Ideal para brincadeiras e uso escolar diário.",
     price_in_cents: 28900,
     compare_at_price_in_cents: 34900,
     is_published: true,
-    is_featured: true,
+    is_featured: false,
     frame_type: "Grau",
     frame_shape: "Redondo",
     frame_material: "Injetado",
@@ -203,7 +203,7 @@ export const DEFAULT_CATALOG: Product[] = [
     created_at: new Date().toISOString(),
     updated_at: new Date().toISOString(),
     category: {
-      id: "cat-infantil",
+      id: "c0000000-0000-0000-0000-000000000003",
       name: "Infantil",
       slug: "infantil",
       description: "Armações infantis com tecnologia flexível, alta resistência a impactos e ergonomia para crianças.",
@@ -215,7 +215,7 @@ export const DEFAULT_CATALOG: Product[] = [
     variants: [
       {
         id: "var-5a",
-        product_id: "prod-5",
+        product_id: "00000000-0000-0000-0000-000000000105",
         sku: "VEN-KID-BLU",
         color_name: "Azul Royal",
         color_hex: "#2563eb",
@@ -226,7 +226,7 @@ export const DEFAULT_CATALOG: Product[] = [
       },
       {
         id: "var-5b",
-        product_id: "prod-5",
+        product_id: "00000000-0000-0000-0000-000000000105",
         sku: "VEN-KID-ROS",
         color_name: "Rosa Chiclete",
         color_hex: "#ec4899",
@@ -238,17 +238,17 @@ export const DEFAULT_CATALOG: Product[] = [
     ],
   },
   {
-    id: "prod-6",
+    id: "00000000-0000-0000-0000-000000000106",
     name: "Ventara Kids Solar UV400",
     slug: "ventara-kids-solar",
-    category_id: "cat-infantil",
-    brand_id: null,
+    category_id: "c0000000-0000-0000-0000-000000000003",
+    brand_id: "b0000000-0000-0000-0000-000000000001",
     description:
       "Óculos solar infantil emborrachado com proteção UV400 máxima e lentes polarizadas que eliminam reflexos na praia, piscina e passeios ao sol. Estrutura flexível e leve que resiste a torções sem quebrar.",
     price_in_cents: 24900,
     compare_at_price_in_cents: 29900,
     is_published: true,
-    is_featured: true,
+    is_featured: false,
     frame_type: "Solar",
     frame_shape: "Redondo",
     frame_material: "Injetado",
@@ -259,7 +259,7 @@ export const DEFAULT_CATALOG: Product[] = [
     created_at: new Date().toISOString(),
     updated_at: new Date().toISOString(),
     category: {
-      id: "cat-infantil",
+      id: "c0000000-0000-0000-0000-000000000003",
       name: "Infantil",
       slug: "infantil",
       description: "Proteção solar infantil com lentes polarizadas e armação flexível.",
@@ -271,7 +271,7 @@ export const DEFAULT_CATALOG: Product[] = [
     variants: [
       {
         id: "var-6a",
-        product_id: "prod-6",
+        product_id: "00000000-0000-0000-0000-000000000106",
         sku: "VEN-KID-SOL-CYN",
         color_name: "Turquesa Vibrante",
         color_hex: "#06b6d4",
@@ -282,7 +282,7 @@ export const DEFAULT_CATALOG: Product[] = [
       },
       {
         id: "var-6b",
-        product_id: "prod-6",
+        product_id: "00000000-0000-0000-0000-000000000106",
         sku: "VEN-KID-SOL-RED",
         color_name: "Vermelho Esportivo",
         color_hex: "#dc2626",

@@ -2,6 +2,7 @@
 
 import React, { useState } from "react";
 import { MessageSquare, ArrowRight, ShieldCheck, CheckCircle2, Glasses } from "lucide-react";
+import { useSiteSettings } from "../providers/site-settings-provider";
 
 interface WhatsAppSectionProps {
   onNotify?: (msg: string) => void;
@@ -9,14 +10,16 @@ interface WhatsAppSectionProps {
 
 export function WhatsAppSection({ onNotify }: WhatsAppSectionProps) {
   const [isOpening, setIsOpening] = useState(false);
+  const { identity, cleanWhatsAppNumber } = useSiteSettings();
 
   const handleWhatsApp = () => {
     setIsOpening(true);
     if (onNotify) {
-      onNotify("Redirecionando para o WhatsApp oficial da Ótica Ventara...");
+      onNotify(`Redirecionando para o WhatsApp oficial da ${identity.store_name}...`);
     }
+    const msg = encodeURIComponent(`Olá! Gostaria de consultoria sobre armações e lentes da ${identity.store_name}.`);
     window.open(
-      "https://wa.me/5518996155748?text=Ol%C3%A1!%20Gostaria%20de%20consultoria%20sobre%20arma%C3%A7%C3%B5es%20e%20lentes%20da%20%C3%93tica%20Ventara.",
+      `https://wa.me/${cleanWhatsAppNumber}?text=${msg}`,
       "_blank",
       "noopener,noreferrer"
     );

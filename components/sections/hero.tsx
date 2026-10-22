@@ -1,11 +1,77 @@
 "use client";
 
-import React from "react";
-import { ArrowRight, ChevronLeft, ChevronRight } from "lucide-react";
+import React, { useState, useEffect, useMemo } from "react";
+import Link from "next/link";
+import { motion, AnimatePresence } from "motion/react";
+import { ArrowRight, ChevronLeft, ChevronRight, Sparkles } from "lucide-react";
 import { FrameArt } from "../catalog/frame-art";
 import { WordsStagger } from "@/registry/spell-ui/words-stagger";
+import { Product } from "@/types/ecommerce";
+import { DEFAULT_CATALOG } from "@/lib/catalog-data";
+import { useSiteSettings } from "@/components/providers/site-settings-provider";
 
-export function Hero() {
+interface HeroProps {
+  products?: Product[];
+}
+
+export function Hero({ products }: HeroProps) {
+  const { identity, fullAddress } = useSiteSettings();
+
+  // Filtra as armações marcadas como destaque (is_featured) no Admin
+  const featuredProducts = useMemo(() => {
+    if (products && products.length > 0) {
+      const featured = products.filter((p) => p.is_featured && p.is_published);
+      if (featured.length > 0) return featured;
+      return products.filter((p) => p.is_published).slice(0, 4);
+    }
+    const defaultFeatured = DEFAULT_CATALOG.filter((p) => p.is_featured && p.is_published);
+    return defaultFeatured.length > 0 ? defaultFeatured : DEFAULT_CATALOG.slice(0, 4);
+  }, [products]);
+
+  const [currentIndex, setCurrentIndex] = useState(0);
+  const [isPaused, setIsPaused] = useState(false);
+
+  const total = featuredProducts.length;
+
+  // Auto-play suave a cada 5 segundos com pausa ao passar o mouse
+  useEffect(() => {
+    if (isPaused || total <= 1) return;
+    const interval = setInterval(() => {
+      setCurrentIndex((prev) => (prev + 1) % total);
+    }, 5000);
+    return () => clearInterval(interval);
+  }, [isPaused, total]);
+
+  // Mantém o índice dentro dos limites caso a lista mude no Admin
+  useEffect(() => {
+    if (currentIndex >= total && total > 0) {
+      setCurrentIndex(0);
+    }
+  }, [total, currentIndex]);
+
+  const handlePrev = (e?: React.MouseEvent) => {
+    if (e) e.stopPropagation();
+    setCurrentIndex((prev) => (prev - 1 + total) % total);
+  };
+
+  const handleNext = (e?: React.MouseEvent) => {
+    if (e) e.stopPropagation();
+    setCurrentIndex((prev) => (prev + 1) % total);
+  };
+
+  const currentProduct = featuredProducts[currentIndex] || featuredProducts[0];
+  const primaryImage =
+    currentProduct?.images?.find((img) => img.is_primary)?.url ||
+    currentProduct?.images?.[0]?.url;
+
+  const currentNumberStr = String(currentIndex + 1).padStart(2, "0");
+  const totalNumberStr = String(total).padStart(2, "0");
+
+  const formattedPrice = ((currentProduct?.price_in_cents || 38900) / 100).toLocaleString("pt-BR", {
+    style: "currency",
+    currency: "BRL",
+  });
+
   return (
     <section className="hero relative overflow-hidden" id="inicio">
       {/* Container Unificado Padrão UI/UX Ampliado */}
@@ -46,12 +112,16 @@ export function Hero() {
             </div>
 
             <span className="hero-footnote block text-[11px] text-slate-400 mt-6 tracking-wide">
-              Óticas Ventara · Rua Princesa Isabel, 221 · Centro · Araçatuba-SP
+              {identity.store_name} · {fullAddress}
             </span>
           </div>
 
           {/* Coluna Direita: Stage e Pedestal Alinhados */}
-          <div className="hero-stage lg:col-span-7 relative flex items-center justify-center min-h-[380px] sm:min-h-[480px]">
+          <div
+            className="hero-stage lg:col-span-7 relative flex items-center justify-center min-h-[380px] sm:min-h-[480px]"
+            onMouseEnter={() => setIsPaused(true)}
+            onMouseLeave={() => setIsPaused(false)}
+          >
             {/* Feixes Volumétricos de Luz Azul */}
             <div className="beam" aria-hidden="true" />
 
@@ -63,39 +133,89 @@ export function Hero() {
               </span>
             </div>
 
-            {/* Armação de Destaque Flutuante com proporção nobre */}
-            <div className="hero-frame-anim relative z-10 w-full max-w-[540px] mx-auto">
-              <FrameArt hero />
+            {/* Armação de Destaque Flutuante no Pedestal com Transição Animada */}
+            <div className="hero-frame-anim relative z-10 w-full max-w-[540px] mx-auto min-h-[220px] sm:min-h-[280px] flex items-center justify-center">
+              <AnimatePresence mode="wait">
+                <motion.div
+                  key={currentProduct?.id || currentIndex}
+                  initial={{ opacity: 0, scale: 0.92, y: 12 }}
+                  animate={{ opacity: 1, scale: 1, y: 0 }}
+                  exit={{ opacity: 0, scale: 0.92, y: -12 }}
+                  transition={{ duration: 0.35, ease: [0.22, 1, 0.36, 1] }}
+                  className="w-full flex flex-col items-center justify-center group"
+                >
+                  <Link
+                    href={`/produto/${currentProduct?.slug || "ventara-essencial"}`}
+                    className="block w-full text-center relative focus:outline-none"
+                    aria-label={`Ver modelo ${currentProduct?.name}`}
+                  >
+                    {primaryImage ? (
+                      <img
+                        src={primaryImage}
+                        alt={currentProduct?.name || "Armação Ventara"}
+                        className="w-full max-h-[240px] sm:max-h-[280px] object-contain drop-shadow-[0_20px_35px_rgba(0,0,0,0.65)] group-hover:scale-105 transition-transform duration-300"
+                      />
+                    ) : (
+                      <FrameArt
+                        hero
+                        solar={currentProduct?.frame_type === "Solar"}
+                        round={currentProduct?.frame_shape === "Redondo"}
+                        amber={
+                          currentProduct?.slug.includes("aurora") ||
+                          (currentProduct?.slug.includes("solar") && !currentProduct?.slug.includes("kids"))
+                        }
+                        customColor={
+                          currentProduct?.gender === "Infantil"
+                            ? currentProduct?.frame_type === "Solar"
+                              ? "#0284c7"
+                              : "#2563eb"
+                            : currentProduct?.variants?.[0]?.color_hex || undefined
+                        }
+                      />
+                    )}
+
+                    {/* Pill interativo com nome e valor */}
+                    <div className="mt-1 inline-flex items-center gap-2 px-3 py-1 rounded-full bg-[#06111f]/85 backdrop-blur-md border border-amber-400/40 text-amber-400 text-[11px] font-medium shadow-lg hover:border-amber-400 transition-all">
+                      <span>{currentProduct?.name}</span>
+                      <span className="text-white/80 font-normal">· {formattedPrice}</span>
+                      <ArrowRight size={12} className="group-hover:translate-x-0.5 transition-transform" />
+                    </div>
+                  </Link>
+                </motion.div>
+              </AnimatePresence>
             </div>
 
             {/* Pedestal Cilíndrico com Anel Neon Cyan/Azul */}
             <div className="pedestal" aria-hidden="true" />
 
-            {/* Paginação Estilo Mockup da Campanha (01 / 04) */}
-            <div className="hero-stage-pagination hidden sm:flex items-center gap-4 absolute bottom-2 right-4 z-20">
+            {/* Paginação Estilo Mockup da Campanha (01 / 04) - Totalmente Interativa */}
+            <div className="hero-stage-pagination flex items-center gap-4 absolute bottom-2 right-4 z-20">
               <span className="text-[11px] font-mono text-slate-400 tracking-wider">
-                <strong className="text-white">01</strong> / 04
+                <strong className="text-white">{currentNumberStr}</strong> / {totalNumberStr}
               </span>
               <div className="flex items-center gap-1.5 text-slate-400">
                 <button
                   type="button"
+                  onClick={handlePrev}
                   aria-label="Modelo anterior"
-                  className="w-7 h-7 rounded-full border border-white/10 hover:border-white/30 flex items-center justify-center hover:text-white transition-colors"
+                  className="w-8 h-8 rounded-full border border-white/20 bg-[#06111f]/70 hover:bg-white/20 active:scale-90 flex items-center justify-center hover:text-white transition-all shadow-md focus:outline-none focus:ring-1 focus:ring-amber-400"
                 >
-                  <ChevronLeft size={14} />
+                  <ChevronLeft size={16} />
                 </button>
                 <button
                   type="button"
+                  onClick={handleNext}
                   aria-label="Próximo modelo"
-                  className="w-7 h-7 rounded-full border border-white/10 hover:border-white/30 flex items-center justify-center hover:text-white transition-colors"
+                  className="w-8 h-8 rounded-full border border-white/20 bg-[#06111f]/70 hover:bg-white/20 active:scale-90 flex items-center justify-center hover:text-white transition-all shadow-md focus:outline-none focus:ring-1 focus:ring-amber-400"
                 >
-                  <ChevronRight size={14} />
+                  <ChevronRight size={16} />
                 </button>
               </div>
             </div>
 
-            <span className="art-label absolute bottom-14 right-4 text-[9px] text-slate-400 tracking-wider">
-              CURADORIA AUTORAL VENTARA · ACETATO NOBRE
+            {/* Label Dinâmico com Material e Coleção */}
+            <span className="art-label absolute bottom-14 right-4 text-[9px] text-slate-400 tracking-wider hidden sm:block">
+              CURADORIA AUTORAL VENTARA · {currentProduct?.frame_material?.toUpperCase() || "ACETATO NOBRE"}
             </span>
           </div>
         </div>

@@ -428,7 +428,8 @@ ON CONFLICT (key) DO NOTHING;
 INSERT INTO public.categories (id, name, slug, description, sort_order)
 VALUES
   ('c0000000-0000-0000-0000-000000000001', 'Grau', 'grau', 'Armações desenvolvidas para alta precisão dióptrica e conforto contínuo.', 1),
-  ('c0000000-0000-0000-0000-000000000002', 'Solar', 'solar', 'Proteção solar com filtros UVA/UVB avançados e design autoral.', 2)
+  ('c0000000-0000-0000-0000-000000000002', 'Solar', 'solar', 'Proteção solar com filtros UVA/UVB avançados e design autoral.', 2),
+  ('c0000000-0000-0000-0000-000000000003', 'Infantil', 'infantil', 'Armações infantis com tecnologia flexível, alta resistência a impactos e ergonomia para crianças.', 3)
 ON CONFLICT (slug) DO NOTHING;
 
 -- Marca Oficial
@@ -485,9 +486,31 @@ VALUES
     'Ventara Horizonte',
     'ventara-horizonte',
     'Design aviador reinterpretado com estrutura de liga metálica leve e ponte dupla geométrica.',
-    48900, NULL, true, true,
+    46900, 55000, true, true,
     'Solar', 'Aviador', 'Metal Titânio', 'Unissex',
-    54, 19, 142
+    55, 16, 145
+  ),
+  (
+    '00000000-0000-0000-0000-000000000105',
+    COALESCE((SELECT id FROM public.categories WHERE slug = 'infantil' LIMIT 1), 'c0000000-0000-0000-0000-000000000003'),
+    COALESCE((SELECT id FROM public.brands WHERE slug = 'ventara' LIMIT 1), 'b0000000-0000-0000-0000-000000000001'),
+    'Ventara Kids Flex',
+    'ventara-kids-flex',
+    'Armação infantil desenvolvida em TR90 e silicone cirúrgico flexível ultra-resistente. Haste anatômica com alta segurança para crianças.',
+    28900, 34900, true, true,
+    'Grau', 'Redondo', 'Injetado', 'Infantil',
+    45, 16, 130
+  ),
+  (
+    '00000000-0000-0000-0000-000000000106',
+    COALESCE((SELECT id FROM public.categories WHERE slug = 'infantil' LIMIT 1), 'c0000000-0000-0000-0000-000000000003'),
+    COALESCE((SELECT id FROM public.brands WHERE slug = 'ventara' LIMIT 1), 'b0000000-0000-0000-0000-000000000001'),
+    'Ventara Kids Solar UV400',
+    'ventara-kids-solar',
+    'Óculos solar infantil emborrachado com proteção UV400 máxima e lentes polarizadas flexíveis.',
+    24900, 29900, true, true,
+    'Solar', 'Redondo', 'Injetado', 'Infantil',
+    44, 15, 125
   )
 ON CONFLICT (slug) DO NOTHING;
 
@@ -504,10 +527,26 @@ VALUES
   ),
   (
     COALESCE((SELECT id FROM public.products WHERE slug = 'ventara-urbano' LIMIT 1), '00000000-0000-0000-0000-000000000103'),
-    'VEN-URB-GRA', 'Grafite Acetinado', '#334155', 'Único (M)', 4
+    'VEN-URB-GRF', 'Grafite Fosco', '#374151', 'Único (M)', 4
   ),
   (
     COALESCE((SELECT id FROM public.products WHERE slug = 'ventara-horizonte' LIMIT 1), '00000000-0000-0000-0000-000000000104'),
-    'VEN-HOR-GLD', 'Dourado Champagne', '#d97706', 'Único (M)', 5
+    'VEN-HOR-GLD', 'Preto e Dourado', '#d97706', 'Único (G)', 5
+  ),
+  (
+    COALESCE((SELECT id FROM public.products WHERE slug = 'ventara-kids-flex' LIMIT 1), '00000000-0000-0000-0000-000000000105'),
+    'VEN-KID-BLU', 'Azul Royal', '#2563eb', 'Infantil (4 a 10 anos)', 6
+  ),
+  (
+    COALESCE((SELECT id FROM public.products WHERE slug = 'ventara-kids-flex' LIMIT 1), '00000000-0000-0000-0000-000000000105'),
+    'VEN-KID-ROS', 'Rosa Chiclete', '#ec4899', 'Infantil (4 a 10 anos)', 5
+  ),
+  (
+    COALESCE((SELECT id FROM public.products WHERE slug = 'ventara-kids-solar' LIMIT 1), '00000000-0000-0000-0000-000000000106'),
+    'VEN-KID-SOL-CYN', 'Turquesa Vibrante', '#06b6d4', 'Infantil (3 a 9 anos)', 6
+  ),
+  (
+    COALESCE((SELECT id FROM public.products WHERE slug = 'ventara-kids-solar' LIMIT 1), '00000000-0000-0000-0000-000000000106'),
+    'VEN-KID-SOL-RED', 'Vermelho Esportivo', '#dc2626', 'Infantil (3 a 9 anos)', 4
   )
 ON CONFLICT (sku) DO NOTHING;

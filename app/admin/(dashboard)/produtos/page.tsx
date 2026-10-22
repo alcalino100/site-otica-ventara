@@ -11,6 +11,8 @@ import {
   Trash2,
   CheckCircle2,
   FileSpreadsheet,
+  Star,
+  Sparkles,
 } from "lucide-react";
 import { Product } from "@/types/ecommerce";
 import { createClient, isSupabaseConfigured } from "@/lib/supabase/client";
@@ -101,6 +103,36 @@ export default function AdminProductsPage() {
     }
   };
 
+  const toggleFeatured = async (productId: string, currentFeatured: boolean) => {
+    try {
+      const res = await fetch("/api/admin/products", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ id: productId, is_featured: !currentFeatured }),
+      });
+
+      const json = await res.json();
+
+      if (!res.ok || json.error) {
+        throw new Error(json.error || "Não foi possível atualizar o destaque.");
+      }
+
+      setProducts((prev) =>
+        prev.map((p) =>
+          p.id === productId ? { ...p, is_featured: !currentFeatured } : p
+        )
+      );
+      showFeedback(
+        !currentFeatured
+          ? "Armação adicionada ao Carrossel do Topo (Hero)!"
+          : "Armação removida do carrossel do topo."
+      );
+    } catch (err: any) {
+      console.error("Erro ao alternar destaque do produto:", err);
+      showFeedback(err.message || "Não foi possível atualizar o destaque.");
+    }
+  };
+
   const deleteProduct = async (productId: string, productName: string) => {
     if (!window.confirm(`Tem certeza que deseja remover o produto "${productName}"?`)) {
       return;
@@ -186,6 +218,81 @@ export default function AdminProductsPage() {
             <Plus size={16} />
             <span>Novo Produto</span>
           </Link>
+        </div>
+      </div>
+
+      {/* Gerenciador do Carrossel de Destaques do Topo (Hero Spotlight - Pedestal) */}
+      <div className="bg-gradient-to-r from-[#06111f] via-[#091a2e] to-[#06111f] p-4 sm:p-5 rounded-2xl border border-amber-400/20 shadow-lg">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-3 pb-3 border-b border-white/5">
+          <div className="flex items-center gap-2.5">
+            <div className="w-8 h-8 rounded-lg bg-amber-400/15 border border-amber-400/30 flex items-center justify-center text-amber-400">
+              <Star size={16} className="fill-amber-400" />
+            </div>
+            <div>
+              <h2 className="text-sm font-semibold text-white flex items-center gap-2">
+                <span>Carrossel do Topo (Hero Spotlight - Pedestal Neon)</span>
+                <span className="text-[10px] font-mono font-bold px-2 py-0.5 rounded-full bg-amber-400/20 text-amber-300 border border-amber-400/30">
+                  {products.filter((p) => p.is_featured && p.is_published).length} modelos ativos
+                </span>
+              </h2>
+              <p className="text-[11px] text-slate-300">
+                Estas armações aparecem no pedestal interativo do topo do site (<code className="text-amber-300">01 / 04</code>). O cliente pode navegar com as setas. Clique na estrela para adicionar ou remover modelos.
+              </p>
+            </div>
+          </div>
+        </div>
+
+        {/* Miniaturas das armações no carrossel */}
+        <div className="grid grid-cols-2 sm:grid-cols-4 md:grid-cols-6 gap-2.5">
+          {products
+            .filter((p) => p.is_featured)
+            .map((p, idx) => {
+              const primaryImg =
+                p.images?.find((img) => img.is_primary)?.url || p.images?.[0]?.url;
+              return (
+                <div
+                  key={p.id}
+                  className="relative group bg-[#040d18] border border-amber-400/30 rounded-xl p-2.5 flex flex-col justify-between hover:border-amber-400 transition-all shadow-sm"
+                >
+                  <span className="absolute top-1.5 left-1.5 text-[9px] font-mono text-amber-400 font-bold bg-[#06111f]/90 px-1.5 py-0.5 rounded border border-amber-400/20">
+                    {String(idx + 1).padStart(2, "0")}
+                  </span>
+                  <button
+                    type="button"
+                    onClick={() => toggleFeatured(p.id, true)}
+                    title="Remover do carrossel do topo"
+                    className="absolute top-1.5 right-1.5 w-5 h-5 rounded-full bg-rose-500/20 text-rose-300 hover:bg-rose-500 hover:text-white flex items-center justify-center text-[11px] font-bold transition-all"
+                  >
+                    ×
+                  </button>
+                  <div className="w-full h-14 flex items-center justify-center mt-3 mb-1">
+                    {primaryImg ? (
+                      <img
+                        src={primaryImg}
+                        alt={p.name}
+                        className="max-h-full max-w-full object-contain"
+                      />
+                    ) : (
+                      <Package size={22} className="text-amber-400/60" />
+                    )}
+                  </div>
+                  <div className="text-center">
+                    <p className="text-[11px] font-medium text-white truncate">{p.name}</p>
+                    <p className="text-[10px] text-amber-400 font-mono">
+                      {((p.price_in_cents || 0) / 100).toLocaleString("pt-BR", {
+                        style: "currency",
+                        currency: "BRL",
+                      })}
+                    </p>
+                  </div>
+                </div>
+              );
+            })}
+          {products.filter((p) => p.is_featured).length === 0 && (
+            <div className="col-span-full py-4 text-center text-xs text-slate-400">
+              Nenhuma armação selecionada para o carrossel do topo. Clique em &quot;Incluir&quot; na tabela abaixo para adicionar.
+            </div>
+          )}
         </div>
       </div>
 
@@ -291,6 +398,7 @@ export default function AdminProductsPage() {
                   <th className="py-3.5 px-4">Linha / Categoria</th>
                   <th className="py-3.5 px-4">Preço</th>
                   <th className="py-3.5 px-4">Estoque</th>
+                  <th className="py-3.5 px-4">Carrossel Topo (Hero)</th>
                   <th className="py-3.5 px-4">Status</th>
                   <th className="py-3.5 px-4 text-right">Ações</th>
                 </tr>
@@ -346,6 +454,29 @@ export default function AdminProductsPage() {
                         >
                           {totalStock} un
                         </span>
+                      </td>
+
+                      <td className="py-3.5 px-4">
+                        <button
+                          type="button"
+                          onClick={() => toggleFeatured(p.id, p.is_featured)}
+                          title={
+                            p.is_featured
+                              ? "Clique para remover este produto do carrossel do topo"
+                              : "Clique para incluir este produto no carrossel do topo"
+                          }
+                          className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[10px] font-semibold transition-all active:scale-95 ${
+                            p.is_featured
+                              ? "bg-amber-400/20 text-amber-300 border border-amber-400/40 hover:bg-amber-400/30"
+                              : "bg-white/5 text-slate-400 border border-white/10 hover:border-amber-400/50 hover:text-amber-300"
+                          }`}
+                        >
+                          <Star
+                            size={12}
+                            className={p.is_featured ? "fill-amber-400 text-amber-400" : "text-slate-400"}
+                          />
+                          <span>{p.is_featured ? "No Topo" : "Incluir"}</span>
+                        </button>
                       </td>
 
                       <td className="py-3.5 px-4">

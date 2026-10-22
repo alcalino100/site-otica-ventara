@@ -11,6 +11,22 @@ test.describe("Ótica Ventara - Catálogo e Interações", () => {
     await expect(brandHeading).toContainText("Mais que óculos");
   });
 
+  test("deve permitir navegar pelo carrossel do pedestal no Hero (01 / 04)", async ({ page }) => {
+    const heroPagination = page.locator(".hero-stage-pagination");
+    await expect(heroPagination).toBeVisible();
+    await expect(heroPagination).toContainText("01");
+
+    // Clica no botão de próximo
+    const nextBtn = page.getByRole("button", { name: /Próximo modelo/i });
+    await nextBtn.click();
+    await expect(heroPagination).toContainText("02");
+
+    // Clica no botão de anterior
+    const prevBtn = page.getByRole("button", { name: /Modelo anterior/i });
+    await prevBtn.click();
+    await expect(heroPagination).toContainText("01");
+  });
+
   test("deve permitir filtrar produtos por categoria", async ({ page }) => {
     // Rola até o catálogo
     const catalog = page.locator("#armacoes");

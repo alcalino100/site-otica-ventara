@@ -2,15 +2,16 @@
 
 import React, { useState } from "react";
 import { MessageCircle } from "lucide-react";
+import { useSiteSettings } from "../providers/site-settings-provider";
 
 export function WhatsAppFloatingButton() {
   const [isHovered, setIsHovered] = useState(false);
+  const { cleanWhatsAppNumber, identity } = useSiteSettings();
 
-  const whatsappNumber = "5518996155748";
   const defaultMessage = encodeURIComponent(
-    "Olá! Estou no site da Óticas Ventara e gostaria de atendimento especializado sobre armações e lentes."
+    `Olá! Estou no site da ${identity.store_name} e gostaria de atendimento especializado sobre armações e lentes.`
   );
-  const whatsappUrl = `https://wa.me/${whatsappNumber}?text=${defaultMessage}`;
+  const whatsappUrl = `https://wa.me/${cleanWhatsAppNumber}?text=${defaultMessage}`;
 
   return (
     <aside

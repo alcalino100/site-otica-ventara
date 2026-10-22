@@ -215,9 +215,13 @@ export default function AdminMetricasPage() {
               <option value="https://www.oticasventara.com.br">Página Inicial (Home)</option>
               <option value="https://www.oticasventara.com.br/#armacoes">Catálogo de Armações</option>
               <option value="https://www.oticasventara.com.br/#lentes">Tabela de Lentes</option>
-              <option value="https://www.oticasventara.com.br/produto/ventara-aurora">Produto: Ventara Aurora</option>
-              <option value="https://www.oticasventara.com.br/produto/ventara-essencial">Produto: Ventara Essencial</option>
-              <option value="https://www.oticasventara.com.br/produto/ventara-horizonte">Produto: Ventara Horizonte</option>
+              <option value="https://www.oticasventara.com.br/medicao-por-foto">Serviço: Medição de DNP por Foto</option>
+              <option value="https://www.oticasventara.com.br/produto/ventara-essencial">Produto: Ventara Essencial (Grau)</option>
+              <option value="https://www.oticasventara.com.br/produto/ventara-aurora">Produto: Ventara Aurora (Solar)</option>
+              <option value="https://www.oticasventara.com.br/produto/ventara-urbano">Produto: Ventara Urbano (Grau)</option>
+              <option value="https://www.oticasventara.com.br/produto/ventara-horizonte">Produto: Ventara Horizonte (Solar)</option>
+              <option value="https://www.oticasventara.com.br/produto/ventara-kids-flex">Produto: Ventara Kids Flex (Infantil Grau)</option>
+              <option value="https://www.oticasventara.com.br/produto/ventara-kids-solar">Produto: Ventara Kids Solar UV400 (Infantil Solar)</option>
             </select>
           </div>
 

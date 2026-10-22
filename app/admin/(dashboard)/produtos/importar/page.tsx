@@ -148,10 +148,11 @@ Ventara Titanio Leve,Grau,520.00,Grau,Titânio,Quadrado,VEN-TIT-03,12`;
 
     for (const row of validRows) {
       try {
-        // Insere produto
-        const { data: prodData, error: prodErr } = await supabase
-          .from("products")
-          .insert({
+        // Insere produto via API com service role para bypass seguro de RLS
+        const res = await fetch("/api/admin/products", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
             name: row.name,
             slug: `${row.slug}-${Math.floor(Math.random() * 1000)}`,
             description: `Armação ${row.name} em ${row.frame_material}. Curadoria oficial Ótica Ventara com excelente ergonomia e acabamento.`,
@@ -160,22 +161,16 @@ Ventara Titanio Leve,Grau,520.00,Grau,Titânio,Quadrado,VEN-TIT-03,12`;
             frame_material: row.frame_material,
             frame_shape: row.frame_shape,
             is_published: true,
-          })
-          .select()
-          .single();
+            color_name: "Padrão",
+            stock_quantity: row.stock,
+          }),
+        });
 
-        if (prodErr || !prodData) {
+        const resData = await res.json();
+        if (!res.ok || resData.error || !resData.product) {
           failed++;
           continue;
         }
-
-        // Insere variante
-        await supabase.from("product_variants").insert({
-          product_id: prodData.id,
-          sku: row.sku,
-          color_name: "Padrão",
-          stock_quantity: row.stock,
-        });
 
         success++;
       } catch (err) {

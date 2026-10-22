@@ -15,9 +15,11 @@ import {
 } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
 import { SiteIdentitySettings, SiteAppearanceSettings } from "@/types/ecommerce";
+import { useSiteSettings } from "@/components/providers/site-settings-provider";
 
 export default function AdminIdentityPage() {
   const supabase = createClient();
+  const { updateSettings } = useSiteSettings();
   const [feedback, setFeedback] = useState<string | null>(null);
   const [isSaving, setIsSaving] = useState(false);
 
@@ -49,20 +51,11 @@ export default function AdminIdentityPage() {
   useEffect(() => {
     async function loadSettings() {
       try {
-        const { data, error } = await supabase
-          .from("site_settings")
-          .select("key, value")
-          .in("key", ["identity", "appearance"]);
-
-        if (!error && data) {
-          const idSetting = data.find((s) => s.key === "identity");
-          if (idSetting && idSetting.value) {
-            setIdentity((prev) => ({ ...prev, ...(idSetting.value as SiteIdentitySettings) }));
-          }
-          const appSetting = data.find((s) => s.key === "appearance");
-          if (appSetting && appSetting.value) {
-            setAppearance((prev) => ({ ...prev, ...(appSetting.value as SiteAppearanceSettings) }));
-          }
+        const res = await fetch("/api/admin/settings");
+        if (res.ok) {
+          const data = await res.json();
+          if (data.identity) setIdentity((prev) => ({ ...prev, ...data.identity }));
+          if (data.appearance) setAppearance((prev) => ({ ...prev, ...data.appearance }));
         }
       } catch (err) {
         console.warn("Usando configurações locais padrão:", err);
@@ -77,28 +70,27 @@ export default function AdminIdentityPage() {
     setIsSaving(true);
 
     try {
-      // Salva identity
-      await supabase.from("site_settings").upsert({
-        key: "identity",
-        description: "Identidade da Marca, Contatos e Redes Sociais",
-        value: identity,
-        updated_at: new Date().toISOString(),
+      const res = await fetch("/api/admin/settings", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ identity, appearance }),
       });
 
-      // Salva appearance
-      await supabase.from("site_settings").upsert({
-        key: "appearance",
-        description: "Paleta de Cores e Tokens Visuais",
-        value: appearance,
-        updated_at: new Date().toISOString(),
-      });
+      const json = await res.json();
+
+      if (!res.ok || json.error) {
+        throw new Error(json.error || "Erro ao salvar alterações no servidor.");
+      }
+
+      // Aplica imediatamente ao tema do site e preview
+      updateSettings(identity, appearance);
 
       setFeedback("Identidade visual e dados atualizados com sucesso!");
-      setTimeout(() => setFeedback(null), 3000);
-    } catch (err) {
+      setTimeout(() => setFeedback(null), 3500);
+    } catch (err: any) {
       console.error(err);
-      setFeedback("Erro ao salvar alterações no Supabase.");
-      setTimeout(() => setFeedback(null), 3000);
+      setFeedback(err.message || "Erro ao salvar alterações.");
+      setTimeout(() => setFeedback(null), 3500);
     } finally {
       setIsSaving(false);
     }

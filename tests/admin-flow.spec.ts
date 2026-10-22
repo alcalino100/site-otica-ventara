@@ -19,6 +19,41 @@ test.describe("Central Administrativa Modular (/admin)", () => {
     await expect(page.getByText("Pré-Visualização em Tempo Real")).toBeVisible();
   });
 
+  test("deve salvar e persistir identidade visual e dados da loja via API admin", async ({ request }) => {
+    const postRes = await request.post("/api/admin/settings", {
+      data: {
+        appearance: {
+          color_navy: "#02070D",
+          color_electric: "#0756B8",
+          color_yellow: "#FFD62E",
+          color_ice_white: "#F4F6FA",
+        },
+        identity: {
+          store_name: "Ótica Ventara",
+          tagline: "Mais que óculos. Seu jeito de ver o mundo.",
+          address_street: "Rua Princesa Isabel, 221",
+          address_neighborhood: "Centro",
+          address_city: "Araçatuba",
+          address_state: "SP",
+          address_postal_code: "16010-250",
+          phone_whatsapp: "(18) 99615-5748",
+          instagram_handle: "@oticaventara",
+          business_hours: "Segunda a Sexta: 09h às 18h · Sábados: 09h às 13h",
+        },
+      },
+    });
+
+    expect(postRes.status()).toBe(200);
+    const postJson = await postRes.json();
+    expect(postJson.success).toBe(true);
+
+    const getRes = await request.get("/api/settings");
+    expect(getRes.status()).toBe(200);
+    const getJson = await getRes.json();
+    expect(getJson.appearance.color_navy).toBe("#02070D");
+    expect(getJson.identity.address_street).toBe("Rua Princesa Isabel, 221");
+  });
+
   test("deve carregar a tela de estoque e alertas de reposição", async ({ page }) => {
     await page.goto("/admin/estoque");
     await expect(page.locator("h1")).toContainText("Gestão de Estoque");
@@ -79,6 +114,18 @@ test.describe("Central Administrativa Modular (/admin)", () => {
     await expect(page.getByText("Gerador de Links UTM para Criativos")).toBeVisible();
     await expect(page.getByRole("button", { name: /Copiar Link/i })).toBeVisible();
     await expect(page.getByText("Desempenho por Campanha")).toBeVisible();
+  });
+
+  test("deve exibir catálogo homogêneo e sincronizado de 6 produtos no painel administrativo", async ({ page }) => {
+    await page.goto("/admin/produtos");
+    await expect(page.locator("h1")).toContainText("Gestão de Produtos");
+    const table = page.getByRole("table");
+    await expect(table.getByText("Ventara Essencial")).toBeVisible();
+    await expect(table.getByText("Ventara Aurora")).toBeVisible();
+    await expect(table.getByText("Ventara Urbano")).toBeVisible();
+    await expect(table.getByText("Ventara Horizonte")).toBeVisible();
+    await expect(table.getByText("Ventara Kids Flex")).toBeVisible();
+    await expect(table.getByText("Ventara Kids Solar UV400")).toBeVisible();
   });
 
   test("deve cadastrar, atualizar status e excluir produto permanentemente do banco via API admin", async ({ request }) => {

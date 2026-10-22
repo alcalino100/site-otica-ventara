@@ -44,18 +44,22 @@ export default function AdminShippingPage() {
     setIsSaving(true);
 
     try {
-      await supabase.from("site_settings").upsert({
-        key: "shipping",
-        description: "Regras de Frete e Retirada Presencial",
-        value: settings,
-        updated_at: new Date().toISOString(),
+      const res = await fetch("/api/admin/settings", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ shipping: settings }),
       });
+
+      const json = await res.json();
+      if (!res.ok || json.error) {
+        throw new Error(json.error || "Erro ao gravar dados.");
+      }
 
       setFeedback("Configurações de entrega e retirada salvas com sucesso!");
       setTimeout(() => setFeedback(null), 3000);
-    } catch (err) {
+    } catch (err: any) {
       console.error(err);
-      setFeedback("Erro ao gravar dados no Supabase.");
+      setFeedback(err.message || "Erro ao gravar dados no servidor.");
       setTimeout(() => setFeedback(null), 3000);
     } finally {
       setIsSaving(false);

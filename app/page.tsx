@@ -65,9 +65,7 @@ export default function Home() {
           .order("created_at", { ascending: false });
 
         if (!error && data && data.length > 0) {
-          const dbSlugs = new Set(data.map((p: any) => p.slug));
-          const missingDefaults = DEFAULT_CATALOG.filter((p) => !dbSlugs.has(p.slug));
-          setProducts([...(data as Product[]), ...missingDefaults]);
+          setProducts(data as Product[]);
         }
       } catch (err) {
         console.warn("Utilizando catálogo padrão estruturado:", err);
@@ -144,8 +142,8 @@ export default function Home() {
       />
 
       <main>
-        {/* 2. Hero Cinematográfico Conforme Mockup (Pedestal Neon Cyan, Armação Flutuante) */}
-        <Hero />
+        {/* 2. Hero Cinematográfico com Carrossel de Óculos em Destaque do Admin */}
+        <Hero products={products} />
 
         {/* 3. Faixa de Números Conforme Mockup ("Nossos Números: Confiança que se transforma em resultados.") */}
         <MetricsRibbon />
