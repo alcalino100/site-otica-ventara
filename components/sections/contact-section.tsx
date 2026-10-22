@@ -56,6 +56,11 @@ export function ContactSection({ onNotify }: ContactSectionProps) {
             </p>
             <p className="flex items-center gap-2.5">
               <Phone size={16} className="text-amber-400/80 flex-shrink-0" />
+              <span className="text-slate-400 text-xs">Fixo:</span>
+              <a href="tel:+551833042808" className="hover:text-amber-300 transition-colors mr-2">
+                (18) 3304-2808
+              </a>
+              <span className="text-slate-400 text-xs">WhatsApp:</span>
               <a href="tel:+5518996155748" className="hover:text-amber-300 transition-colors">
                 (18) 99615-5748
               </a>

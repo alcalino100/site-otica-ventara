@@ -12,291 +12,616 @@ import {
   ArrowRight,
   MessageSquare,
   Award,
+  Zap,
 } from "lucide-react";
+import { LensOpticalGraphic } from "../ui/lens-optical-graphic";
 
-interface LensTier {
+type LensCategory = "visao-simples" | "multifocal" | "tratamentos" | "marcas";
+
+interface LensOption {
   id: string;
   name: string;
-  shortName: string;
-  icon: React.ComponentType<{ size?: number; className?: string }>;
-  tag: string;
+  category: "visao-simples" | "multifocal" | "tratamentos";
+  brandName: string;
+  brandLogo: string;
+  logoBgLight?: boolean;
+  treatment: string;
+  badge?: string;
   startingPrice: string;
   installment: string;
   leadTime: string;
   description: string;
-  benefits: string[];
-  recommendedFor: string;
+  features: string[];
 }
 
 export function LensesPricingSection() {
-  const [activeTab, setActiveTab] = useState("monofocal");
+  const [activeCategory, setActiveCategory] = useState<LensCategory>("visao-simples");
 
-  const lensTiers: LensTier[] = [
+  // Catálogo completo de lentes estruturado por tipo e marca homologada
+  const lensOptions: LensOption[] = [
+    // ---------------- VISÃO SIMPLES (MONOFOCAIS) ----------------
     {
-      id: "monofocal",
-      name: "Visão Simples / Monofocal",
-      shortName: "Visão Simples",
-      icon: Eye,
-      tag: "MIOPIA · HIPERMETROPIA · ASTIGMATISMO",
+      id: "correct-monofocal",
+      name: "Correct Vision Antirreflexo",
+      category: "visao-simples",
+      brandName: "Lentes Correct",
+      brandLogo: "/images/lenses/brands/correct.jpg",
+      treatment: "Antirreflexo Multicamadas + Proteção UV400",
+      badge: "Melhor Custo-Benefício",
       startingPrice: "R$ 99,90",
       installment: "10x de R$ 9,99 sem juros",
       leadTime: "Pronto em até 1 hora",
       description:
-        "Foco nítido e preciso para correção de grau de longe ou perto, com resina orgânica leve e tratamentos de alta claridade.",
-      benefits: [
-        "Antirreflexo digital multicamadas",
-        "Proteção 100% contra raios UVA/UVB",
-        "Resina ultraleve e resistente a riscos",
-        "Calibração precisa da DNP em laboratório",
+        "Visão nítida para miopia, hipermetropia ou astigmatismo. Resina orgânica resistente e leve com tratamento antirreflexo essencial.",
+      features: [
+        "Antirreflexo multicamadas antirrisco",
+        "Proteção total contra radiação UVA/UVB",
+        "Resina ultraleve e resistente",
+        "Montagem expressa no laboratório próprio",
       ],
-      recommendedFor: "Uso diário, leitura, direção e correção clássica de grau.",
     },
     {
-      id: "multifocal",
-      name: "Multifocais / Progressivas Digitais",
-      shortName: "Multifocais",
-      icon: Layers,
-      tag: "PERTO · INTERMEDIÁRIO · LONGE",
-      startingPrice: "R$ 289,00",
-      installment: "10x de R$ 28,90 sem juros",
-      leadTime: "Calibração e montagem personalizada",
-      description:
-        "Tecnologia com corredor óptico suave que integra perto, tela de computador e longe sem saltos de imagem nem linhas visíveis.",
-      benefits: [
-        "Transição contínua sem esforço ocular",
-        "Campo de visão panorâmico e adaptável",
-        "Garantia de adaptação de 90 dias",
-        "Tratamento antirreflexo de alta durabilidade",
-      ],
-      recommendedFor: "Quem tem vista cansada (presbiopia) e busca conforto total.",
-    },
-    {
-      id: "blue",
-      name: "Filtro Luz Azul (BlueProtect)",
-      shortName: "Filtro Luz Azul",
-      icon: ShieldCheck,
-      tag: "CONFORTO DIGITAL EM TELAS",
+      id: "optisync-hd-simples",
+      name: "OPTiSYNC HD BlueProtect",
+      category: "visao-simples",
+      brandName: "OPTiSYNC HD",
+      brandLogo: "/images/lenses/optisync-hd.jpg",
+      logoBgLight: true,
+      treatment: "Filtro Luz Azul Digital + Antirreflexo AR Super",
+      badge: "Marca Própria Exclusiva",
       startingPrice: "R$ 149,90",
       installment: "10x de R$ 14,99 sem juros",
       leadTime: "Pronto em até 1 hora",
       description:
-        "Bloqueio da radiação azul nociva emitida por celulares, monitores e iluminação LED, prevenindo fadiga, olhos secos e dores de cabeça.",
-      benefits: [
-        "Redução imediata do cansaço visual",
-        "Melhoria na qualidade do sono noturno",
-        "Antirreflexo especial sem distorção de cores",
-        "Disponível com ou sem grau",
+        "Desenvolvida para o dia a dia digital, bloqueia a radiação azul de telas e celulares, aliviando o cansaço dos olhos e dores de cabeça.",
+      features: [
+        "Bloqueio da luz azul nociva de monitores",
+        "Antirreflexo especial sem reflexo roxo exagerado",
+        "Sem margem de intermediários (preço direto)",
+        "Montagem imediata na biseladora AM-295",
       ],
-      recommendedFor: "Profissionais de computador, estudantes e uso constante de telas.",
     },
     {
-      id: "photo",
-      name: "Fotossensíveis (Escurece no Sol)",
-      shortName: "Fotossensíveis",
-      icon: SunMedium,
-      tag: "PRATICIDADE 2 EM 1 (GRAU + SOLAR)",
-      startingPrice: "R$ 249,00",
-      installment: "10x de R$ 24,90 sem juros",
+      id: "orgaline-simples",
+      name: "Orgaline+ Pure Japonesa",
+      category: "visao-simples",
+      brandName: "Orgaline+",
+      brandLogo: "/images/lenses/brands/orgaline.jpg",
+      logoBgLight: true,
+      treatment: "Matéria-prima Japonesa + Super Hidrorrepelente",
+      badge: "Tecnologia Japonesa",
+      startingPrice: "R$ 159,90",
+      installment: "10x de R$ 15,99 sem juros",
       leadTime: "Montagem ágil em laboratório",
       description:
-        "Lentes inteligentes que clareiam totalmente em ambientes fechados e escurecem na medida exata sob o sol, oferecendo óculos de grau e solar juntos.",
-      benefits: [
-        "Adaptação rápida à luz ambiente",
-        "Proteção solar UV400 automática ao ar livre",
-        "Economia de ter 2 óculos em 1 só",
-        "Conforto para dirigir e praticar esportes",
+        "Polímero de alta densidade e pureza com tecnologia de ponta japonesa. Camada hidrofóbica que repele poeira, água e marcas de dedos.",
+      features: [
+        "Matéria-prima 100% japonesa de alta pureza",
+        "Facilidade superior de limpeza e antiaderente",
+        "Durabilidade estendida contra riscos do dia a dia",
+        "Excelente transparência luminosa",
       ],
-      recommendedFor: "Quem busca praticidade ao ar livre e sensibilidade à claridade.",
+    },
+    {
+      id: "maxxee-hoya-simples",
+      name: "Maxxee by HOYA",
+      category: "visao-simples",
+      brandName: "HOYA / Maxxee",
+      brandLogo: "/images/lenses/brands/maxxee.jpg",
+      logoBgLight: true,
+      treatment: "Antirreflexo Hoya Hard Multi Coat (HMC)",
+      badge: "Qualidade Global Hoya",
+      startingPrice: "R$ 189,00",
+      installment: "10x de R$ 18,90 sem juros",
+      leadTime: "Montagem de alta precisão",
+      description:
+        "A consagrada tecnologia japonesa da Hoya em uma linha acessível e confiável, com controle de reflexos de alta performance.",
+      features: [
+        "Camadas antirreflexo de patente Hoya",
+        "Excelente resistência a riscos e desgaste",
+        "Camada de contraste para visão noturna",
+        "Certificado oficial de garantia Hoya",
+      ],
+    },
+    {
+      id: "kodak-simples",
+      name: "Kodak Clean&CleAR",
+      category: "visao-simples",
+      brandName: "Kodak Lens",
+      brandLogo: "/images/lenses/brands/kodak.jpg",
+      treatment: "Antirreflexo Kodak Clean&CleAR + UV400",
+      badge: "Tradição em Cores Vivas",
+      startingPrice: "R$ 219,00",
+      installment: "10x de R$ 21,90 sem juros",
+      leadTime: "Montagem de alta precisão",
+      description:
+        "Mais de um século de liderança em imagem. Lentes que proporcionam cores vibrantes, contrastes nítidos e fidelidade visual impecável.",
+      features: [
+        "Tratamento Clean&CleAR fácil de limpar",
+        "Nitidez aprimorada para leitura e telas",
+        "Proteção ultravioleta integrada",
+        "Garantia oficial Kodak Lens",
+      ],
+    },
+
+    // ---------------- MULTIFOCAIS (PROGRESSIVAS DIGITAIS) ----------------
+    {
+      id: "correct-multi",
+      name: "Correct Digital Progressive",
+      category: "multifocal",
+      brandName: "Lentes Correct",
+      brandLogo: "/images/lenses/brands/correct.jpg",
+      treatment: "Campo Visual Amplo + Antirreflexo Digital",
+      badge: "Multifocal Acessível",
+      startingPrice: "R$ 289,00",
+      installment: "10x de R$ 28,90 sem juros",
+      leadTime: "Calibração personalizada",
+      description:
+        "Transição suave entre perto, intermediário e longe, sem linhas divisórias. Excelente adaptação para quem busca comodidade e economia.",
+      features: [
+        "Corredor óptico progressivo sem saltos de imagem",
+        "Adequada para leitura, celular e direção",
+        "Garantia de adaptação assistida",
+        "Tratamento antirreflexo incluso",
+      ],
+    },
+    {
+      id: "orgaline-multi",
+      name: "Orgaline+ Progressive Wide",
+      category: "multifocal",
+      brandName: "Orgaline+",
+      brandLogo: "/images/lenses/brands/orgaline.jpg",
+      logoBgLight: true,
+      treatment: "Tecnologia Japonesa Free-Form + Hidrorrepelente",
+      badge: "Campo Amplo & Leve",
+      startingPrice: "R$ 389,00",
+      installment: "10x de R$ 38,90 sem juros",
+      leadTime: "Calibração personalizada",
+      description:
+        "Usinagem digital ponto a ponto com design suave nas laterais, reduzindo a sensação de flutuação e acelerando o tempo de adaptação.",
+      features: [
+        "Surfaçagem digital de alta resolução",
+        "Redução de aberrações laterais",
+        "Tratamento antirreflexo hidrorrepelente japonês",
+        "Conforto para troca de foco entre tela e leitura",
+      ],
+    },
+    {
+      id: "kodak-precise",
+      name: "Kodak Precise Digital",
+      category: "multifocal",
+      brandName: "Kodak Lens",
+      brandLogo: "/images/lenses/brands/kodak.jpg",
+      treatment: "Tecnologia Digital Vision Path + Clean&CleAR",
+      badge: "Adaptação Comprovada",
+      startingPrice: "R$ 449,00",
+      installment: "10x de R$ 44,90 sem juros",
+      leadTime: "Calibração e montagem rigorosa",
+      description:
+        "Corredor visual balanceado matematicamente para leitura e uso de notebooks com estabilidade de imagem em todas as distâncias.",
+      features: [
+        "Tecnologia Vision Path patenteada Kodak",
+        "Foco instantâneo ao alternar olhar de perto para longe",
+        "90 dias de garantia de adaptação clínica",
+        "Tratamento Clean&CleAR de alta durabilidade",
+      ],
+    },
+    {
+      id: "varilux-comfort",
+      name: "Varilux Comfort Max",
+      category: "multifocal",
+      brandName: "Varilux (Essilor)",
+      brandLogo: "/images/lenses/brands/varilux.jpg",
+      logoBgLight: true,
+      treatment: "Tecnologia Flex Optim + Antirreflexo Crizal",
+      badge: "Líder Mundial em Multifocais",
+      startingPrice: "R$ 589,00",
+      installment: "10x de R$ 58,90 sem juros",
+      leadTime: "Confecção e calibração de alta precisão",
+      description:
+        "A referência mundial absoluta em lentes multifocais. Permite flexibilidade postural sem ter que mover a cabeça para encontrar o foco.",
+      features: [
+        "Tecnologia Flex Optim que amplia a zona de foco útil",
+        "Máxima estabilidade visual mesmo em movimento",
+        "Garantia global de adaptação Varilux Essilor",
+        "Compatível com tratamentos Crizal e Transitions",
+      ],
+    },
+    {
+      id: "hoya-multifocal",
+      name: "HOYA Daynamic / Amplitude",
+      category: "multifocal",
+      brandName: "HOYA",
+      brandLogo: "/images/lenses/brands/hoya.jpg",
+      treatment: "Design TrueForm Dupla Face + Hi-Vision",
+      badge: "Precisão Óptica Japonesa",
+      startingPrice: "R$ 499,00",
+      installment: "10x de R$ 49,90 sem juros",
+      leadTime: "Calibração e montagem rigorosa",
+      description:
+        "A tecnologia FreeForm da Hoya calculada para a anatomia do seu olhar, proporcionando clareza cristalina e conforto prolongado.",
+      features: [
+        "Cálculo individual da graduação ponto a ponto",
+        "Amplo campo para leitura e uso de computador",
+        "Tratamento antirreflexo de altíssima durabilidade",
+        "Resistência superior a variações de temperatura",
+      ],
+    },
+
+    // ---------------- TRATAMENTOS ESPECIAIS ----------------
+    {
+      id: "tratamento-blue",
+      name: "Filtro Luz Azul (BlueProtect)",
+      category: "tratamentos",
+      brandName: "OPTiSYNC HD & Parceiros",
+      brandLogo: "/images/lenses/optisync-hd.jpg",
+      logoBgLight: true,
+      treatment: "Bloqueio de 400nm a 455nm (HEV) + Antirreflexo",
+      badge: "Conforto para Telas",
+      startingPrice: "R$ 149,90",
+      installment: "10x de R$ 14,99 sem juros",
+      leadTime: "Pronto em até 1 hora",
+      description:
+        "Proteção essencial contra o comprimento de onda azul-violeta emitido por smartphones, computadores e luz LED. Previne insônia e cansaço visual.",
+      features: [
+        "Alívio contra a Síndrome da Fadiga Visual",
+        "Ideal para quem passa mais de 4 horas por dia em telas",
+        "Disponível com grau ou sem grau (lentes neutras)",
+        "Disponível em OPTiSYNC, Hoya, Kodak e Orgaline+",
+      ],
+    },
+    {
+      id: "tratamento-foto",
+      name: "Fotossensíveis (Escurece no Sol)",
+      category: "tratamentos",
+      brandName: "Transitions / Suntech / Photochromic",
+      brandLogo: "/images/lenses/brands/varilux.jpg",
+      logoBgLight: true,
+      treatment: "Ativação Inteligente por Raios UV",
+      badge: "Óculos 2 em 1",
+      startingPrice: "Adicional a partir de R$ 149,00",
+      installment: "Incluso no parcelamento em 10x",
+      leadTime: "Montagem ágil em laboratório",
+      description:
+        "100% transparentes em ambientes fechados e escurecimento rápido em contato com a luz solar ao ar livre. Praticidade total sem precisar trocar de óculos.",
+      features: [
+        "Economia de ter óculos de grau e óculos de sol em 1 só",
+        "Proteção UV400 contínua contra radiação prejudicial",
+        "Clareamento rápido ao entrar em ambientes internos",
+        "Disponível nas cores Cinza, Marrom e Âmbar",
+      ],
     },
   ];
 
-  const currentLens = lensTiers.find((t) => t.id === activeTab) || lensTiers[0];
-
-  const partnerBrands = [
-    { name: "OPTiSYNC HD", type: "Marca Própria Exclusiva Ventara", isExclusive: true },
-    { name: "Essilor / Crizal", type: "Multinacional Francesa", isExclusive: false },
-    { name: "Carl Zeiss", type: "Tecnologia Alemã", isExclusive: false },
-    { name: "Hoya Vision", type: "Precisão Japonesa", isExclusive: false },
-    { name: "Kodak Lens", type: "Tradição e Nitidez", isExclusive: false },
+  // Marcas oficiais parceiras com logos correspondentes
+  const brandLogos = [
+    {
+      name: "Lentes Correct",
+      logo: "/images/lenses/brands/correct.jpg",
+      badge: "Nacional Acessível",
+      desc: "Excelente custo-benefício e montagem ágil para visão simples e multifocais.",
+    },
+    {
+      name: "Orgaline+",
+      logo: "/images/lenses/brands/orgaline.jpg",
+      logoBgLight: true,
+      badge: "Tecnologia Japonesa",
+      desc: "Matéria-prima importada de alta pureza e tratamento super hidrorrepelente.",
+    },
+    {
+      name: "HOYA / Maxxee",
+      logo: "/images/lenses/brands/hoya.jpg",
+      badge: "Precisão Global",
+      desc: "Referência japonesa mundial em óptica de alta fidelidade e durabilidade.",
+    },
+    {
+      name: "Kodak Lens",
+      logo: "/images/lenses/brands/kodak.jpg",
+      badge: "Cores & Nitidez",
+      desc: "Mais de um século de tradição óptica, cores vivas e amplo campo visual.",
+    },
+    {
+      name: "Varilux (Essilor)",
+      logo: "/images/lenses/brands/varilux.jpg",
+      logoBgLight: true,
+      badge: "Líder Mundial",
+      desc: "A lente multifocal progressiva mais recomendada do planeta com garantia de adaptação.",
+    },
+    {
+      name: "OPTiSYNC HD",
+      logo: "/images/lenses/optisync-hd.jpg",
+      logoBgLight: true,
+      badge: "Marca Própria Ventara",
+      desc: "Corte direto no laboratório próprio de Araçatuba em até 1h, sem margem de terceiros.",
+    },
   ];
 
-  const whatsappMessage = encodeURIComponent(
-    `Olá! Vi a tabela de lentes no site da Ótica Ventara e gostaria de um orçamento para "${currentLens.name}" (faixa a partir de ${currentLens.startingPrice}) para a minha receita médica.`
-  );
-  const whatsappUrl = `https://wa.me/5518996155748?text=${whatsappMessage}`;
+  const filteredOptions =
+    activeCategory === "marcas"
+      ? []
+      : lensOptions.filter((opt) => opt.category === activeCategory);
+
+  const getWhatsAppQuoteUrl = (opt: LensOption) => {
+    const text = encodeURIComponent(
+      `Olá! Estive no site da Óticas Ventara e gostaria de um orçamento para a lente "${opt.name}" (${opt.brandName}) com ${opt.treatment} (faixa ${opt.startingPrice}) para a minha receita médica.`
+    );
+    return `https://wa.me/5518996155748?text=${text}`;
+  };
 
   return (
-    <section className="py-12 sm:py-20 bg-slate-50/70 border-b border-slate-200/80" id="lentes">
+    <section className="py-16 sm:py-24 bg-[#f8fafc] border-b border-slate-200/90 relative" id="lentes">
       <div className="max-w-[1400px] mx-auto px-4 sm:px-8 lg:px-10">
-        {/* Cabeçalho da Seção Compacta */}
-        <div className="max-w-2xl mb-8 sm:mb-12">
-          <div className="flex items-center gap-2 text-amber-600 mb-2">
-            <Sparkles size={14} />
-            <span className="text-[11px] font-bold tracking-widest uppercase">
-              TABELA & TECNOLOGIA DE LENTES
-            </span>
-          </div>
-          <h2 className="text-2xl sm:text-4xl font-light text-slate-950 tracking-tight leading-tight">
-            Valores transparentes e as <strong className="font-semibold text-slate-950">melhores marcas</strong>.
-          </h2>
-          <p className="text-xs sm:text-sm text-slate-600 mt-2 leading-relaxed">
-            Trabalhamos com os maiores laboratórios do mercado e montagem em até 1 hora no nosso laboratório próprio. Escolha o tipo de lente abaixo para ver valores de referência:
-          </p>
-        </div>
-
-        {/* Abas Segmentadas Interativas (Horizontal no Mobile) */}
-        <div className="flex items-center gap-2 overflow-x-auto pb-2 mb-6 sm:mb-8 no-scrollbar">
-          {lensTiers.map((tier) => {
-            const isActive = tier.id === activeTab;
-            const Icon = tier.icon;
-            return (
-              <button
-                key={tier.id}
-                type="button"
-                onClick={() => setActiveTab(tier.id)}
-                className={`flex items-center gap-2 px-4 py-3 rounded-2xl text-xs font-semibold whitespace-nowrap transition-all duration-200 cursor-pointer shrink-0 border ${
-                  isActive
-                    ? "bg-[#06111f] text-white border-[#06111f] shadow-md"
-                    : "bg-white text-slate-700 border-slate-200/80 hover:border-slate-300"
-                }`}
-              >
-                <Icon
-                  size={15}
-                  className={isActive ? "text-[#ffd62e]" : "text-amber-600"}
-                />
-                <span>{tier.shortName}</span>
-              </button>
-            );
-          })}
-        </div>
-
-        {/* Card de Preço & Benefícios da Lente Ativa (Super Enxuto) */}
-        <div className="bg-white rounded-3xl border border-slate-200/90 p-6 sm:p-10 shadow-sm transition-all duration-300">
-          <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-center">
-            {/* Lado Esquerdo: Nome, Descrição e Benefícios (7 cols) */}
-            <div className="lg:col-span-7 space-y-4">
-              <div className="flex items-center gap-2">
-                <span className="text-[10px] font-bold uppercase tracking-wider px-2.5 py-0.5 rounded-full bg-amber-50 text-amber-700 border border-amber-200/60">
-                  {currentLens.tag}
-                </span>
-                <span className="text-[11px] text-emerald-700 font-semibold flex items-center gap-1">
-                  <Clock size={13} /> {currentLens.leadTime}
-                </span>
-              </div>
-
-              <h3 className="text-xl sm:text-2xl font-bold text-slate-900 tracking-tight">
-                {currentLens.name}
-              </h3>
-
-              <p className="text-xs sm:text-sm text-slate-600 leading-relaxed">
-                {currentLens.description}
-              </p>
-
-              {/* Lista de Benefícios em 2 Colunas */}
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5 pt-2">
-                {currentLens.benefits.map((b, i) => (
-                  <div key={i} className="flex items-start gap-2 text-xs text-slate-700">
-                    <CheckCircle2 size={15} className="text-emerald-600 shrink-0 mt-0.5" />
-                    <span>{b}</span>
-                  </div>
-                ))}
-              </div>
-
-              <p className="text-[11px] text-slate-500 pt-2 border-t border-slate-100">
-                <strong className="text-slate-700">Indicação recomendada:</strong> {currentLens.recommendedFor}
-              </p>
+        {/* Cabeçalho da Seção com Símbolo de Lentes Ópticas */}
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-center mb-12 sm:mb-16">
+          <div className="lg:col-span-8 max-w-3xl">
+            <div className="flex items-center gap-2 text-amber-600 mb-2.5">
+              <Sparkles size={16} />
+              <span className="text-[11px] font-bold tracking-[0.2em] uppercase">
+                TECNOLOGIA ÓPTICA &amp; MARCAS HOMOLOGADAS
+              </span>
             </div>
+            <h2 className="text-3xl sm:text-5xl font-light text-slate-950 tracking-tight leading-tight">
+              Lentes de Alta Precisão <br className="hidden sm:inline" />
+              <strong className="font-semibold text-slate-950">para cada necessidade da sua visão.</strong>
+            </h2>
+            <p className="text-xs sm:text-base text-slate-600 mt-3 leading-relaxed max-w-2xl">
+              Organizamos as melhores marcas do mercado óptico internacional e nossa marca própria com valores de referência transparentes, tratamentos de alta performance e montagem no laboratório próprio de Araçatuba.
+            </p>
+          </div>
 
-            {/* Lado Direito: Bloco de Preço & CTA WhatsApp (5 cols) */}
-            <div className="lg:col-span-5 bg-gradient-to-b from-slate-50 to-slate-100/70 rounded-2xl p-6 sm:p-8 border border-slate-200/80 flex flex-col justify-between text-center sm:text-left">
-              <div>
-                <span className="text-[11px] font-bold text-slate-500 uppercase tracking-wider block">
-                  Valor de Referência
+          {/* Símbolo Exclusivo de Lentes Ópticas (Discos Cristalinos Bevelados com Reflexo AR) */}
+          <div className="lg:col-span-4 flex items-center justify-center lg:justify-end">
+            <div className="relative p-5 rounded-3xl bg-white border border-slate-200/90 shadow-lg flex flex-col items-center text-center">
+              <LensOpticalGraphic size={200} glow={true} />
+              <div className="mt-2">
+                <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400 block">
+                  Padrão Óptico Ventara
                 </span>
-                <div className="flex items-baseline justify-center sm:justify-start gap-2 mt-1">
-                  <span className="text-xs text-slate-500 font-medium">A partir de</span>
-                  <span className="text-3xl sm:text-4xl font-extrabold text-slate-950 font-mono tracking-tight">
-                    {currentLens.startingPrice}
-                  </span>
-                </div>
-                <span className="text-xs text-slate-600 block mt-1">
-                  ou em até <strong className="text-slate-900 font-semibold">{currentLens.installment}</strong> no cartão
+                <span className="text-xs font-semibold text-slate-900">
+                  Antirreflexo Multicamadas &amp; Alinhamento Dióptrico
                 </span>
               </div>
+            </div>
+          </div>
+        </div>
 
-              <div className="pt-6 mt-6 border-t border-slate-200/70 space-y-3">
+        {/* ABAS DE CATEGORIAS: VISÃO SIMPLES, MULTIFOCAL, TRATAMENTOS, TODAS AS MARCAS */}
+        <div className="flex items-center gap-2.5 overflow-x-auto pb-3 mb-8 sm:mb-12 no-scrollbar">
+          <button
+            type="button"
+            onClick={() => setActiveCategory("visao-simples")}
+            className={`flex items-center gap-2 px-5 py-3 rounded-2xl text-xs sm:text-sm font-semibold whitespace-nowrap transition-all duration-200 cursor-pointer shrink-0 border ${
+              activeCategory === "visao-simples"
+                ? "bg-[#06111f] text-white border-[#06111f] shadow-md"
+                : "bg-white text-slate-700 border-slate-200 hover:border-slate-300 shadow-2xs"
+            }`}
+          >
+            <Eye size={16} className={activeCategory === "visao-simples" ? "text-amber-400" : "text-amber-600"} />
+            <span>Visão Simples (Monofocais)</span>
+          </button>
+
+          <button
+            type="button"
+            onClick={() => setActiveCategory("multifocal")}
+            className={`flex items-center gap-2 px-5 py-3 rounded-2xl text-xs sm:text-sm font-semibold whitespace-nowrap transition-all duration-200 cursor-pointer shrink-0 border ${
+              activeCategory === "multifocal"
+                ? "bg-[#06111f] text-white border-[#06111f] shadow-md"
+                : "bg-white text-slate-700 border-slate-200 hover:border-slate-300 shadow-2xs"
+            }`}
+          >
+            <Layers size={16} className={activeCategory === "multifocal" ? "text-amber-400" : "text-amber-600"} />
+            <span>Multifocais (Progressivas)</span>
+          </button>
+
+          <button
+            type="button"
+            onClick={() => setActiveCategory("tratamentos")}
+            className={`flex items-center gap-2 px-5 py-3 rounded-2xl text-xs sm:text-sm font-semibold whitespace-nowrap transition-all duration-200 cursor-pointer shrink-0 border ${
+              activeCategory === "tratamentos"
+                ? "bg-[#06111f] text-white border-[#06111f] shadow-md"
+                : "bg-white text-slate-700 border-slate-200 hover:border-slate-300 shadow-2xs"
+            }`}
+          >
+            <ShieldCheck size={16} className={activeCategory === "tratamentos" ? "text-amber-400" : "text-amber-600"} />
+            <span>Filtro Luz Azul &amp; Especiais</span>
+          </button>
+
+          <button
+            type="button"
+            onClick={() => setActiveCategory("marcas")}
+            className={`flex items-center gap-2 px-5 py-3 rounded-2xl text-xs sm:text-sm font-semibold whitespace-nowrap transition-all duration-200 cursor-pointer shrink-0 border ${
+              activeCategory === "marcas"
+                ? "bg-[#06111f] text-white border-[#06111f] shadow-md"
+                : "bg-white text-slate-700 border-slate-200 hover:border-slate-300 shadow-2xs"
+            }`}
+          >
+            <Award size={16} className={activeCategory === "marcas" ? "text-amber-400" : "text-amber-600"} />
+            <span>Todas as Marcas Homologadas</span>
+          </button>
+        </div>
+
+        {/* CONTEÚDO DAS CATEGORIAS (GRADE DE CARDS COM LOGOS E DADOS COMPLETOS) */}
+        {activeCategory !== "marcas" ? (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 sm:gap-8 items-stretch">
+            {filteredOptions.map((opt) => (
+              <div
+                key={opt.id}
+                className="bg-white rounded-3xl border border-slate-200/90 shadow-sm hover:shadow-md hover:border-amber-400/50 transition-all duration-300 p-6 sm:p-7 flex flex-col justify-between"
+              >
+                <div>
+                  {/* Cabeçalho do Card: Logo da Marca + Badge */}
+                  <div className="flex items-center justify-between gap-3 pb-4 mb-4 border-b border-slate-100">
+                    <div className="h-10 max-w-[130px] flex items-center">
+                      <img
+                        src={opt.brandLogo}
+                        alt={`Logo ${opt.brandName}`}
+                        className={`max-h-9 max-w-full object-contain rounded-md ${
+                          opt.logoBgLight ? "bg-white p-1" : ""
+                        }`}
+                      />
+                    </div>
+                    {opt.badge && (
+                      <span className="text-[10px] font-bold uppercase tracking-wider px-2.5 py-1 rounded-full bg-amber-50 text-amber-800 border border-amber-200/70 shrink-0">
+                        {opt.badge}
+                      </span>
+                    )}
+                  </div>
+
+                  {/* Nome da Lente & Marca */}
+                  <div className="mb-2">
+                    <span className="text-[11px] font-semibold text-slate-500 uppercase tracking-wider block">
+                      {opt.brandName}
+                    </span>
+                    <h3 className="text-lg sm:text-xl font-bold text-slate-900 tracking-tight leading-snug">
+                      {opt.name}
+                    </h3>
+                  </div>
+
+                  {/* Tratamento em Destaque */}
+                  <div className="p-2.5 rounded-xl bg-slate-50 border border-slate-200/70 text-xs text-slate-700 font-medium mb-4 flex items-start gap-2">
+                    <Zap size={15} className="text-amber-500 shrink-0 mt-0.5" />
+                    <span>{opt.treatment}</span>
+                  </div>
+
+                  {/* Descrição */}
+                  <p className="text-xs text-slate-600 leading-relaxed mb-4">
+                    {opt.description}
+                  </p>
+
+                  {/* Lista de Recursos / Benefícios */}
+                  <ul className="space-y-2 mb-6">
+                    {opt.features.map((feat, i) => (
+                      <li key={i} className="flex items-start gap-2 text-xs text-slate-700">
+                        <CheckCircle2 size={14} className="text-emerald-600 shrink-0 mt-0.5" />
+                        <span>{feat}</span>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+
+                {/* Rodapé do Card: Preço & Botão de Orçamento no WhatsApp */}
+                <div className="pt-4 border-t border-slate-100">
+                  <div className="flex items-baseline justify-between mb-3">
+                    <div>
+                      <span className="text-[10px] text-slate-400 uppercase tracking-wider block">
+                        Valor de Referência
+                      </span>
+                      <span className="text-xl sm:text-2xl font-extrabold text-slate-900 font-mono tracking-tight">
+                        {opt.startingPrice}
+                      </span>
+                    </div>
+                    <span className="text-[11px] text-emerald-700 font-semibold flex items-center gap-1">
+                      <Clock size={12} /> {opt.leadTime}
+                    </span>
+                  </div>
+
+                  <p className="text-[11px] text-slate-500 mb-4">
+                    {opt.installment}
+                  </p>
+
+                  <a
+                    href={getWhatsAppQuoteUrl(opt)}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="w-full inline-flex items-center justify-center gap-2 py-3 px-4 rounded-xl bg-[#06111f] hover:bg-[#0756b8] active:scale-95 text-white font-bold text-xs uppercase tracking-wider transition-all shadow-xs cursor-pointer"
+                  >
+                    <MessageSquare size={14} className="text-amber-400" />
+                    <span>Pedir Orçamento</span>
+                    <ArrowRight size={13} />
+                  </a>
+                </div>
+              </div>
+            ))}
+          </div>
+        ) : (
+          /* ABA "TODAS AS MARCAS HOMOLOGADAS" */
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 sm:gap-8">
+            {brandLogos.map((brand, idx) => (
+              <div
+                key={idx}
+                className="bg-white rounded-3xl border border-slate-200/90 p-6 sm:p-7 shadow-sm flex flex-col justify-between"
+              >
+                <div>
+                  <div className="h-14 flex items-center justify-between pb-4 mb-4 border-b border-slate-100">
+                    <img
+                      src={brand.logo}
+                      alt={brand.name}
+                      className={`max-h-12 max-w-[150px] object-contain rounded-md ${
+                        brand.logoBgLight ? "bg-white p-1" : ""
+                      }`}
+                    />
+                    <span className="text-[10px] font-bold uppercase tracking-wider px-2.5 py-1 rounded-full bg-slate-100 text-slate-700 border border-slate-200">
+                      {brand.badge}
+                    </span>
+                  </div>
+
+                  <h3 className="text-lg font-bold text-slate-900 mb-2">
+                    {brand.name}
+                  </h3>
+                  <p className="text-xs text-slate-600 leading-relaxed mb-6">
+                    {brand.desc}
+                  </p>
+                </div>
+
                 <a
-                  href={whatsappUrl}
+                  href={`https://wa.me/5518996155748?text=Ol%C3%A1!%20Gostaria%20de%20consultar%20as%20op%C3%A7%C3%B5es%20de%20lentes%20da%20marca%20${encodeURIComponent(brand.name)}%20na%20%C3%93tica%20Ventara.`}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="w-full inline-flex items-center justify-center gap-2.5 py-3.5 px-6 rounded-2xl bg-emerald-600 hover:bg-emerald-700 active:scale-95 text-white font-bold text-xs uppercase tracking-wider transition-all duration-150 shadow-md hover:shadow-lg cursor-pointer"
+                  className="w-full inline-flex items-center justify-center gap-2 py-2.5 px-4 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-800 text-xs font-semibold tracking-wide transition-colors"
                 >
-                  <MessageSquare size={16} />
-                  <span>Pedir Orçamento da Lente</span>
-                  <ArrowRight size={14} />
+                  <MessageSquare size={13} className="text-amber-600" />
+                  <span>Consultar Opções da {brand.name}</span>
                 </a>
-
-                <span className="text-[10px] text-slate-500 block leading-tight text-center">
-                  Envie sua receita pelo WhatsApp para cálculo exato da espessura e dioptria.
-                </span>
               </div>
-            </div>
+            ))}
           </div>
-        </div>
+        )}
 
-        {/* Destaque Exclusivo: Marca Própria OPTiSYNC HD */}
-        <div className="mt-8 bg-gradient-to-r from-[#06111f] via-[#091b30] to-[#0d2238] rounded-3xl p-6 sm:p-8 text-white shadow-lg border border-slate-800">
-          <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-center">
-            {/* Foto Oficial / Logo OPTISYNC HD */}
-            <div className="lg:col-span-4 flex items-center justify-center">
-              <div className="relative rounded-2xl overflow-hidden border border-amber-400/40 bg-white/5 p-2 shadow-inner max-w-[280px] w-full">
+        {/* DESTAQUE ESPECIAL DA MARCA PRÓPRIA: OPTISYNC HD COM MONTAGEM EXPRESSA */}
+        <div className="mt-12 bg-gradient-to-br from-[#06111f] via-[#091e36] to-[#040e1a] rounded-3xl p-6 sm:p-10 text-white shadow-xl border border-white/10 relative overflow-hidden">
+          <div className="absolute top-0 right-0 -mr-20 -mt-20 w-80 h-80 bg-amber-400/10 blur-3xl rounded-full pointer-events-none" />
+
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-center relative z-10">
+            <div className="lg:col-span-4 flex justify-center">
+              <div className="p-3 bg-white/5 rounded-2xl border border-amber-400/30 max-w-[260px] w-full shadow-inner">
                 <img
                   src="/images/lenses/optisync-hd.jpg"
-                  alt="OPTiSYNC HD - Lente Exclusiva Ótica Ventara Filtro Azul e Antirreflexo"
-                  className="w-full h-auto rounded-xl object-contain bg-white"
+                  alt="Lente Exclusiva OPTiSYNC HD - Óticas Ventara"
+                  className="w-full h-auto rounded-xl bg-white object-contain"
                 />
               </div>
             </div>
 
-            {/* Informações de Tecnologia & Vantagens */}
-            <div className="lg:col-span-8 flex flex-col justify-between space-y-4">
-              <div>
-                <div className="flex items-center gap-2 flex-wrap mb-2">
-                  <span className="text-[10px] font-extrabold uppercase tracking-widest px-3 py-1 rounded-full bg-amber-400 text-slate-950 shadow-xs">
-                    MARCA PRÓPRIA EXCLUSIVA
-                  </span>
-                  <span className="text-[11px] text-amber-300 font-semibold flex items-center gap-1">
-                    <Sparkles size={13} /> Alta Resolução & Menor Custo
-                  </span>
-                </div>
-
-                <h3 className="text-xl sm:text-2xl font-bold tracking-tight text-white">
-                  OPTiSYNC HD · Filtro Azul & Antirreflexo
-                </h3>
-
-                <p className="text-xs sm:text-sm text-slate-300 leading-relaxed mt-2">
-                  Desenvolvida com padrão óptico internacional e cortada diretamente em nossa faceta computadorizada no laboratório próprio de Araçatuba. Lentes com proteção contra luz azul nociva de monitores e celulares, antirreflexo de alta durabilidade e economia direta de fábrica — sem margens de terceiros.
-                </p>
+            <div className="lg:col-span-8 space-y-4">
+              <div className="flex items-center gap-2 flex-wrap">
+                <span className="text-[10px] font-extrabold uppercase tracking-widest px-3 py-1 rounded-full bg-amber-400 text-slate-950">
+                  MARCA PRÓPRIA VENTARA
+                </span>
+                <span className="text-xs text-amber-300 font-semibold flex items-center gap-1">
+                  <Clock size={13} /> Montagem Expressa em até 1 Hora
+                </span>
               </div>
 
-              <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 pt-3 border-t border-slate-700/60">
-                <div className="flex items-center gap-2 flex-wrap">
-                  <span className="text-[11px] px-2.5 py-1 rounded-lg bg-white/10 text-slate-200 border border-white/10">
-                    Filtro Azul Integrado
-                  </span>
-                  <span className="text-[11px] px-2.5 py-1 rounded-lg bg-white/10 text-slate-200 border border-white/10">
-                    Antirreflexo Multicamadas
-                  </span>
-                  <span className="text-[11px] px-2.5 py-1 rounded-lg bg-white/10 text-slate-200 border border-white/10">
-                    Montagem em até 1 Hora
-                  </span>
+              <h3 className="text-2xl sm:text-3xl font-bold tracking-tight text-white">
+                OPTiSYNC HD · Filtro Azul &amp; Antirreflexo
+              </h3>
+
+              <p className="text-xs sm:text-sm text-slate-300 leading-relaxed max-w-2xl">
+                Cortadas e facetadas com precisão nanométrica em nossa biseladora computadorizada na Rua Princesa Isabel, 221. Proteção contra luz azul, antirreflexo de altíssima claridade e o melhor custo de fábrica, sem comissões ou repasses a intermediários.
+              </p>
+
+              <div className="pt-2 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 border-t border-white/10">
+                <div className="text-xs text-slate-300 space-x-3">
+                  <span>✓ Filtro Azul Incluso</span>
+                  <span>✓ Antirreflexo Multicamadas</span>
+                  <span>✓ Garantia de Fábrica</span>
                 </div>
 
                 <a
-                  href="https://wa.me/5518996155748?text=Ol%C3%A1!%20Vi%20as%20lentes%20exclusivas%20OPTiSYNC%20HD%20no%20site%20da%20%C3%93tica%20Ventara%20e%20gostaria%20de%20um%20or%C3%A7amento%20para%20a%20minha%20receita."
+                  href="https://wa.me/5518996155748?text=Ol%C3%A1!%20Gostaria%20de%20um%20or%C3%A7amento%20para%20as%20lentes%20exclusivas%20OPTiSYNC%20HD%20da%20%C3%93ticas%20Ventara."
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="inline-flex items-center gap-2 px-5 py-3 rounded-xl bg-amber-400 hover:bg-amber-300 text-slate-950 font-bold text-xs uppercase tracking-wider transition-all shadow-md active:scale-95 shrink-0"
+                  className="inline-flex items-center gap-2 px-6 py-3.5 rounded-xl bg-amber-400 hover:bg-amber-300 text-slate-950 font-bold text-xs uppercase tracking-wider transition-all shadow-md active:scale-95 shrink-0"
                 >
                   <MessageSquare size={15} />
                   <span>Pedir Orçamento OPTiSYNC</span>
@@ -307,28 +632,21 @@ export function LensesPricingSection() {
           </div>
         </div>
 
-        {/* Marcas Parceiras de Lentes (Badges Nobres) */}
-        <div className="mt-8 pt-6 border-t border-slate-200/70 flex flex-col sm:flex-row items-center justify-between gap-4">
-          <div className="flex items-center gap-2 text-xs font-semibold text-slate-700">
-            <Award size={16} className="text-amber-600" />
-            <span>Marcas homologadas com garantia oficial de laboratório:</span>
-          </div>
-
-          <div className="flex items-center gap-2 flex-wrap justify-center">
-            {partnerBrands.map((b, idx) => (
-              <span
-                key={idx}
-                className={`text-xs font-semibold px-3 py-1.5 rounded-xl border shadow-2xs ${
-                  b.isExclusive
-                    ? "bg-[#06111f] text-amber-400 border-[#06111f]"
-                    : "bg-white text-slate-800 border-slate-200/80"
-                }`}
-                title={b.type}
-              >
-                {b.isExclusive ? `★ ${b.name} (Exclusiva)` : b.name}
-              </span>
-            ))}
-          </div>
+        {/* CALL TO ACTION PARA ENVIO DE RECEITA MÉDICA */}
+        <div className="mt-8 text-center bg-white border border-slate-200/90 rounded-2xl p-6 shadow-2xs max-w-3xl mx-auto">
+          <p className="text-xs sm:text-sm text-slate-700 font-medium leading-relaxed">
+            Já tem a sua receita médica em mãos? Envie uma foto clara pelo WhatsApp e nossa equipe calcula a espessura ideal (índice 1.56, 1.67 ou 1.74) para o seu grau.
+          </p>
+          <a
+            href="https://wa.me/5518996155748?text=Ol%C3%A1!%20Estou%20com%20minha%20receita%20m%C3%A9dica%20aqui%20e%20gostaria%20que%20voc%C3%AAs%20calculassem%20a%20melhor%20lente%20para%20o%20meu%20grau."
+            target="_blank"
+            rel="noopener noreferrer"
+            className="inline-flex items-center gap-2 text-emerald-700 hover:text-emerald-800 text-xs font-bold uppercase tracking-wider mt-3"
+          >
+            <MessageSquare size={14} />
+            <span>Enviar Foto da Receita Agora</span>
+            <ArrowRight size={13} />
+          </a>
         </div>
       </div>
     </section>

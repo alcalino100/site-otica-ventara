@@ -68,14 +68,23 @@ export function WhyChooseSection() {
                 Aqui você encontra armações exclusivas, lentes das melhores marcas e um laboratório próprio, com toda a tecnologia e precisão para garantir o melhor para a sua visão.
               </WordsStagger>
             </div>
-            <a
-              href="#armacoes"
-              className="inline-flex items-center gap-2.5 px-6 sm:px-8 py-3 sm:py-3.5 rounded-full bg-[#06111f] hover:bg-[#0756b8] active:scale-95 !text-white text-xs font-bold uppercase tracking-wider transition-all duration-200 shadow-md group"
-              style={{ color: "#ffffff" }}
-            >
-              <span className="text-white font-bold tracking-wider">Saiba mais</span>
-              <ArrowRight size={15} className="text-[#ffd62e] group-hover:translate-x-0.5 transition-transform" />
-            </a>
+            <div className="flex flex-wrap items-center gap-3">
+              <a
+                href="#lentes"
+                className="inline-flex items-center gap-2.5 px-6 sm:px-8 py-3 sm:py-3.5 rounded-full bg-[#06111f] hover:bg-[#0756b8] active:scale-95 !text-white text-xs font-bold uppercase tracking-wider transition-all duration-200 shadow-md group"
+                style={{ color: "#ffffff" }}
+              >
+                <span className="text-white font-bold tracking-wider">Ver Nossas Lentes</span>
+                <ArrowRight size={15} className="text-[#ffd62e] group-hover:translate-x-0.5 transition-transform" />
+              </a>
+              <a
+                href="/medicao-por-foto"
+                className="inline-flex items-center gap-1.5 px-4 py-3 rounded-full text-xs font-semibold text-slate-700 hover:text-slate-950 hover:bg-slate-100 transition-colors"
+              >
+                <span>Medição por Foto (DNP)</span>
+                <ArrowRight size={13} className="text-amber-600" />
+              </a>
+            </div>
           </div>
 
           {/* Coluna Direita: Grid Otimizado (2 colunas no mobile, 3 no tablet/desktop) */}

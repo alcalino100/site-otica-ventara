@@ -7,11 +7,9 @@ import { Footer } from "../components/layout/footer";
 import { Hero } from "../components/sections/hero";
 import { MetricsRibbon } from "../components/sections/metrics-ribbon";
 import { WhyChooseSection } from "../components/sections/why-choose-section";
-import { FramesBanner } from "../components/sections/frames-banner";
 import { InteractiveShowcase } from "../components/sections/interactive-showcase";
 import { CatalogSection } from "../components/catalog/catalog-section";
 import { LensesPricingSection } from "../components/sections/lenses-pricing-section";
-import { AboutSection } from "../components/sections/about-section";
 import { StoreSection } from "../components/sections/store-section";
 import { WhatsAppSection } from "../components/sections/whatsapp-section";
 import { FAQAccordion } from "../components/sections/faq-accordion";
@@ -152,19 +150,13 @@ export default function Home() {
         {/* 3. Faixa de Números Conforme Mockup ("Nossos Números: Confiança que se transforma em resultados.") */}
         <MetricsRibbon />
 
-        {/* 4. Vitrine Editorial Interativa (Referência Oakley/Ventara: Lifestyle Dinâmico & Variações) */}
+        {/* 4. Vitrine Editorial Interativa ("Mais que óculos, é sobre você") */}
         <InteractiveShowcase
           onAddToCart={handleAddToCart}
           onOpenCart={() => setIsCartOpen(true)}
         />
 
-        {/* 5. Seção Conforme Mockup ("Por que escolher Óticas Ventara?" com diferenciais compactos no mobile) */}
-        <WhyChooseSection />
-
-        {/* 6. Tabela Compacta de Lentes & Valores de Referência (Abas Interativas & Marcas Parceiras) */}
-        <LensesPricingSection />
-
-        {/* 7. Catálogo Interativo com Filtros (Todos, Grau, Solar), Busca e Carrinho */}
+        {/* 5. "Escolhas que combinam com você" + Catálogo de Óculos logo abaixo */}
         <CatalogSection
           products={products}
           onSelectProduct={() => {}}
@@ -173,16 +165,19 @@ export default function Home() {
           isSearchOpen={isSearchOpen}
         />
 
-        {/* 8. Seção Institucional ("A diferença está nos detalhes.") */}
-        <AboutSection />
+        {/* 6. Apresentação da Óticas Ventara e o Laboratório Próprio AM-295 */}
+        <WhyChooseSection />
 
-        {/* 9. Seção da Loja Física em Araçatuba com rota no Google Maps */}
+        {/* 7. Nosso Espaço Físico em Araçatuba (Fachada Real, Endereço, Fixo (18) 3304-2808 e Google Maps) */}
         <StoreSection />
 
-        {/* 10. CTA Final Direto para o WhatsApp ("Seu próximo olhar começa aqui.") */}
+        {/* 8. Seção de Lentes de Alta Precisão (Visão Simples, Multifocal, Marcas Homologadas e Símbolo Óptico) */}
+        <LensesPricingSection />
+
+        {/* 9. CTA Final Direto para o WhatsApp */}
         <WhatsAppSection onNotify={notify} />
 
-        {/* 11. FAQ com Dúvidas Frequentes */}
+        {/* 10. FAQ com Dúvidas Frequentes */}
         <FAQAccordion />
       </main>
 
