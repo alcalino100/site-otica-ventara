@@ -3,8 +3,27 @@ import './globals.css';
 import { UTMTracker } from '@/components/analytics/utm-tracker';
 
 export const metadata: Metadata = {
-  title: 'Ótica Ventara | Um novo olhar para você',
-  description: 'Conheça a proposta da Ótica Ventara. Armações, lentes e cuidado para o seu olhar. Site demonstrativo.'
+  title: 'Ótica Ventara | Eyewear Boutique & Laboratório Próprio em Araçatuba',
+  description:
+    'Ótica boutique em Araçatuba-SP. Armações em acetato italiano e titânio, lentes OPTiSYNC HD e montagem expressa em até 1 hora no laboratório próprio computadorizado.',
+  keywords: [
+    'ótica em araçatuba',
+    'armações de óculos',
+    'óculos de grau',
+    'óculos de sol',
+    'lentes multifocais',
+    'ótica ventara',
+    'laboratório próprio ótica',
+  ],
+  openGraph: {
+    title: 'Ótica Ventara | Eyewear Boutique em Araçatuba',
+    description:
+      'Armações exclusivas, lentes OPTiSYNC HD de alta precisão e montagem expressa em até 1 hora no laboratório próprio.',
+    url: 'https://www.oticasventara.com.br',
+    siteName: 'Ótica Ventara',
+    locale: 'pt_BR',
+    type: 'website',
+  },
 };
 
 export default function RootLayout({

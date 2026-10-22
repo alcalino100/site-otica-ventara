@@ -86,15 +86,31 @@ export default function Home() {
     }, 3200);
   };
 
-  const handleAddToCart = (product: Product) => {
-    const primaryImg = product.images?.find((i) => i.is_primary)?.url || product.images?.[0]?.url;
+  const handleAddToCart = (product: Product | any) => {
+    const primaryImg =
+      product.imageUrl ||
+      product.images?.find((i: any) => i.is_primary)?.url ||
+      product.images?.[0]?.url;
+    const price =
+      typeof product.priceInCents === "number"
+        ? product.priceInCents
+        : product.price_in_cents || 0;
+    const color =
+      product.color ||
+      product.variants?.[0]?.color_name ||
+      "Padrão";
+    const category =
+      typeof product.category === "string"
+        ? product.category
+        : product.category?.name || product.frame_type || "Armação";
+
     const newItem: CartProduct = {
-      id: product.id,
+      id: product.id || `cart-${Date.now()}`,
       name: product.name,
       slug: product.slug,
-      category: product.category?.name || product.frame_type,
-      color: product.variants?.[0]?.color_name || "Padrão",
-      priceInCents: product.price_in_cents,
+      category,
+      color,
+      priceInCents: price,
       imageUrl: primaryImg,
     };
 

@@ -17,7 +17,7 @@ export function WhyChooseSection() {
     {
       icon: Microscope,
       title: "LABORATÓRIO PRÓPRIO",
-      description: "Montagem precisa e ágil das suas lentes.",
+      description: "Montagem precisa na biseladora digital AM-295.",
     },
     {
       icon: CircleDot,

@@ -49,12 +49,10 @@ export function CartModal({
 
   const handleCheckout = () => {
     setIsSubmitting(true);
-    setTimeout(() => {
-      setIsSubmitting(false);
-      const whatsappUrl = buildWhatsAppCartUrl(cartItems);
-      window.open(whatsappUrl, "_blank", "noopener,noreferrer");
-      onClose();
-    }, 350);
+    const whatsappUrl = buildWhatsAppCartUrl(cartItems);
+    window.open(whatsappUrl, "_blank", "noopener,noreferrer");
+    setIsSubmitting(false);
+    onClose();
   };
 
   const subtotalCents = cartItems.reduce(

@@ -505,7 +505,7 @@ export function InteractiveShowcase({
               </Link>
 
               <Link
-                href="#loja"
+                href="#loja-fisica"
                 className="inline-flex items-center justify-center gap-2 px-6 py-3.5 rounded-full bg-transparent hover:bg-slate-100 active:scale-95 text-slate-800 border-2 border-slate-300 hover:border-slate-800 font-bold text-xs sm:text-sm tracking-wider uppercase transition-all duration-200 cursor-pointer"
               >
                 <span>Conheça a loja</span>

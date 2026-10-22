@@ -15,14 +15,12 @@ export function WhatsAppSection({ onNotify }: WhatsAppSectionProps) {
     if (onNotify) {
       onNotify("Redirecionando para o WhatsApp oficial da Ótica Ventara...");
     }
-    setTimeout(() => {
-      setIsOpening(false);
-      window.open(
-        "https://wa.me/5518996155748?text=Ol%C3%A1!%20Gostaria%20de%20consultoria%20sobre%20arma%C3%A7%C3%B5es%20e%20lentes%20da%20%C3%93tica%20Ventara.",
-        "_blank",
-        "noopener,noreferrer"
-      );
-    }, 400);
+    window.open(
+      "https://wa.me/5518996155748?text=Ol%C3%A1!%20Gostaria%20de%20consultoria%20sobre%20arma%C3%A7%C3%B5es%20e%20lentes%20da%20%C3%93tica%20Ventara.",
+      "_blank",
+      "noopener,noreferrer"
+    );
+    setIsOpening(false);
   };
 
   return (

@@ -21,9 +21,9 @@ const faqs: FAQItem[] = [
       "Você pode trazer a receita do seu oftalmologista de confiança! Orientamos sobre os melhores tratamentos para o seu grau e realizamos a conferência e medição da distância nasopupilar (DNP) com equipamento digital.",
   },
   {
-    question: "Quais são os prazos médios de confecção das lentes?",
+    question: "Quais são os prazos médios de confecção e montagem das lentes?",
     answer:
-      "Lentes de visão simples (miopia, hipermetropia e astigmatismo) têm prazo ágil de 2 a 5 dias úteis. Lentes multifocais e tratamentos especiais levam de 5 a 8 dias úteis, garantindo conferência minuciosa em laboratório.",
+      "Lentes de visão simples em estoque contam com montagem expressa em até 1 hora em nosso laboratório próprio computadorizado com a biseladora AM-295. Lentes multifocais personalizadas, dioptrias altas ou tratamentos especiais sob medida levam de 2 a 5 dias úteis com calibração minuciosa.",
   },
   {
     question: "Como funciona a garantia e os ajustes pós-venda?",
