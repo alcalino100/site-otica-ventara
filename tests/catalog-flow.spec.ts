@@ -5,10 +5,17 @@ test.describe("Ótica Ventara - Catálogo e Interações", () => {
     await page.goto("/");
   });
 
-  test("deve carregar a página inicial com elementos essenciais da marca", async ({ page }) => {
+  test("deve carregar a página inicial com elementos essenciais da marca e HighlightedText no Hero", async ({ page }) => {
     await expect(page).toHaveTitle(/Ventara/i);
     const brandHeading = page.locator("h1");
     await expect(brandHeading).toContainText("Mais que óculos");
+    await expect(brandHeading).toContainText("você.");
+    const highlighted = page.locator(".hero-copy").getByText("você.");
+    await expect(highlighted).toBeVisible();
+    await page.waitForTimeout(700);
+    await page.locator(".hero-copy").screenshot({
+      path: "/Users/gui/.gemini/antigravity/brain/90ffe01e-c1a0-4c0e-8ac8-51c4b6663b36/hero-highlighted-text.png",
+    });
   });
 
   test("deve permitir navegar pelo carrossel do pedestal no Hero (01 / 04)", async ({ page }) => {

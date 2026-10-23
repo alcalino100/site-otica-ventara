@@ -6,6 +6,7 @@ import { motion, AnimatePresence } from "motion/react";
 import { ArrowRight, ChevronLeft, ChevronRight, Sparkles } from "lucide-react";
 import { FrameArt } from "../catalog/frame-art";
 import { WordsStagger } from "@/registry/spell-ui/words-stagger";
+import { HighlightedText } from "@/registry/spell-ui/highlighted-text";
 import { Product } from "@/types/ecommerce";
 import { DEFAULT_CATALOG } from "@/lib/catalog-data";
 import { useSiteSettings } from "@/components/providers/site-settings-provider";
@@ -87,7 +88,16 @@ export function Hero({ products }: HeroProps) {
 
             <h1 className="text-4xl sm:text-6xl font-light text-white tracking-tight leading-tight">
               Mais que óculos,<br />
-              é sobre <strong className="text-[#FFD62E] font-normal">você.</strong>
+              é sobre{" "}
+              <HighlightedText
+                delay={0.4}
+                from="left"
+                className="font-normal"
+                highlightClassName="bg-[#FFD62E] rounded-[0.16em] shadow-sm"
+                textClassName="text-[#02070D] font-medium"
+              >
+                você.
+              </HighlightedText>
             </h1>
 
             <div className="hero-description my-4">
