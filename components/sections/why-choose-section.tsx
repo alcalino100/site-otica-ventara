@@ -131,70 +131,6 @@ export function WhyChooseSection() {
           </div>
         </div>
 
-        {/* Destaque do Responsável Técnico: Gustavo Guimarães Cordeiro */}
-        <div className="mt-12 sm:mt-16 bg-gradient-to-br from-[#06111f] to-[#02070d] border border-white/10 rounded-3xl overflow-hidden shadow-xl text-white">
-          <div className="grid grid-cols-1 lg:grid-cols-12 items-center">
-            {/* Foto do Técnico Óptico */}
-            <div className="lg:col-span-5 relative aspect-[3/4] sm:aspect-[4/3] lg:aspect-auto lg:h-[440px] overflow-hidden bg-slate-900">
-              <img
-                src="/images/team/gustavo-tecnico-optico.jpg"
-                alt="Gustavo Guimarães Cordeiro - Técnico Óptico Formado e Responsável Técnico da Óticas Ventara"
-                className="w-full h-full object-cover object-top hover:scale-105 transition-transform duration-500"
-              />
-              <div className="absolute top-4 left-4 bg-[#06111f]/90 backdrop-blur-xs text-amber-400 text-[10px] sm:text-xs font-bold uppercase tracking-wider px-3.5 py-1.5 rounded-full border border-amber-400/30 shadow-md flex items-center gap-1.5">
-                <ShieldCheck size={14} className="text-amber-400" />
-                <span>Técnico Óptico Responsável</span>
-              </div>
-            </div>
-
-            {/* Apresentação Técnica e Credenciais */}
-            <div className="lg:col-span-7 p-6 sm:p-10 lg:p-12 flex flex-col justify-between">
-              <div>
-                <span className="text-[11px] sm:text-xs font-bold text-amber-400 tracking-widest uppercase block mb-2">
-                  AUTORIDADE TÉCNICA &amp; CONFIANÇA
-                </span>
-                <h3 className="text-2xl sm:text-3xl lg:text-4xl font-light text-white tracking-tight mb-2">
-                  Gustavo Guimarães Cordeiro
-                </h3>
-                <p className="text-xs sm:text-sm font-medium text-amber-300 mb-4">
-                  Técnico Óptico Formado · Responsável Técnico Óticas Ventara
-                </p>
-                <p className="text-xs sm:text-sm text-slate-300 leading-relaxed max-w-xl mb-6">
-                  Na Óticas Ventara, cada lente e armação passa pela supervisão direta de um profissional óptico qualificado. Aliamos nossa formação especializada em física óptica à tecnologia de ponta para garantir calibração milimétrica da sua receita, respeito ao eixo astigmático e conforto visual absoluto.
-                </p>
-
-                <div className="grid grid-cols-2 gap-4 py-4 border-y border-white/10">
-                  <div>
-                    <p className="text-base sm:text-lg font-bold text-white">Formação Técnica</p>
-                    <p className="text-[11px] sm:text-xs text-slate-400 mt-0.5">Especialista óptico qualificado</p>
-                  </div>
-                  <div>
-                    <p className="text-base sm:text-lg font-bold text-white">Tecnologia Digital</p>
-                    <p className="text-[11px] sm:text-xs text-slate-400 mt-0.5">Montagem precisa na facetadora</p>
-                  </div>
-                </div>
-              </div>
-
-              <div className="pt-6 flex flex-wrap items-center gap-3">
-                <Link
-                  href="/responsavel-tecnico"
-                  className="inline-flex items-center gap-2 px-6 py-3 rounded-full bg-gradient-to-r from-amber-400 to-amber-500 hover:from-amber-300 hover:to-amber-400 text-slate-950 font-bold text-xs uppercase tracking-wider transition-all shadow-[0_0_20px_rgba(251,191,36,0.3)] active:scale-95"
-                >
-                  <span>Conhecer Perfil Técnico Completo</span>
-                  <ArrowRight size={14} />
-                </Link>
-                <a
-                  href="/rastreio"
-                  className="inline-flex items-center gap-1.5 px-4 py-3 rounded-full text-xs font-semibold text-slate-300 hover:text-white hover:bg-white/5 transition-colors border border-white/10"
-                >
-                  <span>Rastrear Meu Pedido</span>
-                  <ArrowRight size={13} className="text-amber-400" />
-                </a>
-              </div>
-            </div>
-          </div>
-        </div>
-
         {/* Destaque Fotográfico: Laboratório Próprio Real em Araçatuba-SP */}
         <div id="laboratorio" className="mt-12 sm:mt-16 bg-slate-50 border border-slate-200/90 rounded-3xl overflow-hidden shadow-xs scroll-mt-28">
           <div className="grid grid-cols-1 lg:grid-cols-12 items-stretch">
@@ -223,6 +159,18 @@ export function WhyChooseSection() {
                 <p className="text-xs sm:text-sm text-slate-600 leading-relaxed max-w-xl">
                   Diferente de óticas que terceirizam e demoram dias, a Ótica Ventara conta com maquinário próprio de alta precisão (facetadora computadorizada automática e lensômetro digital) na Rua Princesa Isabel, 221.
                 </p>
+
+                {/* Botão Refinado para Conhecer o Técnico Responsável */}
+                <div className="pt-4 flex flex-wrap items-center gap-3">
+                  <Link
+                    href="/responsavel-tecnico"
+                    className="inline-flex items-center gap-2 px-4 py-2.5 rounded-full bg-[#06111f] hover:bg-amber-400 text-white hover:text-slate-950 text-xs font-bold transition-all shadow-sm group border border-slate-300"
+                  >
+                    <ShieldCheck size={14} className="text-amber-400 group-hover:text-slate-950 transition-colors" />
+                    <span>Conheça o Técnico Responsável</span>
+                    <ArrowRight size={13} className="text-amber-400 group-hover:text-slate-950 group-hover:translate-x-0.5 transition-all" />
+                  </Link>
+                </div>
               </div>
 
               <div className="grid grid-cols-2 gap-4 pt-6 mt-6 border-t border-slate-200/80">

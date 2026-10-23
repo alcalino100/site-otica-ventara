@@ -96,9 +96,15 @@ export default function ResponsavelTecnicoPage() {
                   </div>
 
                   {/* Selos flutuantes na foto */}
-                  <div className="absolute top-4 left-4 bg-[#06111f]/90 backdrop-blur-md border border-amber-400/40 text-amber-300 text-[10px] sm:text-xs font-bold uppercase tracking-wider px-3.5 py-1.5 rounded-full shadow-lg flex items-center gap-1.5">
-                    <Award size={14} className="text-amber-400" />
-                    <span>Técnico Óptico Formado</span>
+                  <div className="absolute top-4 left-4 flex flex-col gap-1.5">
+                    <div className="bg-[#06111f]/90 backdrop-blur-md border border-amber-400/40 text-amber-300 text-[10px] sm:text-xs font-bold uppercase tracking-wider px-3.5 py-1.5 rounded-full shadow-lg flex items-center gap-1.5">
+                      <Award size={14} className="text-amber-400" />
+                      <span>Técnico Óptico Formado</span>
+                    </div>
+                    <div className="bg-[#040d1a]/90 backdrop-blur-md border border-white/20 text-slate-200 text-[10px] font-mono font-medium px-3 py-1 rounded-full shadow-md flex items-center gap-1.5">
+                      <ShieldCheck size={12} className="text-emerald-400" />
+                      <span>Registro Nacional Responsável Técnico</span>
+                    </div>
                   </div>
 
                   <div className="absolute bottom-4 inset-x-4 p-4 rounded-2xl bg-[#040d1a]/95 backdrop-blur-md border border-white/10 text-xs">

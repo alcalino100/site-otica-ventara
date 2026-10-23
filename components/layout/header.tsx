@@ -133,16 +133,27 @@ export function Header({
           {/* Link para Rastreamento de Pedido */}
           <a
             href="/rastreio"
-            className="text-[11px] font-semibold text-slate-300 hover:text-white transition-colors flex items-center gap-1.5 px-3 py-1 rounded-full bg-white/5 hover:bg-white/10 border border-white/10"
-            title="Acompanhe o corte na facetadora e status do seu pedido"
+            className="text-[11px] font-semibold text-slate-300 hover:text-white transition-colors flex items-center gap-1.5 px-3 py-1 rounded-full bg-white/5 hover:bg-white/10 border border-white/10 hover:border-amber-400/30"
+            title="Acompanhe o corte na facetadora e status do seu pedido em tempo real"
           >
             <Package size={12} className="text-amber-400" />
-            <span>Rastrear</span>
+            <span>Rastrear seu pedido</span>
           </a>
         </nav>
 
-        {/* Header Actions: Busca, Carrinho e Mobile Menu */}
+        {/* Header Actions: Rastreio Mobile, Busca, Carrinho e Mobile Menu */}
         <div className="header-actions flex items-center gap-2">
+          {/* Botão Rastrear seu Pedido no Mobile com Destaque e Confiança */}
+          <a
+            href="/rastreio"
+            className="md:hidden inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-amber-400/10 hover:bg-amber-400/20 border border-amber-400/35 text-amber-300 text-[11px] font-semibold transition-all active:scale-95 shadow-xs"
+            title="Rastrear seu pedido"
+            aria-label="Rastrear seu pedido"
+          >
+            <Package size={12} className="text-amber-400 shrink-0" />
+            <span className="tracking-tight">Rastrear seu pedido</span>
+          </a>
+
           <button
             type="button"
             aria-label="Buscar armações"
@@ -233,7 +244,7 @@ export function Header({
               onClick={() => setMobileMenuOpen(false)}
             >
               <Package size={14} className="text-amber-400" />
-              <span>Rastrear Pedido</span>
+              <span>Rastrear seu pedido</span>
             </a>
 
             <a

@@ -1175,7 +1175,7 @@ h1 strong {
   }
   .hero {
     grid-template-columns: 1fr;
-    padding: 130px 6% 60px;
+    padding: 0;
     min-height: auto;
   }
   .hero-copy {

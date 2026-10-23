@@ -1,6 +1,7 @@
 "use client";
 
 import React from "react";
+import Link from "next/link";
 import {
   MapPin,
   Clock,
@@ -11,6 +12,7 @@ import {
   Building2,
   ShieldCheck,
   Coffee,
+  ArrowRight,
 } from "lucide-react";
 import { useSiteSettings } from "../providers/site-settings-provider";
 
@@ -159,6 +161,35 @@ export function StoreSection() {
                       Laboratório próprio computadorizado para montagem expressa.
                     </p>
                   </div>
+                </div>
+
+                {/* Técnico Responsável */}
+                <div className="flex flex-wrap sm:flex-nowrap items-center justify-between p-3.5 rounded-2xl bg-white/[0.03] border border-white/10 hover:border-amber-400/30 transition-all gap-3">
+                  <div className="flex items-center gap-3">
+                    <div className="w-10 h-10 rounded-full overflow-hidden border border-amber-400/40 shrink-0">
+                      <img
+                        src="/images/team/gustavo-tecnico-optico.jpg"
+                        alt="Gustavo Guimarães Cordeiro"
+                        className="w-full h-full object-cover object-top"
+                      />
+                    </div>
+                    <div>
+                      <h4 className="text-xs font-bold text-white flex items-center gap-1.5">
+                        <span>Gustavo Guimarães Cordeiro</span>
+                        <ShieldCheck size={13} className="text-amber-400" />
+                      </h4>
+                      <p className="text-[11px] text-slate-400">
+                        Técnico Óptico Formado · Responsável Técnico
+                      </p>
+                    </div>
+                  </div>
+                  <Link
+                    href="/responsavel-tecnico"
+                    className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-amber-400/10 hover:bg-amber-400/20 text-amber-300 hover:text-white text-[11px] font-semibold border border-amber-400/30 transition-colors shrink-0"
+                  >
+                    <span>Conhecer Técnico</span>
+                    <ArrowRight size={12} />
+                  </Link>
                 </div>
               </div>
             </div>

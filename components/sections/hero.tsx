@@ -75,8 +75,8 @@ export function Hero({ products }: HeroProps) {
 
   return (
     <section className="hero relative overflow-hidden" id="inicio">
-      {/* Container Unificado Padrão UI/UX Ampliado */}
-      <div className="max-w-[1400px] mx-auto px-4 sm:px-8 lg:px-10 w-full pt-36 pb-10 sm:pt-40 sm:pb-14 relative z-10 flex flex-col justify-between flex-1 min-h-[700px] sm:min-h-[760px]">
+      {/* Container Unificado Padrão UI/UX Ampliado - Ajuste Mobile Rente e Equilibrado */}
+      <div className="max-w-[1400px] mx-auto px-4 sm:px-8 lg:px-10 w-full pt-24 sm:pt-36 lg:pt-40 pb-8 sm:pb-12 relative z-10 flex flex-col justify-between flex-1 min-h-0 sm:min-h-[720px]">
         {/* Grid de 2 Colunas Perfeitamente Margeado */}
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-12 items-center flex-1 my-auto">
           {/* Coluna Esquerda: Texto */}
