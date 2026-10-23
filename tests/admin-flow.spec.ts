@@ -116,7 +116,7 @@ test.describe("Central Administrativa Modular (/admin)", () => {
     await expect(page.getByText("Desempenho por Campanha")).toBeVisible();
   });
 
-  test("deve exibir catálogo homogêneo e sincronizado de 6 produtos no painel administrativo", async ({ page }) => {
+  test("deve exibir catálogo homogêneo e sincronizado no painel administrativo", async ({ page }) => {
     await page.goto("/admin/produtos");
     await expect(page.locator("h1")).toContainText("Gestão de Produtos");
     const table = page.getByRole("table");
@@ -126,6 +126,7 @@ test.describe("Central Administrativa Modular (/admin)", () => {
     await expect(table.getByText("Ventara Horizonte")).toBeVisible();
     await expect(table.getByText("Ventara Kids Flex")).toBeVisible();
     await expect(table.getByText("Ventara Kids Solar UV400")).toBeVisible();
+    await expect(table.getByText("Ventara Onça")).toBeVisible();
   });
 
   test("deve cadastrar, atualizar status e excluir produto permanentemente do banco via API admin", async ({ request }) => {

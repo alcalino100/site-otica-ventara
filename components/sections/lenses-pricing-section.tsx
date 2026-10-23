@@ -15,6 +15,7 @@ import {
   Zap,
 } from "lucide-react";
 import { LensOpticalGraphic } from "../ui/lens-optical-graphic";
+import { PartnerLogosRibbon } from "./partner-logos-ribbon";
 
 type LensCategory = "visao-simples" | "multifocal" | "tratamentos" | "marcas";
 
@@ -383,6 +384,11 @@ export function LensesPricingSection() {
               </div>
             </div>
           </div>
+        </div>
+
+        {/* CARROSSEL ANIMADO DE LOGOS DE PARCEIROS HOMOLOGADOS (SPELL-UI LOGOS CAROUSEL) */}
+        <div className="mb-10 sm:mb-12 rounded-3xl overflow-hidden shadow-lg border border-slate-200/80">
+          <PartnerLogosRibbon />
         </div>
 
         {/* ABAS DE CATEGORIAS: VISÃO SIMPLES, MULTIFOCAL, TRATAMENTOS, TODAS AS MARCAS */}

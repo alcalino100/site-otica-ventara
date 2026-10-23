@@ -247,4 +247,23 @@ test.describe("Ótica Ventara - Catálogo e Interações", () => {
     await expect(page.getByText("Corte na Facetadora Computadorizada")).toBeVisible();
     await expect(page.getByText("Gustavo Guimarães Cordeiro")).toBeVisible();
   });
+
+  test("deve exibir vitrine com cards de foto em bloco, degradê inferior e carrossel de logos parceiras", async ({ page }) => {
+    await page.goto("/");
+    await page.waitForLoadState("domcontentloaded");
+
+    // 1. Verifica os cards de produto em bloco
+    const catalogSection = page.locator("#armacoes");
+    await catalogSection.scrollIntoViewIfNeeded();
+    await expect(catalogSection.getByText("Ventara Essencial")).toBeVisible();
+
+    const productCard = catalogSection.locator("article.product").first();
+    await expect(productCard).toBeVisible();
+
+    // 2. Verifica a seção de lentes com o LogosCarousel de marcas homologadas
+    const lensesSection = page.locator("#lentes");
+    await lensesSection.scrollIntoViewIfNeeded();
+    await expect(lensesSection.getByText("PARCEIROS TECNOLÓGICOS & LENTES MUNDIAIS")).toBeVisible();
+    await expect(lensesSection.getByRole("img", { name: "Varilux Essilor" })).toBeVisible();
+  });
 });

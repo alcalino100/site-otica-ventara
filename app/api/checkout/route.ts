@@ -123,7 +123,10 @@ export async function POST(req: NextRequest) {
       let product = dbProducts.find((p) => p.id === itemInput.product_id);
       if (!product) {
         product = DEFAULT_CATALOG.find(
-          (p) => p.id === itemInput.product_id || p.slug === itemInput.product_id
+          (p, idx) =>
+            p.id === itemInput.product_id ||
+            p.slug === itemInput.product_id ||
+            itemInput.product_id === `prod-${idx + 1}`
         );
       }
 
