@@ -30,6 +30,11 @@ const PrivacyTermsModal = dynamic(
   { ssr: false }
 );
 
+const PromotionWheelTrigger = dynamic(
+  () => import("../components/promotions/promotion-wheel-trigger").then((mod) => mod.PromotionWheelTrigger),
+  { ssr: false }
+);
+
 export default function Home() {
   const supabase = createClient();
   const [products, setProducts] = useState<Product[]>(DEFAULT_CATALOG);
@@ -196,6 +201,11 @@ export default function Home() {
         isOpen={legalModal.isOpen}
         onClose={() => setLegalModal((prev) => ({ ...prev, isOpen: false }))}
         defaultTab={legalModal.tab}
+      />
+
+      {/* Campanha de Recuperação: Roleta Promocional com Captura de Leads */}
+      <PromotionWheelTrigger
+        onOpenPrivacyModal={() => setLegalModal({ isOpen: true, tab: "privacy" })}
       />
 
       {/* Toast Notificações */}

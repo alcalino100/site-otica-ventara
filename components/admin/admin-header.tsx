@@ -99,6 +99,7 @@ export function AdminHeader() {
     { href: "/admin/metricas", label: "Métricas & UTMs", icon: BarChart3, minRole: "admin" },
     { href: "/admin/identidade", label: "Identidade", icon: Palette, minRole: "super_admin" },
     { href: "/admin/banners", label: "Banners", icon: ImageIcon, minRole: "admin" },
+    { href: "/admin/promocoes/roleta", label: "Roleta Promocional", icon: Sparkles, minRole: "admin" },
     { href: "/admin/produtos", label: "Produtos", icon: Package, minRole: "editor" },
     { href: "/admin/categorias", label: "Categorias", icon: FolderTree, minRole: "admin" },
     { href: "/admin/estoque", label: "Estoque", icon: Boxes, minRole: "editor" },
