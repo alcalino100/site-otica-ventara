@@ -95,6 +95,30 @@ test.describe("Ótica Ventara - Catálogo e Interações", () => {
     await expect(page.getByRole("link", { name: /Consultar.*WhatsApp/i })).toBeVisible();
   });
 
+  test("deve exibir vitrine com foto em bloco e degradê discreto na página de detalhes (/produto/ventara-onca)", async ({ page }) => {
+    await page.goto("/produto/ventara-onca");
+    await expect(page).toHaveTitle(/Ventara Onça/i);
+    await expect(page.locator("h1")).toContainText("Ventara Onça");
+
+    // Verifica a foto completando o bloco
+    const mainImg = page.locator(".space-y-4 img[src*='product-images']").first();
+    await expect(mainImg).toBeVisible();
+    await expect(mainImg).toHaveClass(/object-cover/);
+
+    // Verifica watermark e badges
+    await expect(page.getByText(/ÓTICA VENTARA · ARAÇATUBA-SP/i).first()).toBeVisible();
+    await expect(page.getByText(/Armação de Grau/i).first()).toBeVisible();
+
+    // Captura screenshot
+    const isMobile = page.viewportSize() ? page.viewportSize()!.width < 640 : false;
+    await page.screenshot({
+      path: isMobile
+        ? "/Users/gui/.gemini/antigravity/brain/90ffe01e-c1a0-4c0e-8ac8-51c4b6663b36/product-page-onca-mobile.png"
+        : "/Users/gui/.gemini/antigravity/brain/90ffe01e-c1a0-4c0e-8ac8-51c4b6663b36/product-page-onca.png",
+      fullPage: false,
+    });
+  });
+
   test("deve interagir com a vitrine editorial (troca de categoria, gênero e miniaturas)", async ({ page }) => {
     const showcase = page.locator("#vitrine-interativa");
     await showcase.scrollIntoViewIfNeeded();

@@ -16,6 +16,7 @@ import { Product } from "@/types/ecommerce";
 import { DEFAULT_CATALOG } from "@/lib/catalog-data";
 import { createStaticSupabaseClient, isSupabaseConfigured } from "@/lib/supabase/server";
 import { FrameArt } from "@/components/catalog/frame-art";
+import { ProductGallery } from "@/components/catalog/product-gallery";
 import { ProductDetailActions } from "@/components/catalog/product-detail-actions";
 import { BrandLogo } from "@/components/ui/brand-logo";
 
@@ -157,43 +158,7 @@ export default async function ProductDetailPage({ params }: ProductPageProps) {
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-14 items-start">
           {/* Coluna 1: Imagem / Visual da Armação (7 colunas) */}
           <div className="lg:col-span-7 space-y-4">
-            <div className="bg-white border border-slate-200/90 rounded-3xl p-8 sm:p-12 flex flex-col items-center justify-center min-h-[360px] sm:min-h-[480px] relative overflow-hidden shadow-xs">
-              <div className="absolute top-5 left-5 flex items-center gap-2 z-10">
-                <span className="text-[10px] font-bold tracking-wider uppercase bg-slate-50 text-slate-800 border border-slate-200 px-3 py-1 rounded-full shadow-2xs">
-                  {product.frame_type === "Solar" ? "Óculos Solar UV400" : "Armação de Grau"}
-                </span>
-                <span className="text-[10px] font-semibold text-slate-600 bg-slate-50 border border-slate-200 px-2.5 py-1 rounded-full shadow-2xs">
-                  {product.gender || "Unissex"}
-                </span>
-              </div>
-
-              {primaryImage ? (
-                <img
-                  src={primaryImage}
-                  alt={product.name}
-                  className="max-h-72 sm:max-h-80 w-auto object-contain hover:scale-105 transition-transform duration-500 relative z-10"
-                />
-              ) : (
-                <div className="w-full max-w-md py-6 relative z-10">
-                  <FrameArt
-                    solar={product.frame_type === "Solar"}
-                    round={product.frame_shape === "Redondo"}
-                    amber={product.slug.includes("aurora") || (product.slug.includes("solar") && !product.slug.includes("kids"))}
-                    customColor={
-                      product.gender === "Infantil"
-                        ? product.frame_type === "Solar"
-                          ? "#0284c7"
-                          : "#2563eb"
-                        : undefined
-                    }
-                  />
-                </div>
-              )}
-
-              <div className="absolute bottom-5 right-5 text-[10px] font-semibold text-slate-400 tracking-wider">
-                ÓTICA VENTARA · ARAÇATUBA-SP
-              </div>
-            </div>
+            <ProductGallery product={product} />
 
             {/* Destaques de Confiança e Procedência */}
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 text-xs">
