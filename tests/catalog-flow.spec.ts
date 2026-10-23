@@ -219,4 +219,32 @@ test.describe("Ótica Ventara - Catálogo e Interações", () => {
     await page.waitForTimeout(300);
     await expect(labLink).toHaveClass(/text-white/);
   });
+
+  test("deve carregar a página do Responsável Técnico com foto e credenciais de Gustavo Guimarães Cordeiro (/responsavel-tecnico)", async ({ page }) => {
+    await page.goto("/responsavel-tecnico");
+    await page.waitForLoadState("domcontentloaded");
+    await expect(page).toHaveTitle(/Gustavo Guimarães Cordeiro/i);
+    await expect(page.locator("h1")).toContainText("Gustavo Guimarães");
+    await expect(page.getByText("Técnico Óptico Formado").first()).toBeVisible();
+    await expect(page.getByRole("img", { name: /Gustavo Guimarães Cordeiro/i })).toBeVisible();
+    await expect(page.getByText("Montagem na Facetadora & Lensometria")).toBeVisible();
+  });
+
+  test("deve consultar e exibir o rastreamento de pedido com etapas de laboratório e facetadora (/rastreio e /api/orders/track)", async ({ page, request }) => {
+    // 1. Testa a API de rastreio direto
+    const apiRes = await request.get("/api/orders/track?code=VEN-10294");
+    expect(apiRes.status()).toBe(200);
+    const apiJson = await apiRes.json();
+    expect(apiJson.success).toBe(true);
+    expect(apiJson.order.reference_code).toBe("VEN-10294");
+    expect(apiJson.order.status_label).toContain("Montagem no Laboratório");
+
+    // 2. Testa a página interativa de rastreamento
+    await page.goto("/rastreio");
+    await page.waitForLoadState("domcontentloaded");
+    await expect(page.locator("h1")).toContainText("Acompanhe a Produção e Entrega");
+    await expect(page.getByText("VEN-10294").first()).toBeVisible();
+    await expect(page.getByText("Corte na Facetadora Computadorizada")).toBeVisible();
+    await expect(page.getByText("Gustavo Guimarães Cordeiro")).toBeVisible();
+  });
 });

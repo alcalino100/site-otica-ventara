@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
-import { Search, ShoppingBag, Menu, X, Sparkles } from "lucide-react";
+import { Search, ShoppingBag, Menu, X, Sparkles, Package, ShieldCheck } from "lucide-react";
 import { motion, AnimatePresence } from "motion/react";
 import { BrandLogo } from "../ui/brand-logo";
 
@@ -129,6 +129,16 @@ export function Header({
             <Sparkles size={12} className="text-amber-400" />
             <span>Medição por Foto</span>
           </a>
+
+          {/* Link para Rastreamento de Pedido */}
+          <a
+            href="/rastreio"
+            className="text-[11px] font-semibold text-slate-300 hover:text-white transition-colors flex items-center gap-1.5 px-3 py-1 rounded-full bg-white/5 hover:bg-white/10 border border-white/10"
+            title="Acompanhe o corte na facetadora e status do seu pedido"
+          >
+            <Package size={12} className="text-amber-400" />
+            <span>Rastrear</span>
+          </a>
         </nav>
 
         {/* Header Actions: Busca, Carrinho e Mobile Menu */}
@@ -215,6 +225,24 @@ export function Header({
               <span className="text-[10px] bg-amber-400/20 text-amber-300 px-2 py-0.5 rounded-full border border-amber-400/30">
                 Novo
               </span>
+            </a>
+
+            <a
+              href="/rastreio"
+              className="mobile-nav-link text-sm font-semibold text-slate-200 flex items-center gap-2 py-2"
+              onClick={() => setMobileMenuOpen(false)}
+            >
+              <Package size={14} className="text-amber-400" />
+              <span>Rastrear Pedido</span>
+            </a>
+
+            <a
+              href="/responsavel-tecnico"
+              className="mobile-nav-link text-sm font-semibold text-slate-200 flex items-center gap-2 py-2"
+              onClick={() => setMobileMenuOpen(false)}
+            >
+              <ShieldCheck size={14} className="text-blue-400" />
+              <span>Responsável Técnico (Gustavo Cordeiro)</span>
             </a>
           </motion.nav>
         )}

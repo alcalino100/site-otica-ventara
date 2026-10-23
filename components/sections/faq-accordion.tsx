@@ -23,7 +23,7 @@ const faqs: FAQItem[] = [
   {
     question: "Quais são os prazos médios de confecção e montagem das lentes?",
     answer:
-      "Lentes de visão simples em estoque contam com montagem expressa em até 1 hora em nosso laboratório próprio computadorizado com a biseladora AM-295. Lentes multifocais personalizadas, dioptrias altas ou tratamentos especiais sob medida levam de 2 a 5 dias úteis com calibração minuciosa.",
+      "Lentes de visão simples em estoque contam com montagem expressa em até 1 hora em nosso laboratório próprio computadorizado na facetadora. Lentes multifocais personalizadas, dioptrias altas ou tratamentos especiais sob medida levam de 2 a 5 dias úteis com calibração minuciosa.",
   },
   {
     question: "Como funciona a garantia e os ajustes pós-venda?",

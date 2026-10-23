@@ -1,6 +1,7 @@
 "use client";
 
 import React from "react";
+import Link from "next/link";
 import {
   Microscope,
   CircleDot,
@@ -9,6 +10,8 @@ import {
   Timer,
   Tag,
   ArrowRight,
+  ShieldCheck,
+  Sparkles,
 } from "lucide-react";
 import { WordsStagger } from "@/registry/spell-ui/words-stagger";
 
@@ -17,32 +20,44 @@ export function WhyChooseSection() {
     {
       icon: Microscope,
       title: "LABORATÓRIO PRÓPRIO",
-      description: "Montagem precisa na biseladora digital AM-295.",
+      description: "Montagem precisa na facetadora.",
+      accent: "text-amber-400",
+      pillBg: "bg-amber-400/10 border-amber-400/30",
     },
     {
       icon: CircleDot,
       title: "LENTES DE ALTA PERFORMANCE",
       description: "Nitidez, proteção UV e antirreflexo.",
+      accent: "text-cyan-400",
+      pillBg: "bg-cyan-400/10 border-cyan-400/30",
     },
     {
       icon: UserCheck,
       title: "ATENDIMENTO ESPECIALIZADO",
       description: "Consultoria personalizada para sua visão.",
+      accent: "text-emerald-400",
+      pillBg: "bg-emerald-400/10 border-emerald-400/30",
     },
     {
       icon: Glasses,
       title: "ARMAÇÕES EXCLUSIVAS",
       description: "Curadoria autoral com acetato e titânio.",
+      accent: "text-blue-400",
+      pillBg: "bg-blue-400/10 border-blue-400/30",
     },
     {
       icon: Timer,
       title: "PRONTO EM ATÉ 1 HORA",
       description: "Agilidade com precisão digital em laboratório.",
+      accent: "text-amber-300",
+      pillBg: "bg-amber-300/10 border-amber-300/30",
     },
     {
       icon: Tag,
       title: "PREÇO JUSTO E TRANSPARENTE",
       description: "Alta tecnologia com o melhor custo-benefício.",
+      accent: "text-yellow-400",
+      pillBg: "bg-yellow-400/10 border-yellow-400/30",
     },
   ];
 
@@ -87,25 +102,27 @@ export function WhyChooseSection() {
             </div>
           </div>
 
-          {/* Coluna Direita: Grid Otimizado (2 colunas no mobile, 3 no tablet/desktop) */}
-          <div className="lg:col-span-8 grid grid-cols-2 sm:grid-cols-3 gap-3 sm:gap-6 lg:gap-8">
+          {/* Coluna Direita: Grid Otimizado de Quadradinhos 3D Dark Navy */}
+          <div className="lg:col-span-8 grid grid-cols-2 sm:grid-cols-3 gap-3 sm:gap-6 lg:gap-6">
             {features.map((feat, idx) => {
               const Icon = feat.icon;
               return (
                 <div
                   key={idx}
-                  className="p-3.5 sm:p-5 rounded-xl sm:rounded-2xl bg-slate-50/80 border border-slate-200/80 hover:border-amber-400/60 hover:shadow-xs transition-all flex flex-col justify-between"
+                  className="group relative p-4 sm:p-6 rounded-2xl bg-gradient-to-br from-[#06111f] via-[#040d1a] to-[#02070d] border border-white/10 hover:border-amber-400/40 shadow-[0_12px_28px_-6px_rgba(2,7,13,0.35),inset_0_1px_1px_rgba(255,255,255,0.1)] hover:-translate-y-1.5 hover:shadow-[0_20px_35px_-6px_rgba(7,86,184,0.3)] transition-all duration-300 flex flex-col justify-between"
                 >
+                  {/* Detalhe luminoso no topo do card */}
+                  <div className="absolute inset-x-4 top-0 h-[1px] bg-gradient-to-r from-transparent via-white/20 to-transparent pointer-events-none" />
+
                   <div>
-                    <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-lg sm:rounded-xl bg-amber-500/10 text-amber-600 sm:text-[#0756b8] flex items-center justify-center mb-2.5 sm:mb-4">
-                      <Icon size={18} strokeWidth={1.8} className="sm:hidden" />
-                      <Icon size={20} strokeWidth={1.8} className="hidden sm:block" />
+                    <div className={`w-9 h-9 sm:w-11 sm:h-11 rounded-xl ${feat.pillBg} ${feat.accent} flex items-center justify-center mb-3 sm:mb-4 border shadow-inner transition-transform group-hover:scale-105 duration-200`}>
+                      <Icon size={20} strokeWidth={2} />
                     </div>
-                    <h3 className="text-[11px] sm:text-xs font-bold uppercase tracking-wider text-slate-900 mb-1 sm:mb-2 leading-snug">
+                    <h3 className="text-[11px] sm:text-xs font-bold uppercase tracking-wider text-white mb-1.5 leading-snug group-hover:text-amber-300 transition-colors">
                       {feat.title}
                     </h3>
                   </div>
-                  <p className="text-[11px] sm:text-xs text-slate-500 leading-relaxed mt-1">
+                  <p className="text-[11px] sm:text-xs text-slate-300 leading-relaxed mt-1">
                     {feat.description}
                   </p>
                 </div>
@@ -114,14 +131,78 @@ export function WhyChooseSection() {
           </div>
         </div>
 
+        {/* Destaque do Responsável Técnico: Gustavo Guimarães Cordeiro */}
+        <div className="mt-12 sm:mt-16 bg-gradient-to-br from-[#06111f] to-[#02070d] border border-white/10 rounded-3xl overflow-hidden shadow-xl text-white">
+          <div className="grid grid-cols-1 lg:grid-cols-12 items-center">
+            {/* Foto do Técnico Óptico */}
+            <div className="lg:col-span-5 relative aspect-[3/4] sm:aspect-[4/3] lg:aspect-auto lg:h-[440px] overflow-hidden bg-slate-900">
+              <img
+                src="/images/team/gustavo-tecnico-optico.jpg"
+                alt="Gustavo Guimarães Cordeiro - Técnico Óptico Formado e Responsável Técnico da Óticas Ventara"
+                className="w-full h-full object-cover object-top hover:scale-105 transition-transform duration-500"
+              />
+              <div className="absolute top-4 left-4 bg-[#06111f]/90 backdrop-blur-xs text-amber-400 text-[10px] sm:text-xs font-bold uppercase tracking-wider px-3.5 py-1.5 rounded-full border border-amber-400/30 shadow-md flex items-center gap-1.5">
+                <ShieldCheck size={14} className="text-amber-400" />
+                <span>Técnico Óptico Responsável</span>
+              </div>
+            </div>
+
+            {/* Apresentação Técnica e Credenciais */}
+            <div className="lg:col-span-7 p-6 sm:p-10 lg:p-12 flex flex-col justify-between">
+              <div>
+                <span className="text-[11px] sm:text-xs font-bold text-amber-400 tracking-widest uppercase block mb-2">
+                  AUTORIDADE TÉCNICA &amp; CONFIANÇA
+                </span>
+                <h3 className="text-2xl sm:text-3xl lg:text-4xl font-light text-white tracking-tight mb-2">
+                  Gustavo Guimarães Cordeiro
+                </h3>
+                <p className="text-xs sm:text-sm font-medium text-amber-300 mb-4">
+                  Técnico Óptico Formado · Responsável Técnico Óticas Ventara
+                </p>
+                <p className="text-xs sm:text-sm text-slate-300 leading-relaxed max-w-xl mb-6">
+                  Na Óticas Ventara, cada lente e armação passa pela supervisão direta de um profissional óptico qualificado. Aliamos nossa formação especializada em física óptica à tecnologia de ponta para garantir calibração milimétrica da sua receita, respeito ao eixo astigmático e conforto visual absoluto.
+                </p>
+
+                <div className="grid grid-cols-2 gap-4 py-4 border-y border-white/10">
+                  <div>
+                    <p className="text-base sm:text-lg font-bold text-white">Formação Técnica</p>
+                    <p className="text-[11px] sm:text-xs text-slate-400 mt-0.5">Especialista óptico qualificado</p>
+                  </div>
+                  <div>
+                    <p className="text-base sm:text-lg font-bold text-white">Tecnologia Digital</p>
+                    <p className="text-[11px] sm:text-xs text-slate-400 mt-0.5">Montagem precisa na facetadora</p>
+                  </div>
+                </div>
+              </div>
+
+              <div className="pt-6 flex flex-wrap items-center gap-3">
+                <Link
+                  href="/responsavel-tecnico"
+                  className="inline-flex items-center gap-2 px-6 py-3 rounded-full bg-gradient-to-r from-amber-400 to-amber-500 hover:from-amber-300 hover:to-amber-400 text-slate-950 font-bold text-xs uppercase tracking-wider transition-all shadow-[0_0_20px_rgba(251,191,36,0.3)] active:scale-95"
+                >
+                  <span>Conhecer Perfil Técnico Completo</span>
+                  <ArrowRight size={14} />
+                </Link>
+                <a
+                  href="/rastreio"
+                  className="inline-flex items-center gap-1.5 px-4 py-3 rounded-full text-xs font-semibold text-slate-300 hover:text-white hover:bg-white/5 transition-colors border border-white/10"
+                >
+                  <span>Rastrear Meu Pedido</span>
+                  <ArrowRight size={13} className="text-amber-400" />
+                </a>
+              </div>
+            </div>
+          </div>
+        </div>
+
         {/* Destaque Fotográfico: Laboratório Próprio Real em Araçatuba-SP */}
         <div id="laboratorio" className="mt-12 sm:mt-16 bg-slate-50 border border-slate-200/90 rounded-3xl overflow-hidden shadow-xs scroll-mt-28">
           <div className="grid grid-cols-1 lg:grid-cols-12 items-stretch">
-            {/* Foto Real do Laboratório com proporções naturais e altura ampliada */}
+            {/* Foto Real do Laboratório */}
             <div className="lg:col-span-6 relative aspect-[4/3] sm:aspect-[16/10] lg:aspect-auto min-h-[280px] sm:min-h-[380px] lg:min-h-[440px] overflow-hidden bg-slate-900">
               <img
                 src="/images/laboratory/laboratorio-ventara.jpg"
-                alt="Laboratório Próprio Óticas Ventara em Araçatuba-SP com Biseladora Computadorizada"
+                alt="Laboratório Próprio Óticas Ventara em Araçatuba-SP com Facetadora Computadorizada"
                 className="w-full h-full block hover:scale-105 transition-transform duration-500"
                 style={{ objectFit: "cover", objectPosition: "center", width: "100%", height: "100%" }}
               />
@@ -134,13 +215,13 @@ export function WhyChooseSection() {
             <div className="lg:col-span-6 p-6 sm:p-10 lg:p-12 flex flex-col justify-between">
               <div>
                 <span className="text-[11px] sm:text-xs font-bold text-amber-600 tracking-widest uppercase block mb-2">
-                  ESTRUTURA FÍSICA & PRECISÃO DIÓPTRICA
+                  ESTRUTURA FÍSICA &amp; PRECISÃO DIÓPTRICA
                 </span>
                 <h3 className="text-2xl sm:text-3xl font-bold text-slate-950 tracking-tight mb-3">
                   Nosso Laboratório Próprio em Araçatuba-SP
                 </h3>
                 <p className="text-xs sm:text-sm text-slate-600 leading-relaxed max-w-xl">
-                  Diferente de óticas que terceirizam e demoram dias, a Ótica Ventara conta com maquinário próprio de alta precisão (biseladora computadorizada automática e lensômetro digital) na Rua Princesa Isabel, 221.
+                  Diferente de óticas que terceirizam e demoram dias, a Ótica Ventara conta com maquinário próprio de alta precisão (facetadora computadorizada automática e lensômetro digital) na Rua Princesa Isabel, 221.
                 </p>
               </div>
 

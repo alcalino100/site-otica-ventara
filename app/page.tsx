@@ -163,7 +163,7 @@ export default function Home() {
           isSearchOpen={isSearchOpen}
         />
 
-        {/* 6. Apresentação da Óticas Ventara e o Laboratório Próprio AM-295 */}
+        {/* 6. Apresentação da Óticas Ventara, Responsável Técnico e Laboratório Próprio */}
         <WhyChooseSection />
 
         {/* 7. Nosso Espaço Físico em Araçatuba (Fachada Real, Endereço, Fixo (18) 3304-2808 e Google Maps) */}

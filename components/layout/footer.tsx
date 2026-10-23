@@ -71,6 +71,16 @@ export function Footer({ onOpenLegal }: FooterProps) {
                 </a>
               </li>
               <li>
+                <a href="/rastreio" className="hover:text-amber-300 transition-colors flex items-center gap-1">
+                  <span>Rastrear Pedido</span>
+                </a>
+              </li>
+              <li>
+                <a href="/responsavel-tecnico" className="hover:text-amber-300 transition-colors flex items-center gap-1">
+                  <span>Responsável Técnico (Gustavo Cordeiro)</span>
+                </a>
+              </li>
+              <li>
                 <a href="#sobre-nos" className="hover:text-amber-300 transition-colors">
                   Sobre a Ventara
                 </a>

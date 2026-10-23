@@ -143,7 +143,7 @@ export default function MedicaoPorFotoPage() {
                     </li>
                     <li className="flex items-start gap-2.5">
                       <CheckCircle2 size={16} className="text-emerald-400 shrink-0 mt-0.5" />
-                      <span>Permite corte exato na nossa biseladora computadorizada AM-295.</span>
+                      <span>Permite corte exato na nossa facetadora computadorizada.</span>
                     </li>
                   </ul>
                 </div>
@@ -246,7 +246,7 @@ export default function MedicaoPorFotoPage() {
                   3
                 </div>
                 <h3 className="text-base sm:text-lg font-semibold text-white mb-2">
-                  Montagem no AM-295
+                  Montagem na Facetadora
                 </h3>
                 <p className="text-xs sm:text-sm text-slate-300 leading-relaxed">
                   Os dados milimétricos são enviados ao nosso laboratório próprio em Araçatuba. A lente é biselada no centro óptico correto para seu máximo conforto.
@@ -329,7 +329,7 @@ export default function MedicaoPorFotoPage() {
                   O que acontece se a lente for montada com a DNP errada?
                 </h3>
                 <p className="text-xs text-slate-300 leading-relaxed">
-                  Se o centro da lente não coincidir com a sua pupila, surge o chamado "efeito prismático indesejado", provocando desconforto, sensação de tontura, olhos cansados e dificuldade de adaptação, especialmente em graus mais altos e multifocais. Na Ventara, nossa biseladora AM-295 garante tolerância milimétrica.
+                  Se o centro da lente não coincidir com a sua pupila, surge o chamado "efeito prismático indesejado", provocando desconforto, sensação de tontura, olhos cansados e dificuldade de adaptação, especialmente em graus mais altos e multifocais. Na Ventara, nossa facetadora digital garante tolerância milimétrica.
                 </p>
               </div>
 

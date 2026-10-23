@@ -78,7 +78,7 @@ export function LensesPricingSection() {
         "Bloqueio da luz azul nociva de monitores",
         "Antirreflexo especial sem reflexo roxo exagerado",
         "Sem margem de intermediários (preço direto)",
-        "Montagem imediata na biseladora AM-295",
+        "Montagem imediata na facetadora",
       ],
     },
     {
