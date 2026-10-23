@@ -127,7 +127,7 @@ export default async function ProductDetailPage({ params }: ProductPageProps) {
           </Link>
 
           <Link href="/" className="flex items-center gap-2" title="Página Inicial Ótica Ventara">
-            <BrandLogo size="sm" />
+            <BrandLogo size="sm" tone="light" />
           </Link>
 
           <div className="hidden sm:flex items-center gap-2 text-[11px] text-slate-500 font-medium">
