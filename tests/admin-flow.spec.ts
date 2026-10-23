@@ -1,6 +1,18 @@
 import { test, expect } from "@playwright/test";
 
 test.describe("Central Administrativa Modular (/admin)", () => {
+  test("deve bloquear acesso direto a /admin sem autenticação e redirecionar para /admin/login", async ({ browser }) => {
+    const cleanContext = await browser.newContext({
+      extraHTTPHeaders: {},
+    });
+    const cleanPage = await cleanContext.newPage();
+    await cleanPage.goto("/admin");
+    await cleanPage.waitForURL(/\/admin\/login/, { timeout: 10000 });
+    await expect(cleanPage).toHaveURL(/\/admin\/login/);
+    await expect(cleanPage.getByText("PAINEL ADMINISTRATIVO")).toBeVisible();
+    await cleanContext.close();
+  });
+
   test("deve realizar login no painel administrativo com credenciais reais do Dev", async ({ page }) => {
     await page.goto("/admin/login");
     await expect(page.getByText("PAINEL ADMINISTRATIVO")).toBeVisible();
