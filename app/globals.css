@@ -743,10 +743,17 @@ h1 strong {
 }
 
 /* Product Cards with Emil Kowalski Micro-interactions */
-.product-grid {
-  display: grid;
-  grid-template-columns: repeat(4, 1fr);
-  gap: 24px;
+@media (min-width: 640px) {
+  .product-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 24px;
+  }
+}
+@media (min-width: 1024px) {
+  .product-grid {
+    grid-template-columns: repeat(4, 1fr);
+  }
 }
 
 .product {
@@ -1153,10 +1160,6 @@ h1 strong {
 
 /* Responsiveness */
 @media (max-width: 1024px) {
-  .product-grid {
-    grid-template-columns: repeat(2, 1fr);
-    gap: 18px;
-  }
   .about {
     gap: 5%;
   }
@@ -1213,10 +1216,6 @@ h1 strong {
   }
   .collection {
     padding: 40px 0 60px;
-  }
-  .product-grid {
-    grid-template-columns: 1fr;
-    gap: 16px;
   }
   .lens-section {
     grid-template-columns: 1fr;

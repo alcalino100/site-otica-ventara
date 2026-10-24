@@ -41,7 +41,16 @@ export function CatalogSection({
   const [sortBy, setSortBy] = useState<string>("featured");
   const [query, setQuery] = useState<string>("");
   const [isPending, startTransition] = useTransition();
+  const [activeIndex, setActiveIndex] = useState(0);
   const carouselRef = useRef<HTMLDivElement>(null);
+
+  const handleCarouselScroll = () => {
+    if (!carouselRef.current) return;
+    const el = carouselRef.current;
+    const itemWidth = el.scrollWidth / (filteredProducts.length || 1);
+    const index = Math.round(el.scrollLeft / itemWidth);
+    setActiveIndex(Math.min(Math.max(0, index), filteredProducts.length - 1));
+  };
 
   const scrollPrev = () => {
     if (carouselRef.current) {
@@ -431,15 +440,50 @@ export function CatalogSection({
           )}
         </div>
 
-        {/* Grade de Produtos no Desktop / Carrossel Horizontal com Snap no Mobile */}
+        {/* Grade de Produtos no Desktop / Carrossel Horizontal de 1 Nível de Altura no Mobile */}
         {isPending ? (
           <ProductGridSkeleton />
         ) : filteredProducts.length > 0 ? (
           <div className="relative">
-            {/* Carrossel no Mobile (scroll horizontal com snap) / Grid no Desktop */}
+            {/* Barra de Navegação do Carrossel Mobile - ACIMA dos Cards */}
+            <div className="flex sm:hidden items-center justify-between pb-3 px-1">
+              <div className="flex items-center gap-2 text-xs font-medium text-slate-700">
+                <span className="w-2 h-2 rounded-full bg-amber-500 animate-pulse" />
+                <span>Deslize para ver os modelos</span>
+                <span className="font-mono text-slate-400 font-semibold text-[11px]">
+                  ({filteredProducts.length})
+                </span>
+              </div>
+
+              <div className="flex items-center gap-1.5">
+                <button
+                  type="button"
+                  onClick={scrollPrev}
+                  aria-label="Armação anterior"
+                  className="w-8 h-8 rounded-full border border-slate-300 bg-white shadow-xs flex items-center justify-center text-slate-700 active:scale-90 transition-transform"
+                >
+                  <ChevronLeft size={16} />
+                </button>
+                <button
+                  type="button"
+                  onClick={scrollNext}
+                  aria-label="Próxima armação"
+                  className="w-8 h-8 rounded-full border border-slate-300 bg-white shadow-xs flex items-center justify-center text-slate-700 active:scale-90 transition-transform"
+                >
+                  <ChevronRight size={16} />
+                </button>
+              </div>
+            </div>
+
+            {/* Carrossel no Mobile (exatamente 1 nível de altura: flex-row nowrap) / Grid no Desktop (sm:grid) */}
             <div
               ref={carouselRef}
-              className="product-grid flex sm:grid overflow-x-auto sm:overflow-visible snap-x snap-mandatory sm:snap-none gap-4 sm:gap-6 pb-3 sm:pb-0 sm:grid-cols-2 lg:grid-cols-4 no-scrollbar -mx-4 px-4 sm:mx-0 sm:px-0"
+              onScroll={handleCarouselScroll}
+              role="region"
+              aria-label="Carrossel de armações"
+              tabIndex={0}
+              className="flex sm:grid flex-row flex-nowrap sm:flex-none overflow-x-auto sm:overflow-visible overflow-y-hidden snap-x snap-mandatory sm:snap-none gap-4 sm:gap-6 pb-2 sm:pb-0 sm:grid-cols-2 lg:grid-cols-4 no-scrollbar -mx-4 px-4 sm:mx-0 sm:px-0"
+              style={{ WebkitOverflowScrolling: "touch" }}
             >
               {filteredProducts.map((product) => (
                 <div
@@ -456,35 +500,31 @@ export function CatalogSection({
               ))}
             </div>
 
-            {/* Controles do Carrossel Exclusivos para Telas Mobile */}
-            <div className="flex sm:hidden items-center justify-between pt-3 px-1">
-              <div className="flex items-center gap-1.5 text-[11px] font-medium text-slate-600">
-                <span className="w-1.5 h-1.5 rounded-full bg-amber-500 animate-pulse" />
-                <span>Deslize para ver mais modelos</span>
-                <span className="font-mono text-slate-400 font-semibold">
-                  ({filteredProducts.length})
-                </span>
+            {/* Indicadores de Paginação do Carrossel no Mobile */}
+            {filteredProducts.length > 1 && (
+              <div className="flex sm:hidden items-center justify-center gap-1.5 pt-3">
+                {filteredProducts.map((p, idx) => (
+                  <button
+                    key={p.id}
+                    type="button"
+                    onClick={() => {
+                      if (carouselRef.current) {
+                        const targetCard = carouselRef.current.children[idx] as HTMLElement;
+                        if (targetCard) {
+                          targetCard.scrollIntoView({ behavior: "smooth", inline: "center", block: "nearest" });
+                        }
+                      }
+                    }}
+                    aria-label={`Ver modelo ${idx + 1}`}
+                    className={`h-1.5 rounded-full transition-all duration-300 ${
+                      activeIndex === idx
+                        ? "w-6 bg-amber-500"
+                        : "w-1.5 bg-slate-300 hover:bg-slate-400"
+                    }`}
+                  />
+                ))}
               </div>
-
-              <div className="flex items-center gap-1.5">
-                <button
-                  type="button"
-                  onClick={scrollPrev}
-                  aria-label="Armação anterior"
-                  className="w-8 h-8 rounded-full border border-slate-200 bg-white shadow-2xs flex items-center justify-center text-slate-700 active:scale-90 transition-transform"
-                >
-                  <ChevronLeft size={16} />
-                </button>
-                <button
-                  type="button"
-                  onClick={scrollNext}
-                  aria-label="Próxima armação"
-                  className="w-8 h-8 rounded-full border border-slate-200 bg-white shadow-2xs flex items-center justify-center text-slate-700 active:scale-90 transition-transform"
-                >
-                  <ChevronRight size={16} />
-                </button>
-              </div>
-            </div>
+            )}
           </div>
         ) : (
           <div className="empty-catalog text-center py-16 bg-white rounded-3xl border border-slate-200 max-w-md mx-auto p-8 shadow-sm space-y-3">
