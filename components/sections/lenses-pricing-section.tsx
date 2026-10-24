@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import {
   Eye,
   Layers,
@@ -13,6 +13,8 @@ import {
   MessageSquare,
   Award,
   Zap,
+  ChevronLeft,
+  ChevronRight,
 } from "lucide-react";
 import { LensOpticalGraphic } from "../ui/lens-optical-graphic";
 import { PartnerLogosRibbon } from "./partner-logos-ribbon";
@@ -38,6 +40,37 @@ interface LensOption {
 export function LensesPricingSection() {
   const [activeCategory, setActiveCategory] = useState<LensCategory>("visao-simples");
   const [activeLenses, setActiveLenses] = useState<LensOption[]>([]);
+  const [activeCardIndex, setActiveCardIndex] = useState(0);
+  const carouselRef = useRef<HTMLDivElement>(null);
+
+  const scrollPrev = () => {
+    if (carouselRef.current) {
+      carouselRef.current.scrollBy({ left: -300, behavior: "smooth" });
+    }
+  };
+
+  const scrollNext = () => {
+    if (carouselRef.current) {
+      carouselRef.current.scrollBy({ left: 300, behavior: "smooth" });
+    }
+  };
+
+  const handleCarouselScroll = () => {
+    if (!carouselRef.current) return;
+    const el = carouselRef.current;
+    const total = activeCategory === "marcas" ? brandLogos.length : filteredOptions.length;
+    const itemWidth = el.scrollWidth / (total || 1);
+    const index = Math.round(el.scrollLeft / itemWidth);
+    setActiveCardIndex(Math.min(Math.max(0, index), total - 1));
+  };
+
+  const handleCategoryChange = (cat: LensCategory) => {
+    setActiveCategory(cat);
+    setActiveCardIndex(0);
+    if (carouselRef.current) {
+      carouselRef.current.scrollTo({ left: 0, behavior: "smooth" });
+    }
+  };
 
   useEffect(() => {
     async function loadDynamicLenses() {
@@ -345,7 +378,7 @@ export function LensesPricingSection() {
   };
 
   return (
-    <section className="py-16 sm:py-24 bg-[#f8fafc] border-b border-slate-200/90 relative" id="lentes">
+    <section className="py-16 sm:py-24 bg-[#f8fafc] border-b border-slate-200/90 relative overflow-hidden" id="lentes">
       <div className="max-w-[1400px] mx-auto px-4 sm:px-8 lg:px-10">
         {/* Cabeçalho da Seção com Símbolo de Lentes Ópticas */}
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-center mb-12 sm:mb-16">
@@ -390,7 +423,7 @@ export function LensesPricingSection() {
         <div className="flex items-center gap-2.5 overflow-x-auto pb-3 mb-8 sm:mb-12 no-scrollbar">
           <button
             type="button"
-            onClick={() => setActiveCategory("visao-simples")}
+            onClick={() => handleCategoryChange("visao-simples")}
             className={`flex items-center gap-2 px-5 py-3 rounded-2xl text-xs sm:text-sm font-semibold whitespace-nowrap transition-all duration-200 cursor-pointer shrink-0 border ${
               activeCategory === "visao-simples"
                 ? "bg-[#06111f] text-white border-[#06111f] shadow-md"
@@ -403,7 +436,7 @@ export function LensesPricingSection() {
 
           <button
             type="button"
-            onClick={() => setActiveCategory("multifocal")}
+            onClick={() => handleCategoryChange("multifocal")}
             className={`flex items-center gap-2 px-5 py-3 rounded-2xl text-xs sm:text-sm font-semibold whitespace-nowrap transition-all duration-200 cursor-pointer shrink-0 border ${
               activeCategory === "multifocal"
                 ? "bg-[#06111f] text-white border-[#06111f] shadow-md"
@@ -416,7 +449,7 @@ export function LensesPricingSection() {
 
           <button
             type="button"
-            onClick={() => setActiveCategory("tratamentos")}
+            onClick={() => handleCategoryChange("tratamentos")}
             className={`flex items-center gap-2 px-5 py-3 rounded-2xl text-xs sm:text-sm font-semibold whitespace-nowrap transition-all duration-200 cursor-pointer shrink-0 border ${
               activeCategory === "tratamentos"
                 ? "bg-[#06111f] text-white border-[#06111f] shadow-md"
@@ -429,7 +462,7 @@ export function LensesPricingSection() {
 
           <button
             type="button"
-            onClick={() => setActiveCategory("marcas")}
+            onClick={() => handleCategoryChange("marcas")}
             className={`flex items-center gap-2 px-5 py-3 rounded-2xl text-xs sm:text-sm font-semibold whitespace-nowrap transition-all duration-200 cursor-pointer shrink-0 border ${
               activeCategory === "marcas"
                 ? "bg-[#06111f] text-white border-[#06111f] shadow-md"
@@ -441,140 +474,214 @@ export function LensesPricingSection() {
           </button>
         </div>
 
-        {/* CONTEÚDO DAS CATEGORIAS (GRADE DE CARDS COM LOGOS E DADOS COMPLETOS) */}
-        {activeCategory !== "marcas" ? (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 sm:gap-8 items-stretch">
-            {filteredOptions.map((opt) => (
-              <div
-                key={opt.id}
-                className="bg-white rounded-3xl border border-slate-200/90 shadow-sm hover:shadow-md hover:border-amber-400/50 transition-all duration-300 p-6 sm:p-7 flex flex-col justify-between"
+        {/* CONTEÚDO DAS CATEGORIAS (GRADE DE CARDS NO DESKTOP / CARROSSEL HORIZONTAL DE 1 NÍVEL NO MOBILE) */}
+        <div className="relative">
+          {/* Barra de Navegação do Carrossel Mobile - ACIMA dos Cards */}
+          <div className="flex md:hidden items-center justify-between pb-3 px-1">
+            <div className="flex items-center gap-2 text-xs font-medium text-slate-700">
+              <span className="w-2 h-2 rounded-full bg-amber-500 animate-pulse" />
+              <span>Deslize para ver os modelos</span>
+              <span className="font-mono text-slate-400 font-semibold text-[11px]">
+                ({activeCategory === "marcas" ? brandLogos.length : filteredOptions.length})
+              </span>
+            </div>
+
+            <div className="flex items-center gap-1.5">
+              <button
+                type="button"
+                onClick={scrollPrev}
+                aria-label="Modelo anterior"
+                className="w-8 h-8 rounded-full border border-slate-300 bg-white shadow-xs flex items-center justify-center text-slate-700 active:scale-90 transition-transform"
               >
-                <div>
-                  {/* Cabeçalho do Card: Logo da Marca + Badge */}
-                  <div className="flex items-center justify-between gap-3 pb-4 mb-4 border-b border-slate-100">
-                    <div className="h-10 max-w-[130px] flex items-center">
-                      <img
-                        src={opt.brandLogo}
-                        alt={`Logo ${opt.brandName}`}
-                        className={`max-h-9 max-w-full object-contain rounded-md ${
-                          opt.logoBgLight ? "bg-white p-1" : ""
-                        }`}
-                      />
+                <ChevronLeft size={16} />
+              </button>
+              <button
+                type="button"
+                onClick={scrollNext}
+                aria-label="Próximo modelo"
+                className="w-8 h-8 rounded-full border border-slate-300 bg-white shadow-xs flex items-center justify-center text-slate-700 active:scale-90 transition-transform"
+              >
+                <ChevronRight size={16} />
+              </button>
+            </div>
+          </div>
+
+          {activeCategory !== "marcas" ? (
+            <div
+              ref={carouselRef}
+              onScroll={handleCarouselScroll}
+              role="region"
+              aria-label="Carrossel de lentes de alta precisão"
+              tabIndex={0}
+              className="flex md:grid flex-row flex-nowrap md:flex-none overflow-x-auto md:overflow-visible overflow-y-hidden snap-x snap-mandatory md:snap-none gap-4 sm:gap-6 md:gap-8 pb-3 md:pb-0 md:grid-cols-2 lg:grid-cols-3 no-scrollbar -mx-4 px-4 md:mx-0 md:px-0 items-stretch"
+              style={{ WebkitOverflowScrolling: "touch" }}
+            >
+              {filteredOptions.map((opt) => (
+                <div
+                  key={opt.id}
+                  className="snap-center shrink-0 w-[84vw] max-w-[320px] md:w-auto md:max-w-none bg-white rounded-3xl border border-slate-200/90 shadow-sm hover:shadow-md hover:border-amber-400/50 transition-all duration-300 p-6 sm:p-7 flex flex-col justify-between"
+                >
+                  <div>
+                    {/* Cabeçalho do Card: Logo da Marca + Badge */}
+                    <div className="flex items-center justify-between gap-3 pb-4 mb-4 border-b border-slate-100">
+                      <div className="h-10 max-w-[130px] flex items-center">
+                        <img
+                          src={opt.brandLogo}
+                          alt={`Logo ${opt.brandName}`}
+                          className={`max-h-9 max-w-full object-contain rounded-md ${
+                            opt.logoBgLight ? "bg-white p-1" : ""
+                          }`}
+                        />
+                      </div>
+                      {opt.badge && (
+                        <span className="text-[10px] font-bold uppercase tracking-wider px-2.5 py-1 rounded-full bg-amber-50 text-amber-800 border border-amber-200/70 shrink-0">
+                          {opt.badge}
+                        </span>
+                      )}
                     </div>
-                    {opt.badge && (
-                      <span className="text-[10px] font-bold uppercase tracking-wider px-2.5 py-1 rounded-full bg-amber-50 text-amber-800 border border-amber-200/70 shrink-0">
-                        {opt.badge}
+
+                    {/* Nome da Lente & Marca */}
+                    <div className="mb-2">
+                      <span className="text-[11px] font-semibold text-slate-500 uppercase tracking-wider block">
+                        {opt.brandName}
                       </span>
-                    )}
+                      <h3 className="text-lg sm:text-xl font-bold text-slate-900 tracking-tight leading-snug">
+                        {opt.name}
+                      </h3>
+                    </div>
+
+                    {/* Tratamento em Destaque */}
+                    <div className="p-2.5 rounded-xl bg-slate-50 border border-slate-200/70 text-xs text-slate-700 font-medium mb-4 flex items-start gap-2">
+                      <Zap size={15} className="text-amber-500 shrink-0 mt-0.5" />
+                      <span>{opt.treatment}</span>
+                    </div>
+
+                    {/* Descrição */}
+                    <p className="text-xs text-slate-600 leading-relaxed mb-4">
+                      {opt.description}
+                    </p>
+
+                    {/* Lista de Recursos / Benefícios */}
+                    <ul className="space-y-2 mb-6">
+                      {opt.features.map((feat, i) => (
+                        <li key={i} className="flex items-start gap-2 text-xs text-slate-700">
+                          <CheckCircle2 size={14} className="text-emerald-600 shrink-0 mt-0.5" />
+                          <span>{feat}</span>
+                        </li>
+                      ))}
+                    </ul>
                   </div>
 
-                  {/* Nome da Lente & Marca */}
-                  <div className="mb-2">
-                    <span className="text-[11px] font-semibold text-slate-500 uppercase tracking-wider block">
-                      {opt.brandName}
-                    </span>
-                    <h3 className="text-lg sm:text-xl font-bold text-slate-900 tracking-tight leading-snug">
-                      {opt.name}
-                    </h3>
+                  {/* Rodapé do Card: Preço & Botão de Orçamento no WhatsApp */}
+                  <div className="pt-4 border-t border-slate-100">
+                    <div className="flex items-baseline justify-between mb-3">
+                      <div>
+                        <span className="text-[10px] text-slate-400 uppercase tracking-wider block">
+                          Valor de Referência
+                        </span>
+                        <span className="text-xl sm:text-2xl font-extrabold text-slate-900 font-mono tracking-tight">
+                          {opt.startingPrice}
+                        </span>
+                      </div>
+                      <span className="text-[11px] text-emerald-700 font-semibold flex items-center gap-1">
+                        <Clock size={12} /> {opt.leadTime}
+                      </span>
+                    </div>
+
+                    <p className="text-[11px] text-slate-500 mb-4">
+                      {opt.installment}
+                    </p>
+
+                    <a
+                      href={getWhatsAppQuoteUrl(opt)}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="w-full inline-flex items-center justify-center gap-2 py-3 px-4 rounded-xl bg-[#06111f] hover:bg-[#0756b8] active:scale-95 text-white font-bold text-xs uppercase tracking-wider transition-all shadow-xs cursor-pointer"
+                    >
+                      <MessageSquare size={14} className="text-amber-400" />
+                      <span>Pedir Orçamento</span>
+                      <ArrowRight size={13} />
+                    </a>
                   </div>
-
-                  {/* Tratamento em Destaque */}
-                  <div className="p-2.5 rounded-xl bg-slate-50 border border-slate-200/70 text-xs text-slate-700 font-medium mb-4 flex items-start gap-2">
-                    <Zap size={15} className="text-amber-500 shrink-0 mt-0.5" />
-                    <span>{opt.treatment}</span>
-                  </div>
-
-                  {/* Descrição */}
-                  <p className="text-xs text-slate-600 leading-relaxed mb-4">
-                    {opt.description}
-                  </p>
-
-                  {/* Lista de Recursos / Benefícios */}
-                  <ul className="space-y-2 mb-6">
-                    {opt.features.map((feat, i) => (
-                      <li key={i} className="flex items-start gap-2 text-xs text-slate-700">
-                        <CheckCircle2 size={14} className="text-emerald-600 shrink-0 mt-0.5" />
-                        <span>{feat}</span>
-                      </li>
-                    ))}
-                  </ul>
                 </div>
-
-                {/* Rodapé do Card: Preço & Botão de Orçamento no WhatsApp */}
-                <div className="pt-4 border-t border-slate-100">
-                  <div className="flex items-baseline justify-between mb-3">
-                    <div>
-                      <span className="text-[10px] text-slate-400 uppercase tracking-wider block">
-                        Valor de Referência
-                      </span>
-                      <span className="text-xl sm:text-2xl font-extrabold text-slate-900 font-mono tracking-tight">
-                        {opt.startingPrice}
+              ))}
+            </div>
+          ) : (
+            /* ABA "TODAS AS MARCAS HOMOLOGADAS" */
+            <div
+              ref={carouselRef}
+              onScroll={handleCarouselScroll}
+              role="region"
+              aria-label="Carrossel de marcas homologadas"
+              tabIndex={0}
+              className="flex md:grid flex-row flex-nowrap md:flex-none overflow-x-auto md:overflow-visible overflow-y-hidden snap-x snap-mandatory md:snap-none gap-4 sm:gap-6 md:gap-8 pb-3 md:pb-0 md:grid-cols-2 lg:grid-cols-3 no-scrollbar -mx-4 px-4 md:mx-0 md:px-0 items-stretch"
+              style={{ WebkitOverflowScrolling: "touch" }}
+            >
+              {brandLogos.map((brand, idx) => (
+                <div
+                  key={idx}
+                  className="snap-center shrink-0 w-[84vw] max-w-[320px] md:w-auto md:max-w-none bg-white rounded-3xl border border-slate-200/90 p-6 sm:p-7 shadow-sm flex flex-col justify-between"
+                >
+                  <div>
+                    <div className="h-14 flex items-center justify-between pb-4 mb-4 border-b border-slate-100">
+                      <img
+                        src={brand.logo}
+                        alt={brand.name}
+                        className="max-h-12 max-w-[150px] object-contain rounded-md"
+                      />
+                      <span className="text-[10px] font-bold uppercase tracking-wider px-2.5 py-1 rounded-full bg-slate-100 text-slate-700 border border-slate-200">
+                        {brand.badge}
                       </span>
                     </div>
-                    <span className="text-[11px] text-emerald-700 font-semibold flex items-center gap-1">
-                      <Clock size={12} /> {opt.leadTime}
-                    </span>
-                  </div>
 
-                  <p className="text-[11px] text-slate-500 mb-4">
-                    {opt.installment}
-                  </p>
+                    <h3 className="text-lg font-bold text-slate-900 mb-2">
+                      {brand.name}
+                    </h3>
+                    <p className="text-xs text-slate-600 leading-relaxed mb-6">
+                      {brand.desc}
+                    </p>
+                  </div>
 
                   <a
-                    href={getWhatsAppQuoteUrl(opt)}
+                    href={`https://wa.me/5518996155748?text=Ol%C3%A1!%20Gostaria%20de%20consultar%20as%20op%C3%A7%C3%B5es%20de%20lentes%20da%20marca%20${encodeURIComponent(brand.name)}%20na%20%C3%93tica%20Ventara.`}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="w-full inline-flex items-center justify-center gap-2 py-3 px-4 rounded-xl bg-[#06111f] hover:bg-[#0756b8] active:scale-95 text-white font-bold text-xs uppercase tracking-wider transition-all shadow-xs cursor-pointer"
+                    className="w-full inline-flex items-center justify-center gap-2 py-2.5 px-4 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-800 text-xs font-semibold tracking-wide transition-colors"
                   >
-                    <MessageSquare size={14} className="text-amber-400" />
-                    <span>Pedir Orçamento</span>
-                    <ArrowRight size={13} />
+                    <MessageSquare size={13} className="text-amber-600" />
+                    <span>Consultar Opções da {brand.name}</span>
                   </a>
                 </div>
-              </div>
-            ))}
-          </div>
-        ) : (
-          /* ABA "TODAS AS MARCAS HOMOLOGADAS" */
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 sm:gap-8">
-            {brandLogos.map((brand, idx) => (
-              <div
-                key={idx}
-                className="bg-white rounded-3xl border border-slate-200/90 p-6 sm:p-7 shadow-sm flex flex-col justify-between"
-              >
-                <div>
-                  <div className="h-14 flex items-center justify-between pb-4 mb-4 border-b border-slate-100">
-                    <img
-                      src={brand.logo}
-                      alt={brand.name}
-                      className="max-h-12 max-w-[150px] object-contain rounded-md"
-                    />
-                    <span className="text-[10px] font-bold uppercase tracking-wider px-2.5 py-1 rounded-full bg-slate-100 text-slate-700 border border-slate-200">
-                      {brand.badge}
-                    </span>
-                  </div>
+              ))}
+            </div>
+          )}
 
-                  <h3 className="text-lg font-bold text-slate-900 mb-2">
-                    {brand.name}
-                  </h3>
-                  <p className="text-xs text-slate-600 leading-relaxed mb-6">
-                    {brand.desc}
-                  </p>
-                </div>
-
-                <a
-                  href={`https://wa.me/5518996155748?text=Ol%C3%A1!%20Gostaria%20de%20consultar%20as%20op%C3%A7%C3%B5es%20de%20lentes%20da%20marca%20${encodeURIComponent(brand.name)}%20na%20%C3%93tica%20Ventara.`}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="w-full inline-flex items-center justify-center gap-2 py-2.5 px-4 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-800 text-xs font-semibold tracking-wide transition-colors"
-                >
-                  <MessageSquare size={13} className="text-amber-600" />
-                  <span>Consultar Opções da {brand.name}</span>
-                </a>
-              </div>
-            ))}
-          </div>
-        )}
+          {/* Indicadores de Paginação do Carrossel de Lentes no Mobile */}
+          {(activeCategory === "marcas" ? brandLogos.length : filteredOptions.length) > 1 && (
+            <div className="flex md:hidden items-center justify-center gap-1.5 pt-4">
+              {(activeCategory === "marcas" ? brandLogos : filteredOptions).map((item, idx) => (
+                <button
+                  key={'id' in item ? item.id : idx}
+                  type="button"
+                  onClick={() => {
+                    if (carouselRef.current) {
+                      const targetCard = carouselRef.current.children[idx] as HTMLElement;
+                      if (targetCard) {
+                        targetCard.scrollIntoView({ behavior: "smooth", inline: "center", block: "nearest" });
+                      }
+                    }
+                  }}
+                  aria-label={`Ver modelo ${idx + 1}`}
+                  className={`h-1.5 rounded-full transition-all duration-300 ${
+                    activeCardIndex === idx
+                      ? "w-6 bg-amber-500"
+                      : "w-1.5 bg-slate-300 hover:bg-slate-400"
+                  }`}
+                />
+              ))}
+            </div>
+          )}
+        </div>
 
         {/* DESTAQUE ESPECIAL DA MARCA PRÓPRIA: OPTISYNC HD COM MONTAGEM EXPRESSA */}
         <div className="mt-12 bg-gradient-to-br from-[#06111f] via-[#091e36] to-[#040e1a] rounded-3xl p-6 sm:p-10 text-white shadow-xl border border-white/10 relative overflow-hidden">
