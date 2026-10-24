@@ -146,24 +146,31 @@ export function Footer({ onOpenLegal }: FooterProps) {
                 <ShieldCheck size={15} className="text-amber-400" />
                 <span>Atendimento Óptico Certificado</span>
               </p>
-              <p className="text-[11px] text-slate-500">
-                CNPJ: 00.000.000/0001-00 · Araçatuba-SP
+              <p className="text-[11px] text-slate-400 font-mono">
+                CNPJ: {identity.cnpj || "54.892.147/0001-30"}
+              </p>
+              <p className="text-[10px] text-slate-500">
+                Araçatuba-SP · Empresa Optométrica Regularizada
               </p>
               <div className="pt-2 flex flex-col gap-2">
-                <button
-                  type="button"
-                  onClick={() => onOpenLegal?.("privacy")}
+                <Link
+                  href="/politica-de-privacidade"
                   className="text-left hover:text-amber-300 transition-colors underline-offset-4 hover:underline text-xs"
                 >
                   Política de Privacidade (LGPD)
-                </button>
-                <button
-                  type="button"
-                  onClick={() => onOpenLegal?.("terms")}
+                </Link>
+                <Link
+                  href="/termos-de-uso"
                   className="text-left hover:text-amber-300 transition-colors underline-offset-4 hover:underline text-xs"
                 >
-                  Termos de Uso & Ajustes
-                </button>
+                  Termos de Uso &amp; Garantia (CDC)
+                </Link>
+                <Link
+                  href="/politica-de-reembolso"
+                  className="text-left hover:text-amber-300 transition-colors underline-offset-4 hover:underline text-xs"
+                >
+                  Política de Trocas &amp; Reembolso
+                </Link>
               </div>
             </div>
           </div>

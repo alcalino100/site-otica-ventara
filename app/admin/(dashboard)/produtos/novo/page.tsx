@@ -11,9 +11,19 @@ import {
   CheckCircle2,
   Image as ImageIcon,
   Sliders,
+  Trash2,
+  Star,
+  Plus,
+  Loader2,
 } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
 import { FrameType, FrameShape, FrameMaterial, FrameGender } from "@/types/ecommerce";
+
+interface ImageItem {
+  url: string;
+  is_primary: boolean;
+  alt_text?: string | null;
+}
 
 export default function NewProductPage() {
   const router = useRouter();
@@ -39,8 +49,11 @@ export default function NewProductPage() {
   const [isPublished, setIsPublished] = useState(true);
   const [isFeatured, setIsFeatured] = useState(false);
 
-  // Image & Variant State
-  const [imageUrl, setImageUrl] = useState("");
+  // Multiple Images State (2 a 4 fotos - frontal, lateral, interna)
+  const [images, setImages] = useState<ImageItem[]>([]);
+  const [urlInput, setUrlInput] = useState("");
+  const [isUploading, setIsUploading] = useState(false);
+
   const [colorName, setColorName] = useState("Preto Clássico");
   const [stockQuantity, setStockQuantity] = useState(5);
 
@@ -56,33 +69,80 @@ export default function NewProductPage() {
   };
 
   const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
+    const files = e.target.files;
+    if (!files || files.length === 0) return;
 
     setErrorMessage(null);
-    setSuccessMessage("Enviando foto para o Storage...");
+    setIsUploading(true);
+    setSuccessMessage(`Enviando ${files.length} foto(s) para o Storage...`);
 
     try {
-      const formData = new FormData();
-      formData.append("file", file);
+      const newUploaded: ImageItem[] = [];
 
-      const res = await fetch("/api/admin/upload", {
-        method: "POST",
-        body: formData,
-      });
+      for (let i = 0; i < files.length; i++) {
+        const file = files[i];
+        const formData = new FormData();
+        formData.append("file", file);
 
-      const resData = await res.json();
-      if (!res.ok || resData.error) {
-        throw new Error(resData.error || "Falha no upload");
+        const res = await fetch("/api/admin/upload", {
+          method: "POST",
+          body: formData,
+        });
+
+        const resData = await res.json();
+        if (res.ok && resData.url) {
+          newUploaded.push({
+            url: resData.url,
+            is_primary: images.length === 0 && newUploaded.length === 0,
+            alt_text: `${name || "Armação"} - Foto ${images.length + newUploaded.length + 1}`,
+          });
+        }
       }
 
-      setImageUrl(resData.url);
-      setSuccessMessage("Imagem carregada com sucesso no Supabase Storage!");
+      if (newUploaded.length > 0) {
+        setImages((prev) => [...prev, ...newUploaded]);
+        setSuccessMessage(`${newUploaded.length} foto(s) carregada(s) com sucesso!`);
+      } else {
+        throw new Error("Não foi possível enviar as fotos.");
+      }
     } catch (err: any) {
       console.error(err);
-      setErrorMessage(`Falha no upload para o Storage: ${err.message}. Você também pode colar a URL direta da imagem abaixo.`);
-      setSuccessMessage(null);
+      setErrorMessage(`Falha no upload: ${err.message}. Você também pode colar a URL direta da imagem abaixo.`);
+    } finally {
+      setIsUploading(false);
     }
+  };
+
+  const handleAddUrl = () => {
+    if (!urlInput.trim()) return;
+    setImages((prev) => [
+      ...prev,
+      {
+        url: urlInput.trim(),
+        is_primary: prev.length === 0,
+        alt_text: `${name || "Armação"} - Foto ${prev.length + 1}`,
+      },
+    ]);
+    setUrlInput("");
+  };
+
+  const handleSetPrimary = (idx: number) => {
+    setImages((prev) =>
+      prev.map((img, i) => ({
+        ...img,
+        is_primary: i === idx,
+      }))
+    );
+  };
+
+  const handleRemoveImage = (idx: number) => {
+    setImages((prev) => {
+      const filtered = prev.filter((_, i) => i !== idx);
+      if (filtered.length > 0 && !filtered.some((img) => img.is_primary)) {
+        filtered[0].is_primary = true;
+      }
+      return filtered;
+    });
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -92,7 +152,6 @@ export default function NewProductPage() {
     setIsSubmitting(true);
 
     try {
-      // Converte preço formatado para centavos inteiros (ex: "389,00" -> 38900)
       const cleanPrice = priceReal.replace(/\./g, "").replace(",", ".");
       const priceInCents = Math.round(parseFloat(cleanPrice) * 100);
 
@@ -126,7 +185,12 @@ export default function NewProductPage() {
           dimensions_lens_mm: lensMm || null,
           dimensions_bridge_mm: bridgeMm || null,
           dimensions_temple_mm: templeMm || null,
-          imageUrl: imageUrl.trim() || null,
+          images: images.map((img, i) => ({
+            url: img.url,
+            is_primary: img.is_primary,
+            sort_order: i,
+            alt_text: img.alt_text || `${name} foto ${i + 1}`,
+          })),
           color_name: colorName,
           stock_quantity: stockQuantity,
         }),
@@ -374,25 +438,39 @@ export default function NewProductPage() {
           </div>
         </div>
 
-        {/* Bloco 3: Fotos, Estoque e Publicação */}
+        {/* Bloco 3: Fotos Múltiplas, Estoque e Publicação */}
         <div className="bg-[#081724] border border-white/5 rounded-xl p-5 space-y-4">
-          <h2 className="text-sm font-semibold text-white flex items-center gap-2 border-b border-white/5 pb-2">
-            <ImageIcon size={16} className="text-amber-400" />
-            Fotografia, Estoque e Publicação
-          </h2>
+          <div className="flex items-center justify-between border-b border-white/5 pb-2">
+            <h2 className="text-sm font-semibold text-white flex items-center gap-2">
+              <ImageIcon size={16} className="text-amber-400" />
+              <span>Fotografia, Estoque e Publicação</span>
+              <span className="text-xs text-amber-400 font-normal">({images.length} fotos)</span>
+            </h2>
+            <span className="text-[11px] text-amber-400 font-medium">
+              Recomendado: 2 a 4 fotos (Frontal, Lateral, Ângulo interno)
+            </span>
+          </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
-              <label className="block text-xs font-medium text-slate-300 mb-1">
-                Upload de Foto (Supabase Storage)
-              </label>
-              <label className="border-2 border-dashed border-slate-700 hover:border-amber-400/50 rounded-lg p-4 flex flex-col items-center justify-center cursor-pointer transition-colors bg-[#040e17]">
-                <Upload size={20} className="text-slate-400 mb-1.5" />
-                <span className="text-xs text-slate-300 font-medium">Clique para escolher imagem</span>
-                <span className="text-[10px] text-slate-500">PNG, JPG ou WEBP de alta resolução</span>
+              <label className="border-2 border-dashed border-slate-700 hover:border-amber-400/50 rounded-xl p-4 flex flex-col items-center justify-center cursor-pointer transition-colors bg-[#040e17] h-full min-h-[110px]">
+                {isUploading ? (
+                  <div className="flex flex-col items-center gap-1.5 text-amber-400">
+                    <Loader2 size={24} className="animate-spin" />
+                    <span className="text-xs">Enviando fotos...</span>
+                  </div>
+                ) : (
+                  <>
+                    <Upload size={22} className="text-slate-400 mb-1" />
+                    <span className="text-xs text-slate-300 font-medium">Adicionar Fotos (Múltiplas)</span>
+                    <span className="text-[10px] text-slate-500">Selecione 2, 3 ou 4 fotos do seu computador</span>
+                  </>
+                )}
                 <input
                   type="file"
+                  multiple
                   accept="image/*"
+                  disabled={isUploading}
                   onChange={handleFileUpload}
                   className="hidden"
                 />
@@ -401,22 +479,73 @@ export default function NewProductPage() {
 
             <div>
               <label className="block text-xs font-medium text-slate-300 mb-1">
-                Ou cole a URL direta da imagem
+                Ou adicione via URL direta
               </label>
-              <input
-                type="url"
-                value={imageUrl}
-                onChange={(e) => setImageUrl(e.target.value)}
-                placeholder="https://..."
-                className="w-full bg-[#040e17] border border-slate-700 rounded-lg px-3 py-2 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-amber-400 mb-3"
-              />
-              {imageUrl && (
-                <div className="w-20 h-20 rounded-lg border border-white/10 overflow-hidden bg-black flex items-center justify-center">
-                  <img src={imageUrl} alt="Prévia" className="w-full h-full object-cover" />
-                </div>
-              )}
+              <div className="flex gap-2">
+                <input
+                  type="url"
+                  placeholder="https://..."
+                  value={urlInput}
+                  onChange={(e) => setUrlInput(e.target.value)}
+                  className="flex-1 bg-[#040e17] border border-slate-700 rounded-lg px-3 py-2 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-amber-400"
+                />
+                <button
+                  type="button"
+                  onClick={handleAddUrl}
+                  className="px-3.5 py-2 rounded-lg bg-amber-400 hover:bg-amber-300 text-slate-950 font-bold text-xs"
+                >
+                  <Plus size={16} />
+                </button>
+              </div>
+              <p className="text-[10px] text-slate-400 mt-1">
+                Cole a URL da foto e clique no botão para adicionar à galeria.
+              </p>
             </div>
           </div>
+
+          {/* Grade de Fotos Carregadas */}
+          {images.length > 0 && (
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 pt-2">
+              {images.map((img, idx) => (
+                <div
+                  key={idx}
+                  className={`relative group bg-[#040d18] border rounded-xl overflow-hidden flex flex-col justify-between ${
+                    img.is_primary ? "border-amber-400 shadow-md ring-1 ring-amber-400/50" : "border-slate-800"
+                  }`}
+                >
+                  <div className="w-full aspect-square bg-slate-950 flex items-center justify-center p-2">
+                    <img
+                      src={img.url}
+                      alt={img.alt_text || `Foto ${idx + 1}`}
+                      className="max-h-full max-w-full object-contain"
+                    />
+                  </div>
+
+                  <div className="p-2 bg-[#06111f] border-t border-white/5 flex items-center justify-between text-[10px]">
+                    <button
+                      type="button"
+                      onClick={() => handleSetPrimary(idx)}
+                      className={`inline-flex items-center gap-1 font-semibold transition-colors ${
+                        img.is_primary ? "text-amber-400" : "text-slate-400 hover:text-white"
+                      }`}
+                    >
+                      <Star size={11} className={img.is_primary ? "fill-amber-400" : ""} />
+                      <span>{img.is_primary ? "Foto de Capa" : "Tornar Capa"}</span>
+                    </button>
+
+                    <button
+                      type="button"
+                      onClick={() => handleRemoveImage(idx)}
+                      title="Excluir esta foto"
+                      className="p-1 rounded text-slate-400 hover:text-rose-400 hover:bg-rose-500/10 transition-colors"
+                    >
+                      <Trash2 size={13} />
+                    </button>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pt-2 border-t border-white/5">
             <div>

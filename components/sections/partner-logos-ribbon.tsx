@@ -5,18 +5,17 @@ import Image from "next/image";
 import { LogosCarousel } from "@/registry/spell-ui/logos-carousel";
 
 const partnerLogos = [
-  { src: "/logos/varilux.svg", alt: "Varilux Essilor" },
-  { src: "/logos/hoya.svg", alt: "HOYA Vision Care" },
+  { src: "/logos/optisync.svg", alt: "OPTiSYNC HD - Exclusivo Ventara" },
+  { src: "/logos/perego.svg", alt: "Perego Laboratório Óptico" },
   { src: "/logos/kodak.svg", alt: "Kodak Lens" },
+  { src: "/logos/orgaline.svg", alt: "Orgalens Mais" },
+  { src: "/logos/correct.svg", alt: "Lentes Correct" },
+  { src: "/logos/hoya.svg", alt: "HOYA Vision Care" },
+  { src: "/logos/varilux.svg", alt: "Varilux Essilor" },
   { src: "/logos/crizal.svg", alt: "Crizal UV" },
   { src: "/logos/transitions.svg", alt: "Transitions GEN S" },
   { src: "/logos/essilor.svg", alt: "Essilor" },
-  { src: "/logos/rayban.svg", alt: "Ray-Ban" },
-  { src: "/logos/oakley.svg", alt: "Oakley" },
   { src: "/logos/zeiss.svg", alt: "ZEISS" },
-  { src: "/logos/optisync.svg", alt: "OPTiSYNC HD Lab" },
-  { src: "/logos/orgaline.svg", alt: "Orgaline+ Japan" },
-  { src: "/logos/correct.svg", alt: "Lentes Correct" },
 ];
 
 export function PartnerLogosRibbon() {
@@ -28,10 +27,10 @@ export function PartnerLogosRibbon() {
       <div className="max-w-[1400px] mx-auto px-4 sm:px-8 relative z-10">
         <div className="text-center mb-6 sm:mb-8">
           <span className="text-[10px] sm:text-[11px] font-bold uppercase tracking-[0.25em] text-amber-400/90 block">
-            PARCEIROS TECNOLÓGICOS &amp; LENTES MUNDIAIS
+            PARCEIROS TECNOLÓGICOS &amp; LENTES HOMOLOGADAS
           </span>
           <p className="text-xs text-slate-400 mt-1">
-            Garantia de procedência com os maiores laboratórios ópticos do mundo
+            Garantia de procedência direta com laboratórios certificados e montagem expressa
           </p>
         </div>
 
@@ -39,14 +38,14 @@ export function PartnerLogosRibbon() {
           {partnerLogos.map((logo) => (
             <div
               key={logo.src}
-              className="flex items-center justify-center w-full max-w-[180px] h-12 text-slate-300 hover:text-white transition-colors"
+              className="flex items-center justify-center w-full max-w-[180px] h-12 transition-transform duration-300 hover:scale-105"
             >
               <Image
                 src={logo.src}
                 alt={logo.alt}
                 width={160}
                 height={48}
-                className="max-h-10 w-auto object-contain opacity-80 hover:opacity-100 transition-opacity pointer-events-none select-none text-white invert-[0.9] hover:brightness-125"
+                className="max-h-10 w-auto object-contain transition-opacity duration-300 hover:opacity-100 pointer-events-none select-none drop-shadow-sm"
                 unoptimized
               />
             </div>

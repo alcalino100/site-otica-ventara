@@ -13,6 +13,7 @@ import {
   FileSpreadsheet,
   Star,
   Sparkles,
+  Pencil,
 } from "lucide-react";
 import { Product } from "@/types/ecommerce";
 import { createClient, isSupabaseConfigured } from "@/lib/supabase/client";
@@ -503,7 +504,16 @@ export default function AdminProductsPage() {
                       </td>
 
                       <td className="py-3.5 px-4 text-right">
-                        <div className="flex items-center justify-end gap-2">
+                        <div className="flex items-center justify-end gap-1.5">
+                          <Link
+                            href={`/admin/produtos/${p.id}`}
+                            className="inline-flex items-center gap-1 px-2.5 py-1.5 rounded-lg bg-amber-400/10 hover:bg-amber-400/20 text-amber-300 border border-amber-400/30 text-xs font-semibold active:scale-95 transition-all"
+                            title="Editar dados e fotos deste produto"
+                          >
+                            <Pencil size={13} />
+                            <span>Editar</span>
+                          </Link>
+
                           <Link
                             href={`/produto/${p.slug}`}
                             target="_blank"

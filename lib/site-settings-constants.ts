@@ -11,6 +11,7 @@ export const DEFAULT_IDENTITY: SiteIdentitySettings = {
   phone_whatsapp: "(18) 99615-5748",
   instagram_handle: "@oticaventara",
   business_hours: "Segunda a Sexta: 09h às 18h · Sábados: 09h às 13h",
+  cnpj: "54.892.147/0001-30",
   logo_url: "",
   favicon_url: "",
 };

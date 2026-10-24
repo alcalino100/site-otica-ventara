@@ -59,7 +59,7 @@ export function MetricsRibbon() {
                 />
               </span>
               <span className="text-[9px] sm:text-[10px] font-semibold tracking-wider text-slate-400 uppercase leading-tight">
-                DE SATISFAÇÃO DOS CLIENTES
+                GARANTIA DE ADAPTAÇÃO ÓPTICA
               </span>
             </div>
 

@@ -25,6 +25,7 @@ import {
   ShieldCheck,
   UserCheck,
   Sparkles,
+  Eye,
 } from "lucide-react";
 import { BrandLogo } from "@/components/ui/brand-logo";
 import { createClient } from "../../lib/supabase/client";
@@ -101,6 +102,7 @@ export function AdminHeader() {
     { href: "/admin/banners", label: "Banners", icon: ImageIcon, minRole: "admin" },
     { href: "/admin/promocoes/roleta", label: "Roleta Promocional", icon: Sparkles, minRole: "admin" },
     { href: "/admin/produtos", label: "Produtos", icon: Package, minRole: "editor" },
+    { href: "/admin/lentes", label: "Lentes & Preços", icon: Eye, minRole: "editor" },
     { href: "/admin/categorias", label: "Categorias", icon: FolderTree, minRole: "admin" },
     { href: "/admin/estoque", label: "Estoque", icon: Boxes, minRole: "editor" },
     { href: "/admin/pedidos", label: "Pedidos", icon: ShoppingCart, minRole: "editor" },

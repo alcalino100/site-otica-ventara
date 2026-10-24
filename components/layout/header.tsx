@@ -6,17 +6,17 @@ import { motion, AnimatePresence } from "motion/react";
 import { BrandLogo } from "../ui/brand-logo";
 
 interface HeaderProps {
-  cartCount: number;
-  onOpenCart: () => void;
-  onToggleSearch: () => void;
-  isSearchOpen: boolean;
+  cartCount?: number;
+  onOpenCart?: () => void;
+  onToggleSearch?: () => void;
+  isSearchOpen?: boolean;
 }
 
 export function Header({
-  cartCount,
-  onOpenCart,
-  onToggleSearch,
-  isSearchOpen,
+  cartCount = 0,
+  onOpenCart = () => {},
+  onToggleSearch = () => {},
+  isSearchOpen = false,
 }: HeaderProps) {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [isScrolled, setIsScrolled] = useState(false);

@@ -1,8 +1,8 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 240 60" fill="none">
-  <text x="50%" y="62%" dominant-baseline="middle" text-anchor="middle" font-family="system-ui, -apple-system, sans-serif" font-weight="800" font-size="26" letter-spacing="3" fill="currentColor">
-    ORGALINE+
+  <text x="50%" y="58%" dominant-baseline="middle" text-anchor="middle" font-family="system-ui, -apple-system, sans-serif" font-weight="900" font-size="25" letter-spacing="3" fill="#0066B3">
+    ORGALENS
   </text>
-  <text x="50%" y="84%" dominant-baseline="middle" text-anchor="middle" font-family="system-ui, -apple-system, sans-serif" font-weight="600" font-size="8" letter-spacing="3" fill="currentColor" opacity="0.7">
-    JAPAN OPTICS
+  <text x="50%" y="84%" dominant-baseline="middle" text-anchor="middle" font-family="system-ui, -apple-system, sans-serif" font-weight="700" font-size="9" letter-spacing="3" fill="#38BDF8">
+    MAIS
   </text>
 </svg>

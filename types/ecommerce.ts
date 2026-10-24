@@ -173,6 +173,7 @@ export interface SiteIdentitySettings {
   phone_whatsapp: string;
   instagram_handle: string;
   business_hours: string;
+  cnpj?: string;
   logo_url?: string;
   favicon_url?: string;
 }

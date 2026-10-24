@@ -67,6 +67,17 @@ function UTMTrackerCore() {
       session_id: sessionId,
     };
 
+    // Respeita estritamente o consentimento do usuário (LGPD)
+    try {
+      const consentRaw = localStorage.getItem("ventara_cookie_consent");
+      if (consentRaw) {
+        const consent = JSON.parse(consentRaw);
+        if (consent.analytics === false) return;
+      }
+    } catch {
+      // Ignora erro de acesso ao localStorage
+    }
+
     // Dispara registro assíncrono sem bloquear a navegação
     try {
       fetch("/api/analytics/track", {

@@ -117,18 +117,18 @@ test.describe("Óticas Ventara - Novas Alterações e Responsividade Mobile", ()
     await marcasBtn.click();
 
     await expect(lensesSection.getByRole("heading", { name: "Lentes Correct" })).toBeVisible();
-    await expect(lensesSection.getByRole("heading", { name: "Orgaline+" })).toBeVisible();
+    await expect(lensesSection.getByRole("heading", { name: "Orgalens Mais" })).toBeVisible();
     await expect(lensesSection.getByRole("heading", { name: "HOYA / Maxxee" })).toBeVisible();
     await expect(lensesSection.getByRole("heading", { name: "Kodak Lens" })).toBeVisible();
     await expect(lensesSection.getByRole("heading", { name: "Varilux (Essilor)" })).toBeVisible();
     await expect(lensesSection.getByRole("heading", { name: "OPTiSYNC HD", exact: true })).toBeVisible();
 
     // Imagens dos logos renderizadas
-    await expect(lensesSection.locator("img[src*='correct.jpg']")).toBeVisible();
-    await expect(lensesSection.locator("img[src*='orgaline.jpg']")).toBeVisible();
-    await expect(lensesSection.locator("img[src*='hoya.jpg']")).toBeVisible();
-    await expect(lensesSection.locator("img[src*='kodak.jpg']")).toBeVisible();
-    await expect(lensesSection.locator("img[src*='varilux.jpg']")).toBeVisible();
+    await expect(lensesSection.locator("img[src*='correct']").first()).toBeVisible();
+    await expect(lensesSection.locator("img[src*='orgaline']").first()).toBeVisible();
+    await expect(lensesSection.locator("img[src*='hoya']").first()).toBeVisible();
+    await expect(lensesSection.locator("img[src*='kodak']").first()).toBeVisible();
+    await expect(lensesSection.locator("img[src*='varilux']").first()).toBeVisible();
   });
 
   test("deve ser responsivo no mobile (viewport 375x667) sem transbordamento horizontal", async ({ page }) => {

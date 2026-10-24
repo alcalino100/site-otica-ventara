@@ -1,5 +1,61 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createAdminClient } from "@/lib/supabase/admin";
+import { DEFAULT_CATALOG } from "@/lib/catalog-data";
+
+export const dynamic = "force-dynamic";
+
+export async function GET(req: NextRequest) {
+  try {
+    const { searchParams } = new URL(req.url);
+    const id = searchParams.get("id");
+    const adminSupabase = createAdminClient();
+
+    if (id) {
+      // Busca produto específico
+      const { data, error } = await adminSupabase
+        .from("products")
+        .select(`
+          *,
+          category:categories(name, slug),
+          images:product_images(id, url, is_primary, alt_text, sort_order),
+          variants:product_variants(id, stock_quantity, sku, color_name)
+        `)
+        .eq("id", id)
+        .maybeSingle();
+
+      if (error || !data) {
+        // Fallback para DEFAULT_CATALOG se offline ou não encontrado no Supabase
+        const fallback = DEFAULT_CATALOG.find((p) => p.id === id || p.slug === id);
+        if (fallback) {
+          return NextResponse.json({ success: true, product: fallback });
+        }
+        return NextResponse.json({ error: "Produto não encontrado." }, { status: 404 });
+      }
+
+      return NextResponse.json({ success: true, product: data });
+    }
+
+    // Busca lista de todos os produtos
+    const { data, error } = await adminSupabase
+      .from("products")
+      .select(`
+        *,
+        category:categories(name, slug),
+        images:product_images(id, url, is_primary, alt_text, sort_order),
+        variants:product_variants(id, stock_quantity, sku, color_name)
+      `)
+      .order("created_at", { ascending: false });
+
+    if (error || !data || data.length === 0) {
+      return NextResponse.json({ success: true, products: DEFAULT_CATALOG });
+    }
+
+    return NextResponse.json({ success: true, products: data });
+  } catch (err: any) {
+    console.warn("Fallback de consulta para DEFAULT_CATALOG:", err.message);
+    return NextResponse.json({ success: true, products: DEFAULT_CATALOG });
+  }
+}
 
 export async function POST(req: NextRequest) {
   try {
@@ -90,18 +146,57 @@ export async function POST(req: NextRequest) {
 
     const productId = productData.id;
 
-    // 2. Vincular imagem principal em 'product_images' se fornecida
-    if (body.imageUrl && typeof body.imageUrl === "string" && body.imageUrl.trim()) {
-      const { error: imgError } = await adminSupabase.from("product_images").insert({
+    // 2. Normaliza lista de fotos múltiplas (suporte a 1, 2, 3, 4, 5+ fotos)
+    const imagesToInsert: Array<{
+      product_id: string;
+      url: string;
+      alt_text: string;
+      is_primary: boolean;
+      sort_order: number;
+    }> = [];
+
+    if (Array.isArray(body.images) && body.images.length > 0) {
+      body.images.forEach((img: any, idx: number) => {
+        const url = typeof img === "string" ? img : img.url;
+        if (url && typeof url === "string" && url.trim()) {
+          imagesToInsert.push({
+            product_id: productId,
+            url: url.trim(),
+            alt_text: img.alt_text || `${body.name.trim()} - Foto ${idx + 1}`,
+            is_primary: img.is_primary ?? idx === 0,
+            sort_order: idx,
+          });
+        }
+      });
+    } else if (Array.isArray(body.imageUrls) && body.imageUrls.length > 0) {
+      body.imageUrls.forEach((url: string, idx: number) => {
+        if (url && typeof url === "string" && url.trim()) {
+          imagesToInsert.push({
+            product_id: productId,
+            url: url.trim(),
+            alt_text: `${body.name.trim()} - Foto ${idx + 1}`,
+            is_primary: idx === 0,
+            sort_order: idx,
+          });
+        }
+      });
+    } else if (body.imageUrl && typeof body.imageUrl === "string" && body.imageUrl.trim()) {
+      imagesToInsert.push({
         product_id: productId,
         url: body.imageUrl.trim(),
         alt_text: body.name.trim(),
         is_primary: true,
         sort_order: 0,
       });
+    }
+
+    if (imagesToInsert.length > 0) {
+      const { error: imgError } = await adminSupabase
+        .from("product_images")
+        .insert(imagesToInsert);
 
       if (imgError) {
-        console.warn("Aviso ao vincular imagem do produto:", imgError);
+        console.warn("Aviso ao vincular imagens do produto:", imgError);
       }
     }
 
@@ -137,7 +232,7 @@ export async function POST(req: NextRequest) {
 export async function PATCH(req: NextRequest) {
   try {
     const body = await req.json();
-    const { id, ...updates } = body;
+    const { id, images, imageUrls, imageUrl, stock_quantity, color_name, ...updates } = body;
 
     if (!id) {
       return NextResponse.json(
@@ -148,7 +243,8 @@ export async function PATCH(req: NextRequest) {
 
     const adminSupabase = createAdminClient();
 
-    const { data, error } = await adminSupabase
+    // 1. Atualiza campos cadastrais na tabela 'products'
+    const { data: updatedProduct, error: productError } = await adminSupabase
       .from("products")
       .update({
         ...updates,
@@ -158,17 +254,87 @@ export async function PATCH(req: NextRequest) {
       .select()
       .single();
 
-    if (error) {
-      console.error("Erro ao atualizar produto no Supabase:", error);
+    if (productError) {
+      console.error("Erro ao atualizar produto no Supabase:", productError);
       return NextResponse.json(
-        { error: `Erro ao atualizar produto: ${error.message}` },
+        { error: `Erro ao atualizar produto: ${productError.message}` },
         { status: 400 }
       );
     }
 
+    // 2. Se fornecido conjunto de imagens, substitui na tabela 'product_images'
+    const newImages: Array<{
+      product_id: string;
+      url: string;
+      alt_text: string;
+      is_primary: boolean;
+      sort_order: number;
+    }> = [];
+
+    if (Array.isArray(images)) {
+      images.forEach((img: any, idx: number) => {
+        const url = typeof img === "string" ? img : img.url;
+        if (url && typeof url === "string" && url.trim()) {
+          newImages.push({
+            product_id: id,
+            url: url.trim(),
+            alt_text: img.alt_text || `${updatedProduct?.name || "Armação"} - Foto ${idx + 1}`,
+            is_primary: img.is_primary ?? idx === 0,
+            sort_order: idx,
+          });
+        }
+      });
+    } else if (Array.isArray(imageUrls)) {
+      imageUrls.forEach((url: string, idx: number) => {
+        if (url && typeof url === "string" && url.trim()) {
+          newImages.push({
+            product_id: id,
+            url: url.trim(),
+            alt_text: `${updatedProduct?.name || "Armação"} - Foto ${idx + 1}`,
+            is_primary: idx === 0,
+            sort_order: idx,
+          });
+        }
+      });
+    }
+
+    if (newImages.length > 0) {
+      // Remove imagens antigas e insere as novas organizadas
+      await adminSupabase.from("product_images").delete().eq("product_id", id);
+      await adminSupabase.from("product_images").insert(newImages);
+    }
+
+    // 3. Se fornecido estoque ou cor, atualiza variante
+    if (typeof stock_quantity === "number" || color_name) {
+      const { data: existingVariant } = await adminSupabase
+        .from("product_variants")
+        .select("id")
+        .eq("product_id", id)
+        .limit(1)
+        .maybeSingle();
+
+      if (existingVariant?.id) {
+        await adminSupabase
+          .from("product_variants")
+          .update({
+            ...(typeof stock_quantity === "number" ? { stock_quantity } : {}),
+            ...(color_name ? { color_name } : {}),
+          })
+          .eq("id", existingVariant.id);
+      } else {
+        await adminSupabase.from("product_variants").insert({
+          product_id: id,
+          sku: `VEN-${id.slice(0, 6).toUpperCase()}-01`,
+          color_name: color_name || "Padrão",
+          size: "Único",
+          stock_quantity: typeof stock_quantity === "number" ? stock_quantity : 5,
+        });
+      }
+    }
+
     return NextResponse.json({
       success: true,
-      product: data,
+      product: updatedProduct,
     });
   } catch (err: any) {
     console.error("Erro interno ao atualizar produto:", err);

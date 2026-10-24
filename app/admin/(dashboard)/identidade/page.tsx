@@ -163,6 +163,20 @@ export default function AdminIdentityPage() {
                   className="w-full bg-[#0a1b2e] border border-white/10 rounded-xl px-3.5 py-2.5 text-white focus:outline-none focus:border-amber-400"
                 />
               </div>
+
+              <div>
+                <label className="block text-slate-400 mb-1 font-medium">CNPJ Oficial da Empresa</label>
+                <input
+                  type="text"
+                  placeholder="00.000.000/0000-00"
+                  value={identity.cnpj || ""}
+                  onChange={(e) => setIdentity({ ...identity, cnpj: e.target.value })}
+                  className="w-full bg-[#0a1b2e] border border-white/10 rounded-xl px-3.5 py-2.5 text-white font-mono focus:outline-none focus:border-amber-400"
+                />
+                <p className="text-[10px] text-slate-400 mt-1">
+                  Exibido no rodapé, termos de uso, notas legais e política de privacidade conforme o Código de Defesa do Consumidor e Decreto do E-commerce.
+                </p>
+              </div>
             </div>
           </div>
 

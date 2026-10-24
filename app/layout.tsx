@@ -3,6 +3,7 @@ import './globals.css';
 import { UTMTracker } from '@/components/analytics/utm-tracker';
 import { WhatsAppFloatingButton } from '@/components/ui/whatsapp-floating-button';
 import { SiteSettingsProvider } from '@/components/providers/site-settings-provider';
+import { CookieConsentBanner } from '@/components/legal/cookie-consent-banner';
 
 export const metadata: Metadata = {
   title: 'Ótica Ventara | Eyewear Boutique & Laboratório Próprio em Araçatuba',
@@ -39,6 +40,7 @@ export default function RootLayout({
         <SiteSettingsProvider>
           <UTMTracker />
           {children}
+          <CookieConsentBanner />
           <WhatsAppFloatingButton />
         </SiteSettingsProvider>
       </body>

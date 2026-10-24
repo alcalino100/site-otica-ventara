@@ -159,7 +159,7 @@ test.describe("Ótica Ventara - Catálogo e Interações", () => {
     // Alterna para Multifocais
     const multifocalBtn = lensesSection.getByRole("button", { name: /Multifocais/i });
     await multifocalBtn.click();
-    await expect(lensesSection.getByText(/R\$ 289,00/i)).toBeVisible();
+    await expect(lensesSection.getByText(/R\$ 389,00/i)).toBeVisible();
 
     // Alterna para Filtro Luz Azul
     const blueBtn = lensesSection.getByRole("button", { name: /Filtro Luz Azul/i });
@@ -294,7 +294,7 @@ test.describe("Ótica Ventara - Catálogo e Interações", () => {
     // 2. Verifica a seção de lentes com o LogosCarousel de marcas homologadas
     const lensesSection = page.locator("#lentes");
     await lensesSection.scrollIntoViewIfNeeded();
-    await expect(lensesSection.getByText("PARCEIROS TECNOLÓGICOS & LENTES MUNDIAIS")).toBeVisible();
-    await expect(lensesSection.getByRole("img", { name: "Varilux Essilor" })).toBeVisible();
+    await expect(lensesSection.getByText(/PARCEIROS TECNOLÓGICOS/i)).toBeVisible();
+    await expect(lensesSection.locator("img[alt*='OPTiSYNC']").first()).toBeVisible();
   });
 });

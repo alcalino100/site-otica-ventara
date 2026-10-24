@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
   Eye,
   Layers,
@@ -37,67 +37,103 @@ interface LensOption {
 
 export function LensesPricingSection() {
   const [activeCategory, setActiveCategory] = useState<LensCategory>("visao-simples");
+  const [activeLenses, setActiveLenses] = useState<LensOption[]>([]);
+
+  useEffect(() => {
+    async function loadDynamicLenses() {
+      try {
+        const res = await fetch("/api/admin/lenses");
+        if (res.ok) {
+          const data = await res.json();
+          if (data.lenses && Array.isArray(data.lenses) && data.lenses.length > 0) {
+            setActiveLenses(data.lenses);
+          }
+        }
+      } catch (err) {
+        // Usa lista local estática padrão
+      }
+    }
+    loadDynamicLenses();
+  }, []);
 
   // Catálogo completo de lentes estruturado por tipo e marca homologada
   const lensOptions: LensOption[] = [
     // ---------------- VISÃO SIMPLES (MONOFOCAIS) ----------------
     {
+      id: "optisync-hd-ar",
+      name: "OPTiSYNC HD Antirreflexo",
+      category: "visao-simples",
+      brandName: "OPTiSYNC HD",
+      brandLogo: "/logos/optisync.svg",
+      treatment: "Antirreflexo Super AR + Proteção UV400",
+      badge: "Ventara Exclusivo",
+      startingPrice: "R$ 129,90",
+      installment: "10x de R$ 12,99 sem juros",
+      leadTime: "Pronto em até 1 hora",
+      description:
+        "Visão cristalina com antirreflexo de alta transparência. Cortada e montada na hora em nosso laboratório próprio de Araçatuba.",
+      features: [
+        "Antirreflexo multicamadas de alta clareza",
+        "Proteção total contra radiação UVA/UVB 400nm",
+        "Sem intermediários: preço direto da ótica",
+        "Montagem expressa em até 1h na biseladora digital",
+      ],
+    },
+    {
+      id: "optisync-hd-blue",
+      name: "OPTiSYNC HD Blue Protect",
+      category: "visao-simples",
+      brandName: "OPTiSYNC HD",
+      brandLogo: "/logos/optisync.svg",
+      treatment: "Filtro Luz Azul Digital + Antirreflexo AR Super",
+      badge: "Ventara Exclusivo · Telas",
+      startingPrice: "R$ 149,90",
+      installment: "10x de R$ 14,99 sem juros",
+      leadTime: "Pronto em até 1 hora",
+      description:
+        "Desenvolvida especialmente para quem usa computador e celular. Bloqueia a radiação azul-violeta nociva, aliviando o cansaço dos olhos e dores de cabeça.",
+      features: [
+        "Bloqueio da luz azul nociva de monitores e celulares",
+        "Antirreflexo especial sem reflexo roxo exagerado",
+        "Conforto para longas jornadas de trabalho e estudo",
+        "Montagem expressa em até 1h na facetadora própria",
+      ],
+    },
+    {
       id: "correct-monofocal",
       name: "Correct Vision Antirreflexo",
       category: "visao-simples",
       brandName: "Lentes Correct",
-      brandLogo: "/images/lenses/brands/correct.jpg",
+      brandLogo: "/logos/correct.svg",
       treatment: "Antirreflexo Multicamadas + Proteção UV400",
       badge: "Melhor Custo-Benefício",
       startingPrice: "R$ 99,90",
       installment: "10x de R$ 9,99 sem juros",
       leadTime: "Pronto em até 1 hora",
       description:
-        "Visão nítida para miopia, hipermetropia ou astigmatismo. Resina orgânica resistente e leve com tratamento antirreflexo essencial.",
+        "Visão nítida para miopia, hipermetropia ou astigmatismo. Resina orgânica resistente e leve com tratamento antirreflexo essencial para o dia a dia.",
       features: [
         "Antirreflexo multicamadas antirrisco",
         "Proteção total contra radiação UVA/UVB",
-        "Resina ultraleve e resistente",
-        "Montagem expressa no laboratório próprio",
+        "Resina ultraleve e resistente a quedas",
+        "Montagem ágil no laboratório próprio",
       ],
     },
     {
-      id: "optisync-hd-simples",
-      name: "OPTiSYNC HD BlueProtect",
+      id: "orgalens-simples",
+      name: "Orgalens Mais",
       category: "visao-simples",
-      brandName: "OPTiSYNC HD",
-      brandLogo: "/images/lenses/optisync-hd.jpg",
-      logoBgLight: true,
-      treatment: "Filtro Luz Azul Digital + Antirreflexo AR Super",
-      badge: "Marca Própria Exclusiva",
-      startingPrice: "R$ 149,90",
-      installment: "10x de R$ 14,99 sem juros",
-      leadTime: "Pronto em até 1 hora",
-      description:
-        "Desenvolvida para o dia a dia digital, bloqueia a radiação azul de telas e celulares, aliviando o cansaço dos olhos e dores de cabeça.",
-      features: [
-        "Bloqueio da luz azul nociva de monitores",
-        "Antirreflexo especial sem reflexo roxo exagerado",
-        "Sem margem de intermediários (preço direto)",
-        "Montagem imediata na facetadora",
-      ],
-    },
-    {
-      id: "orgaline-simples",
-      name: "Orgaline+ Pure Japonesa",
-      category: "visao-simples",
-      brandName: "Orgaline+",
-      brandLogo: "/images/lenses/brands/orgaline.jpg",
-      logoBgLight: true,
-      treatment: "Matéria-prima Japonesa + Super Hidrorrepelente",
-      badge: "Tecnologia Japonesa",
+      brandName: "Orgalens Mais",
+      brandLogo: "/logos/orgaline.svg",
+      treatment: "Antirreflexo Multicamadas + Super Hidrorrepelente",
+      badge: "Alta Nitidez",
       startingPrice: "R$ 159,90",
       installment: "10x de R$ 15,99 sem juros",
       leadTime: "Montagem ágil em laboratório",
       description:
-        "Polímero de alta densidade e pureza com tecnologia de ponta japonesa. Camada hidrofóbica que repele poeira, água e marcas de dedos.",
+        "Polímero óptico de alta densidade e pureza. Camada hidrofóbica e oleofóbica que repele poeira, água e marcas de dedos com facilidade superior de limpeza.",
       features: [
-        "Matéria-prima 100% japonesa de alta pureza",
+        "Matéria-prima de alta pureza óptica",
         "Facilidade superior de limpeza e antiaderente",
         "Durabilidade estendida contra riscos do dia a dia",
         "Excelente transparência luminosa",
@@ -108,15 +144,14 @@ export function LensesPricingSection() {
       name: "Maxxee by HOYA",
       category: "visao-simples",
       brandName: "HOYA / Maxxee",
-      brandLogo: "/images/lenses/brands/maxxee.jpg",
-      logoBgLight: true,
+      brandLogo: "/logos/hoya.svg",
       treatment: "Antirreflexo Hoya Hard Multi Coat (HMC)",
       badge: "Qualidade Global Hoya",
       startingPrice: "R$ 189,00",
       installment: "10x de R$ 18,90 sem juros",
       leadTime: "Montagem de alta precisão",
       description:
-        "A consagrada tecnologia japonesa da Hoya em uma linha acessível e confiável, com controle de reflexos de alta performance.",
+        "A consagrada tecnologia da Hoya em uma linha acessível e confiável, com controle de reflexos de alta performance e certificado de autenticidade.",
       features: [
         "Camadas antirreflexo de patente Hoya",
         "Excelente resistência a riscos e desgaste",
@@ -126,10 +161,10 @@ export function LensesPricingSection() {
     },
     {
       id: "kodak-simples",
-      name: "Kodak Clean&CleAR",
+      name: "Kodak Visão Simples",
       category: "visao-simples",
       brandName: "Kodak Lens",
-      brandLogo: "/images/lenses/brands/kodak.jpg",
+      brandLogo: "/logos/kodak.svg",
       treatment: "Antirreflexo Kodak Clean&CleAR + UV400",
       badge: "Tradição em Cores Vivas",
       startingPrice: "R$ 219,00",
@@ -147,34 +182,13 @@ export function LensesPricingSection() {
 
     // ---------------- MULTIFOCAIS (PROGRESSIVAS DIGITAIS) ----------------
     {
-      id: "correct-multi",
-      name: "Correct Digital Progressive",
+      id: "orgalens-multi",
+      name: "Orgalens Mais Progressive",
       category: "multifocal",
-      brandName: "Lentes Correct",
-      brandLogo: "/images/lenses/brands/correct.jpg",
-      treatment: "Campo Visual Amplo + Antirreflexo Digital",
-      badge: "Multifocal Acessível",
-      startingPrice: "R$ 289,00",
-      installment: "10x de R$ 28,90 sem juros",
-      leadTime: "Calibração personalizada",
-      description:
-        "Transição suave entre perto, intermediário e longe, sem linhas divisórias. Excelente adaptação para quem busca comodidade e economia.",
-      features: [
-        "Corredor óptico progressivo sem saltos de imagem",
-        "Adequada para leitura, celular e direção",
-        "Garantia de adaptação assistida",
-        "Tratamento antirreflexo incluso",
-      ],
-    },
-    {
-      id: "orgaline-multi",
-      name: "Orgaline+ Progressive Wide",
-      category: "multifocal",
-      brandName: "Orgaline+",
-      brandLogo: "/images/lenses/brands/orgaline.jpg",
-      logoBgLight: true,
-      treatment: "Tecnologia Japonesa Free-Form + Hidrorrepelente",
-      badge: "Campo Amplo & Leve",
+      brandName: "Orgalens Mais",
+      brandLogo: "/logos/orgaline.svg",
+      treatment: "Tecnologia Digital Free-Form + Hidrorrepelente",
+      badge: "Campo Amplo & Suave",
       startingPrice: "R$ 389,00",
       installment: "10x de R$ 38,90 sem juros",
       leadTime: "Calibração personalizada",
@@ -183,28 +197,28 @@ export function LensesPricingSection() {
       features: [
         "Surfaçagem digital de alta resolução",
         "Redução de aberrações laterais",
-        "Tratamento antirreflexo hidrorrepelente japonês",
+        "Tratamento antirreflexo hidrorrepelente",
         "Conforto para troca de foco entre tela e leitura",
       ],
     },
     {
-      id: "kodak-precise",
-      name: "Kodak Precise Digital",
+      id: "hoya-multifocal",
+      name: "HOYA Daynamic / Amplitude",
       category: "multifocal",
-      brandName: "Kodak Lens",
-      brandLogo: "/images/lenses/brands/kodak.jpg",
-      treatment: "Tecnologia Digital Vision Path + Clean&CleAR",
-      badge: "Adaptação Comprovada",
-      startingPrice: "R$ 449,00",
-      installment: "10x de R$ 44,90 sem juros",
+      brandName: "HOYA",
+      brandLogo: "/logos/hoya.svg",
+      treatment: "Design TrueForm Dupla Face + Hi-Vision",
+      badge: "Precisão Óptica Hoya",
+      startingPrice: "R$ 499,00",
+      installment: "10x de R$ 49,90 sem juros",
       leadTime: "Calibração e montagem rigorosa",
       description:
-        "Corredor visual balanceado matematicamente para leitura e uso de notebooks com estabilidade de imagem em todas as distâncias.",
+        "A tecnologia FreeForm da Hoya calculada para a anatomia do seu olhar, proporcionando clareza cristalina e conforto prolongado.",
       features: [
-        "Tecnologia Vision Path patenteada Kodak",
-        "Foco instantâneo ao alternar olhar de perto para longe",
-        "90 dias de garantia de adaptação clínica",
-        "Tratamento Clean&CleAR de alta durabilidade",
+        "Cálculo individual da graduação ponto a ponto",
+        "Amplo campo para leitura e uso de computador",
+        "Tratamento antirreflexo de altíssima durabilidade",
+        "Resistência superior a variações de temperatura",
       ],
     },
     {
@@ -212,8 +226,7 @@ export function LensesPricingSection() {
       name: "Varilux Comfort Max",
       category: "multifocal",
       brandName: "Varilux (Essilor)",
-      brandLogo: "/images/lenses/brands/varilux.jpg",
-      logoBgLight: true,
+      brandLogo: "/logos/varilux.svg",
       treatment: "Tecnologia Flex Optim + Antirreflexo Crizal",
       badge: "Líder Mundial em Multifocais",
       startingPrice: "R$ 589,00",
@@ -228,26 +241,6 @@ export function LensesPricingSection() {
         "Compatível com tratamentos Crizal e Transitions",
       ],
     },
-    {
-      id: "hoya-multifocal",
-      name: "HOYA Daynamic / Amplitude",
-      category: "multifocal",
-      brandName: "HOYA",
-      brandLogo: "/images/lenses/brands/hoya.jpg",
-      treatment: "Design TrueForm Dupla Face + Hi-Vision",
-      badge: "Precisão Óptica Japonesa",
-      startingPrice: "R$ 499,00",
-      installment: "10x de R$ 49,90 sem juros",
-      leadTime: "Calibração e montagem rigorosa",
-      description:
-        "A tecnologia FreeForm da Hoya calculada para a anatomia do seu olhar, proporcionando clareza cristalina e conforto prolongado.",
-      features: [
-        "Cálculo individual da graduação ponto a ponto",
-        "Amplo campo para leitura e uso de computador",
-        "Tratamento antirreflexo de altíssima durabilidade",
-        "Resistência superior a variações de temperatura",
-      ],
-    },
 
     // ---------------- TRATAMENTOS ESPECIAIS ----------------
     {
@@ -255,8 +248,7 @@ export function LensesPricingSection() {
       name: "Filtro Luz Azul (BlueProtect)",
       category: "tratamentos",
       brandName: "OPTiSYNC HD & Parceiros",
-      brandLogo: "/images/lenses/optisync-hd.jpg",
-      logoBgLight: true,
+      brandLogo: "/logos/optisync.svg",
       treatment: "Bloqueio de 400nm a 455nm (HEV) + Antirreflexo",
       badge: "Conforto para Telas",
       startingPrice: "R$ 149,90",
@@ -268,16 +260,15 @@ export function LensesPricingSection() {
         "Alívio contra a Síndrome da Fadiga Visual",
         "Ideal para quem passa mais de 4 horas por dia em telas",
         "Disponível com grau ou sem grau (lentes neutras)",
-        "Disponível em OPTiSYNC, Hoya, Kodak e Orgaline+",
+        "Disponível em OPTiSYNC HD, Hoya, Kodak e Orgalens",
       ],
     },
     {
       id: "tratamento-foto",
       name: "Fotossensíveis (Escurece no Sol)",
       category: "tratamentos",
-      brandName: "Transitions / Suntech / Photochromic",
-      brandLogo: "/images/lenses/brands/varilux.jpg",
-      logoBgLight: true,
+      brandName: "Transitions / Photochromic",
+      brandLogo: "/logos/transitions.svg",
       treatment: "Ativação Inteligente por Raios UV",
       badge: "Óculos 2 em 1",
       startingPrice: "Adicional a partir de R$ 149,00",
@@ -297,50 +288,54 @@ export function LensesPricingSection() {
   // Marcas oficiais parceiras com logos correspondentes
   const brandLogos = [
     {
-      name: "Lentes Correct",
-      logo: "/images/lenses/brands/correct.jpg",
-      badge: "Nacional Acessível",
-      desc: "Excelente custo-benefício e montagem ágil para visão simples e multifocais.",
+      name: "OPTiSYNC HD",
+      logo: "/logos/optisync.svg",
+      badge: "Ventara Exclusivo",
+      desc: "Lentes cortadas e facetadas no laboratório próprio de Araçatuba em até 1 hora, sem margem de terceiros.",
     },
     {
-      name: "Orgaline+",
-      logo: "/images/lenses/brands/orgaline.jpg",
-      logoBgLight: true,
-      badge: "Tecnologia Japonesa",
-      desc: "Matéria-prima importada de alta pureza e tratamento super hidrorrepelente.",
+      name: "Perego Laboratório",
+      logo: "/logos/perego.svg",
+      badge: "Laboratório Homologado",
+      desc: "Laboratório óptico parceiro com usinagem digital de alta precisão e controle de qualidade rigoroso.",
+    },
+    {
+      name: "Lentes Correct",
+      logo: "/logos/correct.svg",
+      badge: "Visão Simples Nacional",
+      desc: "Excelente custo-benefício e montagem ágil para visão simples com antirreflexo essencial.",
+    },
+    {
+      name: "Orgalens Mais",
+      logo: "/logos/orgaline.svg",
+      badge: "Alta Nitidez",
+      desc: "Matéria-prima de alta pureza com tratamento hidrorrepelente que facilita a limpeza diária.",
     },
     {
       name: "HOYA / Maxxee",
-      logo: "/images/lenses/brands/hoya.jpg",
+      logo: "/logos/hoya.svg",
       badge: "Precisão Global",
-      desc: "Referência japonesa mundial em óptica de alta fidelidade e durabilidade.",
+      desc: "Referência japonesa mundial em óptica de alta fidelidade e durabilidade contra riscos.",
     },
     {
       name: "Kodak Lens",
-      logo: "/images/lenses/brands/kodak.jpg",
-      badge: "Cores & Nitidez",
-      desc: "Mais de um século de tradição óptica, cores vivas e amplo campo visual.",
+      logo: "/logos/kodak.svg",
+      badge: "Visão Simples Acessível",
+      desc: "Mais de um século de tradição óptica, cores vivas e amplo campo visual com excelente preço.",
     },
     {
       name: "Varilux (Essilor)",
-      logo: "/images/lenses/brands/varilux.jpg",
-      logoBgLight: true,
+      logo: "/logos/varilux.svg",
       badge: "Líder Mundial",
-      desc: "A lente multifocal progressiva mais recomendada do planeta com garantia de adaptação.",
-    },
-    {
-      name: "OPTiSYNC HD",
-      logo: "/images/lenses/optisync-hd.jpg",
-      logoBgLight: true,
-      badge: "Marca Própria Ventara",
-      desc: "Corte direto no laboratório próprio de Araçatuba em até 1h, sem margem de terceiros.",
+      desc: "A lente multifocal progressiva mais recomendada do planeta com garantia total de adaptação.",
     },
   ];
 
+  const currentList = activeLenses.length > 0 ? activeLenses : lensOptions;
   const filteredOptions =
     activeCategory === "marcas"
       ? []
-      : lensOptions.filter((opt) => opt.category === activeCategory);
+      : currentList.filter((opt) => opt.category === activeCategory);
 
   const getWhatsAppQuoteUrl = (opt: LensOption) => {
     const text = encodeURIComponent(
@@ -552,9 +547,7 @@ export function LensesPricingSection() {
                     <img
                       src={brand.logo}
                       alt={brand.name}
-                      className={`max-h-12 max-w-[150px] object-contain rounded-md ${
-                        brand.logoBgLight ? "bg-white p-1" : ""
-                      }`}
+                      className="max-h-12 max-w-[150px] object-contain rounded-md"
                     />
                     <span className="text-[10px] font-bold uppercase tracking-wider px-2.5 py-1 rounded-full bg-slate-100 text-slate-700 border border-slate-200">
                       {brand.badge}
@@ -601,7 +594,7 @@ export function LensesPricingSection() {
             <div className="lg:col-span-8 space-y-4">
               <div className="flex items-center gap-2 flex-wrap">
                 <span className="text-[10px] font-extrabold uppercase tracking-widest px-3 py-1 rounded-full bg-amber-400 text-slate-950">
-                  MARCA PRÓPRIA VENTARA
+                  VENTARA EXCLUSIVO
                 </span>
                 <span className="text-xs text-amber-300 font-semibold flex items-center gap-1">
                   <Clock size={13} /> Montagem Expressa em até 1 Hora
