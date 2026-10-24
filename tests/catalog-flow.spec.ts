@@ -274,6 +274,8 @@ test.describe("Ótica Ventara - Catálogo e Interações", () => {
     await page.goto("/rastreio");
     await page.waitForLoadState("domcontentloaded");
     await expect(page.locator("h1")).toContainText("Acompanhe a Produção e Entrega");
+    await page.fill("input[placeholder*='código']", "VEN-10294");
+    await page.click("button:has-text('Rastrear')");
     await expect(page.getByText("VEN-10294").first()).toBeVisible();
     await expect(page.getByText("Corte na Facetadora Computadorizada")).toBeVisible();
     await expect(page.getByText("Gustavo Guimarães Cordeiro")).toBeVisible();

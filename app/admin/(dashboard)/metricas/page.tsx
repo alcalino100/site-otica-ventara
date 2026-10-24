@@ -96,8 +96,8 @@ export default function AdminMetricasPage() {
   };
 
   const summary = data?.summary || {
-    total_pageviews: 12,
-    total_utm_visits: 12,
+    total_pageviews: 0,
+    total_utm_visits: 0,
     total_whatsapp_clicks: 0,
     total_cart_adds: 0,
   };

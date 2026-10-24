@@ -109,20 +109,20 @@ export function WhyChooseSection() {
               return (
                 <div
                   key={idx}
-                  className="group relative p-4 sm:p-6 rounded-2xl bg-gradient-to-br from-[#06111f] via-[#040d1a] to-[#02070d] border border-white/10 hover:border-amber-400/40 shadow-[0_12px_28px_-6px_rgba(2,7,13,0.35),inset_0_1px_1px_rgba(255,255,255,0.1)] hover:-translate-y-1.5 hover:shadow-[0_20px_35px_-6px_rgba(7,86,184,0.3)] transition-all duration-300 flex flex-col justify-between"
+                  className="group relative p-3.5 sm:p-6 rounded-2xl bg-gradient-to-br from-[#06111f] via-[#040d1a] to-[#02070d] border border-white/10 hover:border-amber-400/40 shadow-[0_12px_28px_-6px_rgba(2,7,13,0.35),inset_0_1px_1px_rgba(255,255,255,0.1)] hover:-translate-y-1.5 hover:shadow-[0_20px_35px_-6px_rgba(7,86,184,0.3)] transition-all duration-300 flex flex-col justify-between"
                 >
                   {/* Detalhe luminoso no topo do card */}
                   <div className="absolute inset-x-4 top-0 h-[1px] bg-gradient-to-r from-transparent via-white/20 to-transparent pointer-events-none" />
 
                   <div>
-                    <div className={`w-9 h-9 sm:w-11 sm:h-11 rounded-xl ${feat.pillBg} ${feat.accent} flex items-center justify-center mb-3 sm:mb-4 border shadow-inner transition-transform group-hover:scale-105 duration-200`}>
-                      <Icon size={20} strokeWidth={2} />
+                    <div className={`w-9 h-9 sm:w-11 sm:h-11 rounded-xl ${feat.pillBg} ${feat.accent} flex items-center justify-center mb-2.5 sm:mb-4 border shadow-inner transition-transform group-hover:scale-105 duration-200`}>
+                      <Icon size={19} strokeWidth={2} />
                     </div>
-                    <h3 className="text-[11px] sm:text-xs font-bold uppercase tracking-wider text-white mb-1.5 leading-snug group-hover:text-amber-300 transition-colors">
+                    <h3 className="text-[10.5px] sm:text-xs font-bold uppercase tracking-wide text-white mb-1 leading-snug group-hover:text-amber-300 transition-colors">
                       {feat.title}
                     </h3>
                   </div>
-                  <p className="text-[11px] sm:text-xs text-slate-300 leading-relaxed mt-1">
+                  <p className="text-[10.5px] sm:text-xs text-slate-300 leading-relaxed mt-0.5">
                     {feat.description}
                   </p>
                 </div>

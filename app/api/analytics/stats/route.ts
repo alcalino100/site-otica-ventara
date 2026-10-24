@@ -14,25 +14,15 @@ export async function GET() {
       .maybeSingle();
 
     if (error || !setting) {
-      // Retorna fallback limpo
+      // Retorna estado real limpo (zero dados fictícios)
       return NextResponse.json({
         summary: {
-          total_pageviews: 12,
-          total_utm_visits: 12,
+          total_pageviews: 0,
+          total_utm_visits: 0,
           total_whatsapp_clicks: 0,
           total_cart_adds: 0,
         },
-        campaigns: {
-          "campanha-meta-ads": {
-            source: "meta",
-            medium: "cpc",
-            content: "criativo_1",
-            clicks: 18,
-            landing_page_views: 12,
-            whatsapp_conversions: 0,
-            last_visit_at: new Date().toISOString(),
-          },
-        },
+        campaigns: {},
         recent_visits: [],
         updated_at: new Date().toISOString(),
       });

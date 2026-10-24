@@ -33,9 +33,9 @@ export default function RastreioPage() {
   // Tema interativo para testar: "navy" (Azul Nobre Ventara), "black" (Preto Puro), "white" (Branco Clean)
   const [colorTheme, setColorTheme] = useState<"navy" | "black" | "white">("navy");
 
-  // Carrega automaticamente o exemplo VEN-10294 por padrão para mostrar o sistema em funcionamento
+  // Inicializa sem busca automática para aguardar entrada real do cliente
   useEffect(() => {
-    handleSearch("VEN-10294");
+    // Não carrega dados fictícios ao abrir a página
   }, []);
 
   const handleSearch = async (searchCode?: string) => {
@@ -175,55 +175,9 @@ export default function RastreioPage() {
           <h1 className={`text-2xl sm:text-4xl font-light tracking-tight ${isWhite ? "text-slate-950" : "text-white"}`}>
             Acompanhe a Produção e <span className="font-normal text-amber-500 dark:text-amber-400">Entrega do seu Pedido</span>
           </h1>
-          <p className={`text-xs sm:text-sm leading-relaxed ${isWhite ? "text-slate-600" : "text-slate-300"}`}>
+          <p className="text-xs sm:text-sm leading-relaxed text-slate-300">
             Consulte a cada etapa o corte na facetadora digital, a conferência do Técnico Óptico e o momento exato em que seus óculos estarão prontos para retirada ou entrega.
           </p>
-
-          {/* Seletor Interativo de Tema / Cor de Fundo */}
-          <div className="pt-2 flex flex-wrap items-center justify-center gap-2">
-            <span className={`text-[11px] font-medium flex items-center gap-1 ${isWhite ? "text-slate-500" : "text-slate-400"}`}>
-              <Palette size={13} className="text-amber-400" />
-              <span>Cor de fundo:</span>
-            </span>
-            <div className={`inline-flex items-center p-1 rounded-full border ${isWhite ? "bg-slate-200/80 border-slate-300" : "bg-white/5 border-white/10"}`}>
-              <button
-                type="button"
-                onClick={() => setColorTheme("navy")}
-                className={`px-3 py-1 rounded-full text-[11px] font-semibold transition-all ${
-                  colorTheme === "navy"
-                    ? "bg-[#0756b8] text-white shadow-xs"
-                    : "text-slate-400 hover:text-white"
-                }`}
-                title="Azul Nobre Oficial da Ventara"
-              >
-                Azul Ventara
-              </button>
-              <button
-                type="button"
-                onClick={() => setColorTheme("black")}
-                className={`px-3 py-1 rounded-full text-[11px] font-semibold transition-all ${
-                  colorTheme === "black"
-                    ? "bg-slate-800 text-white shadow-xs"
-                    : isWhite ? "text-slate-600 hover:text-slate-950" : "text-slate-400 hover:text-white"
-                }`}
-                title="Preto Puro Luxo"
-              >
-                Preto Luxo
-              </button>
-              <button
-                type="button"
-                onClick={() => setColorTheme("white")}
-                className={`px-3 py-1 rounded-full text-[11px] font-semibold transition-all ${
-                  colorTheme === "white"
-                    ? "bg-white text-slate-950 shadow-xs"
-                    : "text-slate-400 hover:text-white"
-                }`}
-                title="Branco Clean"
-              >
-                Branco Clean
-              </button>
-            </div>
-          </div>
         </div>
 
         {/* Barra de Busca de Rastreio */}
@@ -261,41 +215,82 @@ export default function RastreioPage() {
             </button>
           </form>
 
-          {/* Atalhos de Exemplo Rápido */}
-          <div className="flex flex-wrap items-center justify-center gap-2 text-[11px]">
-            <span className={isWhite ? "text-slate-500" : "text-slate-400"}>Exemplos em andamento:</span>
-            <button
-              onClick={() => handleSearch("VEN-10294")}
-              className={`px-2.5 py-1 rounded-lg border font-mono transition-colors ${
-                isWhite
-                  ? "bg-amber-50 hover:bg-amber-100 text-amber-800 border-amber-300"
-                  : "bg-amber-400/10 hover:bg-amber-400/20 text-amber-300 border-amber-400/30"
-              }`}
-            >
-              VEN-10294 (Na Facetadora · Amarelo)
-            </button>
-            <button
-              onClick={() => handleSearch("VEN-10380")}
-              className={`px-2.5 py-1 rounded-lg border font-mono transition-colors ${
-                isWhite
-                  ? "bg-emerald-50 hover:bg-emerald-100 text-emerald-800 border-emerald-300"
-                  : "bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-300 border-emerald-500/30"
-              }`}
-            >
-              VEN-10380 (Pronto na Loja · Verde)
-            </button>
-            <button
-              onClick={() => handleSearch("VEN-10415")}
-              className={`px-2.5 py-1 rounded-lg border font-mono transition-colors ${
-                isWhite
-                  ? "bg-cyan-50 hover:bg-cyan-100 text-cyan-800 border-cyan-300"
-                  : "bg-cyan-400/10 hover:bg-cyan-400/20 text-cyan-300 border-cyan-400/30"
-              }`}
-            >
-              VEN-10415 (Multifocal)
-            </button>
-          </div>
+          {/* Dica de busca */}
+          <p className="text-center text-[11px] text-slate-400">
+            Insira o código do pedido (ex: enviado no seu WhatsApp) ou os 11 dígitos do seu CPF cadastrado.
+          </p>
         </div>
+
+        {/* Estado Inicial: Apresentação da Linha de Produção quando nenhum pedido está em exibição */}
+        {!order && !error && (
+          <div className={`max-w-3xl mx-auto p-6 sm:p-8 rounded-3xl border space-y-6 ${cardBgClass}`}>
+            <div className="text-center space-y-2 pb-4 border-b border-white/10">
+              <span className="text-[10px] font-bold uppercase tracking-[0.2em] text-amber-400">
+                Transparência &amp; Alta Precisão
+              </span>
+              <h2 className="text-lg sm:text-xl font-semibold text-white">
+                Como acompanhamos seus óculos no laboratório
+              </h2>
+              <p className="text-xs text-slate-300 max-w-xl mx-auto leading-relaxed">
+                Cada armação da Óticas Ventara passa por etapas rastreadas digitalmente em nosso laboratório próprio em Araçatuba-SP.
+              </p>
+            </div>
+
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div className={`p-4 rounded-2xl border space-y-1.5 ${subCardBgClass}`}>
+                <div className="flex items-center gap-2">
+                  <span className="w-5 h-5 rounded-full bg-amber-400/20 text-amber-400 text-[11px] font-bold flex items-center justify-center">1</span>
+                  <h3 className="text-xs font-bold text-white">Triagem &amp; Validação Dióptrica</h3>
+                </div>
+                <p className="text-[11px] text-slate-300 leading-relaxed pl-7">
+                  Conferência da receita médica, parâmetros de DNP e prescrição com o Técnico Óptico.
+                </p>
+              </div>
+
+              <div className={`p-4 rounded-2xl border space-y-1.5 ${subCardBgClass}`}>
+                <div className="flex items-center gap-2">
+                  <span className="w-5 h-5 rounded-full bg-amber-400/20 text-amber-400 text-[11px] font-bold flex items-center justify-center">2</span>
+                  <h3 className="text-xs font-bold text-white">Facetadora Digital Computadorizada</h3>
+                </div>
+                <p className="text-[11px] text-slate-300 leading-relaxed pl-7">
+                  Corte milimétrico e biselamento de alta precisão com encaixe perfeito no aro da armação.
+                </p>
+              </div>
+
+              <div className={`p-4 rounded-2xl border space-y-1.5 ${subCardBgClass}`}>
+                <div className="flex items-center gap-2">
+                  <span className="w-5 h-5 rounded-full bg-amber-400/20 text-amber-400 text-[11px] font-bold flex items-center justify-center">3</span>
+                  <h3 className="text-xs font-bold text-white">Lensometria &amp; Higienização</h3>
+                </div>
+                <p className="text-[11px] text-slate-300 leading-relaxed pl-7">
+                  Aferição no lensômetro digital (tolerância zero de desvio) e banho ultrassônico.
+                </p>
+              </div>
+
+              <div className={`p-4 rounded-2xl border space-y-1.5 ${subCardBgClass}`}>
+                <div className="flex items-center gap-2">
+                  <span className="w-5 h-5 rounded-full bg-emerald-400/20 text-emerald-400 text-[11px] font-bold flex items-center justify-center">4</span>
+                  <h3 className="text-xs font-bold text-white">Pronto para Retirada ou Entrega</h3>
+                </div>
+                <p className="text-[11px] text-slate-300 leading-relaxed pl-7">
+                  Embalado no estojo rígido premium com flanela de microfibra e notificação no WhatsApp.
+                </p>
+              </div>
+            </div>
+
+            <div className="pt-2 text-center">
+              <a
+                href="https://wa.me/5518996155748?text=Ol%C3%A1%21%20Gostaria%20de%20consultar%20o%20status%20do%20meu%20pedido%20na%20%C3%93ticas%20Ventara."
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex items-center gap-2 px-4 py-2.5 rounded-full bg-white/5 hover:bg-white/10 border border-white/10 text-xs font-semibold text-slate-200 transition-colors"
+              >
+                <MessageCircle size={14} className="text-emerald-400" />
+                <span>Precisa de ajuda com o código? Falar no WhatsApp</span>
+              </a>
+            </div>
+          </div>
+        )}
 
         {/* Feedback de Erro */}
         {error && (

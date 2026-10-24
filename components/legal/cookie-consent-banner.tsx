@@ -23,9 +23,7 @@ export function CookieConsentBanner() {
     try {
       const saved = localStorage.getItem("ventara_cookie_consent");
       if (!saved) {
-        // Exibe de forma suave após a renderização inicial
-        const timer = setTimeout(() => setIsVisible(true), 300);
-        return () => clearTimeout(timer);
+        setIsVisible(true);
       }
     } catch {
       // localStorage bloqueado ou indisponível

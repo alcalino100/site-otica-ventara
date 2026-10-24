@@ -212,13 +212,13 @@ export function CatalogSection({
           {/* Linha 1: Categorias Principais + Campo de Busca Rápida */}
           <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
             {/* Abas Primárias com classes que os testes esperam (active) */}
-            <div role="group" aria-label="Filtrar por tipo de armação" className="flex items-center gap-2 flex-wrap">
+            <div role="group" aria-label="Filtrar por tipo de armação" className="flex items-center gap-2 overflow-x-auto pb-1 sm:pb-0 no-scrollbar sm:flex-wrap">
               {["Todos", "Grau", "Solar", "Infantil"].map((cat) => (
                 <button
                   key={cat}
                   type="button"
                   onClick={() => handleFilterChange(cat)}
-                  className={`filter-pill px-6 py-2.5 rounded-full text-xs font-bold uppercase tracking-wider transition-all duration-200 border active:scale-95 ${
+                  className={`filter-pill px-4 sm:px-6 py-2 sm:py-2.5 rounded-full text-xs font-bold uppercase tracking-wider transition-all duration-200 border active:scale-95 shrink-0 ${
                     filter === cat
                       ? "bg-[#06111f] !text-amber-400 border-[#06111f] shadow-md active"
                       : "bg-white text-slate-700 border-slate-300 hover:border-slate-400"

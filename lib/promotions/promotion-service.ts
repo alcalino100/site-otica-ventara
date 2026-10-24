@@ -25,56 +25,10 @@ let inMemoryRevisions: Array<{ id: string; version: number; published_at: string
   },
 ];
 
-// Dados demonstrativos em memória para inicializar o painel e simulação
-let inMemoryParticipations: PromotionParticipation[] = [
-  {
-    id: "part-1001",
-    campaign_id: "camp-ventara-revelacao-v1",
-    campaign_version: 1,
-    lead_id: "lead-01",
-    lead_name: "Mariana Silva",
-    lead_phone_masked: "(18) 99821-**** ",
-    benefit_label: "10% OFF",
-    winning_segment_id: "seg-1",
-    coupon_code: "VENTARA-10-8X9K2",
-    coupon_status: "issued",
-    coupon_expires_at: new Date(Date.now() + 7 * 86400000).toISOString(),
-    created_at: new Date(Date.now() - 3600000 * 4).toISOString(),
-  },
-  {
-    id: "part-1002",
-    campaign_id: "camp-ventara-revelacao-v1",
-    campaign_version: 1,
-    lead_id: "lead-02",
-    lead_name: "Carlos Eduardo Costa",
-    lead_phone_masked: "(18) 99712-**** ",
-    benefit_label: "10% OFF",
-    winning_segment_id: "seg-3",
-    coupon_code: "VENTARA-10-7B3M9",
-    coupon_status: "used",
-    coupon_expires_at: new Date(Date.now() + 7 * 86400000).toISOString(),
-    created_at: new Date(Date.now() - 86400000 * 2).toISOString(),
-    used_at: new Date(Date.now() - 86400000 * 1).toISOString(),
-    used_by_operator: "Gustavo Cordeiro (Técnico Óptico)",
-  },
-  {
-    id: "part-1003",
-    campaign_id: "camp-ventara-revelacao-v1",
-    campaign_version: 1,
-    lead_id: "lead-03",
-    lead_name: "Juliana Mendes",
-    lead_phone_masked: "(18) 99144-**** ",
-    benefit_label: "10% OFF",
-    winning_segment_id: "seg-5",
-    coupon_code: "VENTARA-10-5T2R1",
-    coupon_status: "issued",
-    coupon_expires_at: new Date(Date.now() + 5 * 86400000).toISOString(),
-    created_at: new Date(Date.now() - 86400000 * 3).toISOString(),
-  },
-];
-
-let inMemoryImpressions = 142;
-let inMemoryOpens = 86;
+// Armazenamento em memória (iniciado vazio para dados reais de produção)
+let inMemoryParticipations: PromotionParticipation[] = [];
+let inMemoryImpressions = 0;
+let inMemoryOpens = 0;
 
 /**
  * Gera um código de cupom único, amigável para leitura e seguro contra adivinhação

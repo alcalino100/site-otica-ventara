@@ -76,7 +76,7 @@ export function Hero({ products }: HeroProps) {
   return (
     <section className="hero relative overflow-hidden" id="inicio">
       {/* Container Unificado Padrão UI/UX Ampliado - Ajuste Mobile Rente e Equilibrado */}
-      <div className="max-w-[1400px] mx-auto px-4 sm:px-8 lg:px-10 w-full pt-24 sm:pt-36 lg:pt-40 pb-8 sm:pb-12 relative z-10 flex flex-col justify-between flex-1 min-h-0 sm:min-h-[720px]">
+      <div className="max-w-[1400px] mx-auto px-4 sm:px-8 lg:px-10 w-full pt-20 sm:pt-36 lg:pt-40 pb-6 sm:pb-12 relative z-10 flex flex-col justify-between flex-1 min-h-0 sm:min-h-[720px]">
         {/* Grid de 2 Colunas Perfeitamente Margeado */}
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-12 items-center flex-1 my-auto">
           {/* Coluna Esquerda: Texto */}
@@ -86,7 +86,7 @@ export function Hero({ products }: HeroProps) {
               QUALIDADE QUE VOCÊ VÊ
             </p>
 
-            <h1 className="text-4xl sm:text-6xl font-light text-white tracking-tight leading-tight">
+            <h1 className="text-3xl sm:text-6xl font-light text-white tracking-tight leading-[1.15]">
               Mais que óculos,<br />
               é sobre{" "}
               <HighlightedText

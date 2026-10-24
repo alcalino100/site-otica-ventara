@@ -609,18 +609,18 @@ export function LensesPricingSection() {
                 Cortadas e facetadas com precisão nanométrica em nossa biseladora computadorizada na Rua Princesa Isabel, 221. Proteção contra luz azul, antirreflexo de altíssima claridade e o melhor custo de fábrica, sem comissões ou repasses a intermediários.
               </p>
 
-              <div className="pt-2 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 border-t border-white/10">
-                <div className="text-xs text-slate-300 space-x-3">
-                  <span>✓ Filtro Azul Incluso</span>
-                  <span>✓ Antirreflexo Multicamadas</span>
-                  <span>✓ Garantia de Fábrica</span>
+              <div className="pt-2 flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-4 border-t border-white/10">
+                <div className="flex flex-wrap gap-2 text-xs text-slate-300">
+                  <span className="px-2 py-0.5 rounded-md bg-white/5 border border-white/10">✓ Filtro Azul Incluso</span>
+                  <span className="px-2 py-0.5 rounded-md bg-white/5 border border-white/10">✓ Antirreflexo Multicamadas</span>
+                  <span className="px-2 py-0.5 rounded-md bg-white/5 border border-white/10">✓ Garantia de Fábrica</span>
                 </div>
 
                 <a
                   href="https://wa.me/5518996155748?text=Ol%C3%A1!%20Gostaria%20de%20um%20or%C3%A7amento%20para%20as%20lentes%20exclusivas%20OPTiSYNC%20HD%20da%20%C3%93ticas%20Ventara."
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="inline-flex items-center gap-2 px-6 py-3.5 rounded-xl bg-amber-400 hover:bg-amber-300 text-slate-950 font-bold text-xs uppercase tracking-wider transition-all shadow-md active:scale-95 shrink-0"
+                  className="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-6 py-3.5 rounded-xl bg-amber-400 hover:bg-amber-300 text-slate-950 font-bold text-xs uppercase tracking-wider transition-all shadow-md active:scale-95 shrink-0"
                 >
                   <MessageSquare size={15} />
                   <span>Pedir Orçamento OPTiSYNC</span>

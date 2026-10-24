@@ -227,20 +227,20 @@ export function PromotionWheelModal({
 
         {/* COLUNA ESQUERDA: ROLETA VISUAL (COMPACTA NO MOBILE, DESTAQUE NO DESKTOP) */}
         <div
-          className="lg:w-1/2 p-6 sm:p-8 flex flex-col items-center justify-center relative overflow-hidden border-b lg:border-b-0 lg:border-r border-white/10"
+          className="lg:w-1/2 p-4 sm:p-8 flex flex-col items-center justify-center relative overflow-hidden border-b lg:border-b-0 lg:border-r border-white/10"
           style={{ backgroundColor: appearance.surface_color }}
         >
           {/* Luz de fundo suave e nobre */}
           <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[340px] h-[340px] bg-amber-400/10 blur-[90px] rounded-full pointer-events-none" />
 
           {/* Badge Informativo da Campanha (Transparência Garantida - sem sorteio falso) */}
-          <div className="mb-4 inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-amber-400/15 border border-amber-400/35 text-amber-300 text-[11px] font-bold uppercase tracking-wider shadow-sm z-10 text-center">
+          <div className="mb-3 inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-amber-400/15 border border-amber-400/35 text-amber-300 text-[10px] sm:text-[11px] font-bold uppercase tracking-wider shadow-sm z-10 text-center">
             <Sparkles size={12} className="text-amber-400 shrink-0" />
             <span>{config.fixed_benefit.badge_text}</span>
           </div>
 
-          {/* Componente Canvas da Roleta */}
-          <div className="relative z-10 my-2">
+          {/* Componente Canvas da Roleta com Tamanho Otimizado para Mobile */}
+          <div className="relative z-10 my-1">
             <PromotionWheelCanvas
               segments={segments}
               isSpinning={modalState === "spinning"}
@@ -248,11 +248,11 @@ export function PromotionWheelModal({
               pointerColor={appearance.pointer_color}
               borderColor={appearance.border_color}
               onSpinEnd={handleSpinEnd}
-              size={290}
+              size={240}
             />
           </div>
 
-          <p className="text-[11px] text-slate-400 text-center mt-3 max-w-xs z-10">
+          <p className="text-[10px] sm:text-[11px] text-slate-400 text-center mt-2 max-w-xs z-10">
             {modalState === "spinning"
               ? "Girando e revelando seu benefício exclusivo..."
               : "Gire para revelar seu código de desconto em armações e lentes."}
@@ -260,7 +260,7 @@ export function PromotionWheelModal({
         </div>
 
         {/* COLUNA DIREITA: FORMULÁRIO OU RESULTADO COM ACESSIBILIDADE ARIA-LIVE */}
-        <div className="lg:w-1/2 p-6 sm:p-8 flex flex-col justify-between" aria-live="polite">
+        <div className="lg:w-1/2 p-4 sm:p-8 flex flex-col justify-between" aria-live="polite">
           {/* TELA DE RESULTADO REVELADO */}
           {modalState === "result" && resultData ? (
             <div className="space-y-6 my-auto animate-in fade-in zoom-in-95 duration-300">

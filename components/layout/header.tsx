@@ -143,15 +143,14 @@ export function Header({
 
         {/* Header Actions: Rastreio Mobile, Busca, Carrinho e Mobile Menu */}
         <div className="header-actions flex items-center gap-2">
-          {/* Botão Rastrear seu Pedido no Mobile com Destaque e Confiança */}
+          {/* Botão Rastrear seu Pedido no Mobile - Ícone elegante e harmonioso */}
           <a
             href="/rastreio"
-            className="md:hidden inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-amber-400/10 hover:bg-amber-400/20 border border-amber-400/35 text-amber-300 text-[11px] font-semibold transition-all active:scale-95 shadow-xs"
+            className="md:hidden action-btn"
             title="Rastrear seu pedido"
             aria-label="Rastrear seu pedido"
           >
-            <Package size={12} className="text-amber-400 shrink-0" />
-            <span className="tracking-tight">Rastrear seu pedido</span>
+            <Package size={18} className="text-amber-400" />
           </a>
 
           <button

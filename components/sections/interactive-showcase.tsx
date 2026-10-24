@@ -582,14 +582,14 @@ export function InteractiveShowcase({
               </p>
 
               {/* Box de Preço e Parcelamento */}
-              <div className="p-4 rounded-2xl bg-white border border-slate-200/90 shadow-xs flex items-baseline justify-between gap-4">
+              <div className="p-4 rounded-2xl bg-white border border-slate-200/90 shadow-xs flex flex-col sm:flex-row items-start sm:items-baseline justify-between gap-2 sm:gap-4">
                 <div>
                   <span className="text-[11px] text-slate-500 block uppercase font-medium">Preço à vista no Pix</span>
                   <span className="text-2xl sm:text-3xl font-extrabold text-[#06111f] font-mono tracking-tight">
                     {priceFormatted}
                   </span>
                 </div>
-                <div className="text-right">
+                <div className="text-left sm:text-right">
                   <span className="text-[11px] text-slate-500 block">Condição de parcelamento</span>
                   <span className="text-xs sm:text-sm font-semibold text-slate-700">
                     10x de <strong className="text-slate-900">{installmentFormatted}</strong> sem juros
@@ -598,7 +598,7 @@ export function InteractiveShowcase({
               </div>
 
               {/* Botão de Ação Primária & Secundária */}
-              <div className="flex flex-wrap items-center gap-3 pt-2">
+              <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 pt-2">
                 <Link
                   href={`/produto/${currentData.featuredProductSlug}`}
                   className="inline-flex items-center justify-center gap-2 px-6 py-3.5 rounded-full bg-amber-400 hover:bg-amber-300 active:scale-95 text-slate-950 font-bold text-xs sm:text-sm tracking-wider uppercase transition-all duration-200 shadow-md shadow-amber-400/20 group cursor-pointer"
