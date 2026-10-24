@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useTransition, useEffect, useMemo } from "react";
+import React, { useState, useTransition, useEffect, useMemo, useRef } from "react";
 import {
   SlidersHorizontal,
   Search,
@@ -11,6 +11,8 @@ import {
   Gem,
   Tag,
   RotateCcw,
+  ChevronLeft,
+  ChevronRight,
 } from "lucide-react";
 import { Product } from "@/types/ecommerce";
 import { ProductCard } from "./product-card";
@@ -39,6 +41,19 @@ export function CatalogSection({
   const [sortBy, setSortBy] = useState<string>("featured");
   const [query, setQuery] = useState<string>("");
   const [isPending, startTransition] = useTransition();
+  const carouselRef = useRef<HTMLDivElement>(null);
+
+  const scrollPrev = () => {
+    if (carouselRef.current) {
+      carouselRef.current.scrollBy({ left: -300, behavior: "smooth" });
+    }
+  };
+
+  const scrollNext = () => {
+    if (carouselRef.current) {
+      carouselRef.current.scrollBy({ left: 300, behavior: "smooth" });
+    }
+  };
 
   // Listen for hash changes like #solar or #armacoes ou #grau ou #infantil
   useEffect(() => {
@@ -183,7 +198,7 @@ export function CatalogSection({
     (query.trim() !== "" ? 1 : 0);
 
   return (
-    <section className="collection light-section py-20 bg-slate-50 border-b border-slate-200" id="armacoes">
+    <section className="collection light-section py-16 sm:py-20 bg-slate-50 border-b border-slate-200 overflow-hidden" id="armacoes">
       <div id="solar" className="sr-only">Seção Óculos de Sol</div>
       <div id="grau" className="sr-only">Seção Armações de Grau</div>
       <div id="infantil" className="sr-only">Seção Óculos Infantis</div>
@@ -416,20 +431,60 @@ export function CatalogSection({
           )}
         </div>
 
-        {/* Grade de Produtos ou Estado Vazio */}
+        {/* Grade de Produtos no Desktop / Carrossel Horizontal com Snap no Mobile */}
         {isPending ? (
           <ProductGridSkeleton />
         ) : filteredProducts.length > 0 ? (
-          <div className="product-grid grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-            {filteredProducts.map((product) => (
-              <ProductCard
-                key={product.id}
-                product={product}
-                onSelect={onSelectProduct}
-                onAddToCart={onAddToCart}
-                isInCart={cartIds.includes(product.id)}
-              />
-            ))}
+          <div className="relative">
+            {/* Carrossel no Mobile (scroll horizontal com snap) / Grid no Desktop */}
+            <div
+              ref={carouselRef}
+              className="product-grid flex sm:grid overflow-x-auto sm:overflow-visible snap-x snap-mandatory sm:snap-none gap-4 sm:gap-6 pb-3 sm:pb-0 sm:grid-cols-2 lg:grid-cols-4 no-scrollbar -mx-4 px-4 sm:mx-0 sm:px-0"
+            >
+              {filteredProducts.map((product) => (
+                <div
+                  key={product.id}
+                  className="snap-center shrink-0 w-[84vw] max-w-[320px] sm:w-auto sm:max-w-none flex flex-col"
+                >
+                  <ProductCard
+                    product={product}
+                    onSelect={onSelectProduct}
+                    onAddToCart={onAddToCart}
+                    isInCart={cartIds.includes(product.id)}
+                  />
+                </div>
+              ))}
+            </div>
+
+            {/* Controles do Carrossel Exclusivos para Telas Mobile */}
+            <div className="flex sm:hidden items-center justify-between pt-3 px-1">
+              <div className="flex items-center gap-1.5 text-[11px] font-medium text-slate-600">
+                <span className="w-1.5 h-1.5 rounded-full bg-amber-500 animate-pulse" />
+                <span>Deslize para ver mais modelos</span>
+                <span className="font-mono text-slate-400 font-semibold">
+                  ({filteredProducts.length})
+                </span>
+              </div>
+
+              <div className="flex items-center gap-1.5">
+                <button
+                  type="button"
+                  onClick={scrollPrev}
+                  aria-label="Armação anterior"
+                  className="w-8 h-8 rounded-full border border-slate-200 bg-white shadow-2xs flex items-center justify-center text-slate-700 active:scale-90 transition-transform"
+                >
+                  <ChevronLeft size={16} />
+                </button>
+                <button
+                  type="button"
+                  onClick={scrollNext}
+                  aria-label="Próxima armação"
+                  className="w-8 h-8 rounded-full border border-slate-200 bg-white shadow-2xs flex items-center justify-center text-slate-700 active:scale-90 transition-transform"
+                >
+                  <ChevronRight size={16} />
+                </button>
+              </div>
+            </div>
           </div>
         ) : (
           <div className="empty-catalog text-center py-16 bg-white rounded-3xl border border-slate-200 max-w-md mx-auto p-8 shadow-sm space-y-3">
