@@ -475,7 +475,7 @@ export function CatalogSection({
               </div>
             </div>
 
-            {/* Carrossel no Mobile (1 nível de altura, margem lateral generosa UI/UX, sem sobreposição) / Grid no Desktop */}
+            {/* Carrossel no Mobile (1 nível de altura, tamanho compacto, margem lateral generosa UI/UX, sem sobreposição) / Grid no Desktop */}
             <div
               ref={carouselRef}
               onScroll={handleCarouselScroll}
@@ -488,7 +488,7 @@ export function CatalogSection({
               {filteredProducts.map((product) => (
                 <div
                   key={product.id}
-                  className="snap-center shrink-0 w-[74vw] max-w-[285px] sm:w-auto sm:max-w-none flex flex-col"
+                  className="snap-start shrink-0 w-[58vw] max-w-[225px] sm:w-auto sm:max-w-none flex flex-col"
                 >
                   <ProductCard
                     product={product}
