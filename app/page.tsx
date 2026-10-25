@@ -10,6 +10,7 @@ import { WhyChooseSection } from "../components/sections/why-choose-section";
 import { InteractiveShowcase } from "../components/sections/interactive-showcase";
 import { CatalogSection } from "../components/catalog/catalog-section";
 import { LensesPricingSection } from "../components/sections/lenses-pricing-section";
+import { ColoredLensesShowcase } from "../components/sections/colored-lenses-showcase";
 import { StoreSection } from "../components/sections/store-section";
 import { WhatsAppSection } from "../components/sections/whatsapp-section";
 import { FAQAccordion } from "../components/sections/faq-accordion";
@@ -177,7 +178,10 @@ export default function Home() {
         {/* 8. Seção de Lentes de Alta Precisão (Visão Simples, Multifocal, Marcas Homologadas e Símbolo Óptico) */}
         <LensesPricingSection />
 
-        {/* 9. CTA Final Direto para o WhatsApp */}
+        {/* 9. Coleção Exclusiva de Lentes Coloridas e Solares (8 Cores) */}
+        <ColoredLensesShowcase />
+
+        {/* 10. CTA Final Direto para o WhatsApp */}
         <WhatsAppSection onNotify={notify} />
 
         {/* 10. FAQ com Dúvidas Frequentes */}

@@ -1216,6 +1216,27 @@ h1 strong {
   }
 }
 
+/* Infinite Marquee for Partner Logos Ribbon */
+@keyframes ventara-marquee {
+  0% {
+    transform: translate3d(0, 0, 0);
+  }
+  100% {
+    transform: translate3d(-50%, 0, 0);
+  }
+}
+
+.animate-ventara-marquee {
+  display: flex;
+  width: max-content;
+  animation: ventara-marquee 28s linear infinite;
+  will-change: transform;
+}
+
+.animate-ventara-marquee:hover {
+  animation-play-state: paused;
+}
+
 /* Accessibility: Reduced Motion Override */
 @media (prefers-reduced-motion: reduce) {
   html {

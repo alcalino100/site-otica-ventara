@@ -472,6 +472,14 @@ export function LensesPricingSection() {
             <Award size={16} className={activeCategory === "marcas" ? "text-amber-400" : "text-amber-600"} />
             <span>Todas as Marcas Homologadas</span>
           </button>
+
+          <a
+            href="#lentes-coloridas"
+            className="flex items-center gap-2 px-5 py-3 rounded-2xl text-xs sm:text-sm font-bold whitespace-nowrap bg-amber-400 hover:bg-amber-300 text-slate-950 border border-amber-400 shadow-md shadow-amber-400/20 transition-all duration-200 cursor-pointer shrink-0"
+          >
+            <SunMedium size={16} />
+            <span>Lentes Coloridas (8 Cores)</span>
+          </a>
         </div>
 
         {/* CONTEÚDO DAS CATEGORIAS (GRADE DE CARDS NO DESKTOP / CARROSSEL HORIZONTAL DE 1 NÍVEL NO MOBILE) */}

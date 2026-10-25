@@ -561,25 +561,41 @@ export function InteractiveShowcase({
         {/* PARTE 2: VITRINE DE PRODUTO EM DESTAQUE COM MINIATURAS INTERATIVAS */}
         {/* ============================================================== */}
         <div className="pt-8 border-t border-slate-200/80">
-          <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-12 items-center">
+          {/* Header Mobile: Exibido no topo da seção em telas compactas */}
+          <div className="lg:hidden space-y-2 mb-5">
+            <div className="flex items-center gap-2 text-xs font-bold tracking-widest text-amber-600 uppercase">
+              <span className="w-4 h-0.5 bg-amber-500 rounded-full" />
+              <span>{currentData.sectionTag}</span>
+            </div>
+
+            <h3 className="text-2xl sm:text-3xl font-bold text-[#06111f] tracking-tight leading-tight">
+              {currentData.productHeadline}
+            </h3>
+
+            <p className="text-xs sm:text-sm text-slate-600 leading-relaxed">
+              {currentData.productDescription}
+            </p>
+          </div>
+
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 lg:gap-12 items-center">
             
-            {/* Coluna Esquerda: Informações Técnicas e CTA do Produto em Foco */}
-            <div className="lg:col-span-5 space-y-4">
-              {/* Linha Indicadora com Dash Âmbar */}
-              <div className="flex items-center gap-2 text-xs font-bold tracking-widest text-amber-600 uppercase">
-                <span className="w-4 h-0.5 bg-amber-500 rounded-full" />
-                <span>{currentData.sectionTag}</span>
+            {/* Coluna de Preço e CTAs: No mobile fica DEPOIS da Foto e Miniaturas (order-2) */}
+            <div className="order-2 lg:order-1 lg:col-span-5 space-y-4">
+              {/* Header exclusivo para Desktop */}
+              <div className="hidden lg:block space-y-4">
+                <div className="flex items-center gap-2 text-xs font-bold tracking-widest text-amber-600 uppercase">
+                  <span className="w-4 h-0.5 bg-amber-500 rounded-full" />
+                  <span>{currentData.sectionTag}</span>
+                </div>
+
+                <h3 className="text-2xl sm:text-4xl font-bold text-[#06111f] tracking-tight leading-tight">
+                  {currentData.productHeadline}
+                </h3>
+
+                <p className="text-xs sm:text-sm text-slate-600 leading-relaxed">
+                  {currentData.productDescription}
+                </p>
               </div>
-
-              {/* Título da Linha */}
-              <h3 className="text-2xl sm:text-4xl font-bold text-[#06111f] tracking-tight leading-tight">
-                {currentData.productHeadline}
-              </h3>
-
-              {/* Descrição Funcional */}
-              <p className="text-xs sm:text-sm text-slate-600 leading-relaxed">
-                {currentData.productDescription}
-              </p>
 
               {/* Box de Preço e Parcelamento */}
               <div className="p-4 rounded-2xl bg-white border border-slate-200/90 shadow-xs flex flex-col sm:flex-row items-start sm:items-baseline justify-between gap-2 sm:gap-4">
@@ -627,8 +643,8 @@ export function InteractiveShowcase({
               </div>
             </div>
 
-            {/* Coluna Direita: Foto Ampla da Armação Selecionada + Carrossel de Miniaturas */}
-            <div className="lg:col-span-7 space-y-5">
+            {/* Coluna da Foto e Miniaturas: No mobile aparece PRIMEIRO (order-1) */}
+            <div className="order-1 lg:order-2 lg:col-span-7 space-y-5">
               
               {/* Moldura de Showcase Principal da Armação */}
               <div className="relative bg-white rounded-3xl border border-slate-200 p-6 sm:p-10 flex flex-col items-center justify-center min-h-[280px] sm:min-h-[360px] shadow-sm overflow-hidden group">

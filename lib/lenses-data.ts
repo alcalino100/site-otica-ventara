@@ -1,7 +1,7 @@
 export interface AdminLensItem {
   id: string;
   name: string;
-  category: "visao-simples" | "multifocal" | "tratamentos";
+  category: "visao-simples" | "multifocal" | "tratamentos" | "coloridas";
   brandName: string;
   brandLogo: string;
   treatment: string;
@@ -12,7 +12,187 @@ export interface AdminLensItem {
   description: string;
   features: string[];
   isActive?: boolean;
+  colorHex?: string;
+  lensColorId?: string;
 }
+
+export interface ColoredLensPreset {
+  id: string;
+  name: string;
+  colorName: string;
+  colorHex: string;
+  badge: string;
+  categoryTag: string;
+  description: string;
+  benefits: string[];
+  bestFor: string;
+  priceFormatted: string;
+  installmentFormatted: string;
+  leadTime: string;
+}
+
+export const COLORED_LENSES_LIST: ColoredLensPreset[] = [
+  {
+    id: "lente-cor-azul",
+    name: "Azul Safira Polarizado",
+    colorName: "Azul",
+    colorHex: "#1e40af",
+    badge: "Alta Nitidez & Estilo",
+    categoryTag: "REDUÇÃO DE BRILHO • CONTRASTE URBANO",
+    description:
+      "Tonalidade azul safira com tratamento antirreflexo traseiro. Reduz a fadiga provocada pelo brilho solar em superfícies reflexivas e água.",
+    benefits: [
+      "Filtro UV400 total contra radiação nociva",
+      "Realce de contornos sob luz solar aberta",
+      "Acabamento espelhado ou translúcido profundo",
+      "Montagem com ou sem graduação médica",
+    ],
+    bestFor: "Esportes aquáticos, praia e visual contemporâneo",
+    priceFormatted: "R$ 149,90",
+    installmentFormatted: "10x de R$ 14,99 sem juros",
+    leadTime: "Pronto em até 1 hora",
+  },
+  {
+    id: "lente-cor-marrom",
+    name: "Marrom Âmbar Polarizado",
+    colorName: "Marrom",
+    colorHex: "#78350f",
+    badge: "Conforto para Direção",
+    categoryTag: "PROFUNDIDADE • ALTO CONTRASTE DIURNO",
+    description:
+      "Aumenta sensivelmente a percepção de profundidade e o contraste entre verde e vermelho. Ideal para quem dirige sob luz solar contínua.",
+    benefits: [
+      "Melhor percepção de distância e profundidade de pista",
+      "Bloqueio da luz azul dispersa na atmosfera",
+      "Conforto para olhos sensíveis a claridade intensa",
+      "Excelente fidelidade para paisagens naturais",
+    ],
+    bestFor: "Direção diurna, viagens e golfe",
+    priceFormatted: "R$ 149,90",
+    installmentFormatted: "10x de R$ 14,99 sem juros",
+    leadTime: "Pronto em até 1 hora",
+  },
+  {
+    id: "lente-cor-amarelo",
+    name: "Amarelo Night Driver",
+    colorName: "Amarelo Night Driver",
+    colorHex: "#eab308",
+    badge: "Visão Noturna & Chuva",
+    categoryTag: "SEGURANÇA NOTURNA • ANTI-OFUSCAMENTO LED",
+    description:
+      "Lente amarela fototécnica que neutraliza o ofuscamento dos faróis de LED brancos e postes modernos, ampliando a nitidez na chuva e neblina.",
+    benefits: [
+      "Reduz ofuscamento de faróis altos e LEDs",
+      "Amplia o contraste em noites escuras e pistas molhadas",
+      "Alívio imediato contra cansaço visual em longas viagens",
+      "Aprovada para direção noturna e neblina pesada",
+    ],
+    bestFor: "Motoristas de estrada, chuva e neblina",
+    priceFormatted: "R$ 139,90",
+    installmentFormatted: "10x de R$ 13,99 sem juros",
+    leadTime: "Pronto em até 1 hora",
+  },
+  {
+    id: "lente-cor-vermelho",
+    name: "Vermelho Ruby Performance",
+    colorName: "Vermelho",
+    colorHex: "#dc2626",
+    badge: "Esportes & Ação",
+    categoryTag: "CONTRASTE AGUDO • VELOCIDADE & TRILHA",
+    description:
+      "Filtra o espectro luminoso para oferecer um contraste agudo de terrenos, copas de árvores e pistas de asfalto em velocidade.",
+    benefits: [
+      "Aumento agudo de contraste em terrenos irregulares",
+      "Adaptação rápida em alternâncias de sol e sombra",
+      "Proteção UV400 e tratamento antirrisco de alta densidade",
+      "Design aerodinâmico para óculos esportivos",
+    ],
+    bestFor: "Ciclismo, corrida, kart e trilha",
+    priceFormatted: "R$ 159,90",
+    installmentFormatted: "10x de R$ 15,99 sem juros",
+    leadTime: "Pronto em até 1 hora",
+  },
+  {
+    id: "lente-cor-rosa",
+    name: "Rosa Suave / Rose Glow",
+    colorName: "Rosa",
+    colorHex: "#ec4899",
+    badge: "Relaxamento Visual",
+    categoryTag: "BEM-ESTAR OCULAR • DIAS NUBLADOS",
+    description:
+      "Tonalidade rosada cosmética que acalma a musculatura ciliar e equilibra a iluminação artificial fluorescente e telas digitais.",
+    benefits: [
+      "Relaxamento para olhos cansados e enxaqueca com aura",
+      "Excelente clareza em dias nublados e fim de tarde",
+      "Estética sofisticada para armações metálicas e acetato",
+      "Transição fluida entre ambientes fechados e abertos",
+    ],
+    bestFor: "Telas, ambientes mistos e estética refinada",
+    priceFormatted: "R$ 149,90",
+    installmentFormatted: "10x de R$ 14,99 sem juros",
+    leadTime: "Pronto em até 1 hora",
+  },
+  {
+    id: "lente-cor-roxa",
+    name: "Roxa Violeta Polar",
+    colorName: "Roxa",
+    colorHex: "#7c3aed",
+    badge: "Design Autoral",
+    categoryTag: "PROFUNDIDADE CROMÁTICA • ESTILO VENTARA",
+    description:
+      "Equilíbrio óptico entre comprimentos de onda azuis e vermelhos. Destaca elementos naturais e confere presença única à armação.",
+    benefits: [
+      "Neutraliza reflexos excessivos em água e asfalto",
+      "Realça a saturação natural das cores vivas",
+      "Filtro ultravioleta integral com selo UV400",
+      "Compatível com lentes solares graduadas",
+    ],
+    bestFor: "Pesca esportiva, eventos ao ar livre e estilo",
+    priceFormatted: "R$ 149,90",
+    installmentFormatted: "10x de R$ 14,99 sem juros",
+    leadTime: "Pronto em até 1 hora",
+  },
+  {
+    id: "lente-cor-cinza",
+    name: "Cinza Fumê Neutro Polarizado",
+    colorName: "Cinza",
+    colorHex: "#475569",
+    badge: "Fidelidade Cromática",
+    categoryTag: "NEUTRALIDADE ABSOLUTA • SOL INTENSO",
+    description:
+      "A cor mais neutra e recomendada mundialmente por oftalmologistas. Reduz a intensidade luminosa mantendo as cores 100% fiéis à realidade.",
+    benefits: [
+      "Zero distorção de cores: você enxerga tudo como é",
+      "Conforto para sol escaldante de meio-dia",
+      "Tratamento polarizado que elimina reflexos cegantes",
+      "A escolha clássica mais versátil da óptica",
+    ],
+    bestFor: "Uso diário ao ar livre, praia e sol intenso",
+    priceFormatted: "R$ 139,90",
+    installmentFormatted: "10x de R$ 13,99 sem juros",
+    leadTime: "Pronto em até 1 hora",
+  },
+  {
+    id: "lente-cor-verde",
+    name: "Verde G-15 Clássico Militar",
+    colorName: "Verde",
+    colorHex: "#15803d",
+    badge: "Clássico da Óptica",
+    categoryTag: "FÓRMULA G-15 • CONFORTO LENDÁRIO",
+    description:
+      "A consagrada tonalidade militar G-15 que transmite 15% da luz visível, bloqueando o brilho prejudicial e acalmando a retina instantaneamente.",
+    benefits: [
+      "Transmissão luminosa balanceada na faixa verde-amarela",
+      "Sensação imediata de repouso ocular sob luz forte",
+      "Harmoniza perfeitamente com armações douradas e pretas",
+      "Montagem expressa no laboratório digital próprio",
+    ],
+    bestFor: "Pilotos, passeios, praia e elegância atemporal",
+    priceFormatted: "R$ 139,90",
+    installmentFormatted: "10x de R$ 13,99 sem juros",
+    leadTime: "Pronto em até 1 hora",
+  },
+];
 
 export const DEFAULT_LENSES: AdminLensItem[] = [
   // ---------------- VISÃO SIMPLES ----------------
@@ -248,6 +428,192 @@ export const DEFAULT_LENSES: AdminLensItem[] = [
       "Proteção UV400 contínua contra radiação prejudicial",
       "Clareamento rápido ao entrar em ambientes internos",
       "Disponível nas cores Cinza, Marrom e Âmbar",
+    ],
+    isActive: true,
+  },
+
+  // ---------------- LENTES COLORIDAS & SOLARES (8 CORES EXCLUSIVAS VENTARA) ----------------
+  {
+    id: "lente-cor-azul",
+    name: "Lente Colorida Azul Safira",
+    category: "coloridas",
+    brandName: "Ventara Sun Color",
+    brandLogo: "/logos/optisync.svg",
+    treatment: "Polarizado Solar + Antirreflexo Traseiro + UV400",
+    badge: "Alta Nitidez & Estilo",
+    startingPrice: "R$ 149,90",
+    installment: "10x de R$ 14,99 sem juros",
+    leadTime: "Pronto em até 1 hora",
+    colorHex: "#1e40af",
+    lensColorId: "azul",
+    description:
+      "Tonalidade azul safira com corte de luz branca e reflexos em superfícies molhadas. Estilo vibrante e conforto para o dia a dia.",
+    features: [
+      "Filtro UV400 completo UVA/UVB",
+      "Realce de contornos e contraste urbano",
+      "Disponível com grau ou neutra solar",
+      "Montagem expressa no laboratório próprio",
+    ],
+    isActive: true,
+  },
+  {
+    id: "lente-cor-marrom",
+    name: "Lente Colorida Marrom Âmbar",
+    category: "coloridas",
+    brandName: "Ventara Sun Color",
+    brandLogo: "/logos/optisync.svg",
+    treatment: "Polarizado Solar + Contraste de Profundidade + UV400",
+    badge: "Conforto para Direção",
+    startingPrice: "R$ 149,90",
+    installment: "10x de R$ 14,99 sem juros",
+    leadTime: "Pronto em até 1 hora",
+    colorHex: "#78350f",
+    lensColorId: "marrom",
+    description:
+      "Aumenta a percepção de profundidade e o contraste entre as cores verde e vermelha. Recomendada para motoristas em dias ensolarados.",
+    features: [
+      "Percepção superior de distância na estrada",
+      "Filtro de luz azul atmosférica de alta energia",
+      "Descanso retiniano em dias de sol brilhante",
+      "Montagem personalizada em qualquer armação",
+    ],
+    isActive: true,
+  },
+  {
+    id: "lente-cor-amarelo",
+    name: "Lente Colorida Amarelo Night Driver",
+    category: "coloridas",
+    brandName: "Ventara Sun Color",
+    brandLogo: "/logos/optisync.svg",
+    treatment: "Filtro Anti-Ofuscamento Noturno + Contraste em Chuva",
+    badge: "Visão Noturna & Chuva",
+    startingPrice: "R$ 139,90",
+    installment: "10x de R$ 13,99 sem juros",
+    leadTime: "Pronto em até 1 hora",
+    colorHex: "#eab308",
+    lensColorId: "amarelo",
+    description:
+      "Lente amarela fototécnica que neutraliza o brilho cegante dos faróis de LED brancos e postes modernos, ampliando a nitidez na chuva e neblina.",
+    features: [
+      "Bloqueio de reflexos de faróis altos e postes LED",
+      "Melhora da visibilidade em asfalto molhado",
+      "Conforto para viagens noturnas longas",
+      "Montagem com ou sem graduação médica",
+    ],
+    isActive: true,
+  },
+  {
+    id: "lente-cor-vermelho",
+    name: "Lente Colorida Vermelho Ruby",
+    category: "coloridas",
+    brandName: "Ventara Sun Color",
+    brandLogo: "/logos/optisync.svg",
+    treatment: "Realce de Terreno e Velocidade + Proteção UV400",
+    badge: "Esportes & Ação",
+    startingPrice: "R$ 159,90",
+    installment: "10x de R$ 15,99 sem juros",
+    leadTime: "Pronto em até 1 hora",
+    colorHex: "#dc2626",
+    lensColorId: "vermelho",
+    description:
+      "Filtra o espectro luminoso para oferecer um contraste agudo de terrenos, copas de árvores e pistas de asfalto em velocidade.",
+    features: [
+      "Contraste agudo em esportes dinâmicos",
+      "Adaptação rápida em alternâncias de sombra e luz",
+      "Tratamento de alta resistência contra arranhões",
+      "Compatível com armações solares esportivas",
+    ],
+    isActive: true,
+  },
+  {
+    id: "lente-cor-rosa",
+    name: "Lente Colorida Rosa Suave",
+    category: "coloridas",
+    brandName: "Ventara Sun Color",
+    brandLogo: "/logos/optisync.svg",
+    treatment: "Filtro Anti-Fadiga Relax + Tonalidade Cosmética Rose",
+    badge: "Relaxamento Visual",
+    startingPrice: "R$ 149,90",
+    installment: "10x de R$ 14,99 sem juros",
+    leadTime: "Pronto em até 1 hora",
+    colorHex: "#ec4899",
+    lensColorId: "rosa",
+    description:
+      "Tonalidade rosada cosmética que acalma a musculatura ciliar e equilibra a iluminação artificial fluorescente e telas digitais.",
+    features: [
+      "Relaxamento para olhos sensíveis a enxaqueca",
+      "Clareza perfeita para dias nublados e fim de tarde",
+      "Estética sofisticada e autoral",
+      "Montagem expressa no laboratório Ventara",
+    ],
+    isActive: true,
+  },
+  {
+    id: "lente-cor-roxa",
+    name: "Lente Colorida Roxa Violeta",
+    category: "coloridas",
+    brandName: "Ventara Sun Color",
+    brandLogo: "/logos/optisync.svg",
+    treatment: "Polarizado Solar Violet + Selo UV400",
+    badge: "Design Autoral",
+    startingPrice: "R$ 149,90",
+    installment: "10x de R$ 14,99 sem juros",
+    leadTime: "Pronto em até 1 hora",
+    colorHex: "#7c3aed",
+    lensColorId: "roxa",
+    description:
+      "Equilíbrio óptico entre comprimentos de onda azuis e vermelhos. Destaca elementos naturais e confere presença única à armação.",
+    features: [
+      "Neutraliza reflexos em água e superfícies brilhantes",
+      "Cores vivas e saturadas na paisagem",
+      "Proteção total contra raios UV nocivos",
+      "Compatível com lentes solares graduadas",
+    ],
+    isActive: true,
+  },
+  {
+    id: "lente-cor-cinza",
+    name: "Lente Colorida Cinza Fumê Neutro",
+    category: "coloridas",
+    brandName: "Ventara Sun Color",
+    brandLogo: "/logos/optisync.svg",
+    treatment: "Polarizado Fumê Neutro + Fidelidade Cromática 100%",
+    badge: "Fidelidade Cromática",
+    startingPrice: "R$ 139,90",
+    installment: "10x de R$ 13,99 sem juros",
+    leadTime: "Pronto em até 1 hora",
+    colorHex: "#475569",
+    lensColorId: "cinza",
+    description:
+      "A cor mais neutra e recomendada mundialmente por oftalmologistas. Reduz a intensidade luminosa mantendo as cores 100% fiéis à realidade.",
+    features: [
+      "Zero distorção de cores em ambientes claros",
+      "Alívio prolongado sob sol intenso de meio-dia",
+      "Película polarizada eliminadora de reflexos",
+      "A escolha clássica para qualquer armação",
+    ],
+    isActive: true,
+  },
+  {
+    id: "lente-cor-verde",
+    name: "Lente Colorida Verde G-15",
+    category: "coloridas",
+    brandName: "Ventara Sun Color",
+    brandLogo: "/logos/optisync.svg",
+    treatment: "Fórmula Militar G-15 + Antirreflexo Traseiro + UV400",
+    badge: "Clássico da Óptica",
+    startingPrice: "R$ 139,90",
+    installment: "10x de R$ 13,99 sem juros",
+    leadTime: "Pronto em até 1 hora",
+    colorHex: "#15803d",
+    lensColorId: "verde",
+    description:
+      "A consagrada tonalidade militar G-15 que transmite 15% da luz visível, bloqueando o brilho prejudicial e acalmando a retina instantaneamente.",
+    features: [
+      "Transmissão luminosa balanceada na faixa verde-amarela",
+      "Sensação imediata de repouso ocular sob luz solar",
+      "Elegância atemporal consagrada na aviação",
+      "Montagem expressa no laboratório digital próprio",
     ],
     isActive: true,
   },

@@ -17,6 +17,7 @@ import {
   RotateCcw,
   Plus,
   Trash2,
+  Palette,
 } from "lucide-react";
 import { AdminLensItem, DEFAULT_LENSES } from "@/lib/lenses-data";
 
@@ -25,8 +26,11 @@ export default function AdminLensesPage() {
   const [isLoading, setIsLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
   const [selectedLens, setSelectedLens] = useState<AdminLensItem | null>(null);
+  const [isNewLens, setIsNewLens] = useState(false);
   const [feedback, setFeedback] = useState<string | null>(null);
-  const [categoryFilter, setCategoryFilter] = useState<"all" | "visao-simples" | "multifocal" | "tratamentos">("all");
+  const [categoryFilter, setCategoryFilter] = useState<
+    "all" | "visao-simples" | "multifocal" | "tratamentos" | "coloridas"
+  >("all");
 
   useEffect(() => {
     async function loadLenses() {
@@ -34,7 +38,7 @@ export default function AdminLensesPage() {
         const res = await fetch("/api/admin/lenses");
         if (res.ok) {
           const data = await res.json();
-          if (data.lenses && Array.isArray(data.lenses)) {
+          if (data.lenses && Array.isArray(data.lenses) && data.lenses.length > 0) {
             setLenses(data.lenses);
           }
         }
@@ -74,11 +78,50 @@ export default function AdminLensesPage() {
     }
   };
 
-  const handleUpdateLens = (updated: AdminLensItem) => {
-    const newList = lenses.map((item) => (item.id === updated.id ? updated : item));
+  const handleUpdateLens = (itemToSave: AdminLensItem) => {
+    let newList: AdminLensItem[];
+    if (isNewLens) {
+      newList = [itemToSave, ...lenses];
+    } else {
+      newList = lenses.map((item) => (item.id === itemToSave.id ? itemToSave : item));
+    }
     setLenses(newList);
     setSelectedLens(null);
+    setIsNewLens(false);
     handleSaveAll(newList);
+  };
+
+  const handleDeleteLens = (id: string, name: string) => {
+    if (confirm(`Tem certeza que deseja remover a lente "${name}" do catálogo?`)) {
+      const updated = lenses.filter((l) => l.id !== id);
+      setLenses(updated);
+      handleSaveAll(updated);
+    }
+  };
+
+  const handleOpenNewModal = () => {
+    const newItem: AdminLensItem = {
+      id: `lente-${Date.now()}`,
+      name: "",
+      category: categoryFilter !== "all" ? categoryFilter : "visao-simples",
+      brandName: "Novo Laboratório Homologado",
+      brandLogo: "/logos/optisync.svg",
+      treatment: "Antirreflexo Multicamadas + Proteção UV400",
+      badge: "Novo Parceiro",
+      startingPrice: "R$ 149,90",
+      installment: "10x de R$ 14,99 sem juros",
+      leadTime: "Pronto em até 1 hora",
+      description: "Lente óptica de alta precisão com certificado de garantia de laboratório.",
+      features: [
+        "Antirreflexo multicamadas antirrisco",
+        "Proteção integral contra radiação UV400",
+        "Montagem de alta precisão em facetadora digital",
+      ],
+      isActive: true,
+      colorHex: "#1e40af",
+    };
+    setSelectedLens(newItem);
+    setIsNewLens(true);
   };
 
   const filteredLenses = lenses.filter((l) => {
@@ -93,14 +136,23 @@ export default function AdminLensesPage() {
         <div>
           <h1 className="text-2xl font-bold text-white tracking-tight flex items-center gap-2.5">
             <Eye className="text-amber-400" size={24} />
-            <span>Gestão de Lentes, Preços &amp; Qualidades</span>
+            <span>Gestão de Lentes, Preços &amp; Fornecedores</span>
           </h1>
           <p className="text-xs text-slate-400 mt-1">
-            Configure os valores de referência, tratamentos específicos, descrições técnicas e marcas homologadas exibidas no site.
+            Configure valores, adicione novos laboratórios parceiros e gerencie as 8 cores solares exibidas no site.
           </p>
         </div>
 
-        <div className="flex items-center gap-2.5">
+        <div className="flex items-center gap-2.5 flex-wrap">
+          <button
+            type="button"
+            onClick={handleOpenNewModal}
+            className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-amber-400 hover:bg-amber-300 text-slate-950 font-bold text-xs uppercase tracking-wider transition-all shadow-md shadow-amber-400/20 cursor-pointer"
+          >
+            <Plus size={16} />
+            <span>Adicionar Nova Lente</span>
+          </button>
+
           <Link
             href="/#lentes"
             target="_blank"
@@ -121,11 +173,11 @@ export default function AdminLensesPage() {
       )}
 
       {/* Filtros de Categoria */}
-      <div className="flex items-center gap-2 bg-[#06111f] p-3 rounded-2xl border border-white/10 overflow-x-auto">
+      <div className="flex items-center gap-2 bg-[#06111f] p-3 rounded-2xl border border-white/10 overflow-x-auto no-scrollbar">
         <button
           type="button"
           onClick={() => setCategoryFilter("all")}
-          className={`px-3.5 py-1.5 rounded-xl text-xs font-semibold transition-all ${
+          className={`px-3.5 py-1.5 rounded-xl text-xs font-semibold whitespace-nowrap transition-all ${
             categoryFilter === "all"
               ? "bg-amber-400 text-slate-950 shadow-sm"
               : "text-slate-400 hover:text-white"
@@ -136,7 +188,7 @@ export default function AdminLensesPage() {
         <button
           type="button"
           onClick={() => setCategoryFilter("visao-simples")}
-          className={`px-3.5 py-1.5 rounded-xl text-xs font-semibold transition-all ${
+          className={`px-3.5 py-1.5 rounded-xl text-xs font-semibold whitespace-nowrap transition-all ${
             categoryFilter === "visao-simples"
               ? "bg-amber-400 text-slate-950 shadow-sm"
               : "text-slate-400 hover:text-white"
@@ -147,7 +199,7 @@ export default function AdminLensesPage() {
         <button
           type="button"
           onClick={() => setCategoryFilter("multifocal")}
-          className={`px-3.5 py-1.5 rounded-xl text-xs font-semibold transition-all ${
+          className={`px-3.5 py-1.5 rounded-xl text-xs font-semibold whitespace-nowrap transition-all ${
             categoryFilter === "multifocal"
               ? "bg-amber-400 text-slate-950 shadow-sm"
               : "text-slate-400 hover:text-white"
@@ -158,13 +210,25 @@ export default function AdminLensesPage() {
         <button
           type="button"
           onClick={() => setCategoryFilter("tratamentos")}
-          className={`px-3.5 py-1.5 rounded-xl text-xs font-semibold transition-all ${
+          className={`px-3.5 py-1.5 rounded-xl text-xs font-semibold whitespace-nowrap transition-all ${
             categoryFilter === "tratamentos"
               ? "bg-amber-400 text-slate-950 shadow-sm"
               : "text-slate-400 hover:text-white"
           }`}
         >
           Filtro Azul &amp; Fotossensíveis
+        </button>
+        <button
+          type="button"
+          onClick={() => setCategoryFilter("coloridas")}
+          className={`flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl text-xs font-semibold whitespace-nowrap transition-all ${
+            categoryFilter === "coloridas"
+              ? "bg-amber-400 text-slate-950 shadow-sm font-bold"
+              : "text-amber-400 hover:bg-amber-400/10"
+          }`}
+        >
+          <Palette size={13} />
+          <span>Lentes Coloridas (8 Cores)</span>
         </button>
       </div>
 
@@ -173,14 +237,22 @@ export default function AdminLensesPage() {
         {filteredLenses.map((lens) => (
           <div
             key={lens.id}
-            className="bg-[#06111f] border border-white/10 rounded-2xl p-5 flex flex-col justify-between hover:border-amber-400/40 transition-all shadow-md group"
+            className="bg-[#06111f] border border-white/10 rounded-2xl p-5 flex flex-col justify-between hover:border-amber-400/40 transition-all shadow-md group relative"
           >
             <div>
               {/* Header do Card */}
               <div className="flex items-center justify-between pb-3 mb-3 border-b border-white/5">
-                <span className="text-[10px] font-bold uppercase tracking-wider text-amber-400 bg-amber-400/10 px-2.5 py-0.5 rounded-full border border-amber-400/20">
-                  {lens.badge || lens.brandName}
-                </span>
+                <div className="flex items-center gap-2">
+                  {lens.colorHex && (
+                    <span
+                      className="w-3.5 h-3.5 rounded-full border border-white/20 shrink-0"
+                      style={{ backgroundColor: lens.colorHex }}
+                    />
+                  )}
+                  <span className="text-[10px] font-bold uppercase tracking-wider text-amber-400 bg-amber-400/10 px-2.5 py-0.5 rounded-full border border-amber-400/20">
+                    {lens.badge || lens.brandName}
+                  </span>
+                </div>
 
                 <span className="text-[11px] text-emerald-400 font-semibold flex items-center gap-1">
                   <Clock size={12} /> {lens.leadTime}
@@ -220,22 +292,34 @@ export default function AdminLensesPage() {
               </ul>
             </div>
 
-            {/* Ação: Editar */}
-            <div className="pt-3 border-t border-white/5">
+            {/* Ações: Editar e Excluir */}
+            <div className="pt-3 border-t border-white/5 flex items-center gap-2">
               <button
                 type="button"
-                onClick={() => setSelectedLens(lens)}
-                className="w-full py-2 px-3 rounded-xl bg-white/5 hover:bg-amber-400 hover:text-slate-950 text-white font-bold text-xs uppercase tracking-wider transition-all flex items-center justify-center gap-1.5 cursor-pointer"
+                onClick={() => {
+                  setSelectedLens(lens);
+                  setIsNewLens(false);
+                }}
+                className="flex-1 py-2 px-3 rounded-xl bg-white/5 hover:bg-amber-400 hover:text-slate-950 text-white font-bold text-xs uppercase tracking-wider transition-all flex items-center justify-center gap-1.5 cursor-pointer"
               >
                 <Edit3 size={13} />
                 <span>Editar Lente &amp; Preço</span>
+              </button>
+
+              <button
+                type="button"
+                onClick={() => handleDeleteLens(lens.id, lens.name)}
+                aria-label={`Excluir lente ${lens.name}`}
+                className="p-2 rounded-xl bg-white/5 hover:bg-rose-500/20 text-slate-400 hover:text-rose-400 transition-all cursor-pointer"
+              >
+                <Trash2 size={15} />
               </button>
             </div>
           </div>
         ))}
       </div>
 
-      {/* Modal de Edição da Lente Selecionada */}
+      {/* Modal de Edição ou Criação de Lente */}
       {selectedLens && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm animate-in fade-in duration-200">
           <div className="bg-[#081724] border border-white/15 rounded-3xl p-6 sm:p-8 max-w-2xl w-full max-h-[90vh] overflow-y-auto text-white shadow-2xl space-y-5">
@@ -243,15 +327,18 @@ export default function AdminLensesPage() {
               <div>
                 <h2 className="text-lg font-bold text-white flex items-center gap-2">
                   <Edit3 size={18} className="text-amber-400" />
-                  Editar Lente: {selectedLens.name}
+                  <span>{isNewLens ? "Adicionar Nova Lente / Laboratório" : `Editar Lente: ${selectedLens.name}`}</span>
                 </h2>
                 <p className="text-xs text-slate-400">
-                  Altere valores, qualidades específicas e tratamentos da lente.
+                  Altere valores, qualidades específicas, tratamentos e parcerias de laboratório.
                 </p>
               </div>
               <button
                 type="button"
-                onClick={() => setSelectedLens(null)}
+                onClick={() => {
+                  setSelectedLens(null);
+                  setIsNewLens(false);
+                }}
                 className="p-1.5 rounded-lg text-slate-400 hover:text-white hover:bg-white/10"
               >
                 ✕
@@ -267,6 +354,39 @@ export default function AdminLensesPage() {
             >
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
+                  <label className="block text-slate-300 mb-1 font-medium">Categoria da Lente *</label>
+                  <select
+                    value={selectedLens.category}
+                    onChange={(e) =>
+                      setSelectedLens({
+                        ...selectedLens,
+                        category: e.target.value as AdminLensItem["category"],
+                      })
+                    }
+                    className="w-full bg-[#040e17] border border-slate-700 rounded-lg px-3 py-2 text-white focus:outline-none focus:border-amber-400"
+                  >
+                    <option value="visao-simples">Visão Simples (Monofocal)</option>
+                    <option value="multifocal">Multifocal (Progressiva)</option>
+                    <option value="tratamentos">Filtro Luz Azul &amp; Fotossensíveis</option>
+                    <option value="coloridas">Lentes Coloridas &amp; Solares</option>
+                  </select>
+                </div>
+
+                <div>
+                  <label className="block text-slate-300 mb-1 font-medium">Marca Homologada / Laboratório *</label>
+                  <input
+                    type="text"
+                    required
+                    value={selectedLens.brandName}
+                    onChange={(e) => setSelectedLens({ ...selectedLens, brandName: e.target.value })}
+                    className="w-full bg-[#040e17] border border-slate-700 rounded-lg px-3 py-2 text-white focus:outline-none focus:border-amber-400"
+                    placeholder="Ex: OPTiSYNC HD, Perego, Hoya, Varilux..."
+                  />
+                </div>
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div>
                   <label className="block text-slate-300 mb-1 font-medium">Nome Comercial da Lente *</label>
                   <input
                     type="text"
@@ -274,17 +394,18 @@ export default function AdminLensesPage() {
                     value={selectedLens.name}
                     onChange={(e) => setSelectedLens({ ...selectedLens, name: e.target.value })}
                     className="w-full bg-[#040e17] border border-slate-700 rounded-lg px-3 py-2 text-white focus:outline-none focus:border-amber-400"
+                    placeholder="Ex: OPTiSYNC HD Antirreflexo"
                   />
                 </div>
 
                 <div>
-                  <label className="block text-slate-300 mb-1 font-medium">Marca Homologada *</label>
+                  <label className="block text-slate-300 mb-1 font-medium">Selo / Badge em Destaque</label>
                   <input
                     type="text"
-                    required
-                    value={selectedLens.brandName}
-                    onChange={(e) => setSelectedLens({ ...selectedLens, brandName: e.target.value })}
+                    value={selectedLens.badge || ""}
+                    onChange={(e) => setSelectedLens({ ...selectedLens, badge: e.target.value })}
                     className="w-full bg-[#040e17] border border-slate-700 rounded-lg px-3 py-2 text-white focus:outline-none focus:border-amber-400"
+                    placeholder="Ex: Ventara Exclusivo, Alta Nitidez..."
                   />
                 </div>
               </div>
@@ -327,26 +448,47 @@ export default function AdminLensesPage() {
                 </div>
               </div>
 
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-slate-300 mb-1 font-medium">Tratamento em Destaque</label>
-                  <input
-                    type="text"
-                    value={selectedLens.treatment}
-                    onChange={(e) => setSelectedLens({ ...selectedLens, treatment: e.target.value })}
-                    className="w-full bg-[#040e17] border border-slate-700 rounded-lg px-3 py-2 text-white focus:outline-none focus:border-amber-400"
-                  />
+              {selectedLens.category === "coloridas" && (
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-slate-300 mb-1 font-medium">Cor Hexadecimal</label>
+                    <div className="flex items-center gap-2">
+                      <input
+                        type="color"
+                        value={selectedLens.colorHex || "#1e40af"}
+                        onChange={(e) => setSelectedLens({ ...selectedLens, colorHex: e.target.value })}
+                        className="w-10 h-9 p-0.5 rounded bg-transparent border border-slate-700 cursor-pointer"
+                      />
+                      <input
+                        type="text"
+                        value={selectedLens.colorHex || "#1e40af"}
+                        onChange={(e) => setSelectedLens({ ...selectedLens, colorHex: e.target.value })}
+                        className="w-full bg-[#040e17] border border-slate-700 rounded-lg px-3 py-2 text-white font-mono"
+                      />
+                    </div>
+                  </div>
+                  <div>
+                    <label className="block text-slate-300 mb-1 font-medium">Identificador de Cor</label>
+                    <input
+                      type="text"
+                      placeholder="Ex: azul, marrom, amarelo..."
+                      value={selectedLens.lensColorId || ""}
+                      onChange={(e) => setSelectedLens({ ...selectedLens, lensColorId: e.target.value })}
+                      className="w-full bg-[#040e17] border border-slate-700 rounded-lg px-3 py-2 text-white"
+                    />
+                  </div>
                 </div>
+              )}
 
-                <div>
-                  <label className="block text-slate-300 mb-1 font-medium">Selo / Badge em Destaque</label>
-                  <input
-                    type="text"
-                    value={selectedLens.badge || ""}
-                    onChange={(e) => setSelectedLens({ ...selectedLens, badge: e.target.value })}
-                    className="w-full bg-[#040e17] border border-slate-700 rounded-lg px-3 py-2 text-white focus:outline-none focus:border-amber-400"
-                  />
-                </div>
+              <div>
+                <label className="block text-slate-300 mb-1 font-medium">Tratamento em Destaque</label>
+                <input
+                  type="text"
+                  value={selectedLens.treatment}
+                  onChange={(e) => setSelectedLens({ ...selectedLens, treatment: e.target.value })}
+                  className="w-full bg-[#040e17] border border-slate-700 rounded-lg px-3 py-2 text-white focus:outline-none focus:border-amber-400"
+                  placeholder="Ex: Antirreflexo Super AR + Proteção UV400"
+                />
               </div>
 
               <div>
@@ -377,14 +519,17 @@ export default function AdminLensesPage() {
                   className="w-full bg-[#040e17] border border-slate-700 rounded-lg px-3 py-2 text-white focus:outline-none focus:border-amber-400 font-mono"
                 />
                 <p className="text-[10px] text-slate-400 mt-1">
-                  Cada linha digitada será exibida como um item com ícone de verificação no card do site.
+                  Cada linha digitada será exibida como um item com marcador dourado no card do site.
                 </p>
               </div>
 
               <div className="flex items-center justify-end gap-3 pt-3 border-t border-white/10">
                 <button
                   type="button"
-                  onClick={() => setSelectedLens(null)}
+                  onClick={() => {
+                    setSelectedLens(null);
+                    setIsNewLens(false);
+                  }}
                   className="px-4 py-2 rounded-xl border border-white/10 text-slate-300 hover:bg-white/5"
                 >
                   Cancelar
@@ -393,7 +538,7 @@ export default function AdminLensesPage() {
                 <button
                   type="submit"
                   disabled={isSaving}
-                  className="inline-flex items-center gap-2 px-5 py-2 rounded-xl bg-amber-400 hover:bg-amber-300 text-slate-950 font-bold text-xs uppercase tracking-wider transition-all disabled:opacity-50"
+                  className="inline-flex items-center gap-2 px-5 py-2 rounded-xl bg-amber-400 hover:bg-amber-300 text-slate-950 font-bold text-xs uppercase tracking-wider transition-all disabled:opacity-50 cursor-pointer"
                 >
                   <Save size={15} />
                   <span>{isSaving ? "Salvando..." : "Salvar Alterações"}</span>

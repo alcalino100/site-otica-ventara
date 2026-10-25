@@ -16,8 +16,16 @@ export async function GET() {
       .maybeSingle();
 
     if (!error && data?.value && Array.isArray(data.value)) {
-      inMemoryLensesCatalog = data.value;
-      return NextResponse.json({ success: true, lenses: data.value });
+      // Mescla com DEFAULT_LENSES para assegurar que novas adições do catálogo (ex: lentes coloridas) estejam sempre presentes
+      const savedMap = new Map<string, AdminLensItem>(data.value.map((item: AdminLensItem) => [item.id, item]));
+      const merged = [...data.value];
+      for (const def of DEFAULT_LENSES) {
+        if (!savedMap.has(def.id)) {
+          merged.push(def);
+        }
+      }
+      inMemoryLensesCatalog = merged;
+      return NextResponse.json({ success: true, lenses: merged });
     }
 
     return NextResponse.json({ success: true, lenses: inMemoryLensesCatalog });
