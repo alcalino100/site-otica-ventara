@@ -80,17 +80,6 @@ export function Header({
 
   return (
     <header className={`site-header ${isScrolled ? "scrolled" : ""}`}>
-      {/* Top Announcement Bar com transição fluida */}
-      <div
-        className={`preview transition-all duration-300 overflow-hidden ${
-          isScrolled
-            ? "max-h-0 py-0 opacity-0 pointer-events-none border-transparent -mt-3 mb-0"
-            : "max-h-8 py-1.5 opacity-100 -mt-3 mb-2.5"
-        }`}
-      >
-        ÓTICAS VENTARA · ARAÇATUBA-SP · CATÁLOGO ONLINE &amp; ATENDIMENTO PERSONALIZADO
-      </div>
-
       <div className="max-w-[1400px] mx-auto px-4 sm:px-8 lg:px-10 w-full flex items-center justify-between">
         <a href="#inicio" className="brand" aria-label="Ótica Ventara, ir para o início">
           <BrandLogo size="sm" />

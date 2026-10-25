@@ -521,13 +521,13 @@ export function LensesPricingSection() {
               role="region"
               aria-label="Carrossel de lentes de alta precisão"
               tabIndex={0}
-              className="flex md:grid flex-row flex-nowrap md:flex-none overflow-x-auto md:overflow-visible overflow-y-hidden snap-x snap-mandatory md:snap-none gap-5 sm:gap-6 md:gap-8 py-2 pb-4 md:pb-0 md:grid-cols-2 lg:grid-cols-3 no-scrollbar -mx-4 px-6 md:mx-0 md:px-0 scroll-px-6 items-stretch"
+              className="flex md:grid flex-row flex-nowrap md:flex-none overflow-x-auto md:overflow-visible overflow-y-hidden snap-x snap-mandatory md:snap-none gap-6 md:gap-8 py-2 pb-5 md:pb-0 md:grid-cols-2 lg:grid-cols-3 no-scrollbar -mx-4 px-6 md:mx-0 md:px-0 scroll-px-6 items-stretch"
               style={{ WebkitOverflowScrolling: "touch" }}
             >
               {filteredOptions.map((opt) => (
                 <div
                   key={opt.id}
-                  className="snap-center shrink-0 w-[82vw] max-w-[310px] md:w-auto md:max-w-none bg-white rounded-3xl border border-slate-200/90 shadow-sm hover:shadow-md hover:border-amber-400/50 transition-all duration-300 p-6 sm:p-7 flex flex-col justify-between"
+                  className="snap-center shrink-0 w-[74vw] max-w-[285px] md:w-auto md:max-w-none bg-white rounded-3xl border border-slate-200/90 shadow-sm hover:shadow-md hover:border-amber-400/50 transition-all duration-300 p-6 sm:p-7 flex flex-col justify-between"
                 >
                   <div>
                     {/* Cabeçalho do Card: Logo da Marca + Badge */}
@@ -622,13 +622,13 @@ export function LensesPricingSection() {
               role="region"
               aria-label="Carrossel de marcas homologadas"
               tabIndex={0}
-              className="flex md:grid flex-row flex-nowrap md:flex-none overflow-x-auto md:overflow-visible overflow-y-hidden snap-x snap-mandatory md:snap-none gap-5 sm:gap-6 md:gap-8 py-2 pb-4 md:pb-0 md:grid-cols-2 lg:grid-cols-3 no-scrollbar -mx-4 px-6 md:mx-0 md:px-0 scroll-px-6 items-stretch"
+              className="flex md:grid flex-row flex-nowrap md:flex-none overflow-x-auto md:overflow-visible overflow-y-hidden snap-x snap-mandatory md:snap-none gap-6 md:gap-8 py-2 pb-5 md:pb-0 md:grid-cols-2 lg:grid-cols-3 no-scrollbar -mx-4 px-6 md:mx-0 md:px-0 scroll-px-6 items-stretch"
               style={{ WebkitOverflowScrolling: "touch" }}
             >
               {brandLogos.map((brand, idx) => (
                 <div
                   key={idx}
-                  className="snap-center shrink-0 w-[82vw] max-w-[310px] md:w-auto md:max-w-none bg-white rounded-3xl border border-slate-200/90 p-6 sm:p-7 shadow-sm flex flex-col justify-between"
+                  className="snap-center shrink-0 w-[74vw] max-w-[285px] md:w-auto md:max-w-none bg-white rounded-3xl border border-slate-200/90 p-6 sm:p-7 shadow-sm flex flex-col justify-between"
                 >
                   <div>
                     <div className="h-14 flex items-center justify-between pb-4 mb-4 border-b border-slate-100">

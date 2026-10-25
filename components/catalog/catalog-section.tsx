@@ -475,20 +475,20 @@ export function CatalogSection({
               </div>
             </div>
 
-            {/* Carrossel no Mobile (1 nível de altura, espaçamento generoso, sem sobreposição) / Grid no Desktop */}
+            {/* Carrossel no Mobile (1 nível de altura, margem lateral generosa UI/UX, sem sobreposição) / Grid no Desktop */}
             <div
               ref={carouselRef}
               onScroll={handleCarouselScroll}
               role="region"
               aria-label="Carrossel de armações"
               tabIndex={0}
-              className="flex sm:grid flex-row flex-nowrap sm:flex-none overflow-x-auto sm:overflow-visible overflow-y-hidden snap-x snap-mandatory sm:snap-none gap-5 sm:gap-6 py-2 pb-4 sm:pb-0 sm:grid-cols-2 lg:grid-cols-4 no-scrollbar -mx-4 px-6 sm:mx-0 sm:px-0 scroll-px-6"
+              className="flex sm:grid flex-row flex-nowrap sm:flex-none overflow-x-auto sm:overflow-visible overflow-y-hidden snap-x snap-mandatory sm:snap-none gap-6 sm:gap-6 py-2 pb-5 sm:pb-0 sm:grid-cols-2 lg:grid-cols-4 no-scrollbar -mx-4 px-6 sm:mx-0 sm:px-0 scroll-px-6"
               style={{ WebkitOverflowScrolling: "touch" }}
             >
               {filteredProducts.map((product) => (
                 <div
                   key={product.id}
-                  className="snap-center shrink-0 w-[82vw] max-w-[310px] sm:w-auto sm:max-w-none flex flex-col"
+                  className="snap-center shrink-0 w-[74vw] max-w-[285px] sm:w-auto sm:max-w-none flex flex-col"
                 >
                   <ProductCard
                     product={product}
