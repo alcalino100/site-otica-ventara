@@ -790,35 +790,6 @@ h1 strong {
   transform: scale(1.06) rotate(-5deg);
 }
 
-.tag {
-  position: absolute;
-  top: 14px;
-  left: 14px;
-  font-size: 9px;
-  font-weight: 700;
-  letter-spacing: 1px;
-  color: #475569;
-  background: rgba(255, 255, 255, 0.85);
-  padding: 3px 8px;
-  border-radius: 4px;
-}
-
-.image-action {
-  position: absolute;
-  bottom: 12px;
-  right: 12px;
-  background: #fff;
-  padding: 8px;
-  border-radius: 50%;
-  color: #1e293b;
-  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.12);
-  transition: transform 160ms var(--ease-out);
-}
-
-.product-image:hover .image-action {
-  transform: scale(1.1);
-}
-
 .add-cart-btn {
   padding: 9px;
   border: 1px solid rgba(17, 40, 60, 0.18);

@@ -445,8 +445,8 @@ export function CatalogSection({
           <ProductGridSkeleton />
         ) : filteredProducts.length > 0 ? (
           <div className="relative">
-            {/* Barra de Navegação do Carrossel Mobile - ACIMA dos Cards */}
-            <div className="flex sm:hidden items-center justify-between pb-3 px-1">
+            {/* Barra de Navegação do Carrossel Mobile - ACIMA dos Cards com espaçamento generoso */}
+            <div className="flex sm:hidden items-center justify-between pb-3.5 px-2">
               <div className="flex items-center gap-2 text-xs font-medium text-slate-700">
                 <span className="w-2 h-2 rounded-full bg-amber-500 animate-pulse" />
                 <span>Deslize para ver os modelos</span>
@@ -475,20 +475,20 @@ export function CatalogSection({
               </div>
             </div>
 
-            {/* Carrossel no Mobile (exatamente 1 nível de altura: flex-row nowrap) / Grid no Desktop (sm:grid) */}
+            {/* Carrossel no Mobile (1 nível de altura, espaçamento generoso, sem sobreposição) / Grid no Desktop */}
             <div
               ref={carouselRef}
               onScroll={handleCarouselScroll}
               role="region"
               aria-label="Carrossel de armações"
               tabIndex={0}
-              className="flex sm:grid flex-row flex-nowrap sm:flex-none overflow-x-auto sm:overflow-visible overflow-y-hidden snap-x snap-mandatory sm:snap-none gap-4 sm:gap-6 pb-2 sm:pb-0 sm:grid-cols-2 lg:grid-cols-4 no-scrollbar -mx-4 px-4 sm:mx-0 sm:px-0"
+              className="flex sm:grid flex-row flex-nowrap sm:flex-none overflow-x-auto sm:overflow-visible overflow-y-hidden snap-x snap-mandatory sm:snap-none gap-5 sm:gap-6 py-2 pb-4 sm:pb-0 sm:grid-cols-2 lg:grid-cols-4 no-scrollbar -mx-4 px-6 sm:mx-0 sm:px-0 scroll-px-6"
               style={{ WebkitOverflowScrolling: "touch" }}
             >
               {filteredProducts.map((product) => (
                 <div
                   key={product.id}
-                  className="snap-center shrink-0 w-[84vw] max-w-[320px] sm:w-auto sm:max-w-none flex flex-col"
+                  className="snap-center shrink-0 w-[82vw] max-w-[310px] sm:w-auto sm:max-w-none flex flex-col"
                 >
                   <ProductCard
                     product={product}
@@ -500,9 +500,9 @@ export function CatalogSection({
               ))}
             </div>
 
-            {/* Indicadores de Paginação do Carrossel no Mobile */}
+            {/* Indicadores de Paginação do Carrossel no Mobile com espaçamento respirável */}
             {filteredProducts.length > 1 && (
-              <div className="flex sm:hidden items-center justify-center gap-1.5 pt-3">
+              <div className="flex sm:hidden items-center justify-center gap-2 pt-4">
                 {filteredProducts.map((p, idx) => (
                   <button
                     key={p.id}

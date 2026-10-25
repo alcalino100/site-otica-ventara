@@ -110,18 +110,10 @@ export function ProductCard({
         )}
       </Link>
 
-      {/* 2. Badges Flutuantes no Topo */}
-      <span className="tag absolute top-3.5 left-3.5 text-[10px] font-bold tracking-wider uppercase px-3 py-1 rounded-full bg-black/60 backdrop-blur-md text-white border border-white/20 shadow-sm z-20">
+      {/* 2. Badge Flutuante no Topo (Elegante e Inset com Margem Segura) */}
+      <span className="absolute top-4 left-4 text-[10px] font-bold tracking-wider uppercase px-3 py-1.5 rounded-full bg-[#06111f]/85 backdrop-blur-md text-amber-300 border border-amber-400/30 shadow-xs z-20 pointer-events-none">
         {categoryLabel}
       </span>
-
-      <Link
-        href={`/produto/${product.slug}`}
-        className="image-action absolute top-3.5 right-3.5 w-8 h-8 rounded-full bg-black/50 backdrop-blur-md border border-white/20 flex items-center justify-center text-white group-hover:bg-[#FFD62E] group-hover:text-slate-950 transition-colors shadow-sm z-20"
-        title="Ver detalhes do produto"
-      >
-        <ArrowRight size={15} />
-      </Link>
 
       {/* 3. Degradê Cobrindo de Baixo para Cima (~25% a 35%) */}
       <div className="absolute inset-x-0 bottom-0 h-[65%] sm:h-[55%] bg-gradient-to-t from-[#02070d] via-[#02070d]/90 via-50% to-transparent pointer-events-none z-10" />

@@ -4,12 +4,12 @@ import { Skeleton } from "../ui/skeleton";
 export function ProductGridSkeleton() {
   return (
     <div
-      className="flex sm:grid flex-row flex-nowrap sm:flex-none overflow-x-auto sm:overflow-visible overflow-y-hidden gap-4 sm:gap-6 pb-2 sm:pb-0 sm:grid-cols-2 lg:grid-cols-4 no-scrollbar -mx-4 px-4 sm:mx-0 sm:px-0"
+      className="flex sm:grid flex-row flex-nowrap sm:flex-none overflow-x-auto sm:overflow-visible overflow-y-hidden gap-5 sm:gap-6 py-2 pb-4 sm:pb-0 sm:grid-cols-2 lg:grid-cols-4 no-scrollbar -mx-4 px-6 sm:mx-0 sm:px-0 scroll-px-6"
       aria-busy="true"
       aria-label="Carregando produtos"
     >
       {[1, 2, 3, 4].map((i) => (
-        <div key={i} className="shrink-0 w-[84vw] max-w-[320px] sm:w-auto sm:max-w-none">
+        <div key={i} className="shrink-0 w-[82vw] max-w-[310px] sm:w-auto sm:max-w-none">
           <article className="product product-skeleton-card bg-white rounded-2xl border border-slate-200/80 overflow-hidden flex flex-col justify-between h-[460px]">
             <div className="product-image skeleton-wrapper bg-slate-50 p-6 flex items-center justify-center">
               <Skeleton className="w-full h-44 rounded-xl bg-slate-200/60" />
