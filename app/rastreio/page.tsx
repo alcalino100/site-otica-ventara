@@ -165,7 +165,7 @@ export default function RastreioPage() {
         </div>
       </header>
 
-      <main className="max-w-[1100px] mx-auto px-4 sm:px-8 py-8 sm:py-14 space-y-8">
+      <main className="max-w-[1100px] mx-auto px-4 sm:px-8 pt-12 pb-16 sm:py-14 space-y-8">
         {/* Banner de Apresentação */}
         <div className="text-center max-w-2xl mx-auto space-y-3">
           <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-amber-400/15 border border-amber-400/30 text-amber-500 dark:text-amber-300 text-xs font-semibold uppercase tracking-wider">
@@ -365,7 +365,7 @@ export default function RastreioPage() {
                       Status da Produção:
                     </p>
                     <span className="text-[10px] px-2.5 py-0.5 rounded-full bg-emerald-500/20 text-emerald-700 dark:text-emerald-300 font-bold border border-emerald-500/40">
-                      Pronto para Retirada na Loja
+                      {order.status_label || "Pronto para Retirada"}
                     </span>
                   </div>
                   <p className={`text-xs sm:text-sm font-medium leading-relaxed ${isWhite ? "text-slate-800" : "text-emerald-100"}`}>

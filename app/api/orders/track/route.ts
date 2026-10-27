@@ -26,7 +26,7 @@ const DEMO_ORDERS: Record<string, any> = {
     current_step_index: 2,
     timeline: [
       {
-        title: "Pedido Recebido & Pagamento Aprovado",
+        title: "Pedido Recebido",
         description: "Pedido confirmado com sucesso via Pix.",
         status: "completed",
         timestamp: "22/10 às 14:32",
@@ -44,7 +44,7 @@ const DEMO_ORDERS: Record<string, any> = {
         timestamp: "22/10 às 17:45",
       },
       {
-        title: "Controle de Qualidade no Lensômetro Digital",
+        title: "Controle de Qualidade Dióptrico",
         description: "Aferição final da precisão dioptrica e higienização ultrassônica.",
         status: "pending",
       },
@@ -67,7 +67,7 @@ const DEMO_ORDERS: Record<string, any> = {
     reference_code: "VEN-10380",
     customer_name: "Rodrigo M.",
     status: "ready_for_pickup",
-    status_label: "Pronto para Retirada na Loja",
+    status_label: "Pronto para Retirada",
     status_description: "Seus óculos foram calibrados, higienizados e estão prontos no balcão da loja em Araçatuba.",
     created_at: "2026-10-21T10:15:00.000Z",
     updated_at: "2026-10-22T11:00:00.000Z",
@@ -101,7 +101,7 @@ const DEMO_ORDERS: Record<string, any> = {
         timestamp: "21/10 às 16:00",
       },
       {
-        title: "Pronto para Retirada",
+        title: "Pronto para Retirada na Loja",
         description: "Aguardando cliente na Rua Princesa Isabel, 221. Horário: 09h às 18h.",
         status: "current",
         timestamp: "22/10 às 09:00",
@@ -120,7 +120,7 @@ const DEMO_ORDERS: Record<string, any> = {
     reference_code: "VEN-10415",
     customer_name: "Carlos A.",
     status: "shipped",
-    status_label: "Em Trânsito / Enviado por Transportadora",
+    status_label: "Em Trânsito / Enviado",
     status_description: "Seu pacote foi despachado com código de rastreamento e seguro total.",
     created_at: "2026-10-20T16:00:00.000Z",
     updated_at: "2026-10-22T08:30:00.000Z",
@@ -128,7 +128,7 @@ const DEMO_ORDERS: Record<string, any> = {
     delivery_label: "Envio Expresso com Seguro",
     tracking_number: "BR839210492VENT",
     estimated_delivery: "Previsão de entrega: Em até 2 dias úteis",
-    current_step_index: 3,
+    current_step_index: 4,
     timeline: [
       {
         title: "Pedido Recebido & Prescrição Validada",
@@ -200,24 +200,26 @@ export async function GET(req: NextRequest) {
     const adminSupabase = createAdminClient();
 
     // Tenta encontrar por reference_code
-    let { data: order, error } = await adminSupabase
+    let { data: order } = await adminSupabase
       .from("orders")
       .select("*, items:order_items(*)")
-      .ilike("reference_code", query)
+      .ilike("reference_code", `%${query}%`)
+      .order("created_at", { ascending: false })
+      .limit(1)
       .maybeSingle();
 
-    // Se não encontrou por código, tenta por documento (CPF limpo) ou email
+    // Se não encontrou por código, busca por documento (CPF), telefone ou nome
     if (!order) {
-      const cleanDoc = query.replace(/\D/g, "");
-      if (cleanDoc.length >= 11) {
-        const { data: docOrder } = await adminSupabase
-          .from("orders")
-          .select("*, items:order_items(*)")
-          .eq("customer_document", cleanDoc)
-          .order("created_at", { ascending: false })
-          .limit(1)
-          .maybeSingle();
-        order = docOrder;
+      const cleanDoc = query.replace(/[^\w]/g, "");
+      const { data: docOrders } = await adminSupabase
+        .from("orders")
+        .select("*, items:order_items(*)")
+        .or(`customer_document.ilike.%${cleanDoc}%,customer_phone.ilike.%${cleanDoc}%,customer_name.ilike.%${query}%`)
+        .order("created_at", { ascending: false })
+        .limit(1);
+
+      if (docOrders && docOrders.length > 0) {
+        order = docOrders[0];
       }
     }
 
@@ -231,87 +233,109 @@ export async function GET(req: NextRequest) {
       );
     }
 
-    // 3. Formata pedido do banco em linha do tempo padronizada
-    const statusMap: Record<string, { label: string; desc: string; step: number }> = {
-      pending: {
-        label: "Aguardando Pagamento",
-        desc: "Aguardando confirmação do pagamento via Pix ou Cartão.",
-        step: 0,
-      },
-      awaiting_payment: {
-        label: "Aguardando Pagamento",
-        desc: "Aguardando compensação do pagamento.",
-        step: 0,
-      },
-      paid: {
-        label: "Pagamento Confirmado",
-        desc: "Pagamento aprovado. Pedido em triagem técnica pelo Técnico Óptico.",
-        step: 1,
-      },
-      preparing: {
-        label: "Em Montagem no Laboratório",
-        desc: "Lentes em processo de biselamento e montagem na facetadora digital.",
-        step: 2,
-      },
-      shipped: {
-        label: "Pronto para Retirada / Em Trânsito",
-        desc: "Óculos calibrados e prontos para retirada ou em rota de entrega.",
-        step: 3,
-      },
-      delivered: {
-        label: "Pedido Entregue / Concluído",
-        desc: "Óculos entregues com sucesso ao cliente.",
-        step: 4,
-      },
-    };
+    // Identifica se é Retirada na Loja física ou Envio por Correios
+    const isPickup =
+      order.status === "ready_for_pickup" ||
+      order.shipping_address?.delivery_type === "pickup" ||
+      order.shipping_address?.store?.toLowerCase()?.includes("loja") ||
+      order.notes?.toLowerCase()?.includes("[retirada") ||
+      (order.shipping_fee_in_cents === 0 && !order.shipping_address?.street);
 
-    const currentStatus = statusMap[order.status] || {
-      label: order.status,
-      desc: "Status em processamento.",
-      step: 1,
-    };
+    // Mapeamento dinâmico de status respeitando modalidade de retirada vs envio
+    let statusLabel = "Pedido Recebido";
+    let statusDesc = "Pedido registrado com sucesso na Óticas Ventara.";
+    let currentStep = 0;
+
+    switch (order.status) {
+      case "pending":
+      case "awaiting_payment":
+        statusLabel = "Aguardando Pagamento";
+        statusDesc = "Aguardando confirmação do pagamento via Pix ou Cartão.";
+        currentStep = 0;
+        break;
+      case "paid":
+        statusLabel = "Pedido Recebido";
+        statusDesc = "Pagamento confirmado. Pedido em fila para triagem técnica das dioptrias.";
+        currentStep = 0;
+        break;
+      case "preparing":
+        statusLabel = "Em Montagem no Laboratório";
+        statusDesc = "Lentes em processo de corte, biselamento e montagem na facetadora digital própria.";
+        currentStep = 2;
+        break;
+      case "ready_for_pickup":
+        statusLabel = "Pronto para Retirada";
+        statusDesc = "Seus óculos foram calibrados, higienizados e estão disponíveis para retirada no balcão da Óticas Ventara (Rua Princesa Isabel, 221 - Araçatuba/SP).";
+        currentStep = 4;
+        break;
+      case "shipped":
+        if (isPickup) {
+          statusLabel = "Pronto para Retirada";
+          statusDesc = "Seus óculos foram calibrados, higienizados e estão disponíveis para retirada no balcão da Óticas Ventara (Rua Princesa Isabel, 221 - Araçatuba/SP).";
+          currentStep = 4;
+        } else {
+          statusLabel = "Em Trânsito / Enviado";
+          statusDesc = "Seus óculos foram despachados e estão a caminho do seu endereço de entrega.";
+          currentStep = 4;
+        }
+        break;
+      case "delivered":
+        statusLabel = isPickup ? "Retirado na Loja" : "Pedido Entregue";
+        statusDesc = isPickup
+          ? "Óculos retirados pelo cliente no balcão de Araçatuba."
+          : "Óculos entregues com sucesso ao cliente.";
+        currentStep = 4;
+        break;
+      default:
+        statusLabel = isPickup ? "Pronto para Retirada" : "Em Processamento";
+        statusDesc = "Seus óculos estão em acompanhamento no laboratório.";
+        currentStep = 1;
+        break;
+    }
 
     const timeline: TimelineStep[] = [
       {
         title: "Pedido Recebido",
-        description: "Pedido cadastrado na Óticas Ventara.",
-        status: currentStatus.step >= 0 ? "completed" : "pending",
+        description: order.status === "pending" ? "Aguardando pagamento." : "Pedido confirmado e registrado.",
+        status: currentStep >= 0 ? (currentStep === 0 ? "current" : "completed") : "pending",
         timestamp: new Date(order.created_at).toLocaleDateString("pt-BR"),
       },
       {
         title: "Triagem Técnica da Receita",
-        description: "Conferência milimétrica de dioptrias e DNP.",
+        description: "Conferência milimétrica de dioptrias e DNP pelo Técnico Óptico.",
         status:
-          currentStatus.step > 1
+          currentStep > 1
             ? "completed"
-            : currentStatus.step === 1
+            : currentStep === 1
             ? "current"
             : "pending",
       },
       {
         title: "Montagem na Facetadora Computadorizada",
-        description: "Corte e biselamento no laboratório próprio.",
+        description: "Corte e biselamento no laboratório próprio de Araçatuba.",
         status:
-          currentStatus.step > 2
+          currentStep > 2
             ? "completed"
-            : currentStatus.step === 2
+            : currentStep === 2
             ? "current"
             : "pending",
       },
       {
         title: "Controle de Qualidade Dióptrico",
-        description: "Aferição no lensômetro digital de alta precisão.",
+        description: "Aferição no lensômetro digital de alta precisão e higienização.",
         status:
-          currentStatus.step > 3
+          currentStep > 3
             ? "completed"
-            : currentStatus.step === 3
+            : currentStep === 3
             ? "current"
             : "pending",
       },
       {
-        title: "Pronto / Entregue",
-        description: "Disponível na loja ou entregue no seu endereço.",
-        status: currentStatus.step >= 4 ? "completed" : "pending",
+        title: isPickup ? "Pronto para Retirada na Loja" : "Pronto / Entregue",
+        description: isPickup
+          ? "Aguardando retirada no balcão da Rua Princesa Isabel, 221."
+          : "Entregue no endereço informado pelo cliente.",
+        status: currentStep >= 4 ? "current" : "pending",
       },
     ];
 
@@ -326,16 +350,18 @@ export async function GET(req: NextRequest) {
       reference_code: order.reference_code,
       customer_name: maskedName,
       status: order.status,
-      status_label: currentStatus.label,
-      status_description: currentStatus.desc,
+      status_label: statusLabel,
+      status_description: statusDesc,
       created_at: order.created_at,
       updated_at: order.updated_at,
-      delivery_type: order.shipping_fee_in_cents === 0 ? "pickup_store" : "shipping",
-      delivery_label:
-        order.shipping_fee_in_cents === 0
-          ? "Retirada na Loja Física (Rua Princesa Isabel, 221 - Araçatuba)"
-          : "Envio para Endereço Residencial",
-      current_step_index: currentStatus.step,
+      delivery_type: isPickup ? "pickup_store" : "shipping",
+      delivery_label: isPickup
+        ? "Retirada no Balcão da Loja Física (Rua Princesa Isabel, 221 - Araçatuba/SP)"
+        : "Envio para Endereço Residencial",
+      estimated_delivery: isPickup
+        ? "Disponível para retirada no horário comercial (09h às 18h)"
+        : "Previsão de entrega conforme prazo dos Correios",
+      current_step_index: currentStep,
       timeline,
       items: (order.items || []).map((it: any) => ({
         name: it.product_name || "Armação Óticas Ventara",

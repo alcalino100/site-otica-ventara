@@ -24,7 +24,7 @@ export function WarrantyBannerSection() {
           aria-label="Lentes com 12 meses de garantia OptiSync HD - Fale com nossos consultores"
         >
           {/* Banner Desktop (Horizontal) */}
-          <div className="hidden sm:block relative aspect-[3.2/1] w-full overflow-hidden bg-[#07192c]">
+          <div className="hidden sm:block relative aspect-[3/1] w-full overflow-hidden bg-[#07192c]">
             <img
               src="/images/banners/optisync-12-meses-garantia-desktop.jpg"
               alt="Lentes com 12 Meses de Garantia OPTiSYNC HD - Fale com nossos consultores"

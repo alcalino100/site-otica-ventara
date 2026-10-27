@@ -18,6 +18,7 @@ import {
   Plus,
   Trash2,
   Palette,
+  Upload,
 } from "lucide-react";
 import { AdminLensItem, DEFAULT_LENSES } from "@/lib/lenses-data";
 
@@ -28,9 +29,39 @@ export default function AdminLensesPage() {
   const [selectedLens, setSelectedLens] = useState<AdminLensItem | null>(null);
   const [isNewLens, setIsNewLens] = useState(false);
   const [feedback, setFeedback] = useState<string | null>(null);
+  const [isUploading, setIsUploading] = useState(false);
   const [categoryFilter, setCategoryFilter] = useState<
     "all" | "visao-simples" | "multifocal" | "tratamentos" | "coloridas"
   >("all");
+
+  const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file || !selectedLens) return;
+
+    setIsUploading(true);
+    try {
+      const formData = new FormData();
+      formData.append("file", file);
+
+      const res = await fetch("/api/admin/upload", {
+        method: "POST",
+        body: formData,
+      });
+
+      const data = await res.json();
+      if (!res.ok || data.error) {
+        throw new Error(data.error || "Erro ao fazer upload da imagem.");
+      }
+
+      if (data.url) {
+        setSelectedLens({ ...selectedLens, boxImage: data.url });
+      }
+    } catch (err: any) {
+      alert(err.message || "Falha no envio da imagem.");
+    } finally {
+      setIsUploading(false);
+    }
+  };
 
   useEffect(() => {
     async function loadLenses() {
@@ -495,8 +526,19 @@ export default function AdminLensesPage() {
                     value={selectedLens.boxImage || ""}
                     onChange={(e) => setSelectedLens({ ...selectedLens, boxImage: e.target.value })}
                     className="flex-1 bg-[#040e17] border border-slate-700 rounded-lg px-3 py-2 text-white focus:outline-none focus:border-amber-400"
-                    placeholder="Ex: /images/lenses/optisync-box.jpg ou URL externa"
+                    placeholder="URL da foto ou envie do seu dispositivo ao lado →"
                   />
+                  <label className="inline-flex items-center gap-1.5 px-3 py-2 rounded-lg bg-amber-400 hover:bg-amber-300 text-slate-950 font-bold text-xs cursor-pointer transition-colors shrink-0">
+                    <Upload size={14} />
+                    <span>{isUploading ? "Enviando..." : "Enviar Foto"}</span>
+                    <input
+                      type="file"
+                      accept="image/*"
+                      className="hidden"
+                      onChange={handleImageUpload}
+                      disabled={isUploading}
+                    />
+                  </label>
                   {selectedLens.boxImage && (
                     <div className="w-12 h-12 bg-white rounded-lg p-1 flex items-center justify-center shrink-0 border border-slate-600">
                       <img src={selectedLens.boxImage} alt="Preview" className="max-h-full max-w-full object-contain" />

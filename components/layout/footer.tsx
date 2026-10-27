@@ -16,7 +16,7 @@ export function Footer({ onOpenLegal }: FooterProps) {
   const instaUrl = `https://instagram.com/${identity.instagram_handle.replace("@", "")}`;
 
   return (
-    <footer className="site-footer bg-[#030810] text-slate-300 border-t border-white/10 pt-16 pb-12">
+    <footer className="site-footer bg-[#030810] text-slate-300 border-t border-white/10 pt-16 pb-28 sm:pb-14">
       <div className="max-w-[1400px] mx-auto px-4 sm:px-8 lg:px-10">
         <div className="grid grid-cols-1 md:grid-cols-4 gap-10 pb-12 border-b border-white/10">
           {/* Coluna 1: Marca & Assinatura */}
@@ -159,7 +159,7 @@ export function Footer({ onOpenLegal }: FooterProps) {
                 CNPJ: {identity.cnpj || "54.892.147/0001-30"}
               </p>
               <p className="text-[10px] text-slate-500">
-                Araçatuba-SP · Empresa Optométrica Regularizada
+                Araçatuba-SP · Laboratório Óptico &amp; Técnico Responsável
               </p>
               <div className="pt-2 flex flex-col gap-2">
                 <Link
@@ -186,10 +186,10 @@ export function Footer({ onOpenLegal }: FooterProps) {
         </div>
 
         {/* Rodapé inferior com Copyright */}
-        <div className="pt-8 flex flex-col sm:flex-row items-center justify-between text-xs text-slate-500 gap-4">
+        <div className="pt-8 flex flex-col sm:flex-row items-center justify-between text-xs text-slate-500 gap-4 text-center sm:text-left pr-14 sm:pr-0">
           <p>© {currentYear} Ótica Ventara. Todos os direitos reservados.</p>
           <p className="text-[11px] text-slate-500">
-            Rua Princesa Isabel, 221, Centro, Araçatuba-SP · Presença Digital & Loja Física
+            Rua Princesa Isabel, 221, Centro, Araçatuba-SP · Presença Digital &amp; Loja Física
           </p>
         </div>
       </div>

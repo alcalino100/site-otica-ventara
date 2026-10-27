@@ -132,4 +132,53 @@ test.describe("Validação Completa do Lote de Alterações - Óticas Ventara", 
       path: "/Users/gui/.gemini/antigravity/brain/90ffe01e-c1a0-4c0e-8ac8-51c4b6663b36/admin-orders-manual-modal.png",
     });
   });
+
+  test("7. Botão do Google Maps apenas com 'Abrir no Google Maps'", async ({ page }) => {
+    await page.goto("/");
+    await page.waitForLoadState("domcontentloaded");
+
+    const mapsBtn = page.getByRole("link", { name: /Abrir no Google Maps/i }).first();
+    await expect(mapsBtn).toBeVisible();
+
+    const text = await mapsBtn.textContent();
+    expect(text).toContain("Abrir no Google Maps");
+    expect(text).not.toContain("Meu Negócio");
+  });
+
+  test("8. Conformidade Legal: Sem menção a 'Empresa Optométrica' no rodapé", async ({ page }) => {
+    await page.goto("/");
+    await page.waitForLoadState("domcontentloaded");
+
+    const optometricaMention = page.locator("text=Empresa Optométrica Regularizada");
+    await expect(optometricaMention).toHaveCount(0);
+  });
+
+  test("9. Rastreamento: Retirada exibe strictly 'Pronto para Retirada' sem 'Em Trânsito'", async ({ page }) => {
+    await page.goto("/rastreio");
+    await page.waitForLoadState("domcontentloaded");
+
+    // Pesquisa fixture de retirada
+    const input = page.locator("input[placeholder*='código']");
+    await input.fill("VEN-10380");
+    await page.keyboard.press("Enter");
+    await page.waitForTimeout(500);
+
+    const badge = page.getByText("Pronto para Retirada").first();
+    await expect(badge).toBeVisible();
+
+    const inTransit = page.locator("text=Em Trânsito / Enviado");
+    await expect(inTransit).toHaveCount(0);
+  });
+
+  test("10. Painel Admin Lentes possui botão de Enviar Foto", async ({ page }) => {
+    await page.goto("/admin/lentes");
+    await page.waitForLoadState("domcontentloaded");
+
+    const editBtn = page.getByRole("button", { name: /Editar/i }).first();
+    await editBtn.click();
+    await page.waitForTimeout(300);
+
+    const uploadBtn = page.getByText(/Enviar Foto/i);
+    await expect(uploadBtn).toBeVisible();
+  });
 });

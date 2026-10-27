@@ -204,7 +204,7 @@ export function StoreSection() {
                 style={{ color: "#06111f" }}
               >
                 <Navigation size={16} />
-                <span className="font-bold">Abrir no Google Maps (Google Meu Negócio)</span>
+                <span className="font-bold">Abrir no Google Maps</span>
               </a>
             </div>
           </div>
