@@ -19,6 +19,7 @@ import {
   Phone,
   FileText,
   MapPin,
+  Trash2,
 } from "lucide-react";
 import { Order, OrderStatus } from "@/types/ecommerce";
 import { createClient, isSupabaseConfigured } from "@/lib/supabase/client";
@@ -31,6 +32,11 @@ export default function AdminOrdersPage() {
   const [searchQuery, setSearchQuery] = useState("");
   const [statusFilter, setStatusFilter] = useState<string>("all");
   const [updatingId, setUpdatingId] = useState<string | null>(null);
+
+  // Estado de Exclusão de Pedido
+  const [orderToDelete, setOrderToDelete] = useState<Order | null>(null);
+  const [isDeleting, setIsDeleting] = useState(false);
+  const [deleteFeedback, setDeleteFeedback] = useState<{ type: "success" | "error"; text: string } | null>(null);
 
   // Estado do Modal de Criação Manual de Pedidos
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -58,38 +64,29 @@ export default function AdminOrdersPage() {
   });
 
   const fetchOrders = async () => {
-    if (!isSupabaseConfigured()) {
-      setOrders([]);
-      setIsLoading(false);
-      return;
-    }
-
     setIsLoading(true);
     try {
-      const timeoutPromise = new Promise((_, reject) =>
-        setTimeout(() => reject(new Error("Supabase timeout")), 2500)
-      );
+      const res = await fetch("/api/admin/orders", {
+        cache: "no-store",
+      });
+      if (res.ok) {
+        const json = await res.json();
+        if (Array.isArray(json.orders)) {
+          setOrders(json.orders as Order[]);
+          return;
+        }
+      }
 
-      const fetchPromise = supabase
-        .from("orders")
-        .select(`
-          *,
-          items:order_items(*)
-        `)
-        .order("created_at", { ascending: false });
-
-      const { data, error } = (await Promise.race([
-        fetchPromise,
-        timeoutPromise,
-      ])) as any;
-
-      if (!error && data) {
-        setOrders(data as Order[]);
-      } else {
-        setOrders([]);
+      // Fallback via client-side Supabase
+      if (isSupabaseConfigured()) {
+        const { data } = await supabase
+          .from("orders")
+          .select(`*, items:order_items(*)`)
+          .order("created_at", { ascending: false });
+        if (data) setOrders(data as Order[]);
       }
     } catch (err) {
-      console.warn("Nenhum pedido real localizado:", err);
+      console.warn("Aviso ao buscar pedidos:", err);
       setOrders([]);
     } finally {
       setIsLoading(false);
@@ -157,6 +154,35 @@ export default function AdminOrdersPage() {
       console.error("Erro ao atualizar status do pedido:", err);
     } finally {
       setUpdatingId(null);
+    }
+  };
+
+  const handleDeleteOrder = async () => {
+    if (!orderToDelete) return;
+    setIsDeleting(true);
+    setDeleteFeedback(null);
+    try {
+      const res = await fetch(`/api/admin/orders?id=${encodeURIComponent(orderToDelete.id)}`, {
+        method: "DELETE",
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        throw new Error(data.error || "Falha ao excluir pedido.");
+      }
+      setOrders((prev) => prev.filter((o) => o.id !== orderToDelete.id));
+      setDeleteFeedback({
+        type: "success",
+        text: `Pedido ${orderToDelete.reference_code} excluído com sucesso!`,
+      });
+      setOrderToDelete(null);
+      setTimeout(() => setDeleteFeedback(null), 4000);
+    } catch (err: any) {
+      setDeleteFeedback({
+        type: "error",
+        text: err.message || "Erro de rede ao excluir pedido.",
+      });
+    } finally {
+      setIsDeleting(false);
     }
   };
 
@@ -409,6 +435,33 @@ export default function AdminOrdersPage() {
         </div>
       </div>
 
+      {/* Alerta de Feedback de Exclusão */}
+      {deleteFeedback && (
+        <div
+          className={`p-3.5 rounded-xl border flex items-center justify-between text-xs transition-all ${
+            deleteFeedback.type === "success"
+              ? "bg-emerald-950/40 border-emerald-500/30 text-emerald-200"
+              : "bg-rose-950/40 border-rose-500/30 text-rose-200"
+          }`}
+        >
+          <div className="flex items-center gap-2">
+            {deleteFeedback.type === "success" ? (
+              <CheckCircle2 size={16} className="text-emerald-400 shrink-0" />
+            ) : (
+              <AlertCircle size={16} className="text-rose-400 shrink-0" />
+            )}
+            <span>{deleteFeedback.text}</span>
+          </div>
+          <button
+            type="button"
+            onClick={() => setDeleteFeedback(null)}
+            className="text-slate-400 hover:text-white p-1 transition-colors"
+          >
+            <X size={14} />
+          </button>
+        </div>
+      )}
+
       {/* Tabela de Pedidos */}
       <div className="bg-[#06111f] border border-white/10 rounded-2xl overflow-hidden shadow-xl">
         {isLoading ? (
@@ -458,6 +511,7 @@ export default function AdminOrdersPage() {
                   <th className="py-3 px-4">Status Atual</th>
                   <th className="py-3 px-4">Alterar Status</th>
                   <th className="py-3 px-4">Data</th>
+                  <th className="py-3 px-4 text-center">Ações</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-white/5 text-slate-300">
@@ -541,6 +595,18 @@ export default function AdminOrdersPage() {
                           hour: "2-digit",
                           minute: "2-digit",
                         })}
+                      </td>
+
+                      <td className="py-3.5 px-4 text-center">
+                        <button
+                          type="button"
+                          onClick={() => setOrderToDelete(order)}
+                          className="p-1.5 rounded-lg text-slate-400 hover:text-rose-400 hover:bg-rose-500/10 active:scale-90 transition-all cursor-pointer inline-flex items-center justify-center"
+                          title={`Excluir pedido ${order.reference_code}`}
+                          aria-label={`Excluir pedido ${order.reference_code}`}
+                        >
+                          <Trash2 size={15} />
+                        </button>
                       </td>
                     </tr>
                   );
@@ -835,6 +901,61 @@ export default function AdminOrdersPage() {
                 </button>
               </div>
             </form>
+          </div>
+        </div>
+      )}
+
+      {/* MODAL DE CONFIRMAÇÃO DE EXCLUSÃO DE PEDIDO */}
+      {orderToDelete && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm">
+          <div className="bg-[#0c182b] border border-rose-500/30 rounded-3xl max-w-md w-full p-6 sm:p-7 shadow-2xl relative space-y-4">
+            <div className="flex items-start gap-3.5">
+              <div className="w-10 h-10 rounded-2xl bg-rose-500/15 border border-rose-500/30 text-rose-400 flex items-center justify-center shrink-0">
+                <Trash2 size={20} />
+              </div>
+              <div>
+                <h3 className="text-base font-bold text-white tracking-tight">
+                  Excluir Pedido Permanentemente
+                </h3>
+                <p className="text-xs text-slate-400 mt-1 leading-relaxed">
+                  Tem certeza de que deseja excluir o pedido{" "}
+                  <strong className="text-amber-400 font-mono">
+                    {orderToDelete.reference_code}
+                  </strong>{" "}
+                  do cliente{" "}
+                  <strong className="text-white">
+                    {orderToDelete.customer_name}
+                  </strong>
+                  ? Esta ação removerá o pedido do banco de dados e não poderá ser desfeita.
+                </p>
+              </div>
+            </div>
+
+            <div className="pt-2 flex items-center justify-end gap-3 border-t border-white/10">
+              <button
+                type="button"
+                disabled={isDeleting}
+                onClick={() => setOrderToDelete(null)}
+                className="px-4 py-2.5 rounded-xl border border-white/10 text-xs font-semibold text-slate-300 hover:bg-white/5 transition-colors cursor-pointer"
+              >
+                Cancelar
+              </button>
+              <button
+                type="button"
+                disabled={isDeleting}
+                onClick={handleDeleteOrder}
+                className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-rose-600 hover:bg-rose-500 active:scale-95 text-white font-bold text-xs uppercase tracking-wider transition-all shadow-lg shadow-rose-950/50 cursor-pointer disabled:opacity-50"
+              >
+                {isDeleting ? (
+                  <span>Excluindo...</span>
+                ) : (
+                  <>
+                    <Trash2 size={14} />
+                    <span>Confirmar Exclusão</span>
+                  </>
+                )}
+              </button>
+            </div>
           </div>
         </div>
       )}

@@ -3,6 +3,32 @@ import { createAdminClient } from "@/lib/supabase/admin";
 
 export const dynamic = "force-dynamic";
 
+export async function GET(req: NextRequest) {
+  try {
+    const adminSupabase = createAdminClient();
+    const { data, error } = await adminSupabase
+      .from("orders")
+      .select(`
+        *,
+        items:order_items(*)
+      `)
+      .order("created_at", { ascending: false });
+
+    if (error) {
+      console.warn("Aviso ao buscar pedidos no Supabase:", error.message);
+      return NextResponse.json({ success: true, orders: [] });
+    }
+
+    return NextResponse.json({
+      success: true,
+      orders: data || [],
+    });
+  } catch (err: any) {
+    console.error("Erro interno ao buscar pedidos:", err);
+    return NextResponse.json({ success: true, orders: [] });
+  }
+}
+
 export async function PATCH(req: NextRequest) {
   try {
     const body = await req.json();
@@ -201,6 +227,57 @@ export async function POST(req: NextRequest) {
     console.error("Erro interno ao criar pedido:", err);
     return NextResponse.json(
       { error: err.message || "Erro interno ao cadastrar pedido." },
+      { status: 500 }
+    );
+  }
+}
+
+export async function DELETE(req: NextRequest) {
+  try {
+    const searchParams = req.nextUrl.searchParams;
+    let id = searchParams.get("id");
+
+    if (!id) {
+      try {
+        const body = await req.json();
+        id = body?.id;
+      } catch {
+        // Ignora erro de JSON vazio
+      }
+    }
+
+    if (!id) {
+      return NextResponse.json(
+        { error: "ID do pedido é obrigatório para exclusão." },
+        { status: 400 }
+      );
+    }
+
+    const adminSupabase = createAdminClient();
+
+    // 1. Remove itens associados primeiro para garantir integridade referencial
+    await adminSupabase.from("order_items").delete().eq("order_id", id);
+
+    // 2. Remove o pedido
+    const { error } = await adminSupabase.from("orders").delete().eq("id", id);
+
+    if (error) {
+      console.error("Erro ao excluir pedido no Supabase:", error);
+      return NextResponse.json(
+        { error: `Erro ao excluir pedido: ${error.message}` },
+        { status: 400 }
+      );
+    }
+
+    return NextResponse.json({
+      success: true,
+      message: "Pedido excluído com sucesso.",
+      id,
+    });
+  } catch (err: any) {
+    console.error("Erro interno ao excluir pedido:", err);
+    return NextResponse.json(
+      { error: err.message || "Erro interno ao excluir pedido." },
       { status: 500 }
     );
   }
