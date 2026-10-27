@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import Link from "next/link";
 import { motion, AnimatePresence } from "motion/react";
 import {
@@ -13,10 +13,13 @@ import {
   Sun,
   User,
   Heart,
+  CreditCard,
 } from "lucide-react";
 import { SportsFrameArt, SportsLensColor, SportsFrameColor } from "../catalog/sports-frame-art";
 import { FrameArt } from "../catalog/frame-art";
 import { CartProduct } from "@/lib/cart";
+import { DEFAULT_SHOWCASE_MEDIA } from "@/lib/site-settings-constants";
+import { ShowcaseMediaSettings } from "@/types/ecommerce";
 
 type CategoryType = "solar" | "grau";
 type GenderType = "masculino" | "feminino";
@@ -333,21 +336,48 @@ const SHOWCASE_CONFIGS: Record<`${CategoryType}_${GenderType}`, ShowcaseData> = 
 
 interface InteractiveShowcaseProps {
   onAddToCart?: (product: any) => void;
-  onOpenCart?: () => void;
+  onOpenCart?: (initialView?: "items" | "checkout") => void;
+  onBuyNow?: (product: any) => void;
 }
 
 export function InteractiveShowcase({
   onAddToCart,
   onOpenCart,
+  onBuyNow,
 }: InteractiveShowcaseProps) {
   const [selectedCategory, setSelectedCategory] = useState<CategoryType>("solar");
   const [selectedGender, setSelectedGender] = useState<GenderType>("masculino");
   const [selectedVarIndex, setSelectedVarIndex] = useState(0);
   const [addedItemSku, setAddedItemSku] = useState<string | null>(null);
+  const [showcaseMedia, setShowcaseMedia] = useState<ShowcaseMediaSettings>(DEFAULT_SHOWCASE_MEDIA);
+
+  useEffect(() => {
+    async function loadShowcaseMedia() {
+      try {
+        const res = await fetch("/api/settings");
+        if (res.ok) {
+          const data = await res.json();
+          if (data.showcase_media) {
+            setShowcaseMedia((prev) => ({ ...prev, ...data.showcase_media }));
+          }
+        }
+      } catch (err) {}
+    }
+    loadShowcaseMedia();
+  }, []);
 
   const activeKey = `${selectedCategory}_${selectedGender}` as const;
   const currentData = SHOWCASE_CONFIGS[activeKey];
   const activeVariation = currentData.variations[selectedVarIndex] || currentData.variations[0];
+
+  const currentLifestyleImage =
+    activeKey === "solar_masculino"
+      ? showcaseMedia.heroMaleSolar || currentData.lifestyleImage
+      : activeKey === "solar_feminino"
+      ? showcaseMedia.heroFemaleSolar || currentData.lifestyleImage
+      : activeKey === "grau_masculino"
+      ? showcaseMedia.heroMaleGrau || currentData.lifestyleImage
+      : showcaseMedia.heroFemaleGrau || currentData.lifestyleImage;
 
   const handleSelectVariation = (idx: number) => {
     setSelectedVarIndex(idx);
@@ -361,6 +391,27 @@ export function InteractiveShowcase({
   const handleGenderSwitch = (gen: GenderType) => {
     setSelectedGender(gen);
     setSelectedVarIndex(0);
+  };
+
+  const handleBuyNow = () => {
+    const cartItem: CartProduct = {
+      id: activeVariation.id,
+      name: `${currentData.featuredProductName} - ${activeVariation.name}`,
+      slug: currentData.featuredProductSlug,
+      category: selectedCategory === "solar" ? "Solar" : "Grau",
+      color: activeVariation.name,
+      priceInCents: activeVariation.priceInCents,
+      imageUrl: undefined,
+    };
+
+    if (onBuyNow) {
+      onBuyNow(cartItem);
+    } else if (onAddToCart) {
+      onAddToCart(cartItem);
+      if (onOpenCart) {
+        onOpenCart("checkout");
+      }
+    }
   };
 
   const handleAddCurrentToCart = () => {
@@ -378,7 +429,7 @@ export function InteractiveShowcase({
       setAddedItemSku(activeVariation.sku);
       setTimeout(() => setAddedItemSku(null), 1800);
       if (onOpenCart) {
-        setTimeout(() => onOpenCart(), 350);
+        setTimeout(() => onOpenCart("items"), 350);
       }
     }
   };
@@ -528,7 +579,7 @@ export function InteractiveShowcase({
                 >
                   {/* Fotografia Lifestyle */}
                   <img
-                    src={currentData.lifestyleImage}
+                    src={currentLifestyleImage}
                     alt={currentData.lifestyleAlt}
                     className="w-full h-full object-cover object-center group-hover:scale-105 transition-transform duration-700"
                     loading="eager"
@@ -613,15 +664,16 @@ export function InteractiveShowcase({
                 </div>
               </div>
 
-              {/* Botão de Ação Primária & Secundária */}
-              <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 pt-2">
-                <Link
-                  href={`/produto/${currentData.featuredProductSlug}`}
-                  className="inline-flex items-center justify-center gap-2 px-6 py-3.5 rounded-full bg-amber-400 hover:bg-amber-300 active:scale-95 text-slate-950 font-bold text-xs sm:text-sm tracking-wider uppercase transition-all duration-200 shadow-md shadow-amber-400/20 group cursor-pointer"
+              {/* Botões de Ação: Compra Direta, Adicionar à Sacola e Ver Opções */}
+              <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2.5 pt-2">
+                <button
+                  type="button"
+                  onClick={handleBuyNow}
+                  className="inline-flex items-center justify-center gap-2 px-6 py-3.5 rounded-full bg-amber-400 hover:bg-amber-300 active:scale-95 text-slate-950 font-extrabold text-xs sm:text-sm tracking-wider uppercase transition-all duration-200 shadow-md shadow-amber-400/20 group cursor-pointer"
                 >
-                  <span>Ver opções</span>
-                  <ArrowRight size={15} className="group-hover:translate-x-1 transition-transform" />
-                </Link>
+                  <CreditCard size={16} className="text-slate-950" />
+                  <span>COMPRAR AGORA</span>
+                </button>
 
                 <button
                   type="button"
@@ -640,6 +692,14 @@ export function InteractiveShowcase({
                     </>
                   )}
                 </button>
+
+                <Link
+                  href={`/produto/${currentData.featuredProductSlug}`}
+                  className="inline-flex items-center justify-center gap-1 px-4 py-3.5 rounded-full border border-slate-300 bg-white hover:bg-slate-50 active:scale-95 text-slate-700 font-semibold text-xs tracking-wider uppercase transition-all cursor-pointer group"
+                >
+                  <span>Opções</span>
+                  <ArrowRight size={14} className="group-hover:translate-x-1 transition-transform text-amber-600" />
+                </Link>
               </div>
             </div>
 

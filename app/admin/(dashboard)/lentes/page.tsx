@@ -19,19 +19,26 @@ import {
   Trash2,
   Palette,
   Upload,
+  Award,
+  Image as ImageIcon,
 } from "lucide-react";
 import { AdminLensItem, DEFAULT_LENSES } from "@/lib/lenses-data";
+import { DEFAULT_LAB_SHOWCASE } from "@/lib/site-settings-constants";
+import { LabShowcaseSettings } from "@/types/ecommerce";
 
 export default function AdminLensesPage() {
   const [lenses, setLenses] = useState<AdminLensItem[]>(DEFAULT_LENSES);
+  const [labShowcase, setLabShowcase] = useState<LabShowcaseSettings>(DEFAULT_LAB_SHOWCASE);
   const [isLoading, setIsLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
+  const [isSavingLab, setIsSavingLab] = useState(false);
+  const [isUploadingLab, setIsUploadingLab] = useState(false);
   const [selectedLens, setSelectedLens] = useState<AdminLensItem | null>(null);
   const [isNewLens, setIsNewLens] = useState(false);
   const [feedback, setFeedback] = useState<string | null>(null);
   const [isUploading, setIsUploading] = useState(false);
   const [categoryFilter, setCategoryFilter] = useState<
-    "all" | "visao-simples" | "multifocal" | "tratamentos" | "coloridas"
+    "all" | "destaque-lab" | "visao-simples" | "multifocal" | "tratamentos" | "coloridas"
   >("all");
 
   const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -63,6 +70,63 @@ export default function AdminLensesPage() {
     }
   };
 
+  const handleLabImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    setIsUploadingLab(true);
+    try {
+      const formData = new FormData();
+      formData.append("file", file);
+
+      const res = await fetch("/api/admin/upload", {
+        method: "POST",
+        body: formData,
+      });
+
+      const data = await res.json();
+      if (!res.ok || data.error) {
+        throw new Error(data.error || "Erro ao fazer upload da imagem.");
+      }
+
+      if (data.url) {
+        setLabShowcase((prev) => ({ ...prev, boxImage: data.url }));
+        setFeedback("Foto da caixa/marca enviada! Clique em 'Salvar Destaque' para publicar no site.");
+        setTimeout(() => setFeedback(null), 4000);
+      }
+    } catch (err: any) {
+      alert(err.message || "Falha no envio da imagem.");
+    } finally {
+      setIsUploadingLab(false);
+    }
+  };
+
+  const handleSaveLabShowcase = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setIsSavingLab(true);
+    setFeedback(null);
+    try {
+      const res = await fetch("/api/admin/settings", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ lab_showcase: labShowcase }),
+      });
+
+      const data = await res.json();
+      if (!res.ok || data.error) {
+        throw new Error(data.error || "Erro ao salvar informações do laboratório parceiro.");
+      }
+
+      setFeedback("Destaque do laboratório/marca atualizado e publicado no site!");
+      setTimeout(() => setFeedback(null), 4000);
+    } catch (err: any) {
+      console.error(err);
+      alert(err.message || "Erro inesperado ao salvar destaque do laboratório.");
+    } finally {
+      setIsSavingLab(false);
+    }
+  };
+
   useEffect(() => {
     async function loadLenses() {
       try {
@@ -80,7 +144,20 @@ export default function AdminLensesPage() {
       }
     }
 
+    async function loadLabSettings() {
+      try {
+        const res = await fetch("/api/admin/settings");
+        if (res.ok) {
+          const data = await res.json();
+          if (data.lab_showcase) {
+            setLabShowcase((prev) => ({ ...prev, ...data.lab_showcase }));
+          }
+        }
+      } catch (err) {}
+    }
+
     loadLenses();
+    loadLabSettings();
   }, []);
 
   const handleSaveAll = async (updatedList: AdminLensItem[]) => {
@@ -134,7 +211,7 @@ export default function AdminLensesPage() {
     const newItem: AdminLensItem = {
       id: `lente-${Date.now()}`,
       name: "",
-      category: categoryFilter !== "all" ? categoryFilter : "visao-simples",
+      category: categoryFilter !== "all" && categoryFilter !== "destaque-lab" ? categoryFilter : "visao-simples",
       brandName: "Novo Laboratório Homologado",
       brandLogo: "/logos/optisync.svg",
       treatment: "Antirreflexo Multicamadas + Proteção UV400",
@@ -261,10 +338,303 @@ export default function AdminLensesPage() {
           <Palette size={13} />
           <span>Lentes Coloridas (8 Cores)</span>
         </button>
+        <button
+          type="button"
+          onClick={() => setCategoryFilter("destaque-lab")}
+          className={`flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl text-xs font-semibold whitespace-nowrap transition-all ${
+            categoryFilter === "destaque-lab"
+              ? "bg-amber-400 text-slate-950 shadow-sm font-bold"
+              : "text-amber-400 hover:bg-amber-400/10 border border-amber-400/30"
+          }`}
+        >
+          <Award size={13} />
+          <span>Destaque Lab &amp; Marca Própria</span>
+        </button>
       </div>
 
+      {/* SEÇÃO 1: FORMULÁRIO DO DESTAQUE DA MARCA PRÓPRIA / LABORATÓRIO PARCEIRO */}
+      {categoryFilter === "destaque-lab" && (
+        <form
+          onSubmit={handleSaveLabShowcase}
+          className="bg-[#06111f] border border-amber-400/30 rounded-2xl p-6 sm:p-8 space-y-6 shadow-xl"
+        >
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-white/10 pb-4">
+            <div>
+              <span className="text-[10px] font-bold uppercase tracking-widest text-amber-400 bg-amber-400/10 px-2.5 py-0.5 rounded-full border border-amber-400/20">
+                PERSONALIZAÇÃO DE PARCERIAS
+              </span>
+              <h2 className="text-xl font-bold text-white mt-1">
+                Destaque do Laboratório Parceiro / Marca Própria
+              </h2>
+              <p className="text-xs text-slate-400 mt-0.5">
+                Altere a foto da caixa da lente, o laboratório homologado, prazos e textos que aparecem em destaque na seção de lentes do site.
+              </p>
+            </div>
+
+            <button
+              type="submit"
+              disabled={isSavingLab}
+              className="inline-flex items-center gap-2 px-6 py-3 rounded-xl bg-amber-400 hover:bg-amber-300 disabled:opacity-50 text-slate-950 font-bold text-xs uppercase tracking-wider transition-all shadow-md shadow-amber-400/20 cursor-pointer self-start sm:self-auto"
+            >
+              <Save size={15} />
+              <span>{isSavingLab ? "Salvando..." : "Salvar Destaque"}</span>
+            </button>
+          </div>
+
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
+            {/* Coluna 1: Foto da Caixa com Uploader Imediato */}
+            <div className="lg:col-span-5 space-y-4">
+              <label className="text-xs font-bold text-slate-300 uppercase tracking-wider block">
+                Foto da Caixa / Lente do Laboratório *
+              </label>
+
+              <div className="bg-[#091829] border border-white/10 rounded-2xl p-4 flex flex-col items-center justify-center text-center">
+                <div className="w-full max-w-[260px] aspect-square bg-white rounded-xl p-3 flex items-center justify-center shadow-lg border border-amber-400/20 overflow-hidden mb-4">
+                  <img
+                    src={labShowcase.boxImage || "/images/lenses/optisync-box.jpg"}
+                    alt="Preview Caixa Lente"
+                    className="w-full h-full object-contain"
+                  />
+                </div>
+
+                <div className="w-full space-y-2.5">
+                  <label className="w-full py-2.5 px-4 rounded-xl bg-amber-400 hover:bg-amber-300 text-slate-950 font-bold text-xs uppercase tracking-wider flex items-center justify-center gap-2 transition-all cursor-pointer shadow-sm">
+                    <Upload size={15} />
+                    <span>{isUploadingLab ? "Enviando Imagem..." : "Trocar Foto da Caixa"}</span>
+                    <input
+                      type="file"
+                      accept="image/*"
+                      onChange={handleLabImageUpload}
+                      disabled={isUploadingLab}
+                      className="hidden"
+                    />
+                  </label>
+
+                  <div>
+                    <span className="text-[10px] text-slate-400 block mb-1">
+                      Ou informe o caminho/URL da imagem:
+                    </span>
+                    <input
+                      type="text"
+                      value={labShowcase.boxImage}
+                      onChange={(e) =>
+                        setLabShowcase({ ...labShowcase, boxImage: e.target.value })
+                      }
+                      className="w-full bg-[#040c16] border border-white/10 rounded-xl px-3 py-2 text-xs text-white placeholder-slate-600 focus:outline-none focus:border-amber-400"
+                      placeholder="/images/lenses/optisync-box.jpg"
+                    />
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Coluna 2: Informações Técnicas e Textos */}
+            <div className="lg:col-span-7 space-y-4 text-xs">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div>
+                  <label className="text-slate-300 font-semibold block mb-1">
+                    Nome da Marca / Laboratório *
+                  </label>
+                  <input
+                    type="text"
+                    required
+                    value={labShowcase.brandName}
+                    onChange={(e) =>
+                      setLabShowcase({ ...labShowcase, brandName: e.target.value })
+                    }
+                    placeholder="Ex: OPTiSYNC HD, Essilor, Zeiss"
+                    className="w-full bg-[#040c16] border border-white/10 rounded-xl px-3.5 py-2.5 text-white focus:outline-none focus:border-amber-400"
+                  />
+                </div>
+
+                <div>
+                  <label className="text-slate-300 font-semibold block mb-1">
+                    Badge Superior *
+                  </label>
+                  <input
+                    type="text"
+                    required
+                    value={labShowcase.badge}
+                    onChange={(e) =>
+                      setLabShowcase({ ...labShowcase, badge: e.target.value })
+                    }
+                    placeholder="Ex: VENTARA EXCLUSIVO ou PARCEIRO OFICIAL"
+                    className="w-full bg-[#040c16] border border-white/10 rounded-xl px-3.5 py-2.5 text-white focus:outline-none focus:border-amber-400"
+                  />
+                </div>
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div>
+                  <label className="text-slate-300 font-semibold block mb-1">
+                    Título do Destaque *
+                  </label>
+                  <input
+                    type="text"
+                    required
+                    value={labShowcase.headline}
+                    onChange={(e) =>
+                      setLabShowcase({ ...labShowcase, headline: e.target.value })
+                    }
+                    placeholder="Ex: OPTiSYNC HD · Filtro Azul & Antirreflexo"
+                    className="w-full bg-[#040c16] border border-white/10 rounded-xl px-3.5 py-2.5 text-white focus:outline-none focus:border-amber-400"
+                  />
+                </div>
+
+                <div>
+                  <label className="text-slate-300 font-semibold block mb-1">
+                    Prazo / Subtítulo *
+                  </label>
+                  <input
+                    type="text"
+                    required
+                    value={labShowcase.subtitle}
+                    onChange={(e) =>
+                      setLabShowcase({ ...labShowcase, subtitle: e.target.value })
+                    }
+                    placeholder="Ex: Montagem Expressa em até 1 Hora"
+                    className="w-full bg-[#040c16] border border-white/10 rounded-xl px-3.5 py-2.5 text-white focus:outline-none focus:border-amber-400"
+                  />
+                </div>
+              </div>
+
+              <div>
+                <label className="text-slate-300 font-semibold block mb-1">
+                  Descrição Técnica do Laboratório *
+                </label>
+                <textarea
+                  rows={3}
+                  required
+                  value={labShowcase.description}
+                  onChange={(e) =>
+                    setLabShowcase({ ...labShowcase, description: e.target.value })
+                  }
+                  className="w-full bg-[#040c16] border border-white/10 rounded-xl px-3.5 py-2.5 text-white focus:outline-none focus:border-amber-400 resize-none leading-relaxed"
+                />
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                <div>
+                  <label className="text-slate-300 font-semibold block mb-1">
+                    Vantagem 1
+                  </label>
+                  <input
+                    type="text"
+                    value={labShowcase.feature1}
+                    onChange={(e) =>
+                      setLabShowcase({ ...labShowcase, feature1: e.target.value })
+                    }
+                    placeholder="Filtro Azul Incluso"
+                    className="w-full bg-[#040c16] border border-white/10 rounded-xl px-3 py-2 text-white focus:outline-none focus:border-amber-400"
+                  />
+                </div>
+
+                <div>
+                  <label className="text-slate-300 font-semibold block mb-1">
+                    Vantagem 2
+                  </label>
+                  <input
+                    type="text"
+                    value={labShowcase.feature2}
+                    onChange={(e) =>
+                      setLabShowcase({ ...labShowcase, feature2: e.target.value })
+                    }
+                    placeholder="Antirreflexo Multicamadas"
+                    className="w-full bg-[#040c16] border border-white/10 rounded-xl px-3 py-2 text-white focus:outline-none focus:border-amber-400"
+                  />
+                </div>
+
+                <div>
+                  <label className="text-slate-300 font-semibold block mb-1">
+                    Vantagem 3
+                  </label>
+                  <input
+                    type="text"
+                    value={labShowcase.feature3}
+                    onChange={(e) =>
+                      setLabShowcase({ ...labShowcase, feature3: e.target.value })
+                    }
+                    placeholder="Garantia de Fábrica"
+                    className="w-full bg-[#040c16] border border-white/10 rounded-xl px-3 py-2 text-white focus:outline-none focus:border-amber-400"
+                  />
+                </div>
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-2">
+                <div>
+                  <label className="text-slate-300 font-semibold block mb-1">
+                    Texto do Botão WhatsApp *
+                  </label>
+                  <input
+                    type="text"
+                    required
+                    value={labShowcase.ctaText}
+                    onChange={(e) =>
+                      setLabShowcase({ ...labShowcase, ctaText: e.target.value })
+                    }
+                    placeholder="Ex: Pedir Orçamento OPTiSYNC"
+                    className="w-full bg-[#040c16] border border-white/10 rounded-xl px-3.5 py-2.5 text-white focus:outline-none focus:border-amber-400"
+                  />
+                </div>
+
+                <div>
+                  <label className="text-slate-300 font-semibold block mb-1">
+                    Mensagem Padrão do WhatsApp *
+                  </label>
+                  <input
+                    type="text"
+                    required
+                    value={labShowcase.whatsappMessage}
+                    onChange={(e) =>
+                      setLabShowcase({ ...labShowcase, whatsappMessage: e.target.value })
+                    }
+                    placeholder="Mensagem ao clicar no botão"
+                    className="w-full bg-[#040c16] border border-white/10 rounded-xl px-3.5 py-2.5 text-white focus:outline-none focus:border-amber-400"
+                  />
+                </div>
+              </div>
+            </div>
+          </div>
+        </form>
+      )}
+
       {/* Grade de Lentes */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
+      {categoryFilter !== "destaque-lab" && (
+        <div className="space-y-4">
+          {/* Card Resumo do Destaque Lab */}
+          <div className="bg-[#06111f] border border-amber-400/20 rounded-2xl p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+            <div className="flex items-center gap-3">
+              <div className="w-12 h-12 rounded-xl bg-white p-1 flex items-center justify-center shrink-0 border border-amber-400/30">
+                <img
+                  src={labShowcase.boxImage || "/images/lenses/optisync-box.jpg"}
+                  alt={labShowcase.brandName}
+                  className="w-full h-full object-contain"
+                />
+              </div>
+              <div>
+                <p className="text-xs font-bold text-white flex items-center gap-1.5">
+                  <span>Destaque Atual: {labShowcase.headline}</span>
+                  <span className="text-[10px] text-amber-400 bg-amber-400/10 px-2 py-0.5 rounded-full">
+                    {labShowcase.badge}
+                  </span>
+                </p>
+                <p className="text-[11px] text-slate-400">
+                  {labShowcase.brandName} · {labShowcase.subtitle}
+                </p>
+              </div>
+            </div>
+
+            <button
+              type="button"
+              onClick={() => setCategoryFilter("destaque-lab")}
+              className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-lg bg-amber-400/10 hover:bg-amber-400/20 border border-amber-400/30 text-amber-300 font-semibold text-xs tracking-wider transition-all self-start sm:self-auto cursor-pointer"
+            >
+              <Edit3 size={13} />
+              <span>Editar Foto e Informações da Marca</span>
+            </button>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
         {filteredLenses.map((lens) => (
           <div
             key={lens.id}
@@ -356,6 +726,8 @@ export default function AdminLensesPage() {
           </div>
         ))}
       </div>
+    </div>
+  )}
 
       {/* Modal de Edição ou Criação de Lente */}
       {selectedLens && (

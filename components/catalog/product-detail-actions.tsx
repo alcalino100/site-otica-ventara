@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
   ShoppingBag,
   MessageCircle,
@@ -9,9 +9,11 @@ import {
   Sparkles,
   Layers,
   ShieldCheck,
+  CreditCard,
 } from "lucide-react";
 import { Product } from "@/types/ecommerce";
 import { getStoredCart, saveStoredCart, CartProduct } from "@/lib/cart";
+import { CartModal } from "@/components/cart/cart-modal";
 
 interface ProductDetailActionsProps {
   product: Product;
@@ -23,6 +25,13 @@ export function ProductDetailActions({
   onAddedNotification,
 }: ProductDetailActionsProps) {
   const [isAdded, setIsAdded] = useState(false);
+  const [isCartOpen, setIsCartOpen] = useState(false);
+  const [cartModalView, setCartModalView] = useState<"items" | "checkout">("checkout");
+  const [cartItems, setCartItems] = useState<CartProduct[]>([]);
+
+  useEffect(() => {
+    setCartItems(getStoredCart());
+  }, []);
 
   // Variantes de Cor disponíveis
   const variants =
@@ -81,22 +90,50 @@ export function ProductDetailActions({
 
   const [selectedLens, setSelectedLens] = useState(lensOptions[0]);
 
-  const handleAdd = () => {
-    const currentCart = getStoredCart();
+  const handleRemoveFromCart = (id: string) => {
+    const updated = cartItems.filter((i) => i.id !== id);
+    setCartItems(updated);
+    saveStoredCart(updated);
+  };
+
+  const handleClearCart = () => {
+    setCartItems([]);
+    saveStoredCart([]);
+  };
+
+  const createCartItem = (): CartProduct => {
     const primaryImg =
       product.images?.find((i) => i.is_primary)?.url || product.images?.[0]?.url;
 
-    const cartItem: CartProduct = {
+    return {
       id: `${product.id}-${selectedVariant.id}`,
-      name: product.name,
+      name: `${product.name} - ${selectedVariant.color_name}`,
       slug: product.slug,
       category: product.category?.name || product.frame_type,
       color: selectedVariant.color_name || "Padrão",
       priceInCents: product.price_in_cents,
       imageUrl: primaryImg,
     };
+  };
 
-    saveStoredCart([...currentCart, cartItem]);
+  const handleBuyNow = () => {
+    const currentCart = getStoredCart();
+    const item = createCartItem();
+    const exists = currentCart.some((it) => it.id === item.id);
+    const updated = exists ? currentCart : [...currentCart, item];
+    saveStoredCart(updated);
+    setCartItems(updated);
+    setCartModalView("checkout");
+    setIsCartOpen(true);
+  };
+
+  const handleAdd = () => {
+    const currentCart = getStoredCart();
+    const item = createCartItem();
+    const exists = currentCart.some((it) => it.id === item.id);
+    const updated = exists ? currentCart : [...currentCart, item];
+    saveStoredCart(updated);
+    setCartItems(updated);
     setIsAdded(true);
     if (onAddedNotification) {
       onAddedNotification(`${product.name} adicionado à sua seleção.`);
@@ -201,26 +238,36 @@ export function ProductDetailActions({
 
       {/* Botões de Ação com Micro-Interações */}
       <div className="space-y-3 pt-4 border-t border-slate-200/80">
-        {/* Botão Primário: Adicionar à Seleção */}
+        {/* Botão Primário: Comprar Agora direto para o Checkout Mercado Pago */}
+        <button
+          type="button"
+          onClick={handleBuyNow}
+          className="w-full bg-[#ffd62e] hover:bg-[#ffcd00] active:scale-95 text-[#06111f] font-extrabold text-xs sm:text-sm tracking-wider uppercase py-4 px-6 rounded-2xl flex items-center justify-center gap-2.5 transition-all duration-200 shadow-md hover:shadow-xl cursor-pointer"
+        >
+          <CreditCard size={18} className="text-[#06111f]" />
+          <span>COMPRAR AGORA</span>
+        </button>
+
+        {/* Botão Secundário: Adicionar à Seleção / Sacola para continuar navegando */}
         <button
           type="button"
           onClick={handleAdd}
-          className="w-full bg-[#ffd62e] hover:bg-[#ffcd00] active:scale-95 text-[#06111f] font-bold text-xs tracking-wider uppercase py-4 px-6 rounded-2xl flex items-center justify-center gap-2.5 transition-all duration-200 shadow-md hover:shadow-lg cursor-pointer"
+          className="w-full bg-slate-900 hover:bg-slate-800 active:scale-95 text-white font-semibold text-xs tracking-wider uppercase py-3.5 px-6 rounded-2xl flex items-center justify-center gap-2 transition-all shadow-sm cursor-pointer"
         >
           {isAdded ? (
             <>
-              <Check size={18} className="text-emerald-950 stroke-[3]" />
-              <span className="font-bold">Adicionado à Seleção!</span>
+              <Check size={16} className="text-emerald-400 stroke-[3]" />
+              <span className="font-bold text-emerald-300">Adicionado à Seleção!</span>
             </>
           ) : (
             <>
-              <ShoppingBag size={18} />
-              <span className="font-bold">Adicionar à seleção</span>
+              <ShoppingBag size={16} className="text-amber-400" />
+              <span>Adicionar à seleção</span>
             </>
           )}
         </button>
 
-        {/* Botão Secundário: Consultar Lentes no WhatsApp */}
+        {/* Botão Terciário: Consultar Lentes no WhatsApp */}
         <a
           href={whatsappUrl}
           target="_blank"
@@ -239,6 +286,16 @@ export function ProductDetailActions({
           Atendimento consultivo na loja em Araçatuba-SP ou suporte digital via WhatsApp.
         </p>
       </div>
+
+      {/* Cart Modal com Abertura Direta em Checkout */}
+      <CartModal
+        isOpen={isCartOpen}
+        onClose={() => setIsCartOpen(false)}
+        cartItems={cartItems}
+        onRemoveItem={handleRemoveFromCart}
+        onClearCart={handleClearCart}
+        initialView={cartModalView}
+      />
     </div>
   );
 }

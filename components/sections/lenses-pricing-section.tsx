@@ -18,6 +18,8 @@ import {
 } from "lucide-react";
 import { LensOpticalGraphic } from "../ui/lens-optical-graphic";
 import { PartnerLogosRibbon } from "./partner-logos-ribbon";
+import { DEFAULT_LAB_SHOWCASE } from "@/lib/site-settings-constants";
+import { LabShowcaseSettings } from "@/types/ecommerce";
 
 type LensCategory = "visao-simples" | "multifocal" | "tratamentos" | "marcas";
 
@@ -41,6 +43,7 @@ interface LensOption {
 export function LensesPricingSection() {
   const [activeCategory, setActiveCategory] = useState<LensCategory>("visao-simples");
   const [activeLenses, setActiveLenses] = useState<LensOption[]>([]);
+  const [labShowcase, setLabShowcase] = useState<LabShowcaseSettings>(DEFAULT_LAB_SHOWCASE);
   const [activeCardIndex, setActiveCardIndex] = useState(0);
   const carouselRef = useRef<HTMLDivElement>(null);
 
@@ -87,7 +90,23 @@ export function LensesPricingSection() {
         // Fallback para lista estática
       }
     }
+
+    async function loadLabSettings() {
+      try {
+        const res = await fetch("/api/settings");
+        if (res.ok) {
+          const data = await res.json();
+          if (data.lab_showcase) {
+            setLabShowcase((prev) => ({ ...prev, ...data.lab_showcase }));
+          }
+        }
+      } catch (err) {
+        // Fallback padrão
+      }
+    }
+
     loadDynamicLenses();
+    loadLabSettings();
   }, []);
 
   // Catálogo completo de lentes com fotos reais das caixas (estilo Panda Elite)
@@ -749,7 +768,7 @@ export function LensesPricingSection() {
           )}
         </div>
 
-        {/* DESTAQUE ESPECIAL DA MARCA PRÓPRIA: OPTISYNC HD COM MONTAGEM EXPRESSA */}
+        {/* DESTAQUE ESPECIAL DA MARCA PRÓPRIA / LABORATÓRIO PARCEIRO */}
         <div className="mt-12 bg-gradient-to-br from-[#0c182b] via-[#091526] to-[#060e1a] rounded-3xl p-6 sm:p-10 text-white shadow-2xl border border-amber-400/20 relative overflow-hidden">
           <div className="absolute top-0 right-0 -mr-20 -mt-20 w-80 h-80 bg-amber-400/15 blur-3xl rounded-full pointer-events-none" />
 
@@ -757,8 +776,8 @@ export function LensesPricingSection() {
             <div className="lg:col-span-4 flex justify-center">
               <div className="p-4 bg-white rounded-2xl border border-amber-400/30 max-w-[280px] w-full shadow-xl flex items-center justify-center">
                 <img
-                  src="/images/lenses/optisync-box.jpg"
-                  alt="Lente Exclusiva OPTiSYNC HD - Óticas Ventara"
+                  src={labShowcase.boxImage || "/images/lenses/optisync-box.jpg"}
+                  alt={`Lente Exclusiva ${labShowcase.brandName} - Óticas Ventara`}
                   className="w-full h-auto rounded-lg object-contain"
                 />
               </div>
@@ -767,36 +786,51 @@ export function LensesPricingSection() {
             <div className="lg:col-span-8 space-y-4">
               <div className="flex items-center gap-2 flex-wrap">
                 <span className="text-[10px] font-extrabold uppercase tracking-widest px-3 py-1 rounded-full bg-amber-400 text-slate-950">
-                  VENTARA EXCLUSIVO
+                  {labShowcase.badge || "VENTARA EXCLUSIVO"}
                 </span>
                 <span className="text-xs text-amber-300 font-semibold flex items-center gap-1">
-                  <Clock size={13} /> Montagem Expressa em até 1 Hora
+                  <Clock size={13} /> {labShowcase.subtitle || "Montagem Expressa em até 1 Hora"}
                 </span>
               </div>
 
               <h3 className="text-2xl sm:text-3xl font-bold tracking-tight text-white">
-                OPTiSYNC HD · Filtro Azul &amp; Antirreflexo
+                {labShowcase.headline || "OPTiSYNC HD · Filtro Azul & Antirreflexo"}
               </h3>
 
               <p className="text-xs sm:text-sm text-slate-300 leading-relaxed max-w-2xl">
-                Cortadas e facetadas com precisão nanométrica em nossa biseladora computadorizada na Rua Princesa Isabel, 221. Proteção contra luz azul, antirreflexo de altíssima claridade e o melhor custo de fábrica, sem comissões ou repasses a intermediários.
+                {labShowcase.description}
               </p>
 
               <div className="pt-2 flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-4 border-t border-white/10">
                 <div className="flex flex-wrap gap-2 text-xs text-slate-300">
-                  <span className="px-2.5 py-1 rounded-md bg-white/5 border border-white/10">✓ Filtro Azul Incluso</span>
-                  <span className="px-2.5 py-1 rounded-md bg-white/5 border border-white/10">✓ Antirreflexo Multicamadas</span>
-                  <span className="px-2.5 py-1 rounded-md bg-white/5 border border-white/10">✓ Garantia de Fábrica</span>
+                  {labShowcase.feature1 && (
+                    <span className="px-2.5 py-1 rounded-md bg-white/5 border border-white/10">
+                      ✓ {labShowcase.feature1}
+                    </span>
+                  )}
+                  {labShowcase.feature2 && (
+                    <span className="px-2.5 py-1 rounded-md bg-white/5 border border-white/10">
+                      ✓ {labShowcase.feature2}
+                    </span>
+                  )}
+                  {labShowcase.feature3 && (
+                    <span className="px-2.5 py-1 rounded-md bg-white/5 border border-white/10">
+                      ✓ {labShowcase.feature3}
+                    </span>
+                  )}
                 </div>
 
                 <a
-                  href="https://wa.me/5518996155748?text=Ol%C3%A1!%20Gostaria%20de%20um%20or%C3%A7amento%20para%20as%20lentes%20exclusivas%20OPTiSYNC%20HD%20da%20%C3%93ticas%20Ventara."
+                  href={`https://wa.me/5518996155748?text=${encodeURIComponent(
+                    labShowcase.whatsappMessage ||
+                      `Olá! Gostaria de um orçamento para as lentes exclusivas ${labShowcase.brandName} da Óticas Ventara.`
+                  )}`}
                   target="_blank"
                   rel="noopener noreferrer"
                   className="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-6 py-3.5 rounded-xl bg-amber-400 hover:bg-amber-300 text-slate-950 font-bold text-xs uppercase tracking-wider transition-all shadow-lg active:scale-95 shrink-0 cursor-pointer"
                 >
                   <MessageSquare size={15} />
-                  <span>Pedir Orçamento OPTiSYNC</span>
+                  <span>{labShowcase.ctaText || "Pedir Orçamento OPTiSYNC"}</span>
                   <ArrowRight size={14} />
                 </a>
               </div>

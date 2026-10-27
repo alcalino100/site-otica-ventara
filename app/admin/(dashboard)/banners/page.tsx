@@ -11,14 +11,24 @@ import {
   AlertTriangle,
   ArrowRight,
   Sparkles,
+  Upload,
+  Save,
+  Sun,
+  Glasses,
+  ShieldCheck,
 } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
-import { HomepageBanner } from "@/types/ecommerce";
+import { HomepageBanner, ShowcaseMediaSettings } from "@/types/ecommerce";
+import { DEFAULT_SHOWCASE_MEDIA } from "@/lib/site-settings-constants";
 
 export default function AdminBannersPage() {
   const supabase = createClient();
+  const [activeTab, setActiveTab] = useState<"banners" | "vitrines">("banners");
   const [banners, setBanners] = useState<HomepageBanner[]>([]);
+  const [showcaseMedia, setShowcaseMedia] = useState<ShowcaseMediaSettings>(DEFAULT_SHOWCASE_MEDIA);
   const [isLoading, setIsLoading] = useState(true);
+  const [isSavingMedia, setIsSavingMedia] = useState(false);
+  const [uploadingField, setUploadingField] = useState<string | null>(null);
   const [feedback, setFeedback] = useState<string | null>(null);
 
   // Formulário de novo banner
@@ -54,9 +64,83 @@ export default function AdminBannersPage() {
     }
   };
 
+  const fetchShowcaseMedia = async () => {
+    try {
+      const res = await fetch("/api/admin/settings");
+      if (res.ok) {
+        const data = await res.json();
+        if (data.showcase_media) {
+          setShowcaseMedia((prev) => ({ ...prev, ...data.showcase_media }));
+        }
+      }
+    } catch (err) {
+      console.warn("Erro ao carregar mídias das vitrines:", err);
+    }
+  };
+
   useEffect(() => {
     fetchBanners();
+    fetchShowcaseMedia();
   }, []);
+
+  const handleShowcaseUpload = async (
+    field: keyof ShowcaseMediaSettings,
+    e: React.ChangeEvent<HTMLInputElement>
+  ) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    setUploadingField(field);
+    try {
+      const formData = new FormData();
+      formData.append("file", file);
+
+      const res = await fetch("/api/admin/upload", {
+        method: "POST",
+        body: formData,
+      });
+
+      const data = await res.json();
+      if (!res.ok || data.error) {
+        throw new Error(data.error || "Erro no upload.");
+      }
+
+      if (data.url) {
+        setShowcaseMedia((prev) => ({ ...prev, [field]: data.url }));
+        setFeedback("Imagem enviada! Clique em 'Salvar Fotos das Seções' para aplicar.");
+        setTimeout(() => setFeedback(null), 4000);
+      }
+    } catch (err: any) {
+      alert(err.message || "Erro no upload.");
+    } finally {
+      setUploadingField(null);
+    }
+  };
+
+  const handleSaveShowcaseMedia = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setIsSavingMedia(true);
+    setFeedback(null);
+    try {
+      const res = await fetch("/api/admin/settings", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ showcase_media: showcaseMedia }),
+      });
+
+      const data = await res.json();
+      if (!res.ok || data.error) {
+        throw new Error(data.error || "Erro ao salvar fotos.");
+      }
+
+      setFeedback("Fotos das seções salvas e aplicadas com sucesso no site!");
+      setTimeout(() => setFeedback(null), 4000);
+    } catch (err: any) {
+      alert(err.message || "Falha ao salvar fotos.");
+    } finally {
+      setIsSavingMedia(false);
+    }
+  };
 
   const isValidUrl = (url: string): boolean => {
     if (!url) return false;
@@ -206,25 +290,348 @@ export default function AdminBannersPage() {
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-white/10">
         <div>
           <span className="text-[11px] font-semibold tracking-widest uppercase text-amber-400">
-            DESTAQUES & COMUNICAÇÃO
+            DESTAQUES &amp; COMUNICAÇÃO VISUAL
           </span>
           <h1 className="text-xl sm:text-2xl font-light text-white tracking-tight mt-0.5">
-            Gestão de <span className="font-normal text-amber-400">Banners Institucionais</span>
+            Gestão de <span className="font-normal text-amber-400">Banners &amp; Vitrines</span>
           </h1>
           <p className="text-xs text-slate-400 mt-1">
-            Configure campanhas, imagens para desktop/mobile, botões de ação e ordem de exibição.
+            Configure os banners rotativos, fotos dos óculos esportivos, lifestyle de armações e banner de garantia.
           </p>
         </div>
 
+        {activeTab === "banners" && (
+          <button
+            type="button"
+            onClick={() => setIsCreating((prev) => !prev)}
+            className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-amber-400 hover:bg-amber-300 text-[#06111f] text-xs font-bold uppercase tracking-wider transition-all self-start sm:self-auto cursor-pointer shadow-sm"
+          >
+            <Plus size={16} />
+            <span>{isCreating ? "Fechar Formulário" : "Novo Banner"}</span>
+          </button>
+        )}
+      </div>
+
+      {/* Seletor de Abas */}
+      <div className="flex items-center gap-2 bg-[#06111f] p-2 rounded-2xl border border-white/10 overflow-x-auto no-scrollbar">
         <button
           type="button"
-          onClick={() => setIsCreating((prev) => !prev)}
-          className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-amber-400 hover:bg-amber-300 text-[#06111f] text-xs font-bold uppercase tracking-wider transition-all"
+          onClick={() => setActiveTab("banners")}
+          className={`flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-semibold whitespace-nowrap transition-all ${
+            activeTab === "banners"
+              ? "bg-amber-400 text-slate-950 font-bold shadow-md"
+              : "text-slate-400 hover:text-white"
+          }`}
         >
-          <Plus size={16} />
-          <span>{isCreating ? "Fechar Formulário" : "Novo Banner"}</span>
+          <ImageIcon size={14} />
+          <span>Banners Rotativos ({banners.length})</span>
+        </button>
+
+        <button
+          type="button"
+          onClick={() => setActiveTab("vitrines")}
+          className={`flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-semibold whitespace-nowrap transition-all ${
+            activeTab === "vitrines"
+              ? "bg-amber-400 text-slate-950 font-bold shadow-md"
+              : "text-slate-400 hover:text-white"
+          }`}
+        >
+          <Sun size={14} />
+          <span>Fotos das Vitrines (Esportivos &amp; Seções)</span>
         </button>
       </div>
+
+      {/* ABA 2: FOTOS DAS VITRINES E SEÇÕES */}
+      {activeTab === "vitrines" && (
+        <form onSubmit={handleSaveShowcaseMedia} className="space-y-6">
+          <div className="bg-[#06111f] border border-amber-400/30 rounded-2xl p-6 sm:p-8 space-y-6 shadow-xl">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-white/10 pb-4">
+              <div>
+                <span className="text-[10px] font-bold uppercase tracking-widest text-amber-400 bg-amber-400/10 px-2.5 py-0.5 rounded-full border border-amber-400/20">
+                  FOTOS EM DESTAQUE NO SITE
+                </span>
+                <h2 className="text-xl font-bold text-white mt-1">
+                  Fotos das Seções &amp; Vitrines Interativas
+                </h2>
+                <p className="text-xs text-slate-400 mt-0.5">
+                  Troque facilmente as fotos dos modelos usando óculos esportivos, solares contemporâneos e armações de grau.
+                </p>
+              </div>
+
+              <button
+                type="submit"
+                disabled={isSavingMedia}
+                className="inline-flex items-center gap-2 px-6 py-3 rounded-xl bg-amber-400 hover:bg-amber-300 disabled:opacity-50 text-slate-950 font-bold text-xs uppercase tracking-wider transition-all shadow-md shadow-amber-400/20 cursor-pointer self-start sm:self-auto"
+              >
+                <Save size={15} />
+                <span>{isSavingMedia ? "Salvando..." : "Salvar Fotos das Seções"}</span>
+              </button>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 text-xs">
+              {/* 1. Vitrine Esportiva (Hero Masculino - Conforme foto do usuário) */}
+              <div className="bg-[#091829] border border-amber-400/30 rounded-2xl p-5 space-y-3">
+                <div className="flex items-center justify-between">
+                  <span className="font-bold text-white text-sm flex items-center gap-2">
+                    <Sun size={16} className="text-amber-400" />
+                    <span>Óculos Esportivos (Hero Masculino)</span>
+                  </span>
+                  <span className="text-[10px] font-semibold text-amber-400 bg-amber-400/10 px-2 py-0.5 rounded-full">
+                    Vitrine Principal
+                  </span>
+                </div>
+                <p className="text-slate-400 leading-relaxed text-[11px]">
+                  Foto do modelo masculino ao ar livre com óculos esportivos ("Mais que óculos, é sobre você").
+                </p>
+
+                <div className="aspect-[16/10] w-full rounded-xl overflow-hidden bg-black/40 border border-white/10 relative group">
+                  <img
+                    src={showcaseMedia.heroMaleSolar || "/images/lifestyle/male-solar.jpg"}
+                    alt="Óculos Esportivos Masculino"
+                    className="w-full h-full object-cover"
+                  />
+                </div>
+
+                <div className="space-y-2 pt-1">
+                  <label className="w-full py-2.5 px-3 rounded-xl bg-amber-400 hover:bg-amber-300 text-slate-950 font-bold text-xs uppercase tracking-wider flex items-center justify-center gap-2 cursor-pointer shadow-sm">
+                    <Upload size={14} />
+                    <span>{uploadingField === "heroMaleSolar" ? "Enviando Imagem..." : "Trocar Foto dos Óculos Esportivos"}</span>
+                    <input
+                      type="file"
+                      accept="image/*"
+                      disabled={uploadingField !== null}
+                      onChange={(e) => handleShowcaseUpload("heroMaleSolar", e)}
+                      className="hidden"
+                    />
+                  </label>
+                  <input
+                    type="text"
+                    value={showcaseMedia.heroMaleSolar}
+                    onChange={(e) =>
+                      setShowcaseMedia({ ...showcaseMedia, heroMaleSolar: e.target.value })
+                    }
+                    placeholder="/images/lifestyle/male-solar.jpg"
+                    className="w-full bg-[#040c16] border border-white/10 rounded-xl px-3 py-2 text-[11px] text-white focus:outline-none focus:border-amber-400"
+                  />
+                </div>
+              </div>
+
+              {/* 2. Vitrine Solar Feminina */}
+              <div className="bg-[#091829] border border-white/10 rounded-2xl p-5 space-y-3">
+                <div className="flex items-center justify-between">
+                  <span className="font-bold text-white text-sm flex items-center gap-2">
+                    <Sun size={16} className="text-amber-400" />
+                    <span>Vitrine Solar Contemporânea (Feminina)</span>
+                  </span>
+                  <span className="text-[10px] font-semibold text-slate-300 bg-white/5 px-2 py-0.5 rounded-full">
+                    Solar Feminino
+                  </span>
+                </div>
+                <p className="text-slate-400 leading-relaxed text-[11px]">
+                  Foto da modelo feminina com óculos de sol contemporâneo ("Elegância e luz para o seu olhar").
+                </p>
+
+                <div className="aspect-[16/10] w-full rounded-xl overflow-hidden bg-black/40 border border-white/10 relative group">
+                  <img
+                    src={showcaseMedia.heroFemaleSolar || "/images/lifestyle/female-solar.jpg"}
+                    alt="Solar Feminino"
+                    className="w-full h-full object-cover"
+                  />
+                </div>
+
+                <div className="space-y-2 pt-1">
+                  <label className="w-full py-2.5 px-3 rounded-xl bg-white/10 hover:bg-white/20 text-white font-bold text-xs uppercase tracking-wider flex items-center justify-center gap-2 cursor-pointer shadow-sm border border-white/15">
+                    <Upload size={14} />
+                    <span>{uploadingField === "heroFemaleSolar" ? "Enviando Imagem..." : "Trocar Foto Solar Feminino"}</span>
+                    <input
+                      type="file"
+                      accept="image/*"
+                      disabled={uploadingField !== null}
+                      onChange={(e) => handleShowcaseUpload("heroFemaleSolar", e)}
+                      className="hidden"
+                    />
+                  </label>
+                  <input
+                    type="text"
+                    value={showcaseMedia.heroFemaleSolar}
+                    onChange={(e) =>
+                      setShowcaseMedia({ ...showcaseMedia, heroFemaleSolar: e.target.value })
+                    }
+                    placeholder="/images/lifestyle/female-solar.jpg"
+                    className="w-full bg-[#040c16] border border-white/10 rounded-xl px-3 py-2 text-[11px] text-white focus:outline-none focus:border-amber-400"
+                  />
+                </div>
+              </div>
+
+              {/* 3. Vitrine Grau Masculino */}
+              <div className="bg-[#091829] border border-white/10 rounded-2xl p-5 space-y-3">
+                <div className="flex items-center justify-between">
+                  <span className="font-bold text-white text-sm flex items-center gap-2">
+                    <Glasses size={16} className="text-amber-400" />
+                    <span>Vitrine Grau Masculino (Titânio &amp; Acetato)</span>
+                  </span>
+                  <span className="text-[10px] font-semibold text-slate-300 bg-white/5 px-2 py-0.5 rounded-full">
+                    Grau Masculino
+                  </span>
+                </div>
+                <p className="text-slate-400 leading-relaxed text-[11px]">
+                  Foto do modelo com armação de grau executiva ("Precisão que define sua presença").
+                </p>
+
+                <div className="aspect-[16/10] w-full rounded-xl overflow-hidden bg-black/40 border border-white/10 relative group">
+                  <img
+                    src={showcaseMedia.heroMaleGrau || "/images/lifestyle/male-grau.jpg"}
+                    alt="Grau Masculino"
+                    className="w-full h-full object-cover"
+                  />
+                </div>
+
+                <div className="space-y-2 pt-1">
+                  <label className="w-full py-2.5 px-3 rounded-xl bg-white/10 hover:bg-white/20 text-white font-bold text-xs uppercase tracking-wider flex items-center justify-center gap-2 cursor-pointer shadow-sm border border-white/15">
+                    <Upload size={14} />
+                    <span>{uploadingField === "heroMaleGrau" ? "Enviando..." : "Trocar Foto Grau Masculino"}</span>
+                    <input
+                      type="file"
+                      accept="image/*"
+                      disabled={uploadingField !== null}
+                      onChange={(e) => handleShowcaseUpload("heroMaleGrau", e)}
+                      className="hidden"
+                    />
+                  </label>
+                  <input
+                    type="text"
+                    value={showcaseMedia.heroMaleGrau}
+                    onChange={(e) =>
+                      setShowcaseMedia({ ...showcaseMedia, heroMaleGrau: e.target.value })
+                    }
+                    placeholder="/images/lifestyle/male-grau.jpg"
+                    className="w-full bg-[#040c16] border border-white/10 rounded-xl px-3 py-2 text-[11px] text-white focus:outline-none focus:border-amber-400"
+                  />
+                </div>
+              </div>
+
+              {/* 4. Vitrine Grau Feminino */}
+              <div className="bg-[#091829] border border-white/10 rounded-2xl p-5 space-y-3">
+                <div className="flex items-center justify-between">
+                  <span className="font-bold text-white text-sm flex items-center gap-2">
+                    <Glasses size={16} className="text-amber-400" />
+                    <span>Vitrine Grau Feminino (Acetato Premium)</span>
+                  </span>
+                  <span className="text-[10px] font-semibold text-slate-300 bg-white/5 px-2 py-0.5 rounded-full">
+                    Grau Feminino
+                  </span>
+                </div>
+                <p className="text-slate-400 leading-relaxed text-[11px]">
+                  Foto da modelo com armação de grau autoral ("Harmonização facial e leveza contínua").
+                </p>
+
+                <div className="aspect-[16/10] w-full rounded-xl overflow-hidden bg-black/40 border border-white/10 relative group">
+                  <img
+                    src={showcaseMedia.heroFemaleGrau || "/images/lifestyle/female-grau.jpg"}
+                    alt="Grau Feminino"
+                    className="w-full h-full object-cover"
+                  />
+                </div>
+
+                <div className="space-y-2 pt-1">
+                  <label className="w-full py-2.5 px-3 rounded-xl bg-white/10 hover:bg-white/20 text-white font-bold text-xs uppercase tracking-wider flex items-center justify-center gap-2 cursor-pointer shadow-sm border border-white/15">
+                    <Upload size={14} />
+                    <span>{uploadingField === "heroFemaleGrau" ? "Enviando..." : "Trocar Foto Grau Feminino"}</span>
+                    <input
+                      type="file"
+                      accept="image/*"
+                      disabled={uploadingField !== null}
+                      onChange={(e) => handleShowcaseUpload("heroFemaleGrau", e)}
+                      className="hidden"
+                    />
+                  </label>
+                  <input
+                    type="text"
+                    value={showcaseMedia.heroFemaleGrau}
+                    onChange={(e) =>
+                      setShowcaseMedia({ ...showcaseMedia, heroFemaleGrau: e.target.value })
+                    }
+                    placeholder="/images/lifestyle/female-grau.jpg"
+                    className="w-full bg-[#040c16] border border-white/10 rounded-xl px-3 py-2 text-[11px] text-white focus:outline-none focus:border-amber-400"
+                  />
+                </div>
+              </div>
+
+              {/* 5. Banner de Garantia 12 Meses (Desktop e Mobile) */}
+              <div className="md:col-span-2 bg-[#091829] border border-amber-400/30 rounded-2xl p-5 space-y-4">
+                <div className="flex items-center justify-between">
+                  <span className="font-bold text-white text-sm flex items-center gap-2">
+                    <ShieldCheck size={16} className="text-amber-400" />
+                    <span>Banner de 12 Meses de Garantia (OPTiSYNC HD)</span>
+                  </span>
+                  <span className="text-[10px] font-semibold text-amber-400 bg-amber-400/10 px-2 py-0.5 rounded-full">
+                    Garantia Oficial
+                  </span>
+                </div>
+                <p className="text-slate-400 leading-relaxed text-[11px]">
+                  Banner exibido na página inicial do site logo abaixo do hero cinematográfico.
+                </p>
+
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  {/* Desktop */}
+                  <div className="space-y-2">
+                    <span className="text-[11px] font-semibold text-slate-300 block">
+                      Versão Desktop (Horizontal 3:1)
+                    </span>
+                    <div className="aspect-[3/1] w-full rounded-xl overflow-hidden bg-black/40 border border-white/10">
+                      <img
+                        src={showcaseMedia.warrantyBannerDesktop || "/images/banners/optisync-12-meses-garantia-desktop.jpg"}
+                        alt="Banner Garantia Desktop"
+                        className="w-full h-full object-cover"
+                      />
+                    </div>
+                    <label className="w-full py-2 px-3 rounded-xl bg-white/10 hover:bg-white/20 text-white font-bold text-xs uppercase tracking-wider flex items-center justify-center gap-2 cursor-pointer shadow-sm border border-white/15">
+                      <Upload size={13} />
+                      <span>{uploadingField === "warrantyBannerDesktop" ? "Enviando..." : "Trocar Banner Desktop"}</span>
+                      <input
+                        type="file"
+                        accept="image/*"
+                        disabled={uploadingField !== null}
+                        onChange={(e) => handleShowcaseUpload("warrantyBannerDesktop", e)}
+                        className="hidden"
+                      />
+                    </label>
+                  </div>
+
+                  {/* Mobile */}
+                  <div className="space-y-2">
+                    <span className="text-[11px] font-semibold text-slate-300 block">
+                      Versão Mobile (Proporcional 2.4:1)
+                    </span>
+                    <div className="aspect-[2.4/1] w-full rounded-xl overflow-hidden bg-black/40 border border-white/10">
+                      <img
+                        src={showcaseMedia.warrantyBannerMobile || "/images/banners/optisync-12-meses-garantia-desktop.jpg"}
+                        alt="Banner Garantia Mobile"
+                        className="w-full h-full object-cover"
+                      />
+                    </div>
+                    <label className="w-full py-2 px-3 rounded-xl bg-white/10 hover:bg-white/20 text-white font-bold text-xs uppercase tracking-wider flex items-center justify-center gap-2 cursor-pointer shadow-sm border border-white/15">
+                      <Upload size={13} />
+                      <span>{uploadingField === "warrantyBannerMobile" ? "Enviando..." : "Trocar Banner Mobile"}</span>
+                      <input
+                        type="file"
+                        accept="image/*"
+                        disabled={uploadingField !== null}
+                        onChange={(e) => handleShowcaseUpload("warrantyBannerMobile", e)}
+                        className="hidden"
+                      />
+                    </label>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </form>
+      )}
+
+      {/* ABA 1: BANNERS ROTATIVOS */}
+      {activeTab === "banners" && (
+        <div className="space-y-6">
 
       {/* Formulário de Criação com Pré-visualização */}
       {isCreating && (
@@ -430,6 +837,8 @@ export default function AdminBannersPage() {
           </div>
         )}
       </div>
+        </div>
+      )}
     </div>
   );
 }

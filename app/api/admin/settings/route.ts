@@ -1,7 +1,17 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createAdminClient } from "@/lib/supabase/admin";
-import { SiteIdentitySettings, SiteAppearanceSettings } from "@/types/ecommerce";
-import { DEFAULT_IDENTITY, DEFAULT_APPEARANCE } from "@/lib/site-settings-constants";
+import {
+  SiteIdentitySettings,
+  SiteAppearanceSettings,
+  LabShowcaseSettings,
+  ShowcaseMediaSettings,
+} from "@/types/ecommerce";
+import {
+  DEFAULT_IDENTITY,
+  DEFAULT_APPEARANCE,
+  DEFAULT_LAB_SHOWCASE,
+  DEFAULT_SHOWCASE_MEDIA,
+} from "@/lib/site-settings-constants";
 
 export async function GET() {
   try {
@@ -9,30 +19,38 @@ export async function GET() {
     const { data, error } = await adminSupabase
       .from("site_settings")
       .select("key, value")
-      .in("key", ["identity", "appearance", "shipping"]);
+      .in("key", ["identity", "appearance", "shipping", "lab_showcase", "showcase_media"]);
 
     if (error) {
       console.warn("Aviso ao buscar configurações:", error.message);
       return NextResponse.json({
         identity: DEFAULT_IDENTITY,
         appearance: DEFAULT_APPEARANCE,
+        lab_showcase: DEFAULT_LAB_SHOWCASE,
+        showcase_media: DEFAULT_SHOWCASE_MEDIA,
       });
     }
 
     const identityRow = data?.find((s) => s.key === "identity");
     const appearanceRow = data?.find((s) => s.key === "appearance");
     const shippingRow = data?.find((s) => s.key === "shipping");
+    const labRow = data?.find((s) => s.key === "lab_showcase");
+    const showcaseRow = data?.find((s) => s.key === "showcase_media");
 
     return NextResponse.json({
       identity: identityRow?.value ? { ...DEFAULT_IDENTITY, ...(identityRow.value as SiteIdentitySettings) } : DEFAULT_IDENTITY,
       appearance: appearanceRow?.value ? { ...DEFAULT_APPEARANCE, ...(appearanceRow.value as SiteAppearanceSettings) } : DEFAULT_APPEARANCE,
       shipping: shippingRow?.value || null,
+      lab_showcase: labRow?.value ? { ...DEFAULT_LAB_SHOWCASE, ...(labRow.value as LabShowcaseSettings) } : DEFAULT_LAB_SHOWCASE,
+      showcase_media: showcaseRow?.value ? { ...DEFAULT_SHOWCASE_MEDIA, ...(showcaseRow.value as ShowcaseMediaSettings) } : DEFAULT_SHOWCASE_MEDIA,
     });
   } catch (err: any) {
     console.error("Erro interno ao buscar configurações:", err);
     return NextResponse.json({
       identity: DEFAULT_IDENTITY,
       appearance: DEFAULT_APPEARANCE,
+      lab_showcase: DEFAULT_LAB_SHOWCASE,
+      showcase_media: DEFAULT_SHOWCASE_MEDIA,
     });
   }
 }
@@ -83,6 +101,14 @@ export async function POST(req: NextRequest) {
 
     if (body.shipping) {
       await saveSetting("shipping", "Regras de Frete e Retirada Presencial", body.shipping);
+    }
+
+    if (body.lab_showcase) {
+      await saveSetting("lab_showcase", "Destaque do Laboratório Parceiro e Marca Exclusiva", body.lab_showcase);
+    }
+
+    if (body.showcase_media) {
+      await saveSetting("showcase_media", "Fotos das Vitrines, Esportivos e Banners", body.showcase_media);
     }
 
     return NextResponse.json({

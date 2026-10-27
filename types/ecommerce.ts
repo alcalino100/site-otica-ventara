@@ -194,6 +194,29 @@ export interface SiteShippingSettings {
   pickup_address: string;
 }
 
+export interface LabShowcaseSettings {
+  brandName: string;
+  headline: string;
+  badge: string;
+  subtitle: string;
+  description: string;
+  boxImage: string;
+  feature1: string;
+  feature2: string;
+  feature3: string;
+  ctaText: string;
+  whatsappMessage: string;
+}
+
+export interface ShowcaseMediaSettings {
+  heroMaleSolar: string;
+  heroFemaleSolar: string;
+  heroMaleGrau: string;
+  heroFemaleGrau: string;
+  warrantyBannerDesktop: string;
+  warrantyBannerMobile: string;
+}
+
 export interface HomepageBanner {
   id: string;
   title: string;

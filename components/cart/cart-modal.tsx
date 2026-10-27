@@ -33,6 +33,7 @@ interface CartModalProps {
   cartItems: CartProduct[];
   onRemoveItem: (id: string) => void;
   onClearCart: () => void;
+  initialView?: ModalView;
 }
 
 type ModalView = "items" | "checkout" | "pix" | "success";
@@ -43,10 +44,22 @@ export function CartModal({
   cartItems,
   onRemoveItem,
   onClearCart,
+  initialView = "items",
 }: CartModalProps) {
-  const [view, setView] = useState<ModalView>("items");
+  const [view, setView] = useState<ModalView>(initialView);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
+
+  // Sincroniza visualização inicial ao abrir gaveta
+  useEffect(() => {
+    if (isOpen) {
+      if (initialView && cartItems.length > 0) {
+        setView(initialView);
+      } else if (cartItems.length === 0) {
+        setView("items");
+      }
+    }
+  }, [isOpen, initialView, cartItems.length]);
 
   // Form de Checkout
   const [customerName, setCustomerName] = useState("");

@@ -41,6 +41,7 @@ export default function Home() {
   const [products, setProducts] = useState<Product[]>(DEFAULT_CATALOG);
   const [isSearchOpen, setIsSearchOpen] = useState(false);
   const [isCartOpen, setIsCartOpen] = useState(false);
+  const [cartInitialView, setCartInitialView] = useState<"items" | "checkout">("items");
   const [cartItems, setCartItems] = useState<CartProduct[]>([]);
   const [toastMessage, setToastMessage] = useState<string | null>(null);
   const [legalModal, setLegalModal] = useState<{ isOpen: boolean; tab: "terms" | "privacy" }>({
@@ -137,12 +138,23 @@ export default function Home() {
 
   const cartIds = cartItems.map((item) => item.id);
 
+  const handleOpenCart = (view: "items" | "checkout" = "items") => {
+    setCartInitialView(view);
+    setIsCartOpen(true);
+  };
+
+  const handleBuyNowFromShowcase = (item: CartProduct) => {
+    handleAddToCart(item);
+    setCartInitialView("checkout");
+    setIsCartOpen(true);
+  };
+
   return (
     <>
       {/* 1. Header Oficial Fixo: Logo, Navegação Conforme Mockup, Busca e Carrinho */}
       <Header
         cartCount={cartItems.length}
-        onOpenCart={() => setIsCartOpen(true)}
+        onOpenCart={() => handleOpenCart("items")}
         onToggleSearch={() => setIsSearchOpen((prev) => !prev)}
         isSearchOpen={isSearchOpen}
       />
@@ -157,7 +169,8 @@ export default function Home() {
         {/* 4. Vitrine Editorial Interativa ("Mais que óculos, é sobre você") */}
         <InteractiveShowcase
           onAddToCart={handleAddToCart}
-          onOpenCart={() => setIsCartOpen(true)}
+          onOpenCart={handleOpenCart}
+          onBuyNow={handleBuyNowFromShowcase}
         />
 
         {/* 5. "Escolhas que combinam com você" + Catálogo de Óculos logo abaixo */}
@@ -198,6 +211,7 @@ export default function Home() {
         cartItems={cartItems}
         onRemoveItem={handleRemoveFromCart}
         onClearCart={handleClearCart}
+        initialView={cartInitialView}
       />
 
       {/* Modal de Políticas de Privacidade e Termos de Uso (LGPD) */}
