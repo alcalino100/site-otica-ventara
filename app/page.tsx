@@ -5,7 +5,7 @@ import dynamic from "next/dynamic";
 import { Header } from "../components/layout/header";
 import { Footer } from "../components/layout/footer";
 import { Hero } from "../components/sections/hero";
-import { MetricsRibbon } from "../components/sections/metrics-ribbon";
+import { WarrantyBannerSection } from "../components/sections/warranty-banner-section";
 import { WhyChooseSection } from "../components/sections/why-choose-section";
 import { InteractiveShowcase } from "../components/sections/interactive-showcase";
 import { CatalogSection } from "../components/catalog/catalog-section";
@@ -151,8 +151,8 @@ export default function Home() {
         {/* 2. Hero Cinematográfico com Carrossel de Óculos em Destaque do Admin */}
         <Hero products={products} />
 
-        {/* 3. Faixa de Números Conforme Mockup ("Nossos Números: Confiança que se transforma em resultados.") */}
-        <MetricsRibbon />
+        {/* 3. Banner Oficial 12 Meses de Garantia OPTiSYNC HD */}
+        <WarrantyBannerSection />
 
         {/* 4. Vitrine Editorial Interativa ("Mais que óculos, é sobre você") */}
         <InteractiveShowcase

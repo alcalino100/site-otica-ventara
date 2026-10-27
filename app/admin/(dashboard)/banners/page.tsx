@@ -286,6 +286,27 @@ export default function AdminBannersPage() {
               />
             </div>
 
+            <div className="sm:col-span-2 p-3 rounded-xl bg-white/5 border border-white/10 flex flex-wrap items-center justify-between gap-2">
+              <span className="text-xs text-amber-300 font-semibold flex items-center gap-1.5">
+                <Sparkles size={14} /> Modelos Prontos de Alta Conversão:
+              </span>
+              <button
+                type="button"
+                onClick={() => {
+                  setNewTitle("OPTiSYNC HD · 12 Meses de Garantia");
+                  setNewSubtitle("Lentes de alta precisão com certificado de garantia de 1 ano contra defeitos e descascamento do antirreflexo.");
+                  setNewCtaText("Conhecer Lentes");
+                  setNewCtaUrl("#lentes");
+                  setNewDesktopImg("/images/banners/optisync-12-meses-garantia-desktop.jpg");
+                  setNewMobileImg("/images/banners/optisync-12-meses-garantia-mobile.jpg");
+                  setNewAltText("Banner Oficial Lentes OPTiSYNC HD com 12 Meses de Garantia e Certificado Óticas Ventara");
+                }}
+                className="text-[11px] font-bold px-3 py-1 rounded-lg bg-amber-400/20 text-amber-300 hover:bg-amber-400 hover:text-slate-950 border border-amber-400/40 transition-colors cursor-pointer"
+              >
+                + Usar Banner 12 Meses de Garantia OPTiSYNC
+              </button>
+            </div>
+
             <div>
               <label className="block text-slate-400 mb-1">URL Imagem Desktop (1920x600px recomendado) *</label>
               <input

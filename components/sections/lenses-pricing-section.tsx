@@ -27,6 +27,7 @@ interface LensOption {
   category: "visao-simples" | "multifocal" | "tratamentos";
   brandName: string;
   brandLogo: string;
+  boxImage?: string;
   logoBgLight?: boolean;
   treatment: string;
   badge?: string;
@@ -83,13 +84,13 @@ export function LensesPricingSection() {
           }
         }
       } catch (err) {
-        // Usa lista local estática padrão
+        // Fallback para lista estática
       }
     }
     loadDynamicLenses();
   }, []);
 
-  // Catálogo completo de lentes estruturado por tipo e marca homologada
+  // Catálogo completo de lentes com fotos reais das caixas (estilo Panda Elite)
   const lensOptions: LensOption[] = [
     // ---------------- VISÃO SIMPLES (MONOFOCAIS) ----------------
     {
@@ -98,6 +99,7 @@ export function LensesPricingSection() {
       category: "visao-simples",
       brandName: "OPTiSYNC HD",
       brandLogo: "/logos/optisync.svg",
+      boxImage: "/images/lenses/optisync-box.jpg",
       treatment: "Antirreflexo Super AR + Proteção UV400",
       badge: "Ventara Exclusivo",
       startingPrice: "R$ 129,90",
@@ -118,6 +120,7 @@ export function LensesPricingSection() {
       category: "visao-simples",
       brandName: "OPTiSYNC HD",
       brandLogo: "/logos/optisync.svg",
+      boxImage: "/images/lenses/optisync-box.jpg",
       treatment: "Filtro Luz Azul Digital + Antirreflexo AR Super",
       badge: "Ventara Exclusivo · Telas",
       startingPrice: "R$ 149,90",
@@ -138,6 +141,7 @@ export function LensesPricingSection() {
       category: "visao-simples",
       brandName: "Lentes Correct",
       brandLogo: "/logos/correct.svg",
+      boxImage: "/images/lenses/correct-box.jpg",
       treatment: "Antirreflexo Multicamadas + Proteção UV400",
       badge: "Melhor Custo-Benefício",
       startingPrice: "R$ 99,90",
@@ -158,6 +162,7 @@ export function LensesPricingSection() {
       category: "visao-simples",
       brandName: "Orgalens Mais",
       brandLogo: "/logos/orgaline.svg",
+      boxImage: "/images/lenses/orgaline-box.jpg",
       treatment: "Antirreflexo Multicamadas + Super Hidrorrepelente",
       badge: "Alta Nitidez",
       startingPrice: "R$ 159,90",
@@ -178,6 +183,7 @@ export function LensesPricingSection() {
       category: "visao-simples",
       brandName: "HOYA / Maxxee",
       brandLogo: "/logos/hoya.svg",
+      boxImage: "/images/lenses/hoya-box.jpg",
       treatment: "Antirreflexo Hoya Hard Multi Coat (HMC)",
       badge: "Qualidade Global Hoya",
       startingPrice: "R$ 189,00",
@@ -198,6 +204,7 @@ export function LensesPricingSection() {
       category: "visao-simples",
       brandName: "Kodak Lens",
       brandLogo: "/logos/kodak.svg",
+      boxImage: "/images/lenses/kodak-box.jpg",
       treatment: "Antirreflexo Kodak Clean&CleAR + UV400",
       badge: "Tradição em Cores Vivas",
       startingPrice: "R$ 219,00",
@@ -220,6 +227,7 @@ export function LensesPricingSection() {
       category: "multifocal",
       brandName: "Orgalens Mais",
       brandLogo: "/logos/orgaline.svg",
+      boxImage: "/images/lenses/orgaline-box.jpg",
       treatment: "Tecnologia Digital Free-Form + Hidrorrepelente",
       badge: "Campo Amplo & Suave",
       startingPrice: "R$ 389,00",
@@ -240,6 +248,7 @@ export function LensesPricingSection() {
       category: "multifocal",
       brandName: "HOYA",
       brandLogo: "/logos/hoya.svg",
+      boxImage: "/images/lenses/hoya-box.jpg",
       treatment: "Design TrueForm Dupla Face + Hi-Vision",
       badge: "Precisão Óptica Hoya",
       startingPrice: "R$ 499,00",
@@ -260,6 +269,7 @@ export function LensesPricingSection() {
       category: "multifocal",
       brandName: "Varilux (Essilor)",
       brandLogo: "/logos/varilux.svg",
+      boxImage: "/images/lenses/optisync-box.jpg",
       treatment: "Tecnologia Flex Optim + Antirreflexo Crizal",
       badge: "Líder Mundial em Multifocais",
       startingPrice: "R$ 589,00",
@@ -282,6 +292,7 @@ export function LensesPricingSection() {
       category: "tratamentos",
       brandName: "OPTiSYNC HD & Parceiros",
       brandLogo: "/logos/optisync.svg",
+      boxImage: "/images/lenses/optisync-box.jpg",
       treatment: "Bloqueio de 400nm a 455nm (HEV) + Antirreflexo",
       badge: "Conforto para Telas",
       startingPrice: "R$ 149,90",
@@ -302,6 +313,7 @@ export function LensesPricingSection() {
       category: "tratamentos",
       brandName: "Transitions / Photochromic",
       brandLogo: "/logos/transitions.svg",
+      boxImage: "/images/lenses/optisync-fotossensivel-box.jpg",
       treatment: "Ativação Inteligente por Raios UV",
       badge: "Óculos 2 em 1",
       startingPrice: "Adicional a partir de R$ 149,00",
@@ -318,47 +330,54 @@ export function LensesPricingSection() {
     },
   ];
 
-  // Marcas oficiais parceiras com logos correspondentes
+  // Marcas oficiais parceiras com caixas e logos correspondentes (estilo Panda Elite)
   const brandLogos = [
     {
       name: "OPTiSYNC HD",
       logo: "/logos/optisync.svg",
+      boxImage: "/images/lenses/optisync-box.jpg",
       badge: "Ventara Exclusivo",
       desc: "Lentes cortadas e facetadas no laboratório próprio de Araçatuba em até 1 hora, sem margem de terceiros.",
     },
     {
       name: "Perego Laboratório",
       logo: "/logos/perego.svg",
+      boxImage: "/images/lenses/newflash-box.jpg",
       badge: "Laboratório Homologado",
       desc: "Laboratório óptico parceiro com usinagem digital de alta precisão e controle de qualidade rigoroso.",
     },
     {
       name: "Lentes Correct",
       logo: "/logos/correct.svg",
+      boxImage: "/images/lenses/correct-box.jpg",
       badge: "Visão Simples Nacional",
       desc: "Excelente custo-benefício e montagem ágil para visão simples com antirreflexo essencial.",
     },
     {
       name: "Orgalens Mais",
       logo: "/logos/orgaline.svg",
+      boxImage: "/images/lenses/orgaline-box.jpg",
       badge: "Alta Nitidez",
       desc: "Matéria-prima de alta pureza com tratamento hidrorrepelente que facilita a limpeza diária.",
     },
     {
       name: "HOYA / Maxxee",
       logo: "/logos/hoya.svg",
+      boxImage: "/images/lenses/hoya-box.jpg",
       badge: "Precisão Global",
       desc: "Referência japonesa mundial em óptica de alta fidelidade e durabilidade contra riscos.",
     },
     {
       name: "Kodak Lens",
       logo: "/logos/kodak.svg",
+      boxImage: "/images/lenses/kodak-box.jpg",
       badge: "Visão Simples Acessível",
       desc: "Mais de um século de tradição óptica, cores vivas e amplo campo visual com excelente preço.",
     },
     {
       name: "Varilux (Essilor)",
       logo: "/logos/varilux.svg",
+      boxImage: "/images/lenses/optisync-box.jpg",
       badge: "Líder Mundial",
       desc: "A lente multifocal progressiva mais recomendada do planeta com garantia total de adaptação.",
     },
@@ -377,36 +396,50 @@ export function LensesPricingSection() {
     return `https://wa.me/5518996155748?text=${text}`;
   };
 
+  const getBrandQuoteUrl = (brandName: string) => {
+    const text = encodeURIComponent(
+      `Olá! Gostaria de consultar as opções e valores das lentes da marca ${brandName} na Óticas Ventara.`
+    );
+    return `https://wa.me/5518996155748?text=${text}`;
+  };
+
   return (
-    <section className="py-16 sm:py-24 bg-[#f8fafc] border-b border-slate-200/90 relative overflow-hidden" id="lentes">
-      <div className="max-w-[1400px] mx-auto px-4 sm:px-8 lg:px-10">
+    <section
+      className="py-16 sm:py-24 bg-[#0a121e] text-white border-y border-slate-800 relative overflow-hidden"
+      id="lentes"
+    >
+      {/* Luz ambiente de fundo */}
+      <div className="absolute top-0 left-1/4 w-[500px] h-[500px] bg-amber-500/5 blur-[140px] rounded-full pointer-events-none" />
+      <div className="absolute bottom-0 right-1/4 w-[500px] h-[500px] bg-sky-500/5 blur-[140px] rounded-full pointer-events-none" />
+
+      <div className="max-w-[1400px] mx-auto px-4 sm:px-8 lg:px-10 relative z-10">
         {/* Cabeçalho da Seção com Símbolo de Lentes Ópticas */}
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-center mb-12 sm:mb-16">
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-center mb-10 sm:mb-14">
           <div className="lg:col-span-8 max-w-3xl">
-            <div className="flex items-center gap-2 text-amber-600 mb-2.5">
+            <div className="flex items-center gap-2 text-amber-400 mb-2.5">
               <Sparkles size={16} />
               <span className="text-[11px] font-bold tracking-[0.2em] uppercase">
                 TECNOLOGIA ÓPTICA &amp; MARCAS HOMOLOGADAS
               </span>
             </div>
-            <h2 className="text-3xl sm:text-5xl font-light text-slate-950 tracking-tight leading-tight">
+            <h2 className="text-3xl sm:text-5xl font-light text-white tracking-tight leading-tight">
               Lentes de Alta Precisão <br className="hidden sm:inline" />
-              <strong className="font-semibold text-slate-950">para cada necessidade da sua visão.</strong>
+              <strong className="font-semibold text-white">para cada necessidade da sua visão.</strong>
             </h2>
-            <p className="text-xs sm:text-base text-slate-600 mt-3 leading-relaxed max-w-2xl">
+            <p className="text-xs sm:text-base text-slate-300 mt-3 leading-relaxed max-w-2xl">
               Organizamos as melhores marcas do mercado óptico internacional e nossa marca própria com valores de referência transparentes, tratamentos de alta performance e montagem no laboratório próprio de Araçatuba.
             </p>
           </div>
 
-          {/* Símbolo Exclusivo de Lentes Ópticas (Discos Cristalinos Bevelados com Reflexo AR) */}
+          {/* Símbolo Exclusivo de Lentes Ópticas */}
           <div className="lg:col-span-4 flex items-center justify-center lg:justify-end">
-            <div className="relative p-5 rounded-3xl bg-white border border-slate-200/90 shadow-lg flex flex-col items-center text-center">
-              <LensOpticalGraphic size={200} glow={true} />
+            <div className="relative p-5 rounded-3xl bg-[#0f1d30] border border-slate-700/80 shadow-2xl flex flex-col items-center text-center">
+              <LensOpticalGraphic size={190} glow={true} />
               <div className="mt-2">
-                <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400 block">
+                <span className="text-[10px] font-bold uppercase tracking-wider text-amber-400/90 block">
                   Padrão Óptico Ventara
                 </span>
-                <span className="text-xs font-semibold text-slate-900">
+                <span className="text-xs font-semibold text-slate-200">
                   Antirreflexo Multicamadas &amp; Alinhamento Dióptrico
                 </span>
               </div>
@@ -414,23 +447,23 @@ export function LensesPricingSection() {
           </div>
         </div>
 
-        {/* CARROSSEL ANIMADO DE LOGOS DE PARCEIROS HOMOLOGADOS (SPELL-UI LOGOS CAROUSEL) */}
-        <div className="mb-10 sm:mb-12 rounded-3xl overflow-hidden shadow-lg border border-slate-200/80">
+        {/* CARROSSEL ANIMADO DE LOGOS DE PARCEIROS HOMOLOGADOS */}
+        <div className="mb-10 sm:mb-12 rounded-3xl overflow-hidden shadow-2xl border border-slate-800 bg-slate-900/60 backdrop-blur-sm">
           <PartnerLogosRibbon />
         </div>
 
-        {/* ABAS DE CATEGORIAS: VISÃO SIMPLES, MULTIFOCAL, TRATAMENTOS, TODAS AS MARCAS */}
-        <div className="flex items-center gap-2.5 overflow-x-auto pb-3 mb-8 sm:mb-12 no-scrollbar">
+        {/* ABAS DE CATEGORIAS (Pill Switches) */}
+        <div className="flex items-center gap-2.5 overflow-x-auto pb-3 mb-8 sm:mb-10 no-scrollbar">
           <button
             type="button"
             onClick={() => handleCategoryChange("visao-simples")}
             className={`flex items-center gap-2 px-5 py-3 rounded-2xl text-xs sm:text-sm font-semibold whitespace-nowrap transition-all duration-200 cursor-pointer shrink-0 border ${
               activeCategory === "visao-simples"
-                ? "bg-[#06111f] text-white border-[#06111f] shadow-md"
-                : "bg-white text-slate-700 border-slate-200 hover:border-slate-300 shadow-2xs"
+                ? "bg-amber-400 text-slate-950 border-amber-400 shadow-lg shadow-amber-400/20 font-bold"
+                : "bg-slate-900/80 text-slate-300 border-slate-700/80 hover:border-slate-500 hover:text-white"
             }`}
           >
-            <Eye size={16} className={activeCategory === "visao-simples" ? "text-amber-400" : "text-amber-600"} />
+            <Eye size={16} className={activeCategory === "visao-simples" ? "text-slate-950" : "text-amber-400"} />
             <span>Visão Simples (Monofocais)</span>
           </button>
 
@@ -439,11 +472,11 @@ export function LensesPricingSection() {
             onClick={() => handleCategoryChange("multifocal")}
             className={`flex items-center gap-2 px-5 py-3 rounded-2xl text-xs sm:text-sm font-semibold whitespace-nowrap transition-all duration-200 cursor-pointer shrink-0 border ${
               activeCategory === "multifocal"
-                ? "bg-[#06111f] text-white border-[#06111f] shadow-md"
-                : "bg-white text-slate-700 border-slate-200 hover:border-slate-300 shadow-2xs"
+                ? "bg-amber-400 text-slate-950 border-amber-400 shadow-lg shadow-amber-400/20 font-bold"
+                : "bg-slate-900/80 text-slate-300 border-slate-700/80 hover:border-slate-500 hover:text-white"
             }`}
           >
-            <Layers size={16} className={activeCategory === "multifocal" ? "text-amber-400" : "text-amber-600"} />
+            <Layers size={16} className={activeCategory === "multifocal" ? "text-slate-950" : "text-amber-400"} />
             <span>Multifocais (Progressivas)</span>
           </button>
 
@@ -452,11 +485,11 @@ export function LensesPricingSection() {
             onClick={() => handleCategoryChange("tratamentos")}
             className={`flex items-center gap-2 px-5 py-3 rounded-2xl text-xs sm:text-sm font-semibold whitespace-nowrap transition-all duration-200 cursor-pointer shrink-0 border ${
               activeCategory === "tratamentos"
-                ? "bg-[#06111f] text-white border-[#06111f] shadow-md"
-                : "bg-white text-slate-700 border-slate-200 hover:border-slate-300 shadow-2xs"
+                ? "bg-amber-400 text-slate-950 border-amber-400 shadow-lg shadow-amber-400/20 font-bold"
+                : "bg-slate-900/80 text-slate-300 border-slate-700/80 hover:border-slate-500 hover:text-white"
             }`}
           >
-            <ShieldCheck size={16} className={activeCategory === "tratamentos" ? "text-amber-400" : "text-amber-600"} />
+            <ShieldCheck size={16} className={activeCategory === "tratamentos" ? "text-slate-950" : "text-amber-400"} />
             <span>Filtro Luz Azul &amp; Especiais</span>
           </button>
 
@@ -465,32 +498,33 @@ export function LensesPricingSection() {
             onClick={() => handleCategoryChange("marcas")}
             className={`flex items-center gap-2 px-5 py-3 rounded-2xl text-xs sm:text-sm font-semibold whitespace-nowrap transition-all duration-200 cursor-pointer shrink-0 border ${
               activeCategory === "marcas"
-                ? "bg-[#06111f] text-white border-[#06111f] shadow-md"
-                : "bg-white text-slate-700 border-slate-200 hover:border-slate-300 shadow-2xs"
+                ? "bg-amber-400 text-slate-950 border-amber-400 shadow-lg shadow-amber-400/20 font-bold"
+                : "bg-slate-900/80 text-slate-300 border-slate-700/80 hover:border-slate-500 hover:text-white"
             }`}
           >
-            <Award size={16} className={activeCategory === "marcas" ? "text-amber-400" : "text-amber-600"} />
+            <Award size={16} className={activeCategory === "marcas" ? "text-slate-950" : "text-amber-400"} />
             <span>Todas as Marcas Homologadas</span>
           </button>
 
           <a
             href="#lentes-coloridas"
-            className="flex items-center gap-2 px-5 py-3 rounded-2xl text-xs sm:text-sm font-bold whitespace-nowrap bg-amber-400 hover:bg-amber-300 text-slate-950 border border-amber-400 shadow-md shadow-amber-400/20 transition-all duration-200 cursor-pointer shrink-0"
+            className="flex items-center gap-2 px-5 py-3 rounded-2xl text-xs sm:text-sm font-bold whitespace-nowrap bg-gradient-to-r from-amber-400 to-amber-500 hover:from-amber-300 hover:to-amber-400 text-slate-950 border border-amber-400 shadow-lg shadow-amber-400/25 transition-all duration-200 cursor-pointer shrink-0"
           >
             <SunMedium size={16} />
             <span>Lentes Coloridas (8 Cores)</span>
           </a>
         </div>
 
-        {/* CONTEÚDO DAS CATEGORIAS (GRADE DE CARDS NO DESKTOP / CARROSSEL HORIZONTAL DE 1 NÍVEL NO MOBILE) */}
+        {/* CONTEÚDO DOS CARDS ESTILO PANDA ELITE (DESKTOP GRID / MOBILE CAROUSEL 1 NÍVEL) */}
         <div className="relative">
-          {/* Barra de Navegação do Carrossel Mobile - ACIMA dos Cards */}
+          {/* Barra de Navegação do Carrossel Mobile */}
           <div className="flex md:hidden items-center justify-between pb-3 px-1">
-            <div className="flex items-center gap-2 text-xs font-medium text-slate-700">
-              <span className="w-2 h-2 rounded-full bg-amber-500 animate-pulse" />
+            <div className="flex items-center gap-2 text-xs font-medium text-slate-300">
+              <span className="w-2 h-2 rounded-full bg-amber-400 animate-pulse" />
               <span>Deslize para ver os modelos</span>
-              <span className="font-mono text-slate-400 font-semibold text-[11px]">
-                ({activeCategory === "marcas" ? brandLogos.length : filteredOptions.length})
+              <span className="font-mono text-amber-400/80 font-bold text-[11px]">
+                ({activeCardIndex + 1}/
+                {activeCategory === "marcas" ? brandLogos.length : filteredOptions.length})
               </span>
             </div>
 
@@ -499,7 +533,7 @@ export function LensesPricingSection() {
                 type="button"
                 onClick={scrollPrev}
                 aria-label="Modelo anterior"
-                className="w-8 h-8 rounded-full border border-slate-300 bg-white shadow-xs flex items-center justify-center text-slate-700 active:scale-90 transition-transform"
+                className="w-8 h-8 rounded-full border border-slate-700 bg-slate-900/90 shadow-md flex items-center justify-center text-slate-200 active:scale-90 transition-transform"
               >
                 <ChevronLeft size={16} />
               </button>
@@ -507,7 +541,7 @@ export function LensesPricingSection() {
                 type="button"
                 onClick={scrollNext}
                 aria-label="Próximo modelo"
-                className="w-8 h-8 rounded-full border border-slate-300 bg-white shadow-xs flex items-center justify-center text-slate-700 active:scale-90 transition-transform"
+                className="w-8 h-8 rounded-full border border-slate-700 bg-slate-900/90 shadow-md flex items-center justify-center text-slate-200 active:scale-90 transition-transform"
               >
                 <ChevronRight size={16} />
               </button>
@@ -527,53 +561,62 @@ export function LensesPricingSection() {
               {filteredOptions.map((opt) => (
                 <div
                   key={opt.id}
-                  className="snap-center shrink-0 w-[74vw] max-w-[285px] md:w-auto md:max-w-none bg-white rounded-3xl border border-slate-200/90 shadow-sm hover:shadow-md hover:border-amber-400/50 transition-all duration-300 p-6 sm:p-7 flex flex-col justify-between"
+                  className="snap-center shrink-0 w-[78vw] max-w-[305px] md:w-auto md:max-w-none bg-[#0e192a] rounded-3xl border border-slate-800 hover:border-amber-400/50 transition-all duration-300 p-5 sm:p-6 flex flex-col justify-between shadow-xl group"
                 >
                   <div>
-                    {/* Cabeçalho do Card: Logo da Marca + Badge */}
-                    <div className="flex items-center justify-between gap-3 pb-4 mb-4 border-b border-slate-100">
-                      <div className="h-10 max-w-[130px] flex items-center">
+                    {/* CAPSULE ORGÂNICA BRANCA ESTILO PANDA ELITE COM A FOTO REAL DA CAIXA */}
+                    <div className="relative w-full aspect-[4/3] rounded-2xl bg-white p-3.5 flex items-center justify-center overflow-hidden shadow-md mb-4 group-hover:scale-[1.01] transition-transform">
+                      {/* Logo da Marca no Canto Superior Esquerdo */}
+                      <div className="absolute top-2.5 left-2.5 max-h-7 max-w-[110px] flex items-center bg-white/95 px-2 py-0.5 rounded-md shadow-xs z-10">
                         <img
                           src={opt.brandLogo}
-                          alt={`Logo ${opt.brandName}`}
-                          className={`max-h-9 max-w-full object-contain rounded-md ${
-                            opt.logoBgLight ? "bg-white p-1" : ""
-                          }`}
+                          alt={opt.brandName}
+                          className="max-h-5 max-w-full object-contain"
                         />
                       </div>
+
+                      {/* Badge no Canto Superior Direito */}
                       {opt.badge && (
-                        <span className="text-[10px] font-bold uppercase tracking-wider px-2.5 py-1 rounded-full bg-amber-50 text-amber-800 border border-amber-200/70 shrink-0">
+                        <span className="absolute top-2.5 right-2.5 text-[9px] font-bold uppercase tracking-wider px-2.5 py-0.5 rounded-full bg-slate-950/90 text-amber-300 border border-amber-400/40 backdrop-blur-xs z-10">
                           {opt.badge}
                         </span>
                       )}
+
+                      {/* Foto Real da Caixa da Lente */}
+                      <img
+                        src={opt.boxImage || "/images/lenses/optisync-box.jpg"}
+                        alt={`Caixa ${opt.name}`}
+                        className="max-h-full max-w-full object-contain drop-shadow-lg transition-transform duration-300 group-hover:scale-105"
+                        loading="lazy"
+                      />
                     </div>
 
-                    {/* Nome da Lente & Marca */}
+                    {/* Informações da Lente */}
                     <div className="mb-2">
-                      <span className="text-[11px] font-semibold text-slate-500 uppercase tracking-wider block">
+                      <span className="text-[10px] font-bold text-amber-400 uppercase tracking-widest block">
                         {opt.brandName}
                       </span>
-                      <h3 className="text-lg sm:text-xl font-bold text-slate-900 tracking-tight leading-snug">
+                      <h3 className="text-lg sm:text-xl font-bold text-white tracking-tight leading-snug">
                         {opt.name}
                       </h3>
                     </div>
 
                     {/* Tratamento em Destaque */}
-                    <div className="p-2.5 rounded-xl bg-slate-50 border border-slate-200/70 text-xs text-slate-700 font-medium mb-4 flex items-start gap-2">
-                      <Zap size={15} className="text-amber-500 shrink-0 mt-0.5" />
+                    <div className="p-2.5 rounded-xl bg-slate-900/90 border border-slate-800 text-xs text-slate-200 font-medium mb-3 flex items-start gap-2">
+                      <Zap size={14} className="text-amber-400 shrink-0 mt-0.5" />
                       <span>{opt.treatment}</span>
                     </div>
 
                     {/* Descrição */}
-                    <p className="text-xs text-slate-600 leading-relaxed mb-4">
+                    <p className="text-xs text-slate-300 leading-relaxed mb-4">
                       {opt.description}
                     </p>
 
                     {/* Lista de Recursos / Benefícios */}
-                    <ul className="space-y-2 mb-6">
+                    <ul className="space-y-1.5 mb-6">
                       {opt.features.map((feat, i) => (
-                        <li key={i} className="flex items-start gap-2 text-xs text-slate-700">
-                          <CheckCircle2 size={14} className="text-emerald-600 shrink-0 mt-0.5" />
+                        <li key={i} className="flex items-start gap-2 text-xs text-slate-300">
+                          <CheckCircle2 size={13} className="text-emerald-400 shrink-0 mt-0.5" />
                           <span>{feat}</span>
                         </li>
                       ))}
@@ -581,22 +624,22 @@ export function LensesPricingSection() {
                   </div>
 
                   {/* Rodapé do Card: Preço & Botão de Orçamento no WhatsApp */}
-                  <div className="pt-4 border-t border-slate-100">
-                    <div className="flex items-baseline justify-between mb-3">
+                  <div className="pt-4 border-t border-slate-800 mt-auto">
+                    <div className="flex items-baseline justify-between mb-2">
                       <div>
-                        <span className="text-[10px] text-slate-400 uppercase tracking-wider block">
+                        <span className="text-[10px] text-slate-400 uppercase tracking-wider block font-medium">
                           Valor de Referência
                         </span>
-                        <span className="text-xl sm:text-2xl font-extrabold text-slate-900 font-mono tracking-tight">
+                        <span className="text-xl sm:text-2xl font-extrabold text-white font-mono tracking-tight">
                           {opt.startingPrice}
                         </span>
                       </div>
-                      <span className="text-[11px] text-emerald-700 font-semibold flex items-center gap-1">
+                      <span className="text-[11px] text-emerald-400 font-semibold flex items-center gap-1">
                         <Clock size={12} /> {opt.leadTime}
                       </span>
                     </div>
 
-                    <p className="text-[11px] text-slate-500 mb-4">
+                    <p className="text-[11px] text-slate-400 mb-4">
                       {opt.installment}
                     </p>
 
@@ -604,9 +647,9 @@ export function LensesPricingSection() {
                       href={getWhatsAppQuoteUrl(opt)}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="w-full inline-flex items-center justify-center gap-2 py-3 px-4 rounded-xl bg-[#06111f] hover:bg-[#0756b8] active:scale-95 text-white font-bold text-xs uppercase tracking-wider transition-all shadow-xs cursor-pointer"
+                      className="w-full inline-flex items-center justify-center gap-2 py-3 px-4 rounded-xl bg-amber-400 hover:bg-amber-300 active:scale-95 text-slate-950 font-bold text-xs uppercase tracking-wider transition-all shadow-md cursor-pointer"
                     >
-                      <MessageSquare size={14} className="text-amber-400" />
+                      <MessageSquare size={14} className="text-slate-950" />
                       <span>Pedir Orçamento</span>
                       <ArrowRight size={13} />
                     </a>
@@ -615,7 +658,7 @@ export function LensesPricingSection() {
               ))}
             </div>
           ) : (
-            /* ABA "TODAS AS MARCAS HOMOLOGADAS" */
+            /* ABA "TODAS AS MARCAS HOMOLOGADAS" COM ESTILO PANDA ELITE */
             <div
               ref={carouselRef}
               onScroll={handleCarouselScroll}
@@ -628,36 +671,51 @@ export function LensesPricingSection() {
               {brandLogos.map((brand, idx) => (
                 <div
                   key={idx}
-                  className="snap-center shrink-0 w-[74vw] max-w-[285px] md:w-auto md:max-w-none bg-white rounded-3xl border border-slate-200/90 p-6 sm:p-7 shadow-sm flex flex-col justify-between"
+                  className="snap-center shrink-0 w-[78vw] max-w-[305px] md:w-auto md:max-w-none bg-[#0e192a] rounded-3xl border border-slate-800 hover:border-amber-400/50 p-5 sm:p-6 shadow-xl flex flex-col justify-between group transition-all duration-300"
                 >
                   <div>
-                    <div className="h-14 flex items-center justify-between pb-4 mb-4 border-b border-slate-100">
-                      <img
-                        src={brand.logo}
-                        alt={brand.name}
-                        className="max-h-12 max-w-[150px] object-contain rounded-md"
-                      />
-                      <span className="text-[10px] font-bold uppercase tracking-wider px-2.5 py-1 rounded-full bg-slate-100 text-slate-700 border border-slate-200">
+                    {/* CAPSULE ORGÂNICA BRANCA ESTILO PANDA ELITE COM A CAIXA DA MARCA */}
+                    <div className="relative w-full aspect-[4/3] rounded-2xl bg-white p-3.5 flex items-center justify-center overflow-hidden shadow-md mb-4 group-hover:scale-[1.01] transition-transform">
+                      {/* Logo no Canto Superior Esquerdo */}
+                      <div className="absolute top-2.5 left-2.5 max-h-7 max-w-[110px] flex items-center bg-white/95 px-2 py-0.5 rounded-md shadow-xs z-10">
+                        <img
+                          src={brand.logo}
+                          alt={brand.name}
+                          className="max-h-5 max-w-full object-contain"
+                        />
+                      </div>
+
+                      {/* Badge no Canto Superior Direito */}
+                      <span className="absolute top-2.5 right-2.5 text-[9px] font-bold uppercase tracking-wider px-2.5 py-0.5 rounded-full bg-slate-950/90 text-amber-300 border border-amber-400/40 backdrop-blur-xs z-10">
                         {brand.badge}
                       </span>
+
+                      {/* Foto Real da Caixa */}
+                      <img
+                        src={brand.boxImage}
+                        alt={`Lentes ${brand.name}`}
+                        className="max-h-full max-w-full object-contain drop-shadow-lg transition-transform duration-300 group-hover:scale-105"
+                        loading="lazy"
+                      />
                     </div>
 
-                    <h3 className="text-lg font-bold text-slate-900 mb-2">
+                    <h3 className="text-lg font-bold text-white mb-2">
                       {brand.name}
                     </h3>
-                    <p className="text-xs text-slate-600 leading-relaxed mb-6">
+                    <p className="text-xs text-slate-300 leading-relaxed mb-6">
                       {brand.desc}
                     </p>
                   </div>
 
                   <a
-                    href={`https://wa.me/5518996155748?text=Ol%C3%A1!%20Gostaria%20de%20consultar%20as%20op%C3%A7%C3%B5es%20de%20lentes%20da%20marca%20${encodeURIComponent(brand.name)}%20na%20%C3%93tica%20Ventara.`}
+                    href={getBrandQuoteUrl(brand.name)}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="w-full inline-flex items-center justify-center gap-2 py-2.5 px-4 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-800 text-xs font-semibold tracking-wide transition-colors"
+                    className="w-full inline-flex items-center justify-center gap-2 py-3 px-4 rounded-xl bg-amber-400 hover:bg-amber-300 active:scale-95 text-slate-950 font-bold text-xs uppercase tracking-wider transition-all shadow-md cursor-pointer mt-auto"
                   >
-                    <MessageSquare size={13} className="text-amber-600" />
+                    <MessageSquare size={13} className="text-slate-950" />
                     <span>Consultar Opções da {brand.name}</span>
+                    <ArrowRight size={13} />
                   </a>
                 </div>
               ))}
@@ -682,8 +740,8 @@ export function LensesPricingSection() {
                   aria-label={`Ver modelo ${idx + 1}`}
                   className={`h-1.5 rounded-full transition-all duration-300 ${
                     activeCardIndex === idx
-                      ? "w-6 bg-amber-500"
-                      : "w-1.5 bg-slate-300 hover:bg-slate-400"
+                      ? "w-6 bg-amber-400"
+                      : "w-1.5 bg-slate-700 hover:bg-slate-500"
                   }`}
                 />
               ))}
@@ -692,16 +750,16 @@ export function LensesPricingSection() {
         </div>
 
         {/* DESTAQUE ESPECIAL DA MARCA PRÓPRIA: OPTISYNC HD COM MONTAGEM EXPRESSA */}
-        <div className="mt-12 bg-gradient-to-br from-[#06111f] via-[#091e36] to-[#040e1a] rounded-3xl p-6 sm:p-10 text-white shadow-xl border border-white/10 relative overflow-hidden">
-          <div className="absolute top-0 right-0 -mr-20 -mt-20 w-80 h-80 bg-amber-400/10 blur-3xl rounded-full pointer-events-none" />
+        <div className="mt-12 bg-gradient-to-br from-[#0c182b] via-[#091526] to-[#060e1a] rounded-3xl p-6 sm:p-10 text-white shadow-2xl border border-amber-400/20 relative overflow-hidden">
+          <div className="absolute top-0 right-0 -mr-20 -mt-20 w-80 h-80 bg-amber-400/15 blur-3xl rounded-full pointer-events-none" />
 
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-center relative z-10">
             <div className="lg:col-span-4 flex justify-center">
-              <div className="p-3 bg-white/5 rounded-2xl border border-amber-400/30 max-w-[260px] w-full shadow-inner">
+              <div className="p-4 bg-white rounded-2xl border border-amber-400/30 max-w-[280px] w-full shadow-xl flex items-center justify-center">
                 <img
-                  src="/images/lenses/optisync-hd.jpg"
+                  src="/images/lenses/optisync-box.jpg"
                   alt="Lente Exclusiva OPTiSYNC HD - Óticas Ventara"
-                  className="w-full h-auto rounded-xl bg-white object-contain"
+                  className="w-full h-auto rounded-lg object-contain"
                 />
               </div>
             </div>
@@ -726,16 +784,16 @@ export function LensesPricingSection() {
 
               <div className="pt-2 flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-4 border-t border-white/10">
                 <div className="flex flex-wrap gap-2 text-xs text-slate-300">
-                  <span className="px-2 py-0.5 rounded-md bg-white/5 border border-white/10">✓ Filtro Azul Incluso</span>
-                  <span className="px-2 py-0.5 rounded-md bg-white/5 border border-white/10">✓ Antirreflexo Multicamadas</span>
-                  <span className="px-2 py-0.5 rounded-md bg-white/5 border border-white/10">✓ Garantia de Fábrica</span>
+                  <span className="px-2.5 py-1 rounded-md bg-white/5 border border-white/10">✓ Filtro Azul Incluso</span>
+                  <span className="px-2.5 py-1 rounded-md bg-white/5 border border-white/10">✓ Antirreflexo Multicamadas</span>
+                  <span className="px-2.5 py-1 rounded-md bg-white/5 border border-white/10">✓ Garantia de Fábrica</span>
                 </div>
 
                 <a
                   href="https://wa.me/5518996155748?text=Ol%C3%A1!%20Gostaria%20de%20um%20or%C3%A7amento%20para%20as%20lentes%20exclusivas%20OPTiSYNC%20HD%20da%20%C3%93ticas%20Ventara."
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-6 py-3.5 rounded-xl bg-amber-400 hover:bg-amber-300 text-slate-950 font-bold text-xs uppercase tracking-wider transition-all shadow-md active:scale-95 shrink-0"
+                  className="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-6 py-3.5 rounded-xl bg-amber-400 hover:bg-amber-300 text-slate-950 font-bold text-xs uppercase tracking-wider transition-all shadow-lg active:scale-95 shrink-0 cursor-pointer"
                 >
                   <MessageSquare size={15} />
                   <span>Pedir Orçamento OPTiSYNC</span>
@@ -747,15 +805,15 @@ export function LensesPricingSection() {
         </div>
 
         {/* CALL TO ACTION PARA ENVIO DE RECEITA MÉDICA */}
-        <div className="mt-8 text-center bg-white border border-slate-200/90 rounded-2xl p-6 shadow-2xs max-w-3xl mx-auto">
-          <p className="text-xs sm:text-sm text-slate-700 font-medium leading-relaxed">
+        <div className="mt-8 text-center bg-[#0d1726] border border-slate-800 rounded-2xl p-6 shadow-xl max-w-3xl mx-auto">
+          <p className="text-xs sm:text-sm text-slate-300 font-medium leading-relaxed">
             Já tem a sua receita médica em mãos? Envie uma foto clara pelo WhatsApp e nossa equipe calcula a espessura ideal (índice 1.56, 1.67 ou 1.74) para o seu grau.
           </p>
           <a
             href="https://wa.me/5518996155748?text=Ol%C3%A1!%20Estou%20com%20minha%20receita%20m%C3%A9dica%20aqui%20e%20gostaria%20que%20voc%C3%AAs%20calculassem%20a%20melhor%20lente%20para%20o%20meu%20grau."
             target="_blank"
             rel="noopener noreferrer"
-            className="inline-flex items-center gap-2 text-emerald-700 hover:text-emerald-800 text-xs font-bold uppercase tracking-wider mt-3"
+            className="inline-flex items-center gap-2 text-amber-400 hover:text-amber-300 text-xs font-bold uppercase tracking-wider mt-3"
           >
             <MessageSquare size={14} />
             <span>Enviar Foto da Receita Agora</span>

@@ -2,7 +2,7 @@
 
 import React from "react";
 import Link from "next/link";
-import { MapPin, Phone, Clock, Instagram, ShieldCheck } from "lucide-react";
+import { MapPin, Phone, Clock, Instagram, Facebook, ShieldCheck } from "lucide-react";
 import { BrandLogo } from "../ui/brand-logo";
 import { useSiteSettings } from "../providers/site-settings-provider";
 
@@ -36,6 +36,15 @@ export function Footer({ onOpenLegal }: FooterProps) {
                 aria-label={`Instagram da ${identity.store_name}`}
               >
                 <Instagram size={16} />
+              </a>
+              <a
+                href={identity.facebook_url || "https://www.facebook.com/share/19mUxSqUnf/?mibextid=wwXIfr"}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="w-9 h-9 rounded-full bg-white/5 hover:bg-white/10 border border-white/10 flex items-center justify-center text-slate-300 hover:text-amber-400 transition-colors"
+                aria-label={`Facebook da ${identity.store_name}`}
+              >
+                <Facebook size={16} />
               </a>
             </div>
           </div>

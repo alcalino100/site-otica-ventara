@@ -86,25 +86,25 @@ export default function ResponsavelTecnicoPage() {
             <div className="grid grid-cols-1 lg:grid-cols-12 gap-10 lg:gap-14 items-center">
               {/* Foto do Técnico Óptico */}
               <div className="lg:col-span-5 relative">
-                <div className="relative rounded-3xl overflow-hidden border border-white/15 bg-gradient-to-b from-[#091b30] to-[#040d1a] shadow-2xl group">
-                  <div className="aspect-[3/4] sm:aspect-[4/5] relative overflow-hidden">
+                <div className="relative rounded-3xl overflow-hidden border border-white/15 bg-gradient-to-b from-[#091b30] to-[#040d1a] shadow-2xl group flex flex-col">
+                  {/* Selos: no Mobile ficam no topo do card sem cobrir o rosto; no Desktop flutuam sobre a foto */}
+                  <div className="p-3 sm:p-0 sm:absolute sm:top-4 sm:left-4 z-20 flex flex-col gap-1.5 bg-[#040d1a] sm:bg-transparent">
+                    <div className="bg-[#06111f]/95 sm:bg-[#06111f]/90 backdrop-blur-md border border-amber-400/40 text-amber-300 text-[10px] sm:text-xs font-bold uppercase tracking-wider px-3.5 py-1.5 rounded-full shadow-lg flex items-center gap-1.5 w-fit">
+                      <Award size={14} className="text-amber-400" />
+                      <span>Técnico Óptico Formado</span>
+                    </div>
+                    <div className="bg-[#040d1a]/95 sm:bg-[#040d1a]/90 backdrop-blur-md border border-white/20 text-slate-200 text-[10px] font-mono font-medium px-3 py-1 rounded-full shadow-md flex items-center gap-1.5 w-fit">
+                      <ShieldCheck size={12} className="text-emerald-400" />
+                      <span>Registro Nacional Responsável Técnico</span>
+                    </div>
+                  </div>
+
+                  <div className="aspect-[3/4] sm:aspect-[4/5] relative overflow-hidden flex-1">
                     <img
                       src="/images/team/gustavo-tecnico-optico.jpg"
                       alt="Gustavo Guimarães Cordeiro - Técnico Óptico Formado e Responsável Técnico da Óticas Ventara"
                       className="w-full h-full object-cover object-top group-hover:scale-105 transition-transform duration-700"
                     />
-                  </div>
-
-                  {/* Selos flutuantes na foto */}
-                  <div className="absolute top-4 left-4 flex flex-col gap-1.5">
-                    <div className="bg-[#06111f]/90 backdrop-blur-md border border-amber-400/40 text-amber-300 text-[10px] sm:text-xs font-bold uppercase tracking-wider px-3.5 py-1.5 rounded-full shadow-lg flex items-center gap-1.5">
-                      <Award size={14} className="text-amber-400" />
-                      <span>Técnico Óptico Formado</span>
-                    </div>
-                    <div className="bg-[#040d1a]/90 backdrop-blur-md border border-white/20 text-slate-200 text-[10px] font-mono font-medium px-3 py-1 rounded-full shadow-md flex items-center gap-1.5">
-                      <ShieldCheck size={12} className="text-emerald-400" />
-                      <span>Registro Nacional Responsável Técnico</span>
-                    </div>
                   </div>
 
                   <div className="absolute bottom-4 inset-x-4 p-4 rounded-2xl bg-[#040d1a]/95 backdrop-blur-md border border-white/10 text-xs">

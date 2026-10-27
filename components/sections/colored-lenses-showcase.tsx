@@ -228,16 +228,17 @@ export function ColoredLensesShowcase({ initialLenses }: ColoredLensesShowcasePr
                         aria-label={`Lente óptica na cor ${lens.colorName}`}
                       >
                         <defs>
-                          {/* Gradiente da Lente Específica */}
+                          {/* Gradiente da Lente com coloração transparente e refração cristalina (conforme solicitado por Gustavo em 30.jpeg) */}
                           <radialGradient
                             id={`lens-grad-${lens.id}`}
-                            cx="35%"
+                            cx="38%"
                             cy="35%"
                             r="65%"
                           >
-                            <stop offset="0%" stopColor={lens.colorHex} stopOpacity="0.75" />
-                            <stop offset="60%" stopColor={lens.colorHex} stopOpacity="0.95" />
-                            <stop offset="100%" stopColor="#050b14" stopOpacity="0.98" />
+                            <stop offset="0%" stopColor={lens.colorHex} stopOpacity="0.25" />
+                            <stop offset="45%" stopColor={lens.colorHex} stopOpacity="0.45" />
+                            <stop offset="80%" stopColor={lens.colorHex} stopOpacity="0.65" />
+                            <stop offset="100%" stopColor={lens.colorHex} stopOpacity="0.80" />
                           </radialGradient>
 
                           {/* Reflexo de Curvatura Antirreflexo Super AR */}
@@ -248,14 +249,17 @@ export function ColoredLensesShowcase({ initialLenses }: ColoredLensesShowcasePr
                             x2="100%"
                             y2="100%"
                           >
-                            <stop offset="0%" stopColor="#ffffff" stopOpacity="0.6" />
-                            <stop offset="30%" stopColor="#38bdf8" stopOpacity="0.25" />
-                            <stop offset="70%" stopColor="#a855f7" stopOpacity="0.15" />
+                            <stop offset="0%" stopColor="#ffffff" stopOpacity="0.85" />
+                            <stop offset="30%" stopColor="#38bdf8" stopOpacity="0.3" />
+                            <stop offset="70%" stopColor="#a855f7" stopOpacity="0.2" />
                             <stop offset="100%" stopColor="#ffffff" stopOpacity="0" />
                           </linearGradient>
                         </defs>
 
-                        {/* Corpo do Disco Óptico com Bisel */}
+                        {/* Sombra Suave da Lente Sobre a Superfície Branca */}
+                        <ellipse cx="60" cy="64" rx="48" ry="48" fill="#000000" opacity="0.10" />
+
+                        {/* Corpo Transparente do Disco Óptico com Bisel */}
                         <circle
                           cx="60"
                           cy="60"
@@ -263,7 +267,7 @@ export function ColoredLensesShowcase({ initialLenses }: ColoredLensesShowcasePr
                           fill={`url(#lens-grad-${lens.id})`}
                           stroke="#ffffff"
                           strokeWidth="1.5"
-                          strokeOpacity="0.4"
+                          strokeOpacity="0.7"
                         />
 
                         {/* Anel de Bisel de Montagem (Padrão de Laboratório) */}
@@ -274,7 +278,7 @@ export function ColoredLensesShowcase({ initialLenses }: ColoredLensesShowcasePr
                           fill="none"
                           stroke={lens.colorHex}
                           strokeWidth="2"
-                          strokeOpacity="0.6"
+                          strokeOpacity="0.75"
                         />
 
                         {/* Feixe de Luz / Arco de Reflexo AR Superior */}
@@ -283,7 +287,7 @@ export function ColoredLensesShowcase({ initialLenses }: ColoredLensesShowcasePr
                           fill={`url(#ar-sheen-${lens.id})`}
                         />
 
-                        {/* Ponto de Brilho Especular */}
+                        {/* Ponto de Brilho Especular Diamantado */}
                         <ellipse
                           cx="40"
                           cy="36"
@@ -291,7 +295,7 @@ export function ColoredLensesShowcase({ initialLenses }: ColoredLensesShowcasePr
                           ry="3.5"
                           transform="rotate(-25 40 36)"
                           fill="#ffffff"
-                          fillOpacity="0.55"
+                          fillOpacity="0.75"
                         />
 
                         {/* Marca de Autenticidade Gravada a Laser no Topo */}

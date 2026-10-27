@@ -263,6 +263,13 @@ export default function AdminLensesPage() {
               <p className="text-[11px] text-slate-400 uppercase tracking-wider">{lens.brandName}</p>
               <h3 className="text-base font-bold text-white tracking-tight mb-2">{lens.name}</h3>
 
+              {/* Imagem da Caixa (Estilo Panda Elite) */}
+              {lens.boxImage && (
+                <div className="w-full h-28 bg-white rounded-xl p-2 mb-3 flex items-center justify-center overflow-hidden">
+                  <img src={lens.boxImage} alt={lens.name} className="max-h-full max-w-full object-contain" />
+                </div>
+              )}
+
               {/* Tratamento */}
               <div className="p-2 rounded-lg bg-white/5 border border-white/5 text-xs text-amber-300 font-medium mb-3 flex items-start gap-1.5">
                 <Zap size={14} className="shrink-0 mt-0.5 text-amber-400" />
@@ -479,6 +486,46 @@ export default function AdminLensesPage() {
                   </div>
                 </div>
               )}
+
+              <div>
+                <label className="block text-slate-300 mb-1 font-medium">Foto da Embalagem / Caixa 3D (Estilo Panda Elite)</label>
+                <div className="flex items-center gap-3">
+                  <input
+                    type="text"
+                    value={selectedLens.boxImage || ""}
+                    onChange={(e) => setSelectedLens({ ...selectedLens, boxImage: e.target.value })}
+                    className="flex-1 bg-[#040e17] border border-slate-700 rounded-lg px-3 py-2 text-white focus:outline-none focus:border-amber-400"
+                    placeholder="Ex: /images/lenses/optisync-box.jpg ou URL externa"
+                  />
+                  {selectedLens.boxImage && (
+                    <div className="w-12 h-12 bg-white rounded-lg p-1 flex items-center justify-center shrink-0 border border-slate-600">
+                      <img src={selectedLens.boxImage} alt="Preview" className="max-h-full max-w-full object-contain" />
+                    </div>
+                  )}
+                </div>
+                <div className="flex items-center gap-1.5 mt-2 overflow-x-auto no-scrollbar">
+                  <span className="text-[10px] text-slate-400 shrink-0">Modelos rápidos:</span>
+                  {[
+                    { label: "OPTiSYNC HD", path: "/images/lenses/optisync-box.jpg" },
+                    { label: "Fotossensível", path: "/images/lenses/optisync-fotossensivel-box.jpg" },
+                    { label: "Colorida", path: "/images/lenses/optisync-colorida-box.jpg" },
+                    { label: "HOYA", path: "/images/lenses/hoya-box.jpg" },
+                    { label: "Kodak", path: "/images/lenses/kodak-box.jpg" },
+                    { label: "Orgalens", path: "/images/lenses/orgaline-box.jpg" },
+                    { label: "Correct", path: "/images/lenses/correct-box.jpg" },
+                    { label: "New Flash", path: "/images/lenses/newflash-box.jpg" },
+                  ].map((preset) => (
+                    <button
+                      key={preset.path}
+                      type="button"
+                      onClick={() => setSelectedLens({ ...selectedLens, boxImage: preset.path })}
+                      className="text-[10px] px-2 py-0.5 rounded bg-white/5 hover:bg-white/10 text-slate-300 whitespace-nowrap border border-white/5 cursor-pointer"
+                    >
+                      {preset.label}
+                    </button>
+                  ))}
+                </div>
+              </div>
 
               <div>
                 <label className="block text-slate-300 mb-1 font-medium">Tratamento em Destaque</label>

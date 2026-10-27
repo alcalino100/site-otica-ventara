@@ -4,6 +4,7 @@ export interface AdminLensItem {
   category: "visao-simples" | "multifocal" | "tratamentos" | "coloridas";
   brandName: string;
   brandLogo: string;
+  boxImage?: string;
   treatment: string;
   badge?: string;
   startingPrice: string;
@@ -202,6 +203,7 @@ export const DEFAULT_LENSES: AdminLensItem[] = [
     category: "visao-simples",
     brandName: "OPTiSYNC HD",
     brandLogo: "/logos/optisync.svg",
+    boxImage: "/images/lenses/optisync-box.jpg",
     treatment: "Antirreflexo Super AR + Proteção UV400",
     badge: "Ventara Exclusivo",
     startingPrice: "R$ 129,90",
@@ -223,6 +225,7 @@ export const DEFAULT_LENSES: AdminLensItem[] = [
     category: "visao-simples",
     brandName: "OPTiSYNC HD",
     brandLogo: "/logos/optisync.svg",
+    boxImage: "/images/lenses/optisync-box.jpg",
     treatment: "Filtro Luz Azul Digital + Antirreflexo AR Super",
     badge: "Ventara Exclusivo · Telas",
     startingPrice: "R$ 149,90",
@@ -244,6 +247,7 @@ export const DEFAULT_LENSES: AdminLensItem[] = [
     category: "visao-simples",
     brandName: "Lentes Correct",
     brandLogo: "/logos/correct.svg",
+    boxImage: "/images/lenses/correct-box.jpg",
     treatment: "Antirreflexo Multicamadas + Proteção UV400",
     badge: "Melhor Custo-Benefício",
     startingPrice: "R$ 99,90",
@@ -265,6 +269,7 @@ export const DEFAULT_LENSES: AdminLensItem[] = [
     category: "visao-simples",
     brandName: "Orgalens Mais",
     brandLogo: "/logos/orgaline.svg",
+    boxImage: "/images/lenses/orgaline-box.jpg",
     treatment: "Antirreflexo Multicamadas + Super Hidrorrepelente",
     badge: "Alta Nitidez",
     startingPrice: "R$ 159,90",
@@ -286,6 +291,7 @@ export const DEFAULT_LENSES: AdminLensItem[] = [
     category: "visao-simples",
     brandName: "HOYA / Maxxee",
     brandLogo: "/logos/hoya.svg",
+    boxImage: "/images/lenses/hoya-box.jpg",
     treatment: "Antirreflexo Hoya Hard Multi Coat (HMC)",
     badge: "Qualidade Global Hoya",
     startingPrice: "R$ 189,00",
@@ -307,6 +313,7 @@ export const DEFAULT_LENSES: AdminLensItem[] = [
     category: "visao-simples",
     brandName: "Kodak Lens",
     brandLogo: "/logos/kodak.svg",
+    boxImage: "/images/lenses/kodak-box.jpg",
     treatment: "Antirreflexo Kodak Clean&CleAR + UV400",
     badge: "Tradição em Cores Vivas",
     startingPrice: "R$ 219,00",
@@ -330,6 +337,7 @@ export const DEFAULT_LENSES: AdminLensItem[] = [
     category: "multifocal",
     brandName: "Orgalens Mais",
     brandLogo: "/logos/orgaline.svg",
+    boxImage: "/images/lenses/orgaline-box.jpg",
     treatment: "Tecnologia Digital Free-Form + Hidrorrepelente",
     badge: "Campo Amplo & Suave",
     startingPrice: "R$ 389,00",
@@ -351,6 +359,7 @@ export const DEFAULT_LENSES: AdminLensItem[] = [
     category: "multifocal",
     brandName: "HOYA",
     brandLogo: "/logos/hoya.svg",
+    boxImage: "/images/lenses/hoya-box.jpg",
     treatment: "Design TrueForm Dupla Face + Hi-Vision",
     badge: "Precisão Óptica Hoya",
     startingPrice: "R$ 499,00",
@@ -372,6 +381,7 @@ export const DEFAULT_LENSES: AdminLensItem[] = [
     category: "multifocal",
     brandName: "Varilux (Essilor)",
     brandLogo: "/logos/varilux.svg",
+    boxImage: "/images/lenses/optisync-box.jpg",
     treatment: "Tecnologia Flex Optim + Antirreflexo Crizal",
     badge: "Líder Mundial em Multifocais",
     startingPrice: "R$ 589,00",
@@ -395,6 +405,7 @@ export const DEFAULT_LENSES: AdminLensItem[] = [
     category: "tratamentos",
     brandName: "OPTiSYNC HD & Parceiros",
     brandLogo: "/logos/optisync.svg",
+    boxImage: "/images/lenses/optisync-box.jpg",
     treatment: "Bloqueio de 400nm a 455nm (HEV) + Antirreflexo",
     badge: "Conforto para Telas",
     startingPrice: "R$ 149,90",
@@ -403,7 +414,7 @@ export const DEFAULT_LENSES: AdminLensItem[] = [
     description:
       "Proteção essencial contra o comprimento de onda azul-violeta emitido por smartphones, computadores e luz LED. Previne insônia e cansaço visual.",
     features: [
-      "Alívio contra a Síndrome da Fadiga Visual",
+      "Alívio contra a廊Síndrome da Fadiga Visual",
       "Ideal para quem passa mais de 4 horas por dia em telas",
       "Disponível com grau ou sem grau (lentes neutras)",
       "Disponível em OPTiSYNC HD, Hoya, Kodak e Orgalens",
@@ -416,6 +427,7 @@ export const DEFAULT_LENSES: AdminLensItem[] = [
     category: "tratamentos",
     brandName: "Transitions / Photochromic",
     brandLogo: "/logos/transitions.svg",
+    boxImage: "/images/lenses/optisync-fotossensivel-box.jpg",
     treatment: "Ativação Inteligente por Raios UV",
     badge: "Óculos 2 em 1",
     startingPrice: "Adicional a partir de R$ 149,00",

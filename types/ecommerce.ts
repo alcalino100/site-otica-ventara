@@ -95,6 +95,7 @@ export type OrderStatus =
   | "awaiting_payment"
   | "paid"
   | "preparing"
+  | "ready_for_pickup"
   | "shipped"
   | "delivered"
   | "cancelled"
@@ -172,6 +173,7 @@ export interface SiteIdentitySettings {
   address_postal_code: string;
   phone_whatsapp: string;
   instagram_handle: string;
+  facebook_url?: string;
   business_hours: string;
   cnpj?: string;
   logo_url?: string;
