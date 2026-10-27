@@ -3,6 +3,10 @@ import { rateLimit } from "@/lib/rate-limit";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { DEFAULT_CATALOG } from "@/lib/catalog-data";
 import { Product, ProductVariant, ShippingAddress } from "@/types/ecommerce";
+import {
+  createMercadoPagoPixPayment,
+  createMercadoPagoPreference,
+} from "@/lib/mercadopago";
 import crypto from "crypto";
 
 interface CheckoutItemInput {
@@ -241,11 +245,81 @@ export async function POST(req: NextRequest) {
       }
     }
 
-    // 6. Dados de Pagamento (Pix com QR Code mockado para teste / integração com gateway)
-    const pixCopiaECola =
-      paymentMethod === "pix"
-        ? `00020126580014BR.GOV.BCB.PIX0136${crypto.randomUUID()}520400005303986540${(totalInCents / 100).toFixed(2)}5802BR5913OTICA VENTARA6009ARACATUBA62070503***6304`
-        : null;
+    // 6. Dados de Pagamento via Mercado Pago (Pix e Cartão de Crédito)
+    let paymentPayload: any = {
+      type: paymentMethod,
+      gateway: "mercadopago",
+    };
+
+    if (paymentMethod === "pix") {
+      const pixResult = await createMercadoPagoPixPayment({
+        orderId,
+        referenceCode,
+        amountInCents: totalInCents,
+        customer: {
+          name: body.customer_name,
+          email: body.customer_email,
+          phone: body.customer_phone,
+          document: body.customer_document,
+        },
+      });
+
+      if (hasLiveDb && pixResult.paymentId) {
+        await adminSupabase
+          .from("orders")
+          .update({
+            payment_gateway_id: pixResult.paymentId,
+            status: "awaiting_payment",
+          })
+          .eq("id", orderId);
+      }
+
+      paymentPayload = {
+        ...paymentPayload,
+        payment_id: pixResult.paymentId,
+        pix_copia_e_cola: pixResult.qrCode,
+        pix_qr_code_base64: pixResult.qrCodeBase64,
+        ticket_url: pixResult.ticketUrl,
+        expires_at: pixResult.expiresAt,
+        expires_in_minutes: 30,
+        is_mock: pixResult.isMock,
+      };
+    } else if (paymentMethod === "credit_card") {
+      const prefResult = await createMercadoPagoPreference({
+        orderId,
+        referenceCode,
+        amountInCents: totalInCents,
+        items: resolvedItems.map((it) => ({
+          title: it.product_name,
+          unitPriceInCents: it.unit_price_in_cents,
+          quantity: it.quantity,
+        })),
+        customer: {
+          name: body.customer_name,
+          email: body.customer_email,
+          phone: body.customer_phone,
+          document: body.customer_document,
+        },
+      });
+
+      if (hasLiveDb && prefResult.preferenceId) {
+        await adminSupabase
+          .from("orders")
+          .update({
+            payment_gateway_id: prefResult.preferenceId,
+            status: "awaiting_payment",
+          })
+          .eq("id", orderId);
+      }
+
+      paymentPayload = {
+        ...paymentPayload,
+        preference_id: prefResult.preferenceId,
+        checkout_url: prefResult.initPoint,
+        sandbox_checkout_url: prefResult.sandboxInitPoint,
+        is_mock: prefResult.isMock,
+      };
+    }
 
     return NextResponse.json(
       {
@@ -258,16 +332,12 @@ export async function POST(req: NextRequest) {
           subtotal_in_cents: subtotalInCents,
           shipping_fee_in_cents: shippingFeeInCents,
           total_in_cents: totalInCents,
-          status: "pending",
+          status: "awaiting_payment",
           payment_method: paymentMethod,
           items: resolvedItems,
           delivery_type: body.delivery_type || "delivery",
         },
-        payment: {
-          type: paymentMethod,
-          pix_copia_e_cola: pixCopiaECola,
-          expires_in_minutes: 30,
-        },
+        payment: paymentPayload,
       },
       { status: 201 }
     );
