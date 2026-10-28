@@ -24,20 +24,25 @@ import {
   ShowcaseMediaSettings,
   PromotionalShowcaseSettings,
   PromoProductItem,
+  HeroBannerSettings,
 } from "@/types/ecommerce";
 import {
   DEFAULT_SHOWCASE_MEDIA,
   DEFAULT_PROMOTIONAL_SHOWCASE,
+  DEFAULT_HERO_BANNER,
 } from "@/lib/site-settings-constants";
 
 export default function AdminBannersPage() {
   const supabase = createClient();
-  const [activeTab, setActiveTab] = useState<"banners" | "vitrines" | "promocoes">("banners");
+  const [activeTab, setActiveTab] = useState<"hero" | "banners" | "vitrines" | "promocoes">("hero");
   const [banners, setBanners] = useState<HomepageBanner[]>([]);
+  const [heroBanner, setHeroBanner] = useState<HeroBannerSettings>(DEFAULT_HERO_BANNER);
   const [showcaseMedia, setShowcaseMedia] = useState<ShowcaseMediaSettings>(DEFAULT_SHOWCASE_MEDIA);
   const [promotionalShowcase, setPromotionalShowcase] =
     useState<PromotionalShowcaseSettings>(DEFAULT_PROMOTIONAL_SHOWCASE);
   const [isLoading, setIsLoading] = useState(true);
+  const [isSavingHero, setIsSavingHero] = useState(false);
+  const [isUploadingHero, setIsUploadingHero] = useState(false);
   const [isSavingMedia, setIsSavingMedia] = useState(false);
   const [isSavingPromo, setIsSavingPromo] = useState(false);
   const [uploadingField, setUploadingField] = useState<string | null>(null);
@@ -88,9 +93,68 @@ export default function AdminBannersPage() {
         if (data.promotional_showcase) {
           setPromotionalShowcase((prev) => ({ ...prev, ...data.promotional_showcase }));
         }
+        if (data.hero_banner) {
+          setHeroBanner((prev) => ({ ...prev, ...data.hero_banner }));
+        }
       }
     } catch (err) {
       console.warn("Erro ao carregar mídias das vitrines:", err);
+    }
+  };
+
+  const handleSaveHeroBanner = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setIsSavingHero(true);
+    setFeedback(null);
+    try {
+      const res = await fetch("/api/admin/settings", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ hero_banner: heroBanner }),
+      });
+
+      const data = await res.json();
+      if (!res.ok || data.error) {
+        throw new Error(data.error || "Erro ao salvar banner do header.");
+      }
+
+      setFeedback("Banner principal, degradê e botões atualizados com sucesso!");
+      setTimeout(() => setFeedback(null), 4000);
+    } catch (err: any) {
+      alert(err.message || "Erro inesperado ao salvar banner principal.");
+    } finally {
+      setIsSavingHero(false);
+    }
+  };
+
+  const handleHeroImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    setIsUploadingHero(true);
+    try {
+      const formData = new FormData();
+      formData.append("file", file);
+
+      const res = await fetch("/api/admin/upload", {
+        method: "POST",
+        body: formData,
+      });
+
+      const data = await res.json();
+      if (!res.ok || data.error) {
+        throw new Error(data.error || "Erro ao enviar imagem do banner.");
+      }
+
+      if (data.url) {
+        setHeroBanner((prev) => ({ ...prev, bannerImageUrl: data.url, mode: "fixed_banner" }));
+        setFeedback("Imagem do banner principal enviada! Clique em 'Salvar Banner' para publicar.");
+        setTimeout(() => setFeedback(null), 4000);
+      }
+    } catch (err: any) {
+      alert(err.message || "Falha no envio da imagem.");
+    } finally {
+      setIsUploadingHero(false);
     }
   };
 
@@ -424,6 +488,19 @@ export default function AdminBannersPage() {
       <div className="flex items-center gap-2 bg-[#06111f] p-2 rounded-2xl border border-white/10 overflow-x-auto no-scrollbar">
         <button
           type="button"
+          onClick={() => setActiveTab("hero")}
+          className={`flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-semibold whitespace-nowrap transition-all ${
+            activeTab === "hero"
+              ? "bg-amber-400 text-slate-950 font-bold shadow-md"
+              : "text-amber-400 hover:bg-amber-400/10 border border-amber-400/30"
+          }`}
+        >
+          <Sparkles size={14} />
+          <span>Banner Principal (Header Fixo)</span>
+        </button>
+
+        <button
+          type="button"
           onClick={() => setActiveTab("banners")}
           className={`flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-semibold whitespace-nowrap transition-all ${
             activeTab === "banners"
@@ -462,7 +539,491 @@ export default function AdminBannersPage() {
         </button>
       </div>
 
-      {/* ABA 2: FOTOS DAS VITRINES E SEÇÕES */}
+      {/* ABA 0: BANNER PRINCIPAL (HEADER FIXO COM DEGRADÊ) */}
+      {activeTab === "hero" && (
+        <form onSubmit={handleSaveHeroBanner} className="space-y-6">
+          <div className="bg-[#06111f] border border-amber-400/30 rounded-2xl p-6 sm:p-8 space-y-6 shadow-xl">
+            {/* Header da Aba */}
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-white/10 pb-5">
+              <div>
+                <span className="text-[10px] font-bold uppercase tracking-widest text-amber-400 bg-amber-400/10 px-2.5 py-0.5 rounded-full border border-amber-400/20">
+                  CABEÇALHO &amp; DESTAQUE PRINCIPAL
+                </span>
+                <h2 className="text-xl font-bold text-white mt-1">
+                  Banner Fixo &amp; Degradê do Header
+                </h2>
+                <p className="text-xs text-slate-400 mt-0.5 max-w-2xl">
+                  Personalize o banner focado no lado direito da tela inicial, os efeitos de transição do degradê e os botões de ação do topo do site.
+                </p>
+              </div>
+
+              <button
+                type="submit"
+                disabled={isSavingHero}
+                className="inline-flex items-center gap-2 px-6 py-3 rounded-xl bg-amber-400 hover:bg-amber-300 disabled:opacity-50 text-slate-950 font-bold text-xs uppercase tracking-wider transition-all shadow-md shadow-amber-400/20 cursor-pointer self-start sm:self-auto"
+              >
+                <Save size={15} />
+                <span>{isSavingHero ? "Salvando..." : "Salvar Banner do Header"}</span>
+              </button>
+            </div>
+
+            {/* Prévia em Tempo Real */}
+            <div className="space-y-2">
+              <span className="text-[11px] font-bold uppercase tracking-wider text-slate-400 flex items-center gap-1.5">
+                <Sparkles size={14} className="text-amber-400" />
+                <span>Prévia em Tempo Real (Visual do Header)</span>
+              </span>
+
+              <div className="relative rounded-2xl border border-slate-700/80 bg-[#02070D] p-5 sm:p-8 overflow-hidden min-h-[260px] flex flex-col justify-center shadow-2xl">
+                {/* Lado Direito: Banner com Degradê ao vivo */}
+                <div className="absolute inset-y-0 right-0 w-full sm:w-[60%] overflow-hidden pointer-events-none">
+                  {heroBanner.mode === "fixed_banner" ? (
+                    <>
+                      <img
+                        src={heroBanner.bannerImageUrl || "/images/lifestyle/female-grau.jpg"}
+                        alt="Preview"
+                        className="w-full h-full object-cover object-center"
+                      />
+                      <div
+                        className="absolute inset-0 transition-all duration-300"
+                        style={{
+                          background: (() => {
+                            const solidColor = heroBanner.gradientColor || "#02070D";
+                            const alpha = Math.min(
+                              Math.max((heroBanner.gradientIntensity || 85) / 100, 0.2),
+                              1
+                            );
+                            switch (heroBanner.gradientDirection) {
+                              case "to-left":
+                                return `linear-gradient(to right, ${solidColor} 0%, ${solidColor} 20%, rgba(2, 7, 13, ${alpha * 0.7}) 55%, transparent 100%)`;
+                              case "to-right":
+                                return `linear-gradient(to left, ${solidColor} 0%, ${solidColor} 20%, rgba(2, 7, 13, ${alpha * 0.7}) 55%, transparent 100%)`;
+                              case "to-bottom":
+                                return `linear-gradient(to bottom, ${solidColor} 0%, rgba(2, 7, 13, ${alpha * 0.4}) 50%, ${solidColor} 100%)`;
+                              case "radial":
+                                return `radial-gradient(ellipse at 70% 50%, transparent 20%, rgba(2, 7, 13, ${alpha * 0.7}) 70%, ${solidColor} 100%)`;
+                              default:
+                                return `linear-gradient(to right, ${solidColor} 0%, ${solidColor} 25%, transparent 100%)`;
+                            }
+                          })(),
+                        }}
+                      />
+                    </>
+                  ) : (
+                    <div className="w-full h-full flex items-center justify-center bg-slate-900/60 border-l border-white/10">
+                      <span className="text-xs font-semibold text-amber-300">
+                        [Modo Carrossel 3D de Armações no Pedestal Ativo]
+                      </span>
+                    </div>
+                  )}
+                </div>
+
+                {/* Conteúdo Esquerdo da Prévia */}
+                <div className="relative z-10 max-w-md space-y-2">
+                  <span className="text-[9px] font-bold uppercase tracking-widest text-amber-400 block">
+                    ● QUALIDADE QUE VOCÊ VÊ
+                  </span>
+                  <h3 className="text-xl sm:text-2xl font-light text-white leading-tight">
+                    Mais que óculos, <br />
+                    é sobre <strong className="font-semibold text-amber-400">você.</strong>
+                  </h3>
+                  <p className="text-[11px] text-slate-300 line-clamp-2">
+                    Na Óticas Ventara, unimos tecnologia, qualidade e atendimento especializado...
+                  </p>
+                  <div className="flex items-center gap-2 pt-2">
+                    <span className="px-3.5 py-1.5 rounded-full bg-amber-400 text-slate-950 font-bold text-[10px] shadow-sm">
+                      {heroBanner.primaryButtonText || "Catálogo de Lentes"}
+                    </span>
+                    <span className="px-3 py-1.5 rounded-full bg-slate-900 text-white font-semibold text-[10px] border border-slate-700">
+                      {heroBanner.secondaryButtonText || "Ver armações"}
+                    </span>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* SELEÇÃO DE MODO: BANNER FIXO VS CARROSSEL 3D */}
+            <div className="bg-[#0a1526] border border-white/10 rounded-2xl p-5 space-y-3">
+              <label className="block text-xs font-bold text-white uppercase tracking-wider">
+                Modo de Exibição do Lado Direito do Header
+              </label>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <button
+                  type="button"
+                  onClick={() => setHeroBanner((prev) => ({ ...prev, mode: "fixed_banner" }))}
+                  className={`p-4 rounded-xl border text-left transition-all cursor-pointer ${
+                    heroBanner.mode === "fixed_banner"
+                      ? "bg-amber-400/10 border-amber-400 text-white shadow-md shadow-amber-400/10"
+                      : "bg-[#040c16] border-white/10 text-slate-400 hover:text-white"
+                  }`}
+                >
+                  <div className="flex items-center justify-between">
+                    <span className="font-bold text-xs text-amber-400">
+                      Banner Fixo com Degradê
+                    </span>
+                    {heroBanner.mode === "fixed_banner" && (
+                      <span className="text-[10px] bg-amber-400 text-slate-950 font-bold px-2 py-0.5 rounded-full">
+                        Ativo
+                      </span>
+                    )}
+                  </div>
+                  <p className="text-[11px] text-slate-300 mt-1">
+                    Foto de modelo/loja em alta resolução com efeito de degradê suave cobrindo a transição para o fundo do site.
+                  </p>
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => setHeroBanner((prev) => ({ ...prev, mode: "carousel_3d" }))}
+                  className={`p-4 rounded-xl border text-left transition-all cursor-pointer ${
+                    heroBanner.mode === "carousel_3d"
+                      ? "bg-amber-400/10 border-amber-400 text-white shadow-md shadow-amber-400/10"
+                      : "bg-[#040c16] border-white/10 text-slate-400 hover:text-white"
+                  }`}
+                >
+                  <div className="flex items-center justify-between">
+                    <span className="font-bold text-xs text-amber-400">
+                      Carrossel 3D com Pedestal
+                    </span>
+                    {heroBanner.mode === "carousel_3d" && (
+                      <span className="text-[10px] bg-amber-400 text-slate-950 font-bold px-2 py-0.5 rounded-full">
+                        Ativo
+                      </span>
+                    )}
+                  </div>
+                  <p className="text-[11px] text-slate-300 mt-1">
+                    Exibe as armações em destaque rotacionando sobre o pedestal cilíndrico com anel neon azul.
+                  </p>
+                </button>
+              </div>
+            </div>
+
+            {/* CONFIGURAÇÕES DO BANNER FIXO E DEGRADÊ */}
+            {heroBanner.mode === "fixed_banner" && (
+              <div className="bg-[#0a1526] border border-white/10 rounded-2xl p-5 space-y-5">
+                <div>
+                  <h3 className="text-sm font-bold text-white flex items-center gap-2">
+                    <ImageIcon size={15} className="text-amber-400" />
+                    <span>Imagem do Banner Fixo (Lado Direito)</span>
+                  </h3>
+                  <p className="text-xs text-slate-400 mt-0.5">
+                    Envie uma foto em alta definição com foco na modelo ou produto do lado direito.
+                  </p>
+                </div>
+
+                <div className="grid grid-cols-1 lg:grid-cols-12 gap-5 items-center">
+                  <div className="lg:col-span-4 aspect-video rounded-xl bg-[#040c16] border border-white/10 overflow-hidden relative">
+                    <img
+                      src={heroBanner.bannerImageUrl || "/images/lifestyle/female-grau.jpg"}
+                      alt="Banner"
+                      className="w-full h-full object-cover"
+                    />
+                  </div>
+
+                  <div className="lg:col-span-8 space-y-3">
+                    <div className="flex flex-wrap items-center gap-3">
+                      <label className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-blue-600 hover:bg-blue-500 text-white font-semibold text-xs cursor-pointer shadow-md transition-all">
+                        <Upload size={14} />
+                        <span>{isUploadingHero ? "Enviando..." : "Escolher Imagem (Upload)"}</span>
+                        <input
+                          type="file"
+                          accept="image/*"
+                          onChange={handleHeroImageUpload}
+                          disabled={isUploadingHero}
+                          className="hidden"
+                        />
+                      </label>
+
+                      <button
+                        type="button"
+                        onClick={() =>
+                          setHeroBanner((prev) => ({
+                            ...prev,
+                            bannerImageUrl: "/images/lifestyle/female-grau.jpg",
+                          }))
+                        }
+                        className="text-xs px-3 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 transition-colors"
+                      >
+                        Modelo Feminino Grau
+                      </button>
+
+                      <button
+                        type="button"
+                        onClick={() =>
+                          setHeroBanner((prev) => ({
+                            ...prev,
+                            bannerImageUrl: "/images/lifestyle/male-solar.jpg",
+                          }))
+                        }
+                        className="text-xs px-3 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 transition-colors"
+                      >
+                        Modelo Masculino Solar
+                      </button>
+
+                      <button
+                        type="button"
+                        onClick={() =>
+                          setHeroBanner((prev) => ({
+                            ...prev,
+                            bannerImageUrl: "/images/banners/catalogo-lentes-oftalmicas.jpg",
+                          }))
+                        }
+                        className="text-xs px-3 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 transition-colors"
+                      >
+                        Banner Lentes
+                      </button>
+                    </div>
+
+                    <div>
+                      <label className="block text-xs font-semibold text-slate-300 mb-1">
+                        URL Direta da Imagem
+                      </label>
+                      <input
+                        type="text"
+                        value={heroBanner.bannerImageUrl}
+                        onChange={(e) =>
+                          setHeroBanner((prev) => ({ ...prev, bannerImageUrl: e.target.value }))
+                        }
+                        placeholder="/images/lifestyle/female-grau.jpg ou https://..."
+                        className="w-full bg-[#040c16] border border-white/10 rounded-xl px-3.5 py-2 text-white text-xs focus:outline-none focus:border-amber-400"
+                      />
+                    </div>
+                  </div>
+                </div>
+
+                {/* OPÇÕES DO DEGRADÊ */}
+                <div className="pt-4 border-t border-white/10 space-y-4">
+                  <h4 className="text-xs font-bold text-amber-400 uppercase tracking-wider">
+                    Opções de Degradê (Filtro e Transição)
+                  </h4>
+
+                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                    {/* Direção */}
+                    <div>
+                      <label className="block text-xs font-semibold text-slate-300 mb-1.5">
+                        Direção do Degradê
+                      </label>
+                      <select
+                        value={heroBanner.gradientDirection}
+                        onChange={(e) =>
+                          setHeroBanner((prev) => ({
+                            ...prev,
+                            gradientDirection: e.target.value as any,
+                          }))
+                        }
+                        className="w-full bg-[#040c16] border border-white/10 rounded-xl px-3 py-2 text-white text-xs focus:outline-none focus:border-amber-400"
+                      >
+                        <option value="to-left">Da Direita para Esquerda (Foco no Banner)</option>
+                        <option value="to-right">Da Esquerda para Direita</option>
+                        <option value="to-bottom">De Cima para Baixo</option>
+                        <option value="radial">Radial Suave Central</option>
+                      </select>
+                    </div>
+
+                    {/* Cor do Fundo */}
+                    <div>
+                      <label className="block text-xs font-semibold text-slate-300 mb-1.5">
+                        Cor Base do Degradê
+                      </label>
+                      <div className="flex items-center gap-2">
+                        <input
+                          type="color"
+                          value={heroBanner.gradientColor || "#02070D"}
+                          onChange={(e) =>
+                            setHeroBanner((prev) => ({ ...prev, gradientColor: e.target.value }))
+                          }
+                          className="w-9 h-8 rounded-lg bg-transparent border border-white/10 cursor-pointer"
+                        />
+                        <input
+                          type="text"
+                          value={heroBanner.gradientColor}
+                          onChange={(e) =>
+                            setHeroBanner((prev) => ({ ...prev, gradientColor: e.target.value }))
+                          }
+                          placeholder="#02070D"
+                          className="w-full bg-[#040c16] border border-white/10 rounded-xl px-3 py-1.5 text-white text-xs font-mono focus:outline-none focus:border-amber-400"
+                        />
+                      </div>
+                      <div className="flex items-center gap-1.5 mt-1.5">
+                        <button
+                          type="button"
+                          onClick={() =>
+                            setHeroBanner((prev) => ({ ...prev, gradientColor: "#02070D" }))
+                          }
+                          className="text-[10px] px-2 py-0.5 rounded bg-slate-800 text-slate-300 hover:text-white"
+                        >
+                          Ventara (#02070D)
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() =>
+                            setHeroBanner((prev) => ({ ...prev, gradientColor: "#071527" }))
+                          }
+                          className="text-[10px] px-2 py-0.5 rounded bg-slate-800 text-slate-300 hover:text-white"
+                        >
+                          Noturno
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() =>
+                            setHeroBanner((prev) => ({ ...prev, gradientColor: "#000000" }))
+                          }
+                          className="text-[10px] px-2 py-0.5 rounded bg-slate-800 text-slate-300 hover:text-white"
+                        >
+                          Preto
+                        </button>
+                      </div>
+                    </div>
+
+                    {/* Intensidade */}
+                    <div>
+                      <div className="flex items-center justify-between mb-1.5">
+                        <label className="text-xs font-semibold text-slate-300">
+                          Intensidade da Cobertura
+                        </label>
+                        <span className="text-xs font-mono text-amber-400 font-bold">
+                          {heroBanner.gradientIntensity}%
+                        </span>
+                      </div>
+                      <input
+                        type="range"
+                        min={30}
+                        max={100}
+                        step={5}
+                        value={heroBanner.gradientIntensity}
+                        onChange={(e) =>
+                          setHeroBanner((prev) => ({
+                            ...prev,
+                            gradientIntensity: Number(e.target.value),
+                          }))
+                        }
+                        className="w-full accent-amber-400 cursor-pointer"
+                      />
+                      <p className="text-[10px] text-slate-400 mt-1">
+                        Controla o quanto o degradê se funde com a imagem.
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* PERSONALIZAÇÃO DOS BOTÕES E TEXTOS */}
+            <div className="bg-[#0a1526] border border-white/10 rounded-2xl p-5 space-y-4">
+              <h3 className="text-sm font-bold text-white flex items-center gap-2">
+                <Tag size={15} className="text-amber-400" />
+                <span>Textos dos Botões e Selos do Header</span>
+              </h3>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-xs font-semibold text-slate-300 mb-1">
+                    Texto do Botão 1 (Amarelo Principal)
+                  </label>
+                  <input
+                    type="text"
+                    value={heroBanner.primaryButtonText}
+                    onChange={(e) =>
+                      setHeroBanner((prev) => ({ ...prev, primaryButtonText: e.target.value }))
+                    }
+                    placeholder="Catálogo de Lentes"
+                    className="w-full bg-[#040c16] border border-white/10 rounded-xl px-3.5 py-2 text-white text-xs focus:outline-none focus:border-amber-400"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-xs font-semibold text-slate-300 mb-1">
+                    Link do Botão 1
+                  </label>
+                  <input
+                    type="text"
+                    value={heroBanner.primaryButtonLink}
+                    onChange={(e) =>
+                      setHeroBanner((prev) => ({ ...prev, primaryButtonLink: e.target.value }))
+                    }
+                    placeholder="/lentes"
+                    className="w-full bg-[#040c16] border border-white/10 rounded-xl px-3.5 py-2 text-white text-xs focus:outline-none focus:border-amber-400"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-xs font-semibold text-slate-300 mb-1">
+                    Texto do Botão 2 (Secundário)
+                  </label>
+                  <input
+                    type="text"
+                    value={heroBanner.secondaryButtonText}
+                    onChange={(e) =>
+                      setHeroBanner((prev) => ({ ...prev, secondaryButtonText: e.target.value }))
+                    }
+                    placeholder="Ver armações"
+                    className="w-full bg-[#040c16] border border-white/10 rounded-xl px-3.5 py-2 text-white text-xs focus:outline-none focus:border-amber-400"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-xs font-semibold text-slate-300 mb-1">
+                    Link do Botão 2
+                  </label>
+                  <input
+                    type="text"
+                    value={heroBanner.secondaryButtonLink}
+                    onChange={(e) =>
+                      setHeroBanner((prev) => ({ ...prev, secondaryButtonLink: e.target.value }))
+                    }
+                    placeholder="#armacoes"
+                    className="w-full bg-[#040c16] border border-white/10 rounded-xl px-3.5 py-2 text-white text-xs focus:outline-none focus:border-amber-400"
+                  />
+                </div>
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-2">
+                <div>
+                  <label className="block text-xs font-semibold text-slate-300 mb-1">
+                    Badge Lateral Dourado
+                  </label>
+                  <input
+                    type="text"
+                    value={heroBanner.badgeTag}
+                    onChange={(e) =>
+                      setHeroBanner((prev) => ({ ...prev, badgeTag: e.target.value }))
+                    }
+                    placeholder="ARMAÇÕES DE QUALIDADE E ESTILO"
+                    className="w-full bg-[#040c16] border border-white/10 rounded-xl px-3.5 py-2 text-white text-xs focus:outline-none focus:border-amber-400"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-xs font-semibold text-slate-300 mb-1">
+                    Subtítulo do Selo Inferior
+                  </label>
+                  <input
+                    type="text"
+                    value={heroBanner.badgeSubtitle || ""}
+                    onChange={(e) =>
+                      setHeroBanner((prev) => ({ ...prev, badgeSubtitle: e.target.value }))
+                    }
+                    placeholder="Curadoria Autoral Ventara · Acetato Premium"
+                    className="w-full bg-[#040c16] border border-white/10 rounded-xl px-3.5 py-2 text-white text-xs focus:outline-none focus:border-amber-400"
+                  />
+                </div>
+              </div>
+            </div>
+
+            {/* Salvar Banner */}
+            <div className="pt-4 border-t border-white/10 flex justify-end">
+              <button
+                type="submit"
+                disabled={isSavingHero}
+                className="inline-flex items-center gap-2 px-6 py-3 rounded-xl bg-amber-400 hover:bg-amber-300 disabled:opacity-50 text-slate-950 font-bold text-xs uppercase tracking-wider transition-all shadow-md shadow-amber-400/20 cursor-pointer"
+              >
+                <Save size={15} />
+                <span>{isSavingHero ? "Salvando..." : "Salvar Configurações do Header"}</span>
+              </button>
+            </div>
+          </div>
+        </form>
+      )}
       {activeTab === "vitrines" && (
         <form onSubmit={handleSaveShowcaseMedia} className="space-y-6">
           <div className="bg-[#06111f] border border-amber-400/30 rounded-2xl p-6 sm:p-8 space-y-6 shadow-xl">

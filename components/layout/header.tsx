@@ -70,12 +70,12 @@ export function Header({
   }, []);
 
   const navItems = [
-    { title: "Início", id: "inicio" },
-    { title: "Armações", id: "armacoes" },
-    { title: "Sobre nós", id: "sobre-nos" },
-    { title: "Laboratório", id: "laboratorio" },
-    { title: "Lentes", id: "lentes" },
-    { title: "Contato", id: "contato" },
+    { title: "Início", href: "/#inicio", id: "inicio" },
+    { title: "Armações", href: "/#armacoes", id: "armacoes" },
+    { title: "Sobre nós", href: "/#sobre-nos", id: "sobre-nos" },
+    { title: "Laboratório", href: "/#laboratorio", id: "laboratorio" },
+    { title: "Lentes", href: "/lentes", id: "lentes" },
+    { title: "Contato", href: "/#contato", id: "contato" },
   ];
 
   return (
@@ -92,7 +92,7 @@ export function Header({
             return (
               <a
                 key={item.id}
-                href={`#${item.id}`}
+                href={item.href}
                 className={`nav-link text-xs font-semibold tracking-wider transition-colors relative py-1 ${
                   isActive ? "text-white" : "text-slate-300 hover:text-white"
                 }`}
@@ -202,7 +202,7 @@ export function Header({
             {navItems.map((item) => (
               <a
                 key={item.id}
-                href={`#${item.id}`}
+                href={item.href}
                 className={`mobile-nav-link text-sm font-semibold tracking-wider transition-colors py-1 ${
                   activeSection === item.id ? "text-[#FFD62E]" : "text-slate-200"
                 }`}

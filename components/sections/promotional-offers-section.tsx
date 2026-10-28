@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from "react";
 import Link from "next/link";
-import { MessageCircle, Sparkles, Tag, ArrowRight, ShieldCheck } from "lucide-react";
+import { MessageCircle, Sparkles, Tag, ArrowRight, ShieldCheck, ShoppingBag } from "lucide-react";
 import { PromotionalShowcaseSettings, PromoProductItem } from "@/types/ecommerce";
 import { DEFAULT_PROMOTIONAL_SHOWCASE } from "@/lib/site-settings-constants";
 import { useSiteSettings } from "../providers/site-settings-provider";
@@ -181,16 +181,26 @@ export function PromotionalOffersSection() {
                   </div>
                 </div>
 
-                {/* Botão de Compra Direta no WhatsApp */}
-                <a
-                  href={getWhatsAppBuyUrl(item)}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="w-full inline-flex items-center justify-center gap-1.5 py-2.5 px-3 rounded-xl bg-emerald-600 hover:bg-emerald-500 active:scale-95 text-white font-bold text-[11px] sm:text-xs tracking-wide shadow-sm transition-all cursor-pointer"
-                >
-                  <MessageCircle size={13} className="shrink-0" />
-                  <span>Comprar c/ Desconto</span>
-                </a>
+                {/* Ações Conforme Solicitação: 1. Comprar (Página do Produto) | 2. Dúvidas no WhatsApp (Amarelo) */}
+                <div className="flex flex-col gap-1.5 pt-1">
+                  <Link
+                    href={`/produto/${item.slug || "ventara-safari"}`}
+                    className="w-full inline-flex items-center justify-center gap-1.5 py-2.5 px-3 rounded-xl bg-slate-900 hover:bg-slate-800 active:scale-95 text-white font-bold text-[11px] sm:text-xs tracking-wide shadow-sm transition-all cursor-pointer"
+                  >
+                    <ShoppingBag size={13} className="shrink-0" />
+                    <span>Comprar</span>
+                  </Link>
+
+                  <a
+                    href={getWhatsAppBuyUrl(item)}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="w-full inline-flex items-center justify-center gap-1.5 py-2 px-3 rounded-xl bg-amber-400 hover:bg-amber-300 active:scale-95 text-slate-950 font-bold text-[10px] sm:text-[11px] tracking-wide shadow-xs transition-all cursor-pointer"
+                  >
+                    <MessageCircle size={13} className="shrink-0 text-slate-950" />
+                    <span>Dúvidas no WhatsApp</span>
+                  </a>
+                </div>
               </article>
             );
           })}

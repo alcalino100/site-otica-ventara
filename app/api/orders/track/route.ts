@@ -269,15 +269,10 @@ export async function GET(req: NextRequest) {
         currentStep = 4;
         break;
       case "shipped":
-        if (isPickup) {
-          statusLabel = "Pronto para Retirada";
-          statusDesc = "Seus óculos foram calibrados, higienizados e estão disponíveis para retirada no balcão da Óticas Ventara (Rua Princesa Isabel, 221 - Araçatuba/SP).";
-          currentStep = 4;
-        } else {
-          statusLabel = "Em Trânsito / Enviado";
-          statusDesc = "Seus óculos foram despachados e estão a caminho do seu endereço de entrega.";
-          currentStep = 4;
-        }
+        statusLabel = "Enviado e Despachado";
+        statusDesc =
+          "Seus óculos foram enviados e despachados. Aguardando a chegada no seu endereço com código de rastreamento.";
+        currentStep = 4;
         break;
       case "delivered":
         statusLabel = isPickup ? "Retirado na Loja" : "Pedido Entregue";

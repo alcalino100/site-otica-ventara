@@ -98,6 +98,7 @@ export default function AdminOrdersPage() {
   }, []);
 
   const isPickupOrder = (order: Order) => {
+    if (order.status === "shipped") return false;
     const addr = order.shipping_address as any;
     return (
       order.status === "ready_for_pickup" ||
@@ -111,13 +112,14 @@ export default function AdminOrdersPage() {
     setUpdatingId(orderId);
     try {
       const isPickup = newStatus === "ready_for_pickup";
+      const isShipping = newStatus === "shipped";
       const res = await fetch("/api/admin/orders", {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           id: orderId,
           status: newStatus,
-          delivery_type: isPickup ? "pickup" : "shipping",
+          delivery_type: isPickup ? "pickup" : isShipping ? "shipping" : undefined,
         }),
       });
 
@@ -130,21 +132,22 @@ export default function AdminOrdersPage() {
       setOrders((prev) =>
         prev.map((o) => {
           if (o.id === orderId) {
+            let updatedAddress = o.shipping_address;
+            if (isPickup) {
+              updatedAddress = {
+                street: o.shipping_address?.street || "",
+                number: o.shipping_address?.number || "",
+                neighborhood: o.shipping_address?.neighborhood || "",
+                city: o.shipping_address?.city || "Araçatuba",
+                state: o.shipping_address?.state || "SP",
+                postal_code: o.shipping_address?.postal_code || "",
+                complement: o.shipping_address?.complement,
+              };
+            }
             return {
               ...o,
-              status: (newStatus === "ready_for_pickup" ? "ready_for_pickup" : newStatus) as OrderStatus,
-              shipping_address: isPickup
-                ? {
-                    ...(o.shipping_address || {}),
-                    delivery_type: "pickup",
-                    street: "",
-                    number: "",
-                    neighborhood: "",
-                    city: "Araçatuba",
-                    state: "SP",
-                    postal_code: "",
-                  }
-                : o.shipping_address,
+              status: newStatus as OrderStatus,
+              shipping_address: updatedAddress,
             };
           }
           return o;
@@ -278,9 +281,7 @@ export default function AdminOrdersPage() {
   };
 
   const getStatusBadge = (order: Order) => {
-    const pickup = isPickupOrder(order);
-
-    if (pickup && (order.status === "ready_for_pickup" || order.status === "shipped")) {
+    if (order.status === "ready_for_pickup") {
       return (
         <span className="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-amber-400/20 text-amber-300 border border-amber-400/40 inline-flex items-center gap-1 shadow-2xs">
           <Store size={11} /> Retirada na Loja
@@ -341,9 +342,6 @@ export default function AdminOrdersPage() {
   };
 
   const getSelectValue = (order: Order) => {
-    if (isPickupOrder(order) && (order.status === "ready_for_pickup" || order.status === "shipped")) {
-      return "ready_for_pickup";
-    }
     return order.status;
   };
 

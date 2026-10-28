@@ -7,16 +7,50 @@ import { ArrowRight, ChevronLeft, ChevronRight, Sparkles } from "lucide-react";
 import { FrameArt } from "../catalog/frame-art";
 import { WordsStagger } from "@/registry/spell-ui/words-stagger";
 import { HighlightedText } from "@/registry/spell-ui/highlighted-text";
-import { Product } from "@/types/ecommerce";
+import { Product, HeroBannerSettings } from "@/types/ecommerce";
 import { DEFAULT_CATALOG } from "@/lib/catalog-data";
+import { DEFAULT_HERO_BANNER } from "@/lib/site-settings-constants";
 import { useSiteSettings } from "@/components/providers/site-settings-provider";
 
 interface HeroProps {
   products?: Product[];
 }
 
+function getGradientStyle(direction: string, color: string, intensity: number) {
+  const solidColor = color || "#02070D";
+  const alpha = Math.min(Math.max((intensity || 85) / 100, 0.2), 1);
+  switch (direction) {
+    case "to-left":
+      return `linear-gradient(to right, ${solidColor} 0%, ${solidColor} 20%, rgba(2, 7, 13, ${alpha * 0.7}) 55%, transparent 100%)`;
+    case "to-right":
+      return `linear-gradient(to left, ${solidColor} 0%, ${solidColor} 20%, rgba(2, 7, 13, ${alpha * 0.7}) 55%, transparent 100%)`;
+    case "to-bottom":
+      return `linear-gradient(to bottom, ${solidColor} 0%, rgba(2, 7, 13, ${alpha * 0.4}) 50%, ${solidColor} 100%)`;
+    case "radial":
+      return `radial-gradient(ellipse at 70% 50%, transparent 20%, rgba(2, 7, 13, ${alpha * 0.7}) 70%, ${solidColor} 100%)`;
+    default:
+      return `linear-gradient(to right, ${solidColor} 0%, ${solidColor} 25%, transparent 100%)`;
+  }
+}
+
 export function Hero({ products }: HeroProps) {
   const { identity, fullAddress } = useSiteSettings();
+  const [heroBanner, setHeroBanner] = useState<HeroBannerSettings>(DEFAULT_HERO_BANNER);
+
+  useEffect(() => {
+    async function loadHeroSettings() {
+      try {
+        const res = await fetch("/api/settings");
+        if (res.ok) {
+          const data = await res.json();
+          if (data.hero_banner) {
+            setHeroBanner((prev) => ({ ...prev, ...data.hero_banner }));
+          }
+        }
+      } catch {}
+    }
+    loadHeroSettings();
+  }, []);
 
   // Filtra as armações marcadas como destaque (is_featured) no Admin
   const featuredProducts = useMemo(() => {
@@ -112,12 +146,18 @@ export function Hero({ products }: HeroProps) {
             </div>
 
             <div className="hero-cta-wrapper flex flex-wrap items-center gap-4 mt-6">
-              <a className="button outline hover:border-[#FFD62E] group" href="#loja-fisica">
-                <span>Conheça nossa loja</span>
-                <ArrowRight size={16} className="text-[#FFD62E] transform group-hover:translate-x-1 transition-transform" />
-              </a>
-              <a className="button dark" href="#armacoes">
-                Ver armações
+              <Link
+                className="inline-flex items-center gap-2 px-6 py-3.5 rounded-full bg-[#FFD62E] hover:bg-amber-300 active:scale-95 text-slate-950 font-bold text-xs sm:text-sm tracking-wide shadow-lg shadow-amber-400/25 transition-all group cursor-pointer"
+                href={heroBanner.primaryButtonLink || "/lentes"}
+              >
+                <span>{heroBanner.primaryButtonText || "Catálogo de Lentes"}</span>
+                <ArrowRight size={16} className="text-slate-950 transform group-hover:translate-x-1 transition-transform" />
+              </Link>
+              <a
+                className="inline-flex items-center gap-2 px-6 py-3.5 rounded-full bg-slate-900/90 hover:bg-slate-800 active:scale-95 text-white font-semibold text-xs sm:text-sm border border-slate-700 hover:border-amber-400/60 shadow-md transition-all cursor-pointer"
+                href={heroBanner.secondaryButtonLink || "#armacoes"}
+              >
+                {heroBanner.secondaryButtonText || "Ver armações"}
               </a>
             </div>
 
@@ -126,108 +166,157 @@ export function Hero({ products }: HeroProps) {
             </span>
           </div>
 
-          {/* Coluna Direita: Stage e Pedestal Alinhados */}
-          <div
-            className="hero-stage lg:col-span-7 relative flex items-center justify-center min-h-[380px] sm:min-h-[480px]"
-            onMouseEnter={() => setIsPaused(true)}
-            onMouseLeave={() => setIsPaused(false)}
-          >
-            {/* Feixes Volumétricos de Luz Azul */}
-            <div className="beam" aria-hidden="true" />
+          {/* Coluna Direita: Banner Fixo Estilizado com Degradê ou Stage 3D */}
+          {heroBanner.mode === "fixed_banner" ? (
+            <div className="hero-stage lg:col-span-7 relative flex items-center justify-center min-h-[380px] sm:min-h-[520px] rounded-3xl overflow-hidden group border border-white/5 shadow-2xl">
+              {/* Imagem do Banner Fixo com Zoom Suave no Hover */}
+              <div className="absolute inset-0 w-full h-full overflow-hidden">
+                <img
+                  src={heroBanner.bannerImageUrl || "/images/lifestyle/female-grau.jpg"}
+                  alt={heroBanner.badgeTag || "Banner Ventara Eyewear"}
+                  className="w-full h-full object-cover object-center group-hover:scale-105 transition-transform duration-700 ease-out"
+                />
+              </div>
 
-            {/* Badge Vertical Dourado Conforme Referência */}
-            <div className="hero-side-badge hidden sm:flex items-center gap-3 absolute top-2 right-4 z-20">
-              <div className="w-[2px] h-12 bg-[#FFD62E] shadow-[0_0_12px_#FFD62E]" />
-              <span className="text-[10px] tracking-[0.22em] uppercase font-bold text-slate-300 leading-tight">
-                ARMAÇÕES<br />DE QUALIDADE<br />E ESTILO
-              </span>
-            </div>
+              {/* Degradê Customizável Configurado no Admin */}
+              <div
+                className="absolute inset-0 pointer-events-none transition-all duration-300"
+                style={{
+                  background: getGradientStyle(
+                    heroBanner.gradientDirection,
+                    heroBanner.gradientColor,
+                    heroBanner.gradientIntensity
+                  ),
+                }}
+              />
 
-            {/* Armação de Destaque Flutuante no Pedestal com Transição Animada */}
-            <div className="hero-frame-anim relative z-10 w-full max-w-[540px] mx-auto min-h-[220px] sm:min-h-[280px] flex items-center justify-center">
-              <AnimatePresence mode="wait">
-                <motion.div
-                  key={currentProduct?.id || currentIndex}
-                  initial={{ opacity: 0, scale: 0.92, y: 12 }}
-                  animate={{ opacity: 1, scale: 1, y: 0 }}
-                  exit={{ opacity: 0, scale: 0.92, y: -12 }}
-                  transition={{ duration: 0.35, ease: [0.22, 1, 0.36, 1] }}
-                  className="w-full flex flex-col items-center justify-center group"
+              {/* Degradê Superior e Inferior para Integração Perfeita */}
+              <div className="absolute inset-x-0 top-0 h-24 bg-gradient-to-b from-[#02070D] to-transparent pointer-events-none" />
+              <div className="absolute inset-x-0 bottom-0 h-24 bg-gradient-to-t from-[#02070D] to-transparent pointer-events-none" />
+
+              {/* Badge Vertical Dourado Conforme Referência */}
+              <div className="hero-side-badge hidden sm:flex items-center gap-3 absolute top-6 right-6 z-20">
+                <div className="w-[2px] h-12 bg-[#FFD62E] shadow-[0_0_12px_#FFD62E]" />
+                <span className="text-[10px] tracking-[0.22em] uppercase font-bold text-slate-200 leading-tight drop-shadow-md">
+                  {heroBanner.badgeTag || "ARMAÇÕES DE QUALIDADE E ESTILO"}
+                </span>
+              </div>
+
+              {/* Pill Flutuante de Coleção com Link para o Catálogo */}
+              <div className="absolute bottom-6 right-6 z-20">
+                <Link
+                  href="/catalogo"
+                  className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-slate-950/85 hover:bg-slate-900 backdrop-blur-md border border-amber-400/40 text-amber-300 hover:text-amber-200 text-xs font-semibold shadow-2xl transition-all"
                 >
-                  <Link
-                    href={`/produto/${currentProduct?.slug || "ventara-essencial"}`}
-                    className="block w-full text-center relative focus:outline-none"
-                    aria-label={`Ver modelo ${currentProduct?.name}`}
-                  >
-                    {primaryImage ? (
-                      <img
-                        src={primaryImage}
-                        alt={currentProduct?.name || "Armação Ventara"}
-                        className="w-full max-h-[240px] sm:max-h-[280px] object-contain drop-shadow-[0_20px_35px_rgba(0,0,0,0.65)] group-hover:scale-105 transition-transform duration-300"
-                      />
-                    ) : (
-                      <FrameArt
-                        hero
-                        solar={currentProduct?.frame_type === "Solar"}
-                        round={currentProduct?.frame_shape === "Redondo"}
-                        amber={
-                          currentProduct?.slug.includes("aurora") ||
-                          (currentProduct?.slug.includes("solar") && !currentProduct?.slug.includes("kids"))
-                        }
-                        customColor={
-                          currentProduct?.gender === "Infantil"
-                            ? currentProduct?.frame_type === "Solar"
-                              ? "#0284c7"
-                              : "#2563eb"
-                            : currentProduct?.variants?.[0]?.color_hex || undefined
-                        }
-                      />
-                    )}
-
-                    {/* Pill interativo com nome e valor */}
-                    <div className="mt-1 inline-flex items-center gap-2 px-3 py-1 rounded-full bg-[#06111f]/85 backdrop-blur-md border border-amber-400/40 text-amber-400 text-[11px] font-medium shadow-lg hover:border-amber-400 transition-all">
-                      <span>{currentProduct?.name}</span>
-                      <span className="text-white/80 font-normal">· {formattedPrice}</span>
-                      <ArrowRight size={12} className="group-hover:translate-x-0.5 transition-transform" />
-                    </div>
-                  </Link>
-                </motion.div>
-              </AnimatePresence>
-            </div>
-
-            {/* Pedestal Cilíndrico com Anel Neon Cyan/Azul */}
-            <div className="pedestal" aria-hidden="true" />
-
-            {/* Paginação Estilo Mockup da Campanha (01 / 04) - Totalmente Interativa */}
-            <div className="hero-stage-pagination flex items-center gap-4 absolute bottom-2 right-4 z-20">
-              <span className="text-[11px] font-mono text-slate-400 tracking-wider">
-                <strong className="text-white">{currentNumberStr}</strong> / {totalNumberStr}
-              </span>
-              <div className="flex items-center gap-1.5 text-slate-400">
-                <button
-                  type="button"
-                  onClick={handlePrev}
-                  aria-label="Modelo anterior"
-                  className="w-8 h-8 rounded-full border border-white/20 bg-[#06111f]/70 hover:bg-white/20 active:scale-90 flex items-center justify-center hover:text-white transition-all shadow-md focus:outline-none focus:ring-1 focus:ring-amber-400"
-                >
-                  <ChevronLeft size={16} />
-                </button>
-                <button
-                  type="button"
-                  onClick={handleNext}
-                  aria-label="Próximo modelo"
-                  className="w-8 h-8 rounded-full border border-white/20 bg-[#06111f]/70 hover:bg-white/20 active:scale-90 flex items-center justify-center hover:text-white transition-all shadow-md focus:outline-none focus:ring-1 focus:ring-amber-400"
-                >
-                  <ChevronRight size={16} />
-                </button>
+                  <Sparkles size={13} className="text-amber-400" />
+                  <span>{heroBanner.badgeSubtitle || "Curadoria Autoral Ventara · Acetato Premium"}</span>
+                  <ArrowRight size={13} />
+                </Link>
               </div>
             </div>
+          ) : (
+            <div
+              className="hero-stage lg:col-span-7 relative flex items-center justify-center min-h-[380px] sm:min-h-[480px]"
+              onMouseEnter={() => setIsPaused(true)}
+              onMouseLeave={() => setIsPaused(false)}
+            >
+              {/* Feixes Volumétricos de Luz Azul */}
+              <div className="beam" aria-hidden="true" />
 
-            {/* Label Dinâmico com Material e Coleção */}
-            <span className="art-label absolute bottom-14 right-4 text-[9px] text-slate-400 tracking-wider hidden sm:block">
-              CURADORIA AUTORAL VENTARA · {currentProduct?.frame_material?.toUpperCase() || "ACETATO NOBRE"}
-            </span>
-          </div>
+              {/* Badge Vertical Dourado Conforme Referência */}
+              <div className="hero-side-badge hidden sm:flex items-center gap-3 absolute top-2 right-4 z-20">
+                <div className="w-[2px] h-12 bg-[#FFD62E] shadow-[0_0_12px_#FFD62E]" />
+                <span className="text-[10px] tracking-[0.22em] uppercase font-bold text-slate-300 leading-tight">
+                  ARMAÇÕES<br />DE QUALIDADE<br />E ESTILO
+                </span>
+              </div>
+
+              {/* Armação de Destaque Flutuante no Pedestal com Transição Animada */}
+              <div className="hero-frame-anim relative z-10 w-full max-w-[540px] mx-auto min-h-[220px] sm:min-h-[280px] flex items-center justify-center">
+                <AnimatePresence mode="wait">
+                  <motion.div
+                    key={currentProduct?.id || currentIndex}
+                    initial={{ opacity: 0, scale: 0.92, y: 12 }}
+                    animate={{ opacity: 1, scale: 1, y: 0 }}
+                    exit={{ opacity: 0, scale: 0.92, y: -12 }}
+                    transition={{ duration: 0.35, ease: [0.22, 1, 0.36, 1] }}
+                    className="w-full flex flex-col items-center justify-center group"
+                  >
+                    <Link
+                      href={`/produto/${currentProduct?.slug || "ventara-essencial"}`}
+                      className="block w-full text-center relative focus:outline-none"
+                      aria-label={`Ver modelo ${currentProduct?.name}`}
+                    >
+                      {primaryImage ? (
+                        <img
+                          src={primaryImage}
+                          alt={currentProduct?.name || "Armação Ventara"}
+                          className="w-full max-h-[240px] sm:max-h-[280px] object-contain drop-shadow-[0_20px_35px_rgba(0,0,0,0.65)] group-hover:scale-105 transition-transform duration-300"
+                        />
+                      ) : (
+                        <FrameArt
+                          hero
+                          solar={currentProduct?.frame_type === "Solar"}
+                          round={currentProduct?.frame_shape === "Redondo"}
+                          amber={
+                            currentProduct?.slug.includes("aurora") ||
+                            (currentProduct?.slug.includes("solar") && !currentProduct?.slug.includes("kids"))
+                          }
+                          customColor={
+                            currentProduct?.gender === "Infantil"
+                              ? currentProduct?.frame_type === "Solar"
+                                ? "#0284c7"
+                                : "#2563eb"
+                              : currentProduct?.variants?.[0]?.color_hex || undefined
+                          }
+                        />
+                      )}
+
+                      {/* Pill interativo com nome e valor */}
+                      <div className="mt-1 inline-flex items-center gap-2 px-3 py-1 rounded-full bg-[#06111f]/85 backdrop-blur-md border border-amber-400/40 text-amber-400 text-[11px] font-medium shadow-lg hover:border-amber-400 transition-all">
+                        <span>{currentProduct?.name}</span>
+                        <span className="text-white/80 font-normal">· {formattedPrice}</span>
+                        <ArrowRight size={12} className="group-hover:translate-x-0.5 transition-transform" />
+                      </div>
+                    </Link>
+                  </motion.div>
+                </AnimatePresence>
+              </div>
+
+              {/* Pedestal Cilíndrico com Anel Neon Cyan/Azul */}
+              <div className="pedestal" aria-hidden="true" />
+
+              {/* Paginação Estilo Mockup da Campanha (01 / 04) - Totalmente Interativa */}
+              <div className="hero-stage-pagination flex items-center gap-4 absolute bottom-2 right-4 z-20">
+                <span className="text-[11px] font-mono text-slate-400 tracking-wider">
+                  <strong className="text-white">{currentNumberStr}</strong> / {totalNumberStr}
+                </span>
+                <div className="flex items-center gap-1.5 text-slate-400">
+                  <button
+                    type="button"
+                    onClick={handlePrev}
+                    aria-label="Modelo anterior"
+                    className="w-8 h-8 rounded-full border border-white/20 bg-[#06111f]/70 hover:bg-white/20 active:scale-90 flex items-center justify-center hover:text-white transition-all shadow-md focus:outline-none focus:ring-1 focus:ring-amber-400"
+                  >
+                    <ChevronLeft size={16} />
+                  </button>
+                  <button
+                    type="button"
+                    onClick={handleNext}
+                    aria-label="Próximo modelo"
+                    className="w-8 h-8 rounded-full border border-white/20 bg-[#06111f]/70 hover:bg-white/20 active:scale-90 flex items-center justify-center hover:text-white transition-all shadow-md focus:outline-none focus:ring-1 focus:ring-amber-400"
+                  >
+                    <ChevronRight size={16} />
+                  </button>
+                </div>
+              </div>
+
+              {/* Label Dinâmico com Material e Coleção */}
+              <span className="art-label absolute bottom-14 right-4 text-[9px] text-slate-400 tracking-wider hidden sm:block">
+                CURADORIA AUTORAL VENTARA · {currentProduct?.frame_material?.toUpperCase() || "ACETATO NOBRE"}
+              </span>
+            </div>
+          )}
         </div>
 
         {/* Barra Inferior Rigorosamente Margeada no Mesmo Container */}

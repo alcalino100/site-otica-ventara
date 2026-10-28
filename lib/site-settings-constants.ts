@@ -7,6 +7,7 @@ import {
   PromotionalShowcaseSettings,
   PartnerLogoItem,
   LensesSectionSettings,
+  HeroBannerSettings,
 } from "@/types/ecommerce";
 
 export const DEFAULT_IDENTITY: SiteIdentitySettings = {
@@ -218,4 +219,18 @@ export const DEFAULT_LENSES_SECTION_SETTINGS: LensesSectionSettings = {
   ribbonSubtitle:
     "Garantia de procedência direta com laboratórios certificados e montagem expressa",
   partnerLogos: DEFAULT_PARTNER_LOGOS,
+};
+
+export const DEFAULT_HERO_BANNER: HeroBannerSettings = {
+  mode: "fixed_banner",
+  bannerImageUrl: "/images/lifestyle/female-grau.jpg",
+  gradientDirection: "to-left",
+  gradientColor: "#02070D",
+  gradientIntensity: 85,
+  badgeTag: "ARMAÇÕES DE QUALIDADE E ESTILO",
+  badgeSubtitle: "Curadoria Autoral Ventara · Acetato Premium",
+  primaryButtonText: "Catálogo de Lentes",
+  primaryButtonLink: "/lentes",
+  secondaryButtonText: "Ver armações",
+  secondaryButtonLink: "#armacoes",
 };

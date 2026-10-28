@@ -302,3 +302,17 @@ export interface LensesSectionSettings {
   ribbonSubtitle: string;
   partnerLogos: PartnerLogoItem[];
 }
+
+export interface HeroBannerSettings {
+  mode: "fixed_banner" | "carousel_3d";
+  bannerImageUrl: string;
+  gradientDirection: "to-left" | "to-right" | "radial" | "to-bottom";
+  gradientColor: string;
+  gradientIntensity: number; // 0 to 100
+  badgeTag: string;
+  badgeSubtitle?: string;
+  primaryButtonText: string;
+  primaryButtonLink: string;
+  secondaryButtonText: string;
+  secondaryButtonLink: string;
+}

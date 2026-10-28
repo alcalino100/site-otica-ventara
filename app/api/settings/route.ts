@@ -8,6 +8,7 @@ import {
   DEFAULT_HOMOLOGATED_BRANDS,
   DEFAULT_PROMOTIONAL_SHOWCASE,
   DEFAULT_LENSES_SECTION_SETTINGS,
+  DEFAULT_HERO_BANNER,
 } from "@/lib/site-settings-constants";
 import {
   SiteIdentitySettings,
@@ -17,6 +18,7 @@ import {
   HomologatedBrand,
   PromotionalShowcaseSettings,
   LensesSectionSettings,
+  HeroBannerSettings,
 } from "@/types/ecommerce";
 
 export const dynamic = "force-dynamic";
@@ -36,6 +38,7 @@ export async function GET() {
         "homologated_brands",
         "promotional_showcase",
         "lenses_section",
+        "hero_banner",
       ]);
 
     if (error || !data) {
@@ -47,6 +50,7 @@ export async function GET() {
         homologated_brands: DEFAULT_HOMOLOGATED_BRANDS,
         promotional_showcase: DEFAULT_PROMOTIONAL_SHOWCASE,
         lenses_section: DEFAULT_LENSES_SECTION_SETTINGS,
+        hero_banner: DEFAULT_HERO_BANNER,
       });
     }
 
@@ -57,6 +61,7 @@ export async function GET() {
     const brandsRow = data.find((s) => s.key === "homologated_brands");
     const promoRow = data.find((s) => s.key === "promotional_showcase");
     const lensesSectionRow = data.find((s) => s.key === "lenses_section");
+    const heroBannerRow = data.find((s) => s.key === "hero_banner");
 
     return NextResponse.json({
       identity: identityRow?.value ? { ...DEFAULT_IDENTITY, ...(identityRow.value as SiteIdentitySettings) } : DEFAULT_IDENTITY,
@@ -66,6 +71,7 @@ export async function GET() {
       homologated_brands: brandsRow?.value ? (brandsRow.value as HomologatedBrand[]) : DEFAULT_HOMOLOGATED_BRANDS,
       promotional_showcase: promoRow?.value ? { ...DEFAULT_PROMOTIONAL_SHOWCASE, ...(promoRow.value as PromotionalShowcaseSettings) } : DEFAULT_PROMOTIONAL_SHOWCASE,
       lenses_section: lensesSectionRow?.value ? { ...DEFAULT_LENSES_SECTION_SETTINGS, ...(lensesSectionRow.value as LensesSectionSettings) } : DEFAULT_LENSES_SECTION_SETTINGS,
+      hero_banner: heroBannerRow?.value ? { ...DEFAULT_HERO_BANNER, ...(heroBannerRow.value as HeroBannerSettings) } : DEFAULT_HERO_BANNER,
     });
   } catch {
     return NextResponse.json({
@@ -76,6 +82,7 @@ export async function GET() {
       homologated_brands: DEFAULT_HOMOLOGATED_BRANDS,
       promotional_showcase: DEFAULT_PROMOTIONAL_SHOWCASE,
       lenses_section: DEFAULT_LENSES_SECTION_SETTINGS,
+      hero_banner: DEFAULT_HERO_BANNER,
     });
   }
 }
