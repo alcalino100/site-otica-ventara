@@ -16,6 +16,23 @@ interface HeroProps {
   products?: Product[];
 }
 
+function getFullBleedGradient(direction: string, color: string, intensity: number) {
+  const solidColor = color || "#02070D";
+  const alpha = Math.min(Math.max((intensity || 85) / 100, 0.2), 1);
+  switch (direction) {
+    case "to-left":
+      return `linear-gradient(to right, ${solidColor} 0%, ${solidColor} 34%, rgba(2, 7, 13, ${alpha * 0.92}) 54%, rgba(2, 7, 13, ${alpha * 0.45}) 74%, transparent 96%)`;
+    case "to-right":
+      return `linear-gradient(to left, ${solidColor} 0%, ${solidColor} 34%, rgba(2, 7, 13, ${alpha * 0.92}) 54%, rgba(2, 7, 13, ${alpha * 0.45}) 74%, transparent 96%)`;
+    case "to-bottom":
+      return `linear-gradient(to bottom, ${solidColor} 0%, rgba(2, 7, 13, ${alpha * 0.85}) 40%, rgba(2, 7, 13, ${alpha * 0.3}) 75%, ${solidColor} 100%)`;
+    case "radial":
+      return `radial-gradient(ellipse at 80% 50%, transparent 20%, rgba(2, 7, 13, ${alpha * 0.6}) 60%, ${solidColor} 88%)`;
+    default:
+      return `linear-gradient(to right, ${solidColor} 0%, ${solidColor} 34%, rgba(2, 7, 13, ${alpha * 0.92}) 54%, transparent 96%)`;
+  }
+}
+
 function getGradientStyle(direction: string, color: string, intensity: number) {
   const solidColor = color || "#02070D";
   const alpha = Math.min(Math.max((intensity || 85) / 100, 0.2), 1);
@@ -107,14 +124,65 @@ export function Hero({ products }: HeroProps) {
     currency: "BRL",
   });
 
+  const isFullBleed =
+    heroBanner.mode === "fixed_banner" && heroBanner.layoutStyle !== "card_box";
+
+  const computedObjectPosition = useMemo(() => {
+    if (heroBanner.backgroundPosition === "custom") {
+      const x = heroBanner.customPositionX ?? 80;
+      const y = heroBanner.customPositionY ?? 50;
+      return `${x}% ${y}%`;
+    }
+    if (heroBanner.backgroundPosition) {
+      return heroBanner.backgroundPosition;
+    }
+    const x = heroBanner.customPositionX ?? 80;
+    const y = heroBanner.customPositionY ?? 50;
+    return `${x}% ${y}%`;
+  }, [heroBanner.backgroundPosition, heroBanner.customPositionX, heroBanner.customPositionY]);
+
   return (
     <section className="hero relative overflow-hidden" id="inicio">
+      {/* 1. CAMADA DE FUNDO INTEIRO (FULL BLEED - ESTILO ELEMENTOR) */}
+      {isFullBleed && (
+        <div className="absolute inset-0 w-full h-full overflow-hidden pointer-events-none z-0">
+          <img
+            src={heroBanner.bannerImageUrl || "/images/lifestyle/female-grau.jpg"}
+            alt={heroBanner.badgeTag || "Banner Ventara Eyewear"}
+            className="w-full h-full object-cover transition-all duration-700 ease-out"
+            style={{
+              objectPosition: computedObjectPosition,
+              opacity: (heroBanner.bannerOpacity ?? 100) / 100,
+            }}
+          />
+
+          {/* Degradê Horizontal com Cobertura do Texto */}
+          <div
+            className="absolute inset-0 transition-all duration-300"
+            style={{
+              background: getFullBleedGradient(
+                heroBanner.gradientDirection,
+                heroBanner.gradientColor,
+                heroBanner.gradientIntensity
+              ),
+            }}
+          />
+
+          {/* Overlay de Proteção para Legibilidade no Mobile */}
+          <div className="absolute inset-0 bg-gradient-to-b from-[#02070D]/95 via-[#02070D]/85 to-[#02070D]/40 lg:hidden" />
+
+          {/* Vignettes Superior e Inferior para Integração Perfeita */}
+          <div className="absolute inset-x-0 top-0 h-32 bg-gradient-to-b from-[#02070D] via-[#02070D]/80 to-transparent" />
+          <div className="absolute inset-x-0 bottom-0 h-32 bg-gradient-to-t from-[#02070D] via-[#02070D]/80 to-transparent" />
+        </div>
+      )}
+
       {/* Container Unificado Padrão UI/UX Ampliado - Respiro Generoso abaixo do Header Fixo */}
       <div className="max-w-[1400px] mx-auto px-4 sm:px-8 lg:px-10 w-full pt-32 sm:pt-36 lg:pt-40 pb-6 sm:pb-12 relative z-10 flex flex-col justify-between flex-1 min-h-0 sm:min-h-[720px]">
         {/* Grid de 2 Colunas Perfeitamente Margeado */}
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-12 items-center flex-1 my-auto">
           {/* Coluna Esquerda: Texto */}
-          <div className="hero-copy lg:col-span-5 relative z-10 max-w-xl">
+          <div className="hero-copy lg:col-span-6 relative z-10 max-w-xl">
             <p className="eyebrow flex items-center gap-2 mb-3">
               <span className="w-1.5 h-1.5 rounded-full bg-[#FFD62E] inline-block animate-pulse" />
               QUALIDADE QUE VOCÊ VÊ
@@ -168,52 +236,81 @@ export function Hero({ products }: HeroProps) {
 
           {/* Coluna Direita: Banner Fixo Estilizado com Degradê ou Stage 3D */}
           {heroBanner.mode === "fixed_banner" ? (
-            <div className="hero-stage lg:col-span-7 relative flex items-center justify-center min-h-[380px] sm:min-h-[520px] rounded-3xl overflow-hidden group border border-white/5 shadow-2xl">
-              {/* Imagem do Banner Fixo com Zoom Suave no Hover */}
-              <div className="absolute inset-0 w-full h-full overflow-hidden">
-                <img
-                  src={heroBanner.bannerImageUrl || "/images/lifestyle/female-grau.jpg"}
-                  alt={heroBanner.badgeTag || "Banner Ventara Eyewear"}
-                  className="w-full h-full object-cover object-center group-hover:scale-105 transition-transform duration-700 ease-out"
+            isFullBleed ? (
+              /* Modo Fundo Inteiro (Full Bleed - Sem Caixa) */
+              <div className="hero-stage lg:col-span-6 relative flex flex-col items-end justify-between min-h-[340px] sm:min-h-[480px] py-4 pointer-events-none">
+                {/* Badge Vertical Dourado */}
+                <div className="hero-side-badge hidden sm:flex items-center gap-3 self-end pointer-events-auto">
+                  <div className="w-[2px] h-12 bg-[#FFD62E] shadow-[0_0_12px_#FFD62E]" />
+                  <span className="text-[10px] tracking-[0.22em] uppercase font-bold text-slate-200 leading-tight drop-shadow-md">
+                    {heroBanner.badgeTag || "ARMAÇÕES DE QUALIDADE E ESTILO"}
+                  </span>
+                </div>
+
+                {/* Pill Flutuante de Coleção com Link para o Catálogo */}
+                {heroBanner.badgeSubtitle && (
+                  <div className="self-end pointer-events-auto">
+                    <Link
+                      href="/catalogo"
+                      className="inline-flex items-center gap-2 px-5 py-2.5 rounded-full bg-slate-950/85 hover:bg-slate-900 backdrop-blur-md border border-amber-400/40 text-amber-300 hover:text-amber-200 text-xs font-semibold shadow-2xl transition-all hover:scale-105"
+                    >
+                      <Sparkles size={13} className="text-amber-400" />
+                      <span>{heroBanner.badgeSubtitle}</span>
+                      <ArrowRight size={13} />
+                    </Link>
+                  </div>
+                )}
+              </div>
+            ) : (
+              /* Modo Card / Caixa Flutuante */
+              <div className="hero-stage lg:col-span-6 relative flex items-center justify-center min-h-[380px] sm:min-h-[520px] rounded-3xl overflow-hidden group border border-white/5 shadow-2xl">
+                {/* Imagem do Banner Fixo com Zoom Suave no Hover */}
+                <div className="absolute inset-0 w-full h-full overflow-hidden">
+                  <img
+                    src={heroBanner.bannerImageUrl || "/images/lifestyle/female-grau.jpg"}
+                    alt={heroBanner.badgeTag || "Banner Ventara Eyewear"}
+                    className="w-full h-full object-cover transition-transform duration-700 ease-out group-hover:scale-105"
+                    style={{ objectPosition: computedObjectPosition }}
+                  />
+                </div>
+
+                {/* Degradê Customizável Configurado no Admin */}
+                <div
+                  className="absolute inset-0 pointer-events-none transition-all duration-300"
+                  style={{
+                    background: getGradientStyle(
+                      heroBanner.gradientDirection,
+                      heroBanner.gradientColor,
+                      heroBanner.gradientIntensity
+                    ),
+                  }}
                 />
+
+                {/* Degradê Superior e Inferior para Integração Perfeita */}
+                <div className="absolute inset-x-0 top-0 h-24 bg-gradient-to-b from-[#02070D] to-transparent pointer-events-none" />
+                <div className="absolute inset-x-0 bottom-0 h-24 bg-gradient-to-t from-[#02070D] to-transparent pointer-events-none" />
+
+                {/* Badge Vertical Dourado Conforme Referência */}
+                <div className="hero-side-badge hidden sm:flex items-center gap-3 absolute top-6 right-6 z-20">
+                  <div className="w-[2px] h-12 bg-[#FFD62E] shadow-[0_0_12px_#FFD62E]" />
+                  <span className="text-[10px] tracking-[0.22em] uppercase font-bold text-slate-200 leading-tight drop-shadow-md">
+                    {heroBanner.badgeTag || "ARMAÇÕES DE QUALIDADE E ESTILO"}
+                  </span>
+                </div>
+
+                {/* Pill Flutuante de Coleção com Link para o Catálogo */}
+                <div className="absolute bottom-6 right-6 z-20">
+                  <Link
+                    href="/catalogo"
+                    className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-slate-950/85 hover:bg-slate-900 backdrop-blur-md border border-amber-400/40 text-amber-300 hover:text-amber-200 text-xs font-semibold shadow-2xl transition-all"
+                  >
+                    <Sparkles size={13} className="text-amber-400" />
+                    <span>{heroBanner.badgeSubtitle || "Curadoria Autoral Ventara · Acetato Premium"}</span>
+                    <ArrowRight size={13} />
+                  </Link>
+                </div>
               </div>
-
-              {/* Degradê Customizável Configurado no Admin */}
-              <div
-                className="absolute inset-0 pointer-events-none transition-all duration-300"
-                style={{
-                  background: getGradientStyle(
-                    heroBanner.gradientDirection,
-                    heroBanner.gradientColor,
-                    heroBanner.gradientIntensity
-                  ),
-                }}
-              />
-
-              {/* Degradê Superior e Inferior para Integração Perfeita */}
-              <div className="absolute inset-x-0 top-0 h-24 bg-gradient-to-b from-[#02070D] to-transparent pointer-events-none" />
-              <div className="absolute inset-x-0 bottom-0 h-24 bg-gradient-to-t from-[#02070D] to-transparent pointer-events-none" />
-
-              {/* Badge Vertical Dourado Conforme Referência */}
-              <div className="hero-side-badge hidden sm:flex items-center gap-3 absolute top-6 right-6 z-20">
-                <div className="w-[2px] h-12 bg-[#FFD62E] shadow-[0_0_12px_#FFD62E]" />
-                <span className="text-[10px] tracking-[0.22em] uppercase font-bold text-slate-200 leading-tight drop-shadow-md">
-                  {heroBanner.badgeTag || "ARMAÇÕES DE QUALIDADE E ESTILO"}
-                </span>
-              </div>
-
-              {/* Pill Flutuante de Coleção com Link para o Catálogo */}
-              <div className="absolute bottom-6 right-6 z-20">
-                <Link
-                  href="/catalogo"
-                  className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-slate-950/85 hover:bg-slate-900 backdrop-blur-md border border-amber-400/40 text-amber-300 hover:text-amber-200 text-xs font-semibold shadow-2xl transition-all"
-                >
-                  <Sparkles size={13} className="text-amber-400" />
-                  <span>{heroBanner.badgeSubtitle || "Curadoria Autoral Ventara · Acetato Premium"}</span>
-                  <ArrowRight size={13} />
-                </Link>
-              </div>
-            </div>
+            )
           ) : (
             <div
               className="hero-stage lg:col-span-7 relative flex items-center justify-center min-h-[380px] sm:min-h-[480px]"

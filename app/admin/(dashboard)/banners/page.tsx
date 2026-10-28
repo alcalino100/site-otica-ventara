@@ -575,15 +575,48 @@ export default function AdminBannersPage() {
                 <span>Prévia em Tempo Real (Visual do Header)</span>
               </span>
 
-              <div className="relative rounded-2xl border border-slate-700/80 bg-[#02070D] p-5 sm:p-8 overflow-hidden min-h-[260px] flex flex-col justify-center shadow-2xl">
-                {/* Lado Direito: Banner com Degradê ao vivo */}
-                <div className="absolute inset-y-0 right-0 w-full sm:w-[60%] overflow-hidden pointer-events-none">
-                  {heroBanner.mode === "fixed_banner" ? (
-                    <>
+              <div className="relative rounded-2xl border border-slate-700/80 bg-[#02070D] p-5 sm:p-8 overflow-hidden min-h-[280px] flex flex-col justify-center shadow-2xl">
+                {/* Banner de Fundo (Modo Full Bleed) ou Lado Direito (Modo Card Box) */}
+                {heroBanner.mode === "fixed_banner" ? (
+                  heroBanner.layoutStyle === "card_box" ? (
+                    /* Modo Card Box na Direita */
+                    <div className="absolute inset-y-4 right-4 w-[48%] rounded-xl overflow-hidden border border-white/10 shadow-xl pointer-events-none">
                       <img
                         src={heroBanner.bannerImageUrl || "/images/lifestyle/female-grau.jpg"}
                         alt="Preview"
-                        className="w-full h-full object-cover object-center"
+                        className="w-full h-full object-cover"
+                        style={{
+                          objectPosition:
+                            heroBanner.backgroundPosition === "custom"
+                              ? `${heroBanner.customPositionX ?? 80}% ${heroBanner.customPositionY ?? 50}%`
+                              : heroBanner.backgroundPosition || "80% 50%",
+                          opacity: (heroBanner.bannerOpacity ?? 100) / 100,
+                        }}
+                      />
+                      <div
+                        className="absolute inset-0 transition-all duration-300"
+                        style={{
+                          background: (() => {
+                            const solidColor = heroBanner.gradientColor || "#02070D";
+                            return `linear-gradient(to right, ${solidColor} 0%, transparent 100%)`;
+                          })(),
+                        }}
+                      />
+                    </div>
+                  ) : (
+                    /* Modo Full Bleed (Cobre todo o Fundo) */
+                    <div className="absolute inset-0 w-full h-full overflow-hidden pointer-events-none">
+                      <img
+                        src={heroBanner.bannerImageUrl || "/images/lifestyle/female-grau.jpg"}
+                        alt="Preview"
+                        className="w-full h-full object-cover transition-all duration-300"
+                        style={{
+                          objectPosition:
+                            heroBanner.backgroundPosition === "custom"
+                              ? `${heroBanner.customPositionX ?? 80}% ${heroBanner.customPositionY ?? 50}%`
+                              : heroBanner.backgroundPosition || "80% 50%",
+                          opacity: (heroBanner.bannerOpacity ?? 100) / 100,
+                        }}
                       />
                       <div
                         className="absolute inset-0 transition-all duration-300"
@@ -596,28 +629,31 @@ export default function AdminBannersPage() {
                             );
                             switch (heroBanner.gradientDirection) {
                               case "to-left":
-                                return `linear-gradient(to right, ${solidColor} 0%, ${solidColor} 20%, rgba(2, 7, 13, ${alpha * 0.7}) 55%, transparent 100%)`;
+                                return `linear-gradient(to right, ${solidColor} 0%, ${solidColor} 34%, rgba(2, 7, 13, ${alpha * 0.92}) 54%, rgba(2, 7, 13, ${alpha * 0.45}) 74%, transparent 96%)`;
                               case "to-right":
-                                return `linear-gradient(to left, ${solidColor} 0%, ${solidColor} 20%, rgba(2, 7, 13, ${alpha * 0.7}) 55%, transparent 100%)`;
+                                return `linear-gradient(to left, ${solidColor} 0%, ${solidColor} 34%, rgba(2, 7, 13, ${alpha * 0.92}) 54%, rgba(2, 7, 13, ${alpha * 0.45}) 74%, transparent 96%)`;
                               case "to-bottom":
-                                return `linear-gradient(to bottom, ${solidColor} 0%, rgba(2, 7, 13, ${alpha * 0.4}) 50%, ${solidColor} 100%)`;
+                                return `linear-gradient(to bottom, ${solidColor} 0%, rgba(2, 7, 13, ${alpha * 0.85}) 40%, rgba(2, 7, 13, ${alpha * 0.3}) 75%, ${solidColor} 100%)`;
                               case "radial":
-                                return `radial-gradient(ellipse at 70% 50%, transparent 20%, rgba(2, 7, 13, ${alpha * 0.7}) 70%, ${solidColor} 100%)`;
+                                return `radial-gradient(ellipse at 80% 50%, transparent 20%, rgba(2, 7, 13, ${alpha * 0.6}) 60%, ${solidColor} 88%)`;
                               default:
-                                return `linear-gradient(to right, ${solidColor} 0%, ${solidColor} 25%, transparent 100%)`;
+                                return `linear-gradient(to right, ${solidColor} 0%, ${solidColor} 34%, rgba(2, 7, 13, ${alpha * 0.92}) 54%, transparent 96%)`;
                             }
                           })(),
                         }}
                       />
-                    </>
-                  ) : (
-                    <div className="w-full h-full flex items-center justify-center bg-slate-900/60 border-l border-white/10">
-                      <span className="text-xs font-semibold text-amber-300">
-                        [Modo Carrossel 3D de Armações no Pedestal Ativo]
-                      </span>
+                      {/* Vignettes superior e inferior */}
+                      <div className="absolute inset-x-0 top-0 h-16 bg-gradient-to-b from-[#02070D] to-transparent" />
+                      <div className="absolute inset-x-0 bottom-0 h-16 bg-gradient-to-t from-[#02070D] to-transparent" />
                     </div>
-                  )}
-                </div>
+                  )
+                ) : (
+                  <div className="absolute inset-y-0 right-0 w-full sm:w-[50%] flex items-center justify-center bg-slate-900/60 border-l border-white/10 pointer-events-none">
+                    <span className="text-xs font-semibold text-amber-300">
+                      [Modo Carrossel 3D de Armações no Pedestal Ativo]
+                    </span>
+                  </div>
+                )}
 
                 {/* Conteúdo Esquerdo da Prévia */}
                 <div className="relative z-10 max-w-md space-y-2">
@@ -789,6 +825,209 @@ export default function AdminBannersPage() {
                         className="w-full bg-[#040c16] border border-white/10 rounded-xl px-3.5 py-2 text-white text-xs focus:outline-none focus:border-amber-400"
                       />
                     </div>
+                  </div>
+                </div>
+
+                {/* ENQUADRAMENTO & POSIÇÃO DA FOTO (ESTILO ELEMENTOR) */}
+                <div className="pt-4 border-t border-white/10 space-y-4">
+                  <div>
+                    <h4 className="text-xs font-bold text-amber-400 uppercase tracking-wider flex items-center gap-2">
+                      <Sparkles size={13} />
+                      <span>Enquadramento & Posição da Foto (Estilo Elementor)</span>
+                    </h4>
+                    <p className="text-xs text-slate-400 mt-0.5">
+                      Controle onde a foto fica posicionada e escolha se cobre todo o fundo ou fica em bloco.
+                    </p>
+                  </div>
+
+                  {/* 1. Escolha de Layout: Fundo Inteiro vs Caixa Lateral */}
+                  <div>
+                    <label className="block text-xs font-semibold text-slate-300 mb-1.5">
+                      Estilo de Layout no Header:
+                    </label>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                      <button
+                        type="button"
+                        onClick={() =>
+                          setHeroBanner((prev) => ({ ...prev, layoutStyle: "full_bleed" }))
+                        }
+                        className={`p-3 rounded-xl border text-left transition-all ${
+                          heroBanner.layoutStyle !== "card_box"
+                            ? "border-amber-400 bg-amber-400/10 shadow-md"
+                            : "border-white/10 bg-[#040c16] hover:border-white/20"
+                        }`}
+                      >
+                        <div className="flex items-center justify-between mb-1">
+                          <span className="text-xs font-bold text-white">
+                            Fundo Inteiro da Seção
+                          </span>
+                          <span className="text-[10px] font-semibold text-amber-400 bg-amber-400/20 px-2 py-0.5 rounded-full">
+                            Recomendado
+                          </span>
+                        </div>
+                        <p className="text-[11px] text-slate-400">
+                          A foto preenche todo o fundo do header sem blocos ou bordas, com degradê cobrindo o texto.
+                        </p>
+                      </button>
+
+                      <button
+                        type="button"
+                        onClick={() =>
+                          setHeroBanner((prev) => ({ ...prev, layoutStyle: "card_box" }))
+                        }
+                        className={`p-3 rounded-xl border text-left transition-all ${
+                          heroBanner.layoutStyle === "card_box"
+                            ? "border-amber-400 bg-amber-400/10 shadow-md"
+                            : "border-white/10 bg-[#040c16] hover:border-white/20"
+                        }`}
+                      >
+                        <div className="flex items-center justify-between mb-1">
+                          <span className="text-xs font-bold text-white">
+                            Caixa Flutuante na Direita
+                          </span>
+                        </div>
+                        <p className="text-[11px] text-slate-400">
+                          A foto fica dentro de um bloco com cantos arredondados no lado direito.
+                        </p>
+                      </button>
+                    </div>
+                  </div>
+
+                  {/* 2. Posição do Foco (Background Position do Elementor) */}
+                  <div>
+                    <label className="block text-xs font-semibold text-slate-300 mb-1.5">
+                      Posição do Foco da Foto (Background Position):
+                    </label>
+                    <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+                      {[
+                        { label: "Direita Central (Foco Produto)", value: "80% 50%", x: 80, y: 50 },
+                        { label: "Centro (Centralizado)", value: "center center", x: 50, y: 50 },
+                        { label: "Direita Topo", value: "right top", x: 100, y: 0 },
+                        { label: "Direita Base", value: "right bottom", x: 100, y: 100 },
+                        { label: "Centro Topo", value: "center top", x: 50, y: 0 },
+                        { label: "Centro Base", value: "center bottom", x: 50, y: 100 },
+                        { label: "Esquerda Central", value: "left center", x: 0, y: 50 },
+                        { label: "Personalizado (Sliders)", value: "custom", x: heroBanner.customPositionX ?? 80, y: heroBanner.customPositionY ?? 50 },
+                      ].map((pos) => {
+                        const isSelected =
+                          heroBanner.backgroundPosition === pos.value ||
+                          (!heroBanner.backgroundPosition && pos.value === "80% 50%");
+                        return (
+                          <button
+                            key={pos.value}
+                            type="button"
+                            onClick={() =>
+                              setHeroBanner((prev) => ({
+                                ...prev,
+                                backgroundPosition: pos.value,
+                                customPositionX: pos.x,
+                                customPositionY: pos.y,
+                              }))
+                            }
+                            className={`px-3 py-2 rounded-xl text-[11px] font-semibold text-left transition-all border ${
+                              isSelected
+                                ? "bg-amber-400 text-slate-950 font-bold border-amber-300 shadow-sm"
+                                : "bg-[#040c16] text-slate-300 border-white/10 hover:border-white/20"
+                            }`}
+                          >
+                            {pos.label}
+                          </button>
+                        );
+                      })}
+                    </div>
+                  </div>
+
+                  {/* 3. Sliders Interativos de Ajuste Fino X e Y (Elementor Focal Point) */}
+                  <div className="p-4 rounded-xl bg-[#040c16] border border-white/10 space-y-4">
+                    <div className="flex items-center justify-between">
+                      <span className="text-xs font-bold text-white">
+                        Ajuste Fino de Coordenadas (Eixo X / Eixo Y)
+                      </span>
+                      <span className="text-xs font-mono font-bold text-amber-400 bg-amber-400/10 px-2.5 py-0.5 rounded-md">
+                        X: {heroBanner.customPositionX ?? 80}% | Y: {heroBanner.customPositionY ?? 50}%
+                      </span>
+                    </div>
+
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                      {/* Eixo Horizontal X */}
+                      <div>
+                        <div className="flex items-center justify-between text-[11px] text-slate-400 mb-1">
+                          <span>Posição Horizontal (Eixo X)</span>
+                          <span className="font-mono text-white">{heroBanner.customPositionX ?? 80}%</span>
+                        </div>
+                        <input
+                          type="range"
+                          min="0"
+                          max="100"
+                          value={heroBanner.customPositionX ?? 80}
+                          onChange={(e) =>
+                            setHeroBanner((prev) => ({
+                              ...prev,
+                              backgroundPosition: "custom",
+                              customPositionX: Number(e.target.value),
+                            }))
+                          }
+                          className="w-full accent-amber-400 cursor-pointer"
+                        />
+                        <div className="flex justify-between text-[9px] text-slate-500 mt-0.5">
+                          <span>0% (Esquerda)</span>
+                          <span>50% (Centro)</span>
+                          <span>100% (Direita)</span>
+                        </div>
+                      </div>
+
+                      {/* Eixo Vertical Y */}
+                      <div>
+                        <div className="flex items-center justify-between text-[11px] text-slate-400 mb-1">
+                          <span>Posição Vertical (Eixo Y)</span>
+                          <span className="font-mono text-white">{heroBanner.customPositionY ?? 50}%</span>
+                        </div>
+                        <input
+                          type="range"
+                          min="0"
+                          max="100"
+                          value={heroBanner.customPositionY ?? 50}
+                          onChange={(e) =>
+                            setHeroBanner((prev) => ({
+                              ...prev,
+                              backgroundPosition: "custom",
+                              customPositionY: Number(e.target.value),
+                            }))
+                          }
+                          className="w-full accent-amber-400 cursor-pointer"
+                        />
+                        <div className="flex justify-between text-[9px] text-slate-500 mt-0.5">
+                          <span>0% (Topo)</span>
+                          <span>50% (Centro)</span>
+                          <span>100% (Base)</span>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* 4. Opacidade da Imagem */}
+                  <div className="space-y-1.5">
+                    <div className="flex items-center justify-between text-xs">
+                      <span className="font-semibold text-slate-300">
+                        Opacidade da Imagem de Fundo
+                      </span>
+                      <span className="font-mono font-bold text-amber-400">
+                        {heroBanner.bannerOpacity ?? 100}%
+                      </span>
+                    </div>
+                    <input
+                      type="range"
+                      min="20"
+                      max="100"
+                      value={heroBanner.bannerOpacity ?? 100}
+                      onChange={(e) =>
+                        setHeroBanner((prev) => ({
+                          ...prev,
+                          bannerOpacity: Number(e.target.value),
+                        }))
+                      }
+                      className="w-full accent-amber-400 cursor-pointer"
+                    />
                   </div>
                 </div>
 

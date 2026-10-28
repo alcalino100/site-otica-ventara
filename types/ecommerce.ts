@@ -307,6 +307,11 @@ export interface LensesSectionSettings {
 export interface HeroBannerSettings {
   mode: "fixed_banner" | "carousel_3d";
   bannerImageUrl: string;
+  layoutStyle?: "full_bleed" | "card_box";
+  backgroundPosition?: string;
+  customPositionX?: number; // 0 to 100
+  customPositionY?: number; // 0 to 100
+  bannerOpacity?: number; // 0 to 100
   gradientDirection: "to-left" | "to-right" | "radial" | "to-bottom";
   gradientColor: string;
   gradientIntensity: number; // 0 to 100

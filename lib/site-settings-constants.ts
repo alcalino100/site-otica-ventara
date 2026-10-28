@@ -227,7 +227,12 @@ export const DEFAULT_LENSES_SECTION_SETTINGS: LensesSectionSettings = {
 
 export const DEFAULT_HERO_BANNER: HeroBannerSettings = {
   mode: "fixed_banner",
-  bannerImageUrl: "/images/lifestyle/female-grau.jpg",
+  bannerImageUrl: "https://yfokjztrhecjlijvmvmr.supabase.co/storage/v1/object/public/product-images/products/1792778393371-a3xj7o.jpg",
+  layoutStyle: "full_bleed",
+  backgroundPosition: "right center",
+  customPositionX: 80,
+  customPositionY: 50,
+  bannerOpacity: 100,
   gradientDirection: "to-left",
   gradientColor: "#02070D",
   gradientIntensity: 85,
