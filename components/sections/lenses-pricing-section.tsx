@@ -18,8 +18,16 @@ import {
 } from "lucide-react";
 import { LensOpticalGraphic } from "../ui/lens-optical-graphic";
 import { PartnerLogosRibbon } from "./partner-logos-ribbon";
-import { DEFAULT_LAB_SHOWCASE, DEFAULT_HOMOLOGATED_BRANDS } from "@/lib/site-settings-constants";
-import { LabShowcaseSettings, HomologatedBrand } from "@/types/ecommerce";
+import {
+  DEFAULT_LAB_SHOWCASE,
+  DEFAULT_HOMOLOGATED_BRANDS,
+  DEFAULT_LENSES_SECTION_SETTINGS,
+} from "@/lib/site-settings-constants";
+import {
+  LabShowcaseSettings,
+  HomologatedBrand,
+  LensesSectionSettings,
+} from "@/types/ecommerce";
 
 type LensCategory = "visao-simples" | "multifocal" | "tratamentos" | "marcas";
 
@@ -45,6 +53,7 @@ export function LensesPricingSection() {
   const [activeLenses, setActiveLenses] = useState<LensOption[]>([]);
   const [labShowcase, setLabShowcase] = useState<LabShowcaseSettings>(DEFAULT_LAB_SHOWCASE);
   const [homologatedBrands, setHomologatedBrands] = useState<HomologatedBrand[]>(DEFAULT_HOMOLOGATED_BRANDS);
+  const [lensesSection, setLensesSection] = useState<LensesSectionSettings>(DEFAULT_LENSES_SECTION_SETTINGS);
   const [activeCardIndex, setActiveCardIndex] = useState(0);
   const carouselRef = useRef<HTMLDivElement>(null);
 
@@ -102,6 +111,9 @@ export function LensesPricingSection() {
           }
           if (data.homologated_brands && Array.isArray(data.homologated_brands) && data.homologated_brands.length > 0) {
             setHomologatedBrands(data.homologated_brands);
+          }
+          if (data.lenses_section) {
+            setLensesSection((prev) => ({ ...prev, ...data.lenses_section }));
           }
         }
       } catch (err) {
@@ -396,24 +408,41 @@ export function LensesPricingSection() {
               </span>
             </div>
             <h2 className="text-3xl sm:text-5xl font-light text-white tracking-tight leading-tight">
-              Lentes de Alta Precisão <br className="hidden sm:inline" />
-              <strong className="font-semibold text-white">para cada necessidade da sua visão.</strong>
+              {lensesSection.sectionTitle ? (
+                <span>{lensesSection.sectionTitle}</span>
+              ) : (
+                <>
+                  Lentes de Alta Precisão <br className="hidden sm:inline" />
+                  <strong className="font-semibold text-white">para cada necessidade da sua visão.</strong>
+                </>
+              )}
             </h2>
             <p className="text-xs sm:text-base text-slate-300 mt-3 leading-relaxed max-w-2xl">
-              Organizamos as melhores marcas do mercado óptico internacional e nossa marca própria com valores de referência transparentes, tratamentos de alta performance e montagem no laboratório próprio de Araçatuba.
+              {lensesSection.sectionSubtitle ||
+                "Organizamos as melhores marcas do mercado óptico internacional e nossa marca própria com valores de referência transparentes, tratamentos de alta performance e montagem no laboratório próprio de Araçatuba."}
             </p>
           </div>
 
           {/* Símbolo Exclusivo de Lentes Ópticas */}
           <div className="lg:col-span-4 flex items-center justify-center lg:justify-end">
-            <div className="relative p-5 rounded-3xl bg-[#0f1d30] border border-slate-700/80 shadow-2xl flex flex-col items-center text-center">
-              <LensOpticalGraphic size={190} glow={true} />
-              <div className="mt-2">
+            <div className="relative p-5 rounded-3xl bg-[#0f1d30] border border-slate-700/80 shadow-2xl flex flex-col items-center text-center max-w-[280px] w-full">
+              {lensesSection.useCustomGraphic && lensesSection.graphicImageUrl ? (
+                <div className="w-[190px] h-[190px] flex items-center justify-center relative overflow-hidden rounded-2xl bg-slate-900/50 p-2">
+                  <img
+                    src={lensesSection.graphicImageUrl}
+                    alt={lensesSection.badgeTag || "Padrão Óptico Ventara"}
+                    className="max-h-full max-w-full object-contain drop-shadow-[0_0_20px_rgba(56,189,248,0.35)]"
+                  />
+                </div>
+              ) : (
+                <LensOpticalGraphic size={190} glow={true} />
+              )}
+              <div className="mt-2.5">
                 <span className="text-[10px] font-bold uppercase tracking-wider text-amber-400/90 block">
-                  Padrão Óptico Ventara
+                  {lensesSection.badgeTag || "PADRÃO ÓPTICO VENTARA"}
                 </span>
-                <span className="text-xs font-semibold text-slate-200">
-                  Antirreflexo Multicamadas &amp; Alinhamento Dióptrico
+                <span className="text-xs font-semibold text-slate-200 mt-0.5 block">
+                  {lensesSection.badgeSubtitle || "Antirreflexo Multicamadas & Alinhamento Dióptrico"}
                 </span>
               </div>
             </div>
@@ -422,7 +451,11 @@ export function LensesPricingSection() {
 
         {/* CARROSSEL ANIMADO DE LOGOS DE PARCEIROS HOMOLOGADOS */}
         <div className="mb-10 sm:mb-12 rounded-3xl overflow-hidden shadow-2xl border border-slate-800 bg-slate-900/60 backdrop-blur-sm">
-          <PartnerLogosRibbon />
+          <PartnerLogosRibbon
+            logos={lensesSection.partnerLogos}
+            tag={lensesSection.ribbonTag}
+            subtitle={lensesSection.ribbonSubtitle}
+          />
         </div>
 
         {/* ABAS DE CATEGORIAS (Pill Switches) */}

@@ -5,6 +5,8 @@ import {
   ShowcaseMediaSettings,
   HomologatedBrand,
   PromotionalShowcaseSettings,
+  PartnerLogoItem,
+  LensesSectionSettings,
 } from "@/types/ecommerce";
 
 export const DEFAULT_IDENTITY: SiteIdentitySettings = {
@@ -188,4 +190,32 @@ export const DEFAULT_PROMOTIONAL_SHOWCASE: PromotionalShowcaseSettings = {
       extraColorsCount: 4,
     },
   ],
+};
+
+export const DEFAULT_PARTNER_LOGOS: PartnerLogoItem[] = [
+  { id: "logo-optisync", name: "OPTiSYNC HD", src: "/logos/optisync.svg", alt: "OPTiSYNC HD - Exclusivo Ventara" },
+  { id: "logo-perego", name: "Perego Laboratório", src: "/logos/perego.svg", alt: "Perego Laboratório Óptico" },
+  { id: "logo-kodak", name: "Kodak Lens", src: "/logos/kodak.svg", alt: "Kodak Lens" },
+  { id: "logo-orgalens", name: "Orgalens Mais", src: "/logos/orgaline.svg", alt: "Orgalens Mais" },
+  { id: "logo-correct", name: "Lentes Correct", src: "/logos/correct.svg", alt: "Lentes Correct" },
+  { id: "logo-hoya", name: "HOYA Vision Care", src: "/logos/hoya.svg", alt: "HOYA Vision Care" },
+  { id: "logo-varilux", name: "Varilux Essilor", src: "/logos/varilux.svg", alt: "Varilux Essilor" },
+  { id: "logo-crizal", name: "Crizal UV", src: "/logos/crizal.svg", alt: "Crizal UV" },
+  { id: "logo-transitions", name: "Transitions GEN S", src: "/logos/transitions.svg", alt: "Transitions GEN S" },
+  { id: "logo-essilor", name: "Essilor", src: "/logos/essilor.svg", alt: "Essilor" },
+  { id: "logo-zeiss", name: "ZEISS", src: "/logos/zeiss.svg", alt: "ZEISS" },
+];
+
+export const DEFAULT_LENSES_SECTION_SETTINGS: LensesSectionSettings = {
+  sectionTitle: "Lentes de Alta Precisão para cada necessidade da sua visão.",
+  sectionSubtitle:
+    "Organizamos as melhores marcas do mercado óptico internacional e nossa marca própria com valores de referência transparentes, tratamentos de alta performance e montagem no laboratório próprio de Araçatuba.",
+  badgeTag: "PADRÃO ÓPTICO VENTARA",
+  badgeSubtitle: "Antirreflexo Multicamadas & Alinhamento Dióptrico",
+  graphicImageUrl: "",
+  useCustomGraphic: false,
+  ribbonTag: "PARCEIROS TECNOLÓGICOS & LENTES HOMOLOGADAS",
+  ribbonSubtitle:
+    "Garantia de procedência direta com laboratórios certificados e montagem expressa",
+  partnerLogos: DEFAULT_PARTNER_LOGOS,
 };

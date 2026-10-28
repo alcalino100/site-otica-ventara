@@ -283,3 +283,22 @@ export interface PromotionalShowcaseSettings {
   ctaText?: string;
   items: PromoProductItem[];
 }
+
+export interface PartnerLogoItem {
+  id: string;
+  name: string;
+  src: string;
+  alt: string;
+}
+
+export interface LensesSectionSettings {
+  sectionTitle: string;
+  sectionSubtitle: string;
+  badgeTag: string;
+  badgeSubtitle: string;
+  graphicImageUrl?: string | null;
+  useCustomGraphic: boolean;
+  ribbonTag: string;
+  ribbonSubtitle: string;
+  partnerLogos: PartnerLogoItem[];
+}

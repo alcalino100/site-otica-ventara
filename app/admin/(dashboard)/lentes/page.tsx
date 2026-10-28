@@ -23,25 +23,46 @@ import {
   Image as ImageIcon,
 } from "lucide-react";
 import { AdminLensItem, DEFAULT_LENSES } from "@/lib/lenses-data";
-import { DEFAULT_LAB_SHOWCASE, DEFAULT_HOMOLOGATED_BRANDS } from "@/lib/site-settings-constants";
-import { LabShowcaseSettings, HomologatedBrand } from "@/types/ecommerce";
+import {
+  DEFAULT_LAB_SHOWCASE,
+  DEFAULT_HOMOLOGATED_BRANDS,
+  DEFAULT_LENSES_SECTION_SETTINGS,
+} from "@/lib/site-settings-constants";
+import {
+  LabShowcaseSettings,
+  HomologatedBrand,
+  LensesSectionSettings,
+  PartnerLogoItem,
+} from "@/types/ecommerce";
+import { LensOpticalGraphic } from "@/components/ui/lens-optical-graphic";
 
 export default function AdminLensesPage() {
   const [lenses, setLenses] = useState<AdminLensItem[]>(DEFAULT_LENSES);
   const [labShowcase, setLabShowcase] = useState<LabShowcaseSettings>(DEFAULT_LAB_SHOWCASE);
   const [homologatedBrands, setHomologatedBrands] = useState<HomologatedBrand[]>(DEFAULT_HOMOLOGATED_BRANDS);
+  const [lensesSection, setLensesSection] = useState<LensesSectionSettings>(DEFAULT_LENSES_SECTION_SETTINGS);
   const [isLoading, setIsLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
   const [isSavingLab, setIsSavingLab] = useState(false);
   const [isUploadingLab, setIsUploadingLab] = useState(false);
   const [isSavingBrands, setIsSavingBrands] = useState(false);
   const [uploadingBrandId, setUploadingBrandId] = useState<string | null>(null);
+  const [isSavingLensesSection, setIsSavingLensesSection] = useState(false);
+  const [isUploadingGraphic, setIsUploadingGraphic] = useState(false);
+  const [uploadingLogoId, setUploadingLogoId] = useState<string | null>(null);
   const [selectedLens, setSelectedLens] = useState<AdminLensItem | null>(null);
   const [isNewLens, setIsNewLens] = useState(false);
   const [feedback, setFeedback] = useState<string | null>(null);
   const [isUploading, setIsUploading] = useState(false);
   const [categoryFilter, setCategoryFilter] = useState<
-    "all" | "destaque-lab" | "marcas-homologadas" | "visao-simples" | "multifocal" | "tratamentos" | "coloridas"
+    | "all"
+    | "destaque-lab"
+    | "marcas-homologadas"
+    | "imagens-secao"
+    | "visao-simples"
+    | "multifocal"
+    | "tratamentos"
+    | "coloridas"
   >("all");
 
   const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -221,6 +242,123 @@ export default function AdminLensesPage() {
     }
   };
 
+  const handleGraphicUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    setIsUploadingGraphic(true);
+    try {
+      const formData = new FormData();
+      formData.append("file", file);
+
+      const res = await fetch("/api/admin/upload", {
+        method: "POST",
+        body: formData,
+      });
+
+      const data = await res.json();
+      if (!res.ok || data.error) {
+        throw new Error(data.error || "Erro ao fazer upload da imagem.");
+      }
+
+      if (data.url) {
+        setLensesSection((prev) => ({
+          ...prev,
+          graphicImageUrl: data.url,
+          useCustomGraphic: true,
+        }));
+        setFeedback("Imagem do Símbolo Óptico enviada! Clique em 'Salvar Imagens da Seção' para publicar.");
+        setTimeout(() => setFeedback(null), 4000);
+      }
+    } catch (err: any) {
+      alert(err.message || "Falha no envio da imagem.");
+    } finally {
+      setIsUploadingGraphic(false);
+    }
+  };
+
+  const handlePartnerLogoUpload = async (logoId: string, e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    setUploadingLogoId(logoId);
+    try {
+      const formData = new FormData();
+      formData.append("file", file);
+
+      const res = await fetch("/api/admin/upload", {
+        method: "POST",
+        body: formData,
+      });
+
+      const data = await res.json();
+      if (!res.ok || data.error) {
+        throw new Error(data.error || "Erro ao fazer upload da logo.");
+      }
+
+      if (data.url) {
+        setLensesSection((prev) => ({
+          ...prev,
+          partnerLogos: prev.partnerLogos.map((item) =>
+            item.id === logoId ? { ...item, src: data.url } : item
+          ),
+        }));
+        setFeedback("Logo da marca atualizada! Clique em 'Salvar Imagens da Seção' para publicar.");
+        setTimeout(() => setFeedback(null), 4000);
+      }
+    } catch (err: any) {
+      alert(err.message || "Falha no envio da logo.");
+    } finally {
+      setUploadingLogoId(null);
+    }
+  };
+
+  const handleAddPartnerLogo = () => {
+    const newLogo: PartnerLogoItem = {
+      id: `partner-${Date.now()}`,
+      name: "Nova Marca",
+      src: "/logos/optisync.svg",
+      alt: "Nova Marca Parceira",
+    };
+    setLensesSection((prev) => ({
+      ...prev,
+      partnerLogos: [...prev.partnerLogos, newLogo],
+    }));
+  };
+
+  const handleRemovePartnerLogo = (id: string) => {
+    setLensesSection((prev) => ({
+      ...prev,
+      partnerLogos: prev.partnerLogos.filter((p) => p.id !== id),
+    }));
+  };
+
+  const handleSaveLensesSection = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setIsSavingLensesSection(true);
+    setFeedback(null);
+    try {
+      const res = await fetch("/api/admin/settings", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ lenses_section: lensesSection }),
+      });
+
+      const data = await res.json();
+      if (!res.ok || data.error) {
+        throw new Error(data.error || "Erro ao salvar imagens e textos da seção de lentes.");
+      }
+
+      setFeedback("Imagens, símbolo óptico e logos da seção de lentes atualizados com sucesso!");
+      setTimeout(() => setFeedback(null), 4000);
+    } catch (err: any) {
+      console.error(err);
+      alert(err.message || "Erro inesperado ao salvar configurações.");
+    } finally {
+      setIsSavingLensesSection(false);
+    }
+  };
+
   useEffect(() => {
     async function loadLenses() {
       try {
@@ -248,6 +386,9 @@ export default function AdminLensesPage() {
           }
           if (data.homologated_brands && Array.isArray(data.homologated_brands) && data.homologated_brands.length > 0) {
             setHomologatedBrands(data.homologated_brands);
+          }
+          if (data.lenses_section) {
+            setLensesSection((prev) => ({ ...prev, ...data.lenses_section }));
           }
         }
       } catch (err) {}
@@ -311,7 +452,8 @@ export default function AdminLensesPage() {
       category:
         categoryFilter !== "all" &&
         categoryFilter !== "destaque-lab" &&
-        categoryFilter !== "marcas-homologadas"
+        categoryFilter !== "marcas-homologadas" &&
+        categoryFilter !== "imagens-secao"
           ? categoryFilter
           : "visao-simples",
       brandName: "Novo Laboratório Homologado",
@@ -463,6 +605,18 @@ export default function AdminLensesPage() {
         >
           <ShieldCheck size={13} />
           <span>Marcas Homologadas ({homologatedBrands.length})</span>
+        </button>
+        <button
+          type="button"
+          onClick={() => setCategoryFilter("imagens-secao")}
+          className={`flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl text-xs font-semibold whitespace-nowrap transition-all ${
+            categoryFilter === "imagens-secao"
+              ? "bg-amber-400 text-slate-950 shadow-sm font-bold"
+              : "text-amber-400 hover:bg-amber-400/10 border border-amber-400/30"
+          }`}
+        >
+          <ImageIcon size={13} />
+          <span>Imagens da Seção &amp; Símbolo Óptico</span>
         </button>
       </div>
 
@@ -874,8 +1028,384 @@ export default function AdminLensesPage() {
         </div>
       )}
 
+      {/* SEÇÃO: FORMULÁRIO DE IMAGENS DA SEÇÃO DE LENTES & SÍMBOLO ÓPTICO */}
+      {categoryFilter === "imagens-secao" && (
+        <form
+          onSubmit={handleSaveLensesSection}
+          className="bg-[#06111f] border border-amber-400/30 rounded-2xl p-6 sm:p-8 space-y-8 shadow-xl"
+        >
+          {/* Header da Aba */}
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-white/10 pb-5">
+            <div>
+              <span className="text-[10px] font-bold uppercase tracking-widest text-amber-400 bg-amber-400/10 px-2.5 py-0.5 rounded-full border border-amber-400/20">
+                VISUAIS &amp; SÍMBOLO ÓPTICO DA SEÇÃO
+              </span>
+              <h2 className="text-xl font-bold text-white mt-1">
+                Imagens da Seção de Lentes &amp; Padrão Óptico
+              </h2>
+              <p className="text-xs text-slate-400 mt-0.5 max-w-2xl">
+                Personalize o símbolo/imagem do card de lentes de alta precisão, os textos de apresentação da seção e gerencie todas as logos que deslizam no carrossel de laboratórios parceiros.
+              </p>
+            </div>
+
+            <button
+              type="submit"
+              disabled={isSavingLensesSection}
+              className="inline-flex items-center gap-2 px-6 py-3 rounded-xl bg-amber-400 hover:bg-amber-300 disabled:opacity-50 text-slate-950 font-bold text-xs uppercase tracking-wider transition-all shadow-md shadow-amber-400/20 cursor-pointer self-start sm:self-auto"
+            >
+              <Save size={15} />
+              <span>{isSavingLensesSection ? "Salvando..." : "Salvar Imagens da Seção"}</span>
+            </button>
+          </div>
+
+          {/* BLOCO 1: SÍMBOLO ÓPTICO / IMAGEM DO CARD */}
+          <div className="bg-[#0a1526] border border-white/10 rounded-2xl p-6 space-y-5">
+            <div className="flex items-center justify-between flex-wrap gap-2">
+              <div>
+                <h3 className="text-base font-bold text-white flex items-center gap-2">
+                  <Sparkles size={16} className="text-amber-400" />
+                  <span>Card do Padrão Óptico (Símbolo de Lentes)</span>
+                </h3>
+                <p className="text-xs text-slate-400 mt-0.5">
+                  Este card aparece em destaque no cabeçalho da seção de lentes no site (ao lado dos títulos).
+                </p>
+              </div>
+
+              {/* Toggle Custom vs Vetor 3D */}
+              <label className="flex items-center gap-2.5 text-xs font-semibold text-slate-200 cursor-pointer bg-[#050f1d] px-3.5 py-2 rounded-xl border border-white/10 hover:border-amber-400/40 transition-colors">
+                <input
+                  type="checkbox"
+                  checked={lensesSection.useCustomGraphic}
+                  onChange={(e) =>
+                    setLensesSection({
+                      ...lensesSection,
+                      useCustomGraphic: e.target.checked,
+                    })
+                  }
+                  className="w-4 h-4 rounded text-amber-400 focus:ring-amber-400 focus:ring-offset-0 bg-slate-900 border-slate-700"
+                />
+                <span>Usar Imagem Personalizada (Upload)</span>
+              </label>
+            </div>
+
+            <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-center">
+              {/* Preview ao Vivo do Card como fica no site */}
+              <div className="lg:col-span-5 flex flex-col items-center justify-center p-6 bg-[#040c16] rounded-2xl border border-slate-800">
+                <span className="text-[10px] font-bold text-slate-500 uppercase tracking-widest mb-3">
+                  Prévia em Tempo Real (Visual do Site)
+                </span>
+                <div className="relative p-5 rounded-3xl bg-[#0f1d30] border border-slate-700/80 shadow-2xl flex flex-col items-center text-center max-w-[240px] w-full">
+                  {lensesSection.useCustomGraphic && lensesSection.graphicImageUrl ? (
+                    <div className="w-[160px] h-[160px] flex items-center justify-center relative overflow-hidden rounded-2xl bg-slate-900/50 p-2">
+                      <img
+                        src={lensesSection.graphicImageUrl}
+                        alt="Preview"
+                        className="max-h-full max-w-full object-contain drop-shadow-[0_0_20px_rgba(56,189,248,0.35)]"
+                      />
+                    </div>
+                  ) : (
+                    <LensOpticalGraphic size={160} glow={true} />
+                  )}
+                  <div className="mt-2.5">
+                    <span className="text-[10px] font-bold uppercase tracking-wider text-amber-400/90 block">
+                      {lensesSection.badgeTag || "PADRÃO ÓPTICO VENTARA"}
+                    </span>
+                    <span className="text-xs font-semibold text-slate-200 mt-0.5 block">
+                      {lensesSection.badgeSubtitle || "Antirreflexo Multicamadas & Alinhamento Dióptrico"}
+                    </span>
+                  </div>
+                </div>
+              </div>
+
+              {/* Controles de Upload e Textos do Card */}
+              <div className="lg:col-span-7 space-y-4">
+                <div>
+                  <label className="block text-xs font-semibold text-slate-300 mb-1.5">
+                    Upload de Nova Imagem / Foto do Símbolo
+                  </label>
+                  <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3">
+                    <label className="inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl bg-blue-600 hover:bg-blue-500 text-white font-semibold text-xs cursor-pointer transition-all shadow-md">
+                      <Upload size={14} />
+                      <span>{isUploadingGraphic ? "Enviando Imagem..." : "Escolher Imagem (PNG / JPG / WebP / SVG)"}</span>
+                      <input
+                        type="file"
+                        accept="image/*"
+                        onChange={handleGraphicUpload}
+                        disabled={isUploadingGraphic}
+                        className="hidden"
+                      />
+                    </label>
+
+                    {lensesSection.graphicImageUrl && (
+                      <button
+                        type="button"
+                        onClick={() =>
+                          setLensesSection({
+                            ...lensesSection,
+                            graphicImageUrl: "",
+                            useCustomGraphic: false,
+                          })
+                        }
+                        className="inline-flex items-center justify-center gap-1.5 px-3 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs transition-colors"
+                      >
+                        <RotateCcw size={13} />
+                        <span>Restaurar Vetor 3D Padrão</span>
+                      </button>
+                    )}
+                  </div>
+                  <p className="text-[11px] text-slate-400 mt-1.5">
+                    Envie uma foto em fundo transparente ou escuro para que os efeitos de brilho óptico se integrem perfeitamente.
+                  </p>
+                </div>
+
+                <div>
+                  <label className="block text-xs font-semibold text-slate-300 mb-1">
+                    URL Direta da Imagem (Opcional)
+                  </label>
+                  <input
+                    type="text"
+                    value={lensesSection.graphicImageUrl || ""}
+                    onChange={(e) =>
+                      setLensesSection({
+                        ...lensesSection,
+                        graphicImageUrl: e.target.value,
+                        useCustomGraphic: Boolean(e.target.value),
+                      })
+                    }
+                    placeholder="https://... ou /images/..."
+                    className="w-full bg-[#040c16] border border-white/10 rounded-xl px-3.5 py-2 text-white text-xs focus:outline-none focus:border-amber-400"
+                  />
+                </div>
+
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-2">
+                  <div>
+                    <label className="block text-xs font-semibold text-slate-300 mb-1">
+                      Texto do Selo / Tag Superior
+                    </label>
+                    <input
+                      type="text"
+                      value={lensesSection.badgeTag}
+                      onChange={(e) =>
+                        setLensesSection({
+                          ...lensesSection,
+                          badgeTag: e.target.value,
+                        })
+                      }
+                      placeholder="PADRÃO ÓPTICO VENTARA"
+                      className="w-full bg-[#040c16] border border-white/10 rounded-xl px-3 py-2 text-white text-xs focus:outline-none focus:border-amber-400"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-xs font-semibold text-slate-300 mb-1">
+                      Subtítulo do Selo / Especificação
+                    </label>
+                    <input
+                      type="text"
+                      value={lensesSection.badgeSubtitle}
+                      onChange={(e) =>
+                        setLensesSection({
+                          ...lensesSection,
+                          badgeSubtitle: e.target.value,
+                        })
+                      }
+                      placeholder="Antirreflexo Multicamadas & Alinhamento Dióptrico"
+                      className="w-full bg-[#040c16] border border-white/10 rounded-xl px-3 py-2 text-white text-xs focus:outline-none focus:border-amber-400"
+                    />
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* BLOCO 2: APRESENTAÇÃO DA SEÇÃO */}
+          <div className="bg-[#0a1526] border border-white/10 rounded-2xl p-6 space-y-4">
+            <h3 className="text-base font-bold text-white flex items-center gap-2">
+              <Edit3 size={16} className="text-amber-400" />
+              <span>Textos de Apresentação da Seção</span>
+            </h3>
+
+            <div className="space-y-3">
+              <div>
+                <label className="block text-xs font-semibold text-slate-300 mb-1">
+                  Título Principal da Seção
+                </label>
+                <input
+                  type="text"
+                  value={lensesSection.sectionTitle}
+                  onChange={(e) =>
+                    setLensesSection({
+                      ...lensesSection,
+                      sectionTitle: e.target.value,
+                    })
+                  }
+                  placeholder="Lentes de Alta Precisão para cada necessidade da sua visão."
+                  className="w-full bg-[#040c16] border border-white/10 rounded-xl px-3.5 py-2.5 text-white text-sm focus:outline-none focus:border-amber-400"
+                />
+              </div>
+
+              <div>
+                <label className="block text-xs font-semibold text-slate-300 mb-1">
+                  Subtítulo / Descrição da Seção
+                </label>
+                <textarea
+                  rows={2}
+                  value={lensesSection.sectionSubtitle}
+                  onChange={(e) =>
+                    setLensesSection({
+                      ...lensesSection,
+                      sectionSubtitle: e.target.value,
+                    })
+                  }
+                  placeholder="Organizamos as melhores marcas do mercado óptico internacional..."
+                  className="w-full bg-[#040c16] border border-white/10 rounded-xl px-3.5 py-2 text-white text-xs focus:outline-none focus:border-amber-400 resize-none"
+                />
+              </div>
+            </div>
+          </div>
+
+          {/* BLOCO 3: CARROSSEL DE LOGOS DOS PARCEIROS & LABORATÓRIOS */}
+          <div className="bg-[#0a1526] border border-white/10 rounded-2xl p-6 space-y-5">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-white/10 pb-4">
+              <div>
+                <h3 className="text-base font-bold text-white flex items-center gap-2">
+                  <Award size={16} className="text-amber-400" />
+                  <span>Carrossel de Parceiros Tecnológicos ({lensesSection.partnerLogos.length} Marcas)</span>
+                </h3>
+                <p className="text-xs text-slate-400 mt-0.5">
+                  Logos das marcas e laboratórios exibidos no carrossel animado contínuo no site.
+                </p>
+              </div>
+
+              <button
+                type="button"
+                onClick={handleAddPartnerLogo}
+                className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-amber-400/10 hover:bg-amber-400/20 text-amber-300 border border-amber-400/30 text-xs font-semibold transition-colors self-start sm:self-auto cursor-pointer"
+              >
+                <Plus size={14} />
+                <span>Adicionar Nova Marca / Logo</span>
+              </button>
+            </div>
+
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              <div>
+                <label className="block text-xs font-semibold text-slate-300 mb-1">
+                  Tag Superior do Carrossel
+                </label>
+                <input
+                  type="text"
+                  value={lensesSection.ribbonTag}
+                  onChange={(e) =>
+                    setLensesSection({
+                      ...lensesSection,
+                      ribbonTag: e.target.value,
+                    })
+                  }
+                  placeholder="PARCEIROS TECNOLÓGICOS & LENTES HOMOLOGADAS"
+                  className="w-full bg-[#040c16] border border-white/10 rounded-xl px-3 py-2 text-white text-xs focus:outline-none focus:border-amber-400"
+                />
+              </div>
+
+              <div>
+                <label className="block text-xs font-semibold text-slate-300 mb-1">
+                  Subtítulo / Descrição do Carrossel
+                </label>
+                <input
+                  type="text"
+                  value={lensesSection.ribbonSubtitle}
+                  onChange={(e) =>
+                    setLensesSection({
+                      ...lensesSection,
+                      ribbonSubtitle: e.target.value,
+                    })
+                  }
+                  placeholder="Garantia de procedência direta com laboratórios certificados e montagem expressa"
+                  className="w-full bg-[#040c16] border border-white/10 rounded-xl px-3 py-2 text-white text-xs focus:outline-none focus:border-amber-400"
+                />
+              </div>
+            </div>
+
+            {/* Lista de Logos */}
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3.5 pt-2">
+              {lensesSection.partnerLogos.map((logo, idx) => (
+                <div
+                  key={logo.id || idx}
+                  className="p-3.5 rounded-xl bg-[#050f1d] border border-white/10 flex items-center gap-3 relative group hover:border-amber-400/40 transition-colors"
+                >
+                  {/* Preview da Logo */}
+                  <div className="w-20 h-12 rounded-lg bg-[#030812] border border-white/5 p-1.5 flex items-center justify-center shrink-0">
+                    <img
+                      src={logo.src}
+                      alt={logo.alt || logo.name}
+                      className="max-h-8 max-w-full object-contain"
+                    />
+                  </div>
+
+                  {/* Informações e Botão de Trocar Logo */}
+                  <div className="flex-1 min-w-0 space-y-1">
+                    <input
+                      type="text"
+                      value={logo.name}
+                      onChange={(e) => {
+                        const newName = e.target.value;
+                        setLensesSection((prev) => ({
+                          ...prev,
+                          partnerLogos: prev.partnerLogos.map((p) =>
+                            p.id === logo.id ? { ...p, name: newName, alt: newName } : p
+                          ),
+                        }));
+                      }}
+                      placeholder="Nome da Marca"
+                      className="w-full bg-transparent border-b border-white/10 focus:border-amber-400 text-xs font-semibold text-white px-0 py-0.5 focus:outline-none"
+                    />
+
+                    <div className="flex items-center gap-2 pt-0.5">
+                      <label className="text-[10px] text-sky-400 hover:text-sky-300 font-semibold cursor-pointer inline-flex items-center gap-1">
+                        <Upload size={10} />
+                        <span>{uploadingLogoId === logo.id ? "Enviando..." : "Alterar Logo"}</span>
+                        <input
+                          type="file"
+                          accept="image/*"
+                          onChange={(e) => handlePartnerLogoUpload(logo.id, e)}
+                          disabled={uploadingLogoId === logo.id}
+                          className="hidden"
+                        />
+                      </label>
+
+                      {lensesSection.partnerLogos.length > 1 && (
+                        <button
+                          type="button"
+                          onClick={() => handleRemovePartnerLogo(logo.id)}
+                          className="text-[10px] text-red-400/80 hover:text-red-400 font-medium ml-auto cursor-pointer"
+                        >
+                          Remover
+                        </button>
+                      )}
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          {/* Botão de Salvar no Rodapé */}
+          <div className="pt-4 border-t border-white/10 flex justify-end">
+            <button
+              type="submit"
+              disabled={isSavingLensesSection}
+              className="inline-flex items-center gap-2 px-6 py-3 rounded-xl bg-amber-400 hover:bg-amber-300 disabled:opacity-50 text-slate-950 font-bold text-xs uppercase tracking-wider transition-all shadow-md shadow-amber-400/20 cursor-pointer"
+            >
+              <Save size={15} />
+              <span>{isSavingLensesSection ? "Salvando..." : "Salvar Todas as Configurações da Seção"}</span>
+            </button>
+          </div>
+        </form>
+      )}
+
       {/* Grade de Lentes */}
-      {categoryFilter !== "destaque-lab" && categoryFilter !== "marcas-homologadas" && (
+      {categoryFilter !== "destaque-lab" &&
+        categoryFilter !== "marcas-homologadas" &&
+        categoryFilter !== "imagens-secao" && (
         <div className="space-y-4">
           {/* Card Resumo do Destaque Lab */}
           <div className="bg-[#06111f] border border-amber-400/20 rounded-2xl p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-4">

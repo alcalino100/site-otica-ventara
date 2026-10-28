@@ -7,6 +7,7 @@ import {
   ShowcaseMediaSettings,
   HomologatedBrand,
   PromotionalShowcaseSettings,
+  LensesSectionSettings,
 } from "@/types/ecommerce";
 import {
   DEFAULT_IDENTITY,
@@ -15,6 +16,7 @@ import {
   DEFAULT_SHOWCASE_MEDIA,
   DEFAULT_HOMOLOGATED_BRANDS,
   DEFAULT_PROMOTIONAL_SHOWCASE,
+  DEFAULT_LENSES_SECTION_SETTINGS,
 } from "@/lib/site-settings-constants";
 
 export async function GET() {
@@ -31,6 +33,7 @@ export async function GET() {
         "showcase_media",
         "homologated_brands",
         "promotional_showcase",
+        "lenses_section",
       ]);
 
     if (error) {
@@ -42,6 +45,7 @@ export async function GET() {
         showcase_media: DEFAULT_SHOWCASE_MEDIA,
         homologated_brands: DEFAULT_HOMOLOGATED_BRANDS,
         promotional_showcase: DEFAULT_PROMOTIONAL_SHOWCASE,
+        lenses_section: DEFAULT_LENSES_SECTION_SETTINGS,
       });
     }
 
@@ -52,6 +56,7 @@ export async function GET() {
     const showcaseRow = data?.find((s) => s.key === "showcase_media");
     const brandsRow = data?.find((s) => s.key === "homologated_brands");
     const promoRow = data?.find((s) => s.key === "promotional_showcase");
+    const lensesSectionRow = data?.find((s) => s.key === "lenses_section");
 
     return NextResponse.json({
       identity: identityRow?.value ? { ...DEFAULT_IDENTITY, ...(identityRow.value as SiteIdentitySettings) } : DEFAULT_IDENTITY,
@@ -61,6 +66,7 @@ export async function GET() {
       showcase_media: showcaseRow?.value ? { ...DEFAULT_SHOWCASE_MEDIA, ...(showcaseRow.value as ShowcaseMediaSettings) } : DEFAULT_SHOWCASE_MEDIA,
       homologated_brands: brandsRow?.value ? (brandsRow.value as HomologatedBrand[]) : DEFAULT_HOMOLOGATED_BRANDS,
       promotional_showcase: promoRow?.value ? { ...DEFAULT_PROMOTIONAL_SHOWCASE, ...(promoRow.value as PromotionalShowcaseSettings) } : DEFAULT_PROMOTIONAL_SHOWCASE,
+      lenses_section: lensesSectionRow?.value ? { ...DEFAULT_LENSES_SECTION_SETTINGS, ...(lensesSectionRow.value as LensesSectionSettings) } : DEFAULT_LENSES_SECTION_SETTINGS,
     });
   } catch (err: any) {
     console.error("Erro interno ao buscar configurações:", err);
@@ -71,6 +77,7 @@ export async function GET() {
       showcase_media: DEFAULT_SHOWCASE_MEDIA,
       homologated_brands: DEFAULT_HOMOLOGATED_BRANDS,
       promotional_showcase: DEFAULT_PROMOTIONAL_SHOWCASE,
+      lenses_section: DEFAULT_LENSES_SECTION_SETTINGS,
     });
   }
 }
@@ -137,6 +144,10 @@ export async function POST(req: NextRequest) {
 
     if (body.promotional_showcase) {
       await saveSetting("promotional_showcase", "Vitrine Promocional 25% OFF Fundo Branco", body.promotional_showcase);
+    }
+
+    if (body.lenses_section) {
+      await saveSetting("lenses_section", "Imagens e Textos da Seção de Lentes e Padrão Óptico", body.lenses_section);
     }
 
     return NextResponse.json({
