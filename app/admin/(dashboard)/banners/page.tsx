@@ -293,6 +293,7 @@ export default function AdminBannersPage() {
       promotionalPrice: "R$ 374,25",
       installment: "10x de R$ 37,42 sem juros",
       image: "/images/products/urbano-black.png",
+      imageFit: "cover",
       colorName: "Preto Clássico",
       colorHex: "#0f172a",
       slug: "ventara-safari",
@@ -1456,20 +1457,28 @@ export default function AdminBannersPage() {
                         </button>
                       </div>
 
-                      {/* Preview da imagem em fundo branco como no site */}
-                      <div className="aspect-[4/3] w-full rounded-xl bg-white p-3 flex items-center justify-center overflow-hidden border border-slate-200 mb-2 relative">
-                        <span className="absolute top-1.5 left-1.5 text-[8px] font-bold px-1.5 py-0.5 rounded-full bg-emerald-600 text-white shadow-xs">
+                      {/* Preview da foto como aparece no site */}
+                      <div className={`aspect-[4/3] w-full rounded-xl overflow-hidden border border-slate-200 mb-2 relative ${
+                        item.imageFit === "contain"
+                          ? "bg-white p-3 flex items-center justify-center"
+                          : "bg-slate-900"
+                      }`}>
+                        <span className="absolute top-1.5 left-1.5 z-10 text-[8px] font-bold px-1.5 py-0.5 rounded-full bg-emerald-600 text-white shadow-xs">
                           {item.discountBadge || "-25% OFF"}
                         </span>
                         <img
                           src={item.image}
                           alt={item.name}
-                          className="max-h-full max-w-full object-contain"
+                          className={
+                            item.imageFit === "contain"
+                              ? "max-h-full max-w-full object-contain"
+                              : "w-full h-full object-cover object-center"
+                          }
                         />
                       </div>
 
                       {/* Botão de Trocar Imagem via Upload */}
-                      <label className="w-full inline-flex items-center justify-center gap-1.5 py-2 px-3 rounded-xl bg-amber-400 hover:bg-amber-300 text-slate-950 font-bold text-xs uppercase tracking-wider cursor-pointer transition-all shadow-xs mb-3">
+                      <label className="w-full inline-flex items-center justify-center gap-1.5 py-2 px-3 rounded-xl bg-amber-400 hover:bg-amber-300 text-slate-950 font-bold text-xs uppercase tracking-wider cursor-pointer transition-all shadow-xs mb-2">
                         <Upload size={12} />
                         <span>
                           {uploadingPromoId === item.id ? "Enviando..." : "Trocar Foto do Óculos"}
@@ -1482,6 +1491,51 @@ export default function AdminBannersPage() {
                           onChange={(e) => handlePromoItemUpload(item.id, e)}
                         />
                       </label>
+
+                      {/* Ajuste de Enquadramento da Foto */}
+                      <div className="mb-3 p-2 rounded-xl bg-white/5 border border-white/10 space-y-1.5">
+                        <label className="block text-slate-300 text-[11px] font-medium">
+                          Enquadramento da Imagem:
+                        </label>
+                        <div className="grid grid-cols-2 gap-1.5">
+                          <button
+                            type="button"
+                            onClick={() =>
+                              setPromotionalShowcase((prev) => ({
+                                ...prev,
+                                items: prev.items.map((it) =>
+                                  it.id === item.id ? { ...it, imageFit: "cover" } : it
+                                ),
+                              }))
+                            }
+                            className={`px-2 py-1.5 rounded-lg text-[10px] font-semibold text-center transition-all ${
+                              item.imageFit !== "contain"
+                                ? "bg-amber-400 text-slate-950 font-bold shadow-xs"
+                                : "bg-white/5 text-slate-400 hover:text-white"
+                            }`}
+                          >
+                            Preencher Completo
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() =>
+                              setPromotionalShowcase((prev) => ({
+                                ...prev,
+                                items: prev.items.map((it) =>
+                                  it.id === item.id ? { ...it, imageFit: "contain" } : it
+                                ),
+                              }))
+                            }
+                            className={`px-2 py-1.5 rounded-lg text-[10px] font-semibold text-center transition-all ${
+                              item.imageFit === "contain"
+                                ? "bg-amber-400 text-slate-950 font-bold shadow-xs"
+                                : "bg-white/5 text-slate-400 hover:text-white"
+                            }`}
+                          >
+                            Ajustar c/ Bordas
+                          </button>
+                        </div>
+                      </div>
 
                       {/* Campos Editáveis */}
                       <div className="space-y-2 text-xs">

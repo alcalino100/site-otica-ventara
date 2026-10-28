@@ -111,7 +111,11 @@ export function PromotionalOffersSection() {
                   {/* Foto do Modelo com Zoom no Hover */}
                   <Link
                     href={`/produto/${item.slug || "ventara-safari"}`}
-                    className="relative aspect-[4/3] w-full rounded-xl bg-white p-2.5 sm:p-4 flex items-center justify-center overflow-hidden border border-slate-100 group-hover:border-slate-200 transition-colors mb-3 block"
+                    className={`relative aspect-[4/3] w-full rounded-2xl overflow-hidden border transition-all duration-300 mb-3 block shadow-xs group-hover:shadow-md ${
+                      hasRealImage && item.imageFit !== "contain"
+                        ? "bg-slate-900/5 border-slate-200/90 group-hover:border-amber-400/60"
+                        : "bg-white p-2.5 sm:p-4 flex items-center justify-center border-slate-100 group-hover:border-slate-200"
+                    }`}
                     aria-label={`Ver modelo ${item.name}`}
                   >
                     {hasRealImage ? (
@@ -119,11 +123,15 @@ export function PromotionalOffersSection() {
                         src={item.image}
                         alt={item.name}
                         onError={() => setImgErrors((prev) => ({ ...prev, [item.id]: true }))}
-                        className="w-full h-full object-contain group-hover:scale-105 transition-transform duration-300 drop-shadow-sm"
+                        className={`w-full h-full transition-transform duration-500 ease-out group-hover:scale-105 ${
+                          item.imageFit === "contain"
+                            ? "object-contain drop-shadow-sm"
+                            : "object-cover object-center"
+                        }`}
                         loading="lazy"
                       />
                     ) : (
-                      <div className="w-full max-w-[140px]">
+                      <div className="w-full max-w-[140px] group-hover:scale-105 transition-transform duration-300">
                         <FrameArt
                           solar={item.category.toLowerCase().includes("solar")}
                           round={item.name.toLowerCase().includes("redondo") || item.name.toLowerCase().includes("onça")}

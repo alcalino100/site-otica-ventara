@@ -268,6 +268,7 @@ export interface PromoProductItem {
   promotionalPrice: string;
   installment: string;
   image: string;
+  imageFit?: "cover" | "contain";
   colorName: string;
   colorHex: string;
   slug: string;

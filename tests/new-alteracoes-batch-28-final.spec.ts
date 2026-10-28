@@ -28,7 +28,7 @@ test.describe("Novas Alterações Ventara - Lote 28 Outubro (Final)", () => {
     page,
   }) => {
     await page.goto("/");
-    await page.waitForLoadState("networkidle");
+    await page.waitForLoadState("domcontentloaded");
 
     const promoSection = page.locator("section[aria-label='Modelos Selecionados com Desconto']");
     await expect(promoSection).toBeVisible();
