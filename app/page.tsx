@@ -9,6 +9,7 @@ import { WarrantyBannerSection } from "../components/sections/warranty-banner-se
 import { WhyChooseSection } from "../components/sections/why-choose-section";
 import { InteractiveShowcase } from "../components/sections/interactive-showcase";
 import { CatalogSection } from "../components/catalog/catalog-section";
+import { PromotionalOffersSection } from "../components/sections/promotional-offers-section";
 import { LensesPricingSection } from "../components/sections/lenses-pricing-section";
 import { ColoredLensesShowcase } from "../components/sections/colored-lenses-showcase";
 import { StoreSection } from "../components/sections/store-section";
@@ -181,6 +182,9 @@ export default function Home() {
           cartIds={cartIds}
           isSearchOpen={isSearchOpen}
         />
+
+        {/* 5.1. Vitrine Promocional de Fundo Branco: Até 25% OFF em Modelos Selecionados */}
+        <PromotionalOffersSection />
 
         {/* 6. Apresentação da Óticas Ventara, Responsável Técnico e Laboratório Próprio */}
         <WhyChooseSection />

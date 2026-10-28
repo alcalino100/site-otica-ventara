@@ -23,22 +23,25 @@ import {
   Image as ImageIcon,
 } from "lucide-react";
 import { AdminLensItem, DEFAULT_LENSES } from "@/lib/lenses-data";
-import { DEFAULT_LAB_SHOWCASE } from "@/lib/site-settings-constants";
-import { LabShowcaseSettings } from "@/types/ecommerce";
+import { DEFAULT_LAB_SHOWCASE, DEFAULT_HOMOLOGATED_BRANDS } from "@/lib/site-settings-constants";
+import { LabShowcaseSettings, HomologatedBrand } from "@/types/ecommerce";
 
 export default function AdminLensesPage() {
   const [lenses, setLenses] = useState<AdminLensItem[]>(DEFAULT_LENSES);
   const [labShowcase, setLabShowcase] = useState<LabShowcaseSettings>(DEFAULT_LAB_SHOWCASE);
+  const [homologatedBrands, setHomologatedBrands] = useState<HomologatedBrand[]>(DEFAULT_HOMOLOGATED_BRANDS);
   const [isLoading, setIsLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
   const [isSavingLab, setIsSavingLab] = useState(false);
   const [isUploadingLab, setIsUploadingLab] = useState(false);
+  const [isSavingBrands, setIsSavingBrands] = useState(false);
+  const [uploadingBrandId, setUploadingBrandId] = useState<string | null>(null);
   const [selectedLens, setSelectedLens] = useState<AdminLensItem | null>(null);
   const [isNewLens, setIsNewLens] = useState(false);
   const [feedback, setFeedback] = useState<string | null>(null);
   const [isUploading, setIsUploading] = useState(false);
   const [categoryFilter, setCategoryFilter] = useState<
-    "all" | "destaque-lab" | "visao-simples" | "multifocal" | "tratamentos" | "coloridas"
+    "all" | "destaque-lab" | "marcas-homologadas" | "visao-simples" | "multifocal" | "tratamentos" | "coloridas"
   >("all");
 
   const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -127,6 +130,97 @@ export default function AdminLensesPage() {
     }
   };
 
+  const handleBrandBoxUpload = async (brandId: string, e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    setUploadingBrandId(brandId);
+    try {
+      const formData = new FormData();
+      formData.append("file", file);
+
+      const res = await fetch("/api/admin/upload", {
+        method: "POST",
+        body: formData,
+      });
+
+      const data = await res.json();
+      if (!res.ok || data.error) {
+        throw new Error(data.error || "Erro ao fazer upload da imagem.");
+      }
+
+      if (data.url) {
+        setHomologatedBrands((prev) =>
+          prev.map((b) => (b.id === brandId ? { ...b, boxImage: data.url } : b))
+        );
+        setFeedback("Foto da caixa atualizada! Clique em 'Salvar Marcas Homologadas' para aplicar.");
+        setTimeout(() => setFeedback(null), 4000);
+      }
+    } catch (err: any) {
+      alert(err.message || "Falha no envio da imagem.");
+    } finally {
+      setUploadingBrandId(null);
+    }
+  };
+
+  const handleBrandLogoUpload = async (brandId: string, e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    setUploadingBrandId(`${brandId}-logo`);
+    try {
+      const formData = new FormData();
+      formData.append("file", file);
+
+      const res = await fetch("/api/admin/upload", {
+        method: "POST",
+        body: formData,
+      });
+
+      const data = await res.json();
+      if (!res.ok || data.error) {
+        throw new Error(data.error || "Erro ao fazer upload da logo.");
+      }
+
+      if (data.url) {
+        setHomologatedBrands((prev) =>
+          prev.map((b) => (b.id === brandId ? { ...b, logo: data.url } : b))
+        );
+        setFeedback("Logo da marca atualizado! Clique em 'Salvar Marcas Homologadas' para aplicar.");
+        setTimeout(() => setFeedback(null), 4000);
+      }
+    } catch (err: any) {
+      alert(err.message || "Falha no envio da logo.");
+    } finally {
+      setUploadingBrandId(null);
+    }
+  };
+
+  const handleSaveBrands = async () => {
+    setIsSavingBrands(true);
+    setFeedback(null);
+    try {
+      const res = await fetch("/api/admin/settings", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ homologated_brands: homologatedBrands }),
+      });
+
+      const data = await res.json();
+      if (!res.ok || data.error) {
+        throw new Error(data.error || "Erro ao salvar marcas homologadas.");
+      }
+
+      setFeedback("Marcas homologadas, fotos das caixas e especificações salvas com sucesso!");
+      setTimeout(() => setFeedback(null), 3500);
+    } catch (err: any) {
+      console.error(err);
+      setFeedback(err.message || "Erro inesperado ao salvar marcas homologadas.");
+    } finally {
+      setIsSavingBrands(false);
+    }
+  };
+
   useEffect(() => {
     async function loadLenses() {
       try {
@@ -151,6 +245,9 @@ export default function AdminLensesPage() {
           const data = await res.json();
           if (data.lab_showcase) {
             setLabShowcase((prev) => ({ ...prev, ...data.lab_showcase }));
+          }
+          if (data.homologated_brands && Array.isArray(data.homologated_brands) && data.homologated_brands.length > 0) {
+            setHomologatedBrands(data.homologated_brands);
           }
         }
       } catch (err) {}
@@ -211,7 +308,12 @@ export default function AdminLensesPage() {
     const newItem: AdminLensItem = {
       id: `lente-${Date.now()}`,
       name: "",
-      category: categoryFilter !== "all" && categoryFilter !== "destaque-lab" ? categoryFilter : "visao-simples",
+      category:
+        categoryFilter !== "all" &&
+        categoryFilter !== "destaque-lab" &&
+        categoryFilter !== "marcas-homologadas"
+          ? categoryFilter
+          : "visao-simples",
       brandName: "Novo Laboratório Homologado",
       brandLogo: "/logos/optisync.svg",
       treatment: "Antirreflexo Multicamadas + Proteção UV400",
@@ -349,6 +451,18 @@ export default function AdminLensesPage() {
         >
           <Award size={13} />
           <span>Destaque Lab &amp; Marca Própria</span>
+        </button>
+        <button
+          type="button"
+          onClick={() => setCategoryFilter("marcas-homologadas")}
+          className={`flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl text-xs font-semibold whitespace-nowrap transition-all ${
+            categoryFilter === "marcas-homologadas"
+              ? "bg-amber-400 text-slate-950 shadow-sm font-bold"
+              : "text-amber-400 hover:bg-amber-400/10 border border-amber-400/30"
+          }`}
+        >
+          <ShieldCheck size={13} />
+          <span>Marcas Homologadas ({homologatedBrands.length})</span>
         </button>
       </div>
 
@@ -598,8 +712,170 @@ export default function AdminLensesPage() {
         </form>
       )}
 
+      {/* SEÇÃO: FORMULÁRIO DAS MARCAS & LABORATÓRIOS HOMOLOGADOS (TODAS AS FOTOS DE CAIXAS) */}
+      {categoryFilter === "marcas-homologadas" && (
+        <div className="bg-[#06111f] border border-amber-400/30 rounded-2xl p-6 sm:p-8 space-y-6 shadow-xl">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-white/10 pb-4">
+            <div>
+              <span className="text-[10px] font-bold uppercase tracking-widest text-amber-400 bg-amber-400/10 px-2.5 py-0.5 rounded-full border border-amber-400/20">
+                LABORATÓRIOS &amp; FORNECEDORES OFICIAIS
+              </span>
+              <h2 className="text-xl font-bold text-white mt-1">
+                Marcas Homologadas &amp; Fotos das Caixas
+              </h2>
+              <p className="text-xs text-slate-400 mt-0.5 max-w-2xl">
+                Altere as fotos das caixas de cada marca parceira (Perego, Correct, Orgalens, HOYA, Kodak, Varilux, OPTiSYNC). Essas fotos reais de embalagens são exibidas com estilo orgânico translúcido na aba &quot;Todas as Marcas Homologadas&quot; no site.
+              </p>
+            </div>
+
+            <button
+              type="button"
+              onClick={handleSaveBrands}
+              disabled={isSavingBrands}
+              className="inline-flex items-center gap-2 px-6 py-3 rounded-xl bg-amber-400 hover:bg-amber-300 disabled:opacity-50 text-slate-950 font-bold text-xs uppercase tracking-wider transition-all shadow-md shadow-amber-400/20 cursor-pointer self-start sm:self-auto"
+            >
+              <Save size={15} />
+              <span>{isSavingBrands ? "Salvando..." : "Salvar Marcas Homologadas"}</span>
+            </button>
+          </div>
+
+          {/* Grid com os 7 parceiros homologados */}
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {homologatedBrands.map((brand, idx) => (
+              <div
+                key={brand.id || idx}
+                className="bg-[#0b1728] border border-white/10 rounded-2xl p-5 flex flex-col justify-between space-y-4 hover:border-amber-400/40 transition-colors"
+              >
+                <div>
+                  <div className="flex items-center justify-between gap-2 mb-3">
+                    <span className="text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-md bg-white/5 text-amber-400 border border-white/10">
+                      #{idx + 1} · {brand.name}
+                    </span>
+                    <span className="text-[10px] font-medium text-slate-400">
+                      ID: {brand.id}
+                    </span>
+                  </div>
+
+                  {/* Preview idêntico ao do site oficial (fundo branco orgânico com a caixa e logo) */}
+                  <div className="relative w-full aspect-[4/3] rounded-xl bg-white p-3 flex items-center justify-center overflow-hidden shadow-inner mb-3 border border-slate-200">
+                    {/* Logo no Canto Superior Esquerdo */}
+                    <div className="absolute top-2 left-2 max-h-6 max-w-[95px] flex items-center bg-white/95 px-1.5 py-0.5 rounded shadow-xs z-10 border border-slate-100">
+                      <img
+                        src={brand.logo}
+                        alt={brand.name}
+                        className="max-h-4 max-w-full object-contain"
+                      />
+                    </div>
+
+                    {/* Badge no Canto Superior Direito */}
+                    <span className="absolute top-2 right-2 text-[8px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full bg-slate-950 text-amber-300 border border-amber-400/40 z-10">
+                      {brand.badge}
+                    </span>
+
+                    {/* Imagem da Caixa */}
+                    <img
+                      src={brand.boxImage}
+                      alt={`Embalagem ${brand.name}`}
+                      className="max-h-full max-w-full object-contain drop-shadow-md"
+                    />
+                  </div>
+
+                  {/* Botões de Upload da Caixa e Logo */}
+                  <div className="space-y-2 mb-4">
+                    <label className="w-full inline-flex items-center justify-center gap-2 py-2 px-3 rounded-xl bg-amber-400 hover:bg-amber-300 text-slate-950 font-bold text-xs uppercase tracking-wider cursor-pointer transition-all shadow-sm">
+                      <Upload size={13} />
+                      <span>
+                        {uploadingBrandId === brand.id ? "Enviando..." : "Trocar Foto da Caixa"}
+                      </span>
+                      <input
+                        type="file"
+                        accept="image/*"
+                        className="hidden"
+                        disabled={uploadingBrandId === brand.id}
+                        onChange={(e) => handleBrandBoxUpload(brand.id, e)}
+                      />
+                    </label>
+
+                    <label className="w-full inline-flex items-center justify-center gap-1.5 py-1.5 px-3 rounded-lg bg-white/5 hover:bg-white/10 border border-white/10 text-slate-300 font-medium text-[11px] cursor-pointer transition-all">
+                      <ImageIcon size={12} />
+                      <span>
+                        {uploadingBrandId === `${brand.id}-logo` ? "Enviando..." : "Trocar Logo (.svg/.png)"}
+                      </span>
+                      <input
+                        type="file"
+                        accept="image/*"
+                        className="hidden"
+                        disabled={uploadingBrandId === `${brand.id}-logo`}
+                        onChange={(e) => handleBrandLogoUpload(brand.id, e)}
+                      />
+                    </label>
+                  </div>
+
+                  {/* Campos Editáveis */}
+                  <div className="space-y-3 text-xs">
+                    <div>
+                      <label className="block text-slate-400 mb-1 font-medium">Nome da Marca</label>
+                      <input
+                        type="text"
+                        value={brand.name}
+                        onChange={(e) =>
+                          setHomologatedBrands((prev) =>
+                            prev.map((b) => (b.id === brand.id ? { ...b, name: e.target.value } : b))
+                          )
+                        }
+                        className="w-full bg-[#040c16] border border-white/10 rounded-lg px-2.5 py-1.5 text-white text-xs focus:outline-none focus:border-amber-400"
+                      />
+                    </div>
+
+                    <div>
+                      <label className="block text-slate-400 mb-1 font-medium">Selo / Badge</label>
+                      <input
+                        type="text"
+                        value={brand.badge}
+                        onChange={(e) =>
+                          setHomologatedBrands((prev) =>
+                            prev.map((b) => (b.id === brand.id ? { ...b, badge: e.target.value } : b))
+                          )
+                        }
+                        className="w-full bg-[#040c16] border border-white/10 rounded-lg px-2.5 py-1.5 text-white text-xs focus:outline-none focus:border-amber-400"
+                      />
+                    </div>
+
+                    <div>
+                      <label className="block text-slate-400 mb-1 font-medium">Descrição Resumida</label>
+                      <textarea
+                        rows={2}
+                        value={brand.desc}
+                        onChange={(e) =>
+                          setHomologatedBrands((prev) =>
+                            prev.map((b) => (b.id === brand.id ? { ...b, desc: e.target.value } : b))
+                          )
+                        }
+                        className="w-full bg-[#040c16] border border-white/10 rounded-lg px-2.5 py-1.5 text-white text-xs focus:outline-none focus:border-amber-400 resize-none"
+                      />
+                    </div>
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+
+          <div className="pt-4 border-t border-white/10 flex justify-end">
+            <button
+              type="button"
+              onClick={handleSaveBrands}
+              disabled={isSavingBrands}
+              className="inline-flex items-center gap-2 px-6 py-3 rounded-xl bg-amber-400 hover:bg-amber-300 disabled:opacity-50 text-slate-950 font-bold text-xs uppercase tracking-wider transition-all shadow-md shadow-amber-400/20 cursor-pointer"
+            >
+              <Save size={15} />
+              <span>{isSavingBrands ? "Salvando..." : "Salvar Todas as Marcas Homologadas"}</span>
+            </button>
+          </div>
+        </div>
+      )}
+
       {/* Grade de Lentes */}
-      {categoryFilter !== "destaque-lab" && (
+      {categoryFilter !== "destaque-lab" && categoryFilter !== "marcas-homologadas" && (
         <div className="space-y-4">
           {/* Card Resumo do Destaque Lab */}
           <div className="bg-[#06111f] border border-amber-400/20 rounded-2xl p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
@@ -630,7 +906,40 @@ export default function AdminLensesPage() {
               className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-lg bg-amber-400/10 hover:bg-amber-400/20 border border-amber-400/30 text-amber-300 font-semibold text-xs tracking-wider transition-all self-start sm:self-auto cursor-pointer"
             >
               <Edit3 size={13} />
-              <span>Editar Foto e Informações da Marca</span>
+              <span>Editar Destaque Lab</span>
+            </button>
+          </div>
+
+          {/* Card de Acesso Rápido às Marcas Homologadas */}
+          <div className="bg-[#06111f] border border-blue-400/20 rounded-2xl p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+            <div className="flex items-center gap-3">
+              <div className="w-12 h-12 rounded-xl bg-white p-1 flex items-center justify-center shrink-0 border border-blue-400/30 overflow-hidden">
+                <img
+                  src={homologatedBrands[1]?.boxImage || "/images/lenses/newflash-box.jpg"}
+                  alt="Laboratórios Homologados"
+                  className="w-full h-full object-contain"
+                />
+              </div>
+              <div>
+                <p className="text-xs font-bold text-white flex items-center gap-1.5">
+                  <span>Marcas Homologadas ({homologatedBrands.length} parceiros oficiais)</span>
+                  <span className="text-[10px] text-blue-400 bg-blue-400/10 px-2 py-0.5 rounded-full border border-blue-400/20">
+                    Fotos das Caixas
+                  </span>
+                </p>
+                <p className="text-[11px] text-slate-400">
+                  Perego, Correct, Orgalens, HOYA, Kodak, Varilux e OPTiSYNC
+                </p>
+              </div>
+            </div>
+
+            <button
+              type="button"
+              onClick={() => setCategoryFilter("marcas-homologadas")}
+              className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-lg bg-blue-500/10 hover:bg-blue-500/20 border border-blue-500/30 text-blue-300 font-semibold text-xs tracking-wider transition-all self-start sm:self-auto cursor-pointer"
+            >
+              <ShieldCheck size={13} />
+              <span>Gerenciar Fotos das Caixas</span>
             </button>
           </div>
 

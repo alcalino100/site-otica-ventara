@@ -16,19 +16,32 @@ import {
   Sun,
   Glasses,
   ShieldCheck,
+  Tag,
 } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
-import { HomepageBanner, ShowcaseMediaSettings } from "@/types/ecommerce";
-import { DEFAULT_SHOWCASE_MEDIA } from "@/lib/site-settings-constants";
+import {
+  HomepageBanner,
+  ShowcaseMediaSettings,
+  PromotionalShowcaseSettings,
+  PromoProductItem,
+} from "@/types/ecommerce";
+import {
+  DEFAULT_SHOWCASE_MEDIA,
+  DEFAULT_PROMOTIONAL_SHOWCASE,
+} from "@/lib/site-settings-constants";
 
 export default function AdminBannersPage() {
   const supabase = createClient();
-  const [activeTab, setActiveTab] = useState<"banners" | "vitrines">("banners");
+  const [activeTab, setActiveTab] = useState<"banners" | "vitrines" | "promocoes">("banners");
   const [banners, setBanners] = useState<HomepageBanner[]>([]);
   const [showcaseMedia, setShowcaseMedia] = useState<ShowcaseMediaSettings>(DEFAULT_SHOWCASE_MEDIA);
+  const [promotionalShowcase, setPromotionalShowcase] =
+    useState<PromotionalShowcaseSettings>(DEFAULT_PROMOTIONAL_SHOWCASE);
   const [isLoading, setIsLoading] = useState(true);
   const [isSavingMedia, setIsSavingMedia] = useState(false);
+  const [isSavingPromo, setIsSavingPromo] = useState(false);
   const [uploadingField, setUploadingField] = useState<string | null>(null);
+  const [uploadingPromoId, setUploadingPromoId] = useState<string | null>(null);
   const [feedback, setFeedback] = useState<string | null>(null);
 
   // Formulário de novo banner
@@ -71,6 +84,9 @@ export default function AdminBannersPage() {
         const data = await res.json();
         if (data.showcase_media) {
           setShowcaseMedia((prev) => ({ ...prev, ...data.showcase_media }));
+        }
+        if (data.promotional_showcase) {
+          setPromotionalShowcase((prev) => ({ ...prev, ...data.promotional_showcase }));
         }
       }
     } catch (err) {
@@ -139,6 +155,98 @@ export default function AdminBannersPage() {
       alert(err.message || "Falha ao salvar fotos.");
     } finally {
       setIsSavingMedia(false);
+    }
+  };
+
+  const handlePromoItemUpload = async (itemId: string, e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    setUploadingPromoId(itemId);
+    try {
+      const formData = new FormData();
+      formData.append("file", file);
+
+      const res = await fetch("/api/admin/upload", {
+        method: "POST",
+        body: formData,
+      });
+
+      const data = await res.json();
+      if (!res.ok || data.error) {
+        throw new Error(data.error || "Erro ao fazer upload da foto.");
+      }
+
+      if (data.url) {
+        setPromotionalShowcase((prev) => ({
+          ...prev,
+          items: prev.items.map((it) => (it.id === itemId ? { ...it, image: data.url } : it)),
+        }));
+        setFeedback("Foto do modelo atualizada! Clique em 'Salvar Ofertas Promocionais' para aplicar.");
+        setTimeout(() => setFeedback(null), 4000);
+      }
+    } catch (err: any) {
+      alert(err.message || "Falha no envio da imagem.");
+    } finally {
+      setUploadingPromoId(null);
+    }
+  };
+
+  const handleSavePromotionalShowcase = async (e?: React.FormEvent) => {
+    if (e) e.preventDefault();
+    setIsSavingPromo(true);
+    setFeedback(null);
+    try {
+      const res = await fetch("/api/admin/settings", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ promotional_showcase: promotionalShowcase }),
+      });
+
+      const data = await res.json();
+      if (!res.ok || data.error) {
+        throw new Error(data.error || "Erro ao salvar vitrine promocional.");
+      }
+
+      setFeedback("Vitrine 25% OFF e modelos promocionais salvos com sucesso!");
+      setTimeout(() => setFeedback(null), 3500);
+    } catch (err: any) {
+      console.error(err);
+      alert(err.message || "Erro inesperado ao salvar vitrine.");
+    } finally {
+      setIsSavingPromo(false);
+    }
+  };
+
+  const handleAddPromoItem = () => {
+    const newItem: PromoProductItem = {
+      id: `promo-${Date.now()}`,
+      name: "Novo Modelo em Oferta",
+      category: "Armação de Grau",
+      tag: "Oferta",
+      discountBadge: "-25% OFF",
+      originalPrice: "R$ 499,00",
+      promotionalPrice: "R$ 374,25",
+      installment: "10x de R$ 37,42 sem juros",
+      image: "/images/products/urbano-black.png",
+      colorName: "Preto Clássico",
+      colorHex: "#0f172a",
+      slug: "ventara-safari",
+      description: "Armação leve em acetato com garantia de 1 ano.",
+      extraColorsCount: 2,
+    };
+    setPromotionalShowcase((prev) => ({
+      ...prev,
+      items: [...prev.items, newItem],
+    }));
+  };
+
+  const handleDeletePromoItem = (id: string) => {
+    if (confirm("Remover este modelo da vitrine de ofertas?")) {
+      setPromotionalShowcase((prev) => ({
+        ...prev,
+        items: prev.items.filter((it) => it.id !== id),
+      }));
     }
   };
 
@@ -338,6 +446,19 @@ export default function AdminBannersPage() {
         >
           <Sun size={14} />
           <span>Fotos das Vitrines (Esportivos &amp; Seções)</span>
+        </button>
+
+        <button
+          type="button"
+          onClick={() => setActiveTab("promocoes")}
+          className={`flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-semibold whitespace-nowrap transition-all ${
+            activeTab === "promocoes"
+              ? "bg-amber-400 text-slate-950 font-bold shadow-md"
+              : "text-amber-400 hover:bg-amber-400/10 border border-amber-400/30"
+          }`}
+        >
+          <Sparkles size={14} />
+          <span>Vitrine 25% OFF (Fundo Branco)</span>
         </button>
       </div>
 
@@ -624,6 +745,348 @@ export default function AdminBannersPage() {
                   </div>
                 </div>
               </div>
+            </div>
+          </div>
+        </form>
+      )}
+
+      {/* ABA 3: VITRINE PROMOCIONAL 25% OFF (FUNDO BRANCO) */}
+      {activeTab === "promocoes" && (
+        <form onSubmit={handleSavePromotionalShowcase} className="space-y-6">
+          <div className="bg-[#06111f] border border-amber-400/30 rounded-2xl p-6 sm:p-8 space-y-6 shadow-xl">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-white/10 pb-4">
+              <div>
+                <span className="text-[10px] font-bold uppercase tracking-widest text-amber-400 bg-amber-400/10 px-2.5 py-0.5 rounded-full border border-amber-400/20">
+                  VITRINE EDITÁVEL · FUNDO BRANCO
+                </span>
+                <h2 className="text-xl font-bold text-white mt-1">
+                  Vitrine 25% OFF em Modelos Selecionados
+                </h2>
+                <p className="text-xs text-slate-400 mt-0.5 max-w-2xl">
+                  Edite o título, texto do selo, subtítulo e cada um dos modelos em oferta especial com fotos, descontos, preços e cores. Esta seção é exibida com fundo branco limpo na home do site.
+                </p>
+              </div>
+
+              <div className="flex items-center gap-3">
+                <button
+                  type="button"
+                  onClick={handleAddPromoItem}
+                  className="inline-flex items-center gap-1.5 px-4 py-2.5 rounded-xl bg-white/10 hover:bg-white/20 text-white text-xs font-semibold cursor-pointer transition-all border border-white/15"
+                >
+                  <Plus size={15} />
+                  <span>Novo Modelo</span>
+                </button>
+
+                <button
+                  type="submit"
+                  disabled={isSavingPromo}
+                  className="inline-flex items-center gap-2 px-6 py-2.5 rounded-xl bg-amber-400 hover:bg-amber-300 disabled:opacity-50 text-slate-950 font-bold text-xs uppercase tracking-wider transition-all shadow-md shadow-amber-400/20 cursor-pointer"
+                >
+                  <Save size={15} />
+                  <span>{isSavingPromo ? "Salvando..." : "Salvar Vitrine"}</span>
+                </button>
+              </div>
+            </div>
+
+            {/* Configurações Gerais do Bloco */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 text-xs bg-[#0b1728] p-5 rounded-2xl border border-white/10">
+              <div className="sm:col-span-2 lg:col-span-1 flex items-center justify-between p-3 rounded-xl bg-[#040c16] border border-white/10">
+                <div>
+                  <span className="text-white font-semibold block">Exibir Vitrine no Site</span>
+                  <span className="text-[10px] text-slate-400">Ativa ou oculta a seção</span>
+                </div>
+                <label className="relative inline-flex items-center cursor-pointer">
+                  <input
+                    type="checkbox"
+                    checked={promotionalShowcase.isEnabled}
+                    onChange={(e) =>
+                      setPromotionalShowcase({ ...promotionalShowcase, isEnabled: e.target.checked })
+                    }
+                    className="sr-only peer"
+                  />
+                  <div className="w-11 h-6 bg-slate-800 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-emerald-500"></div>
+                </label>
+              </div>
+
+              <div>
+                <label className="block text-slate-400 mb-1 font-medium">Selo Superior (Tag)</label>
+                <input
+                  type="text"
+                  value={promotionalShowcase.pillText}
+                  onChange={(e) =>
+                    setPromotionalShowcase({ ...promotionalShowcase, pillText: e.target.value })
+                  }
+                  placeholder="Ex: OFERTA POR TEMPO LIMITADO"
+                  className="w-full bg-[#040c16] border border-white/10 rounded-xl px-3 py-2 text-white text-xs focus:outline-none focus:border-amber-400"
+                />
+              </div>
+
+              <div>
+                <label className="block text-slate-400 mb-1 font-medium">Título Principal</label>
+                <input
+                  type="text"
+                  value={promotionalShowcase.title}
+                  onChange={(e) =>
+                    setPromotionalShowcase({ ...promotionalShowcase, title: e.target.value })
+                  }
+                  placeholder="Ex: Até 25% OFF em modelos selecionados"
+                  className="w-full bg-[#040c16] border border-white/10 rounded-xl px-3 py-2 text-white text-xs focus:outline-none focus:border-amber-400"
+                />
+              </div>
+
+              <div>
+                <label className="block text-slate-400 mb-1 font-medium">Texto do Link de Ofertas</label>
+                <input
+                  type="text"
+                  value={promotionalShowcase.ctaText || "Ver todas as ofertas"}
+                  onChange={(e) =>
+                    setPromotionalShowcase({ ...promotionalShowcase, ctaText: e.target.value })
+                  }
+                  placeholder="Ex: Ver todas as ofertas"
+                  className="w-full bg-[#040c16] border border-white/10 rounded-xl px-3 py-2 text-white text-xs focus:outline-none focus:border-amber-400"
+                />
+              </div>
+
+              <div className="sm:col-span-2 lg:col-span-4">
+                <label className="block text-slate-400 mb-1 font-medium">Subtítulo / Descrição da Seção</label>
+                <input
+                  type="text"
+                  value={promotionalShowcase.subtitle}
+                  onChange={(e) =>
+                    setPromotionalShowcase({ ...promotionalShowcase, subtitle: e.target.value })
+                  }
+                  placeholder="Subtítulo descritivo"
+                  className="w-full bg-[#040c16] border border-white/10 rounded-xl px-3 py-2 text-white text-xs focus:outline-none focus:border-amber-400"
+                />
+              </div>
+            </div>
+
+            {/* Modelos em Oferta */}
+            <div>
+              <div className="flex items-center justify-between mb-4">
+                <h3 className="text-sm font-bold text-white uppercase tracking-wider flex items-center gap-2">
+                  <Tag size={15} className="text-amber-400" />
+                  <span>Modelos com Desconto ({promotionalShowcase.items.length})</span>
+                </h3>
+                <span className="text-xs text-slate-400">
+                  Cada card possui botão direto para comprar no WhatsApp com mensagem personalizada
+                </span>
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-5">
+                {promotionalShowcase.items.map((item, idx) => (
+                  <div
+                    key={item.id}
+                    className="bg-[#0b1728] border border-white/10 rounded-2xl p-4 flex flex-col justify-between space-y-3 hover:border-amber-400/40 transition-colors"
+                  >
+                    <div>
+                      {/* Top bar do card */}
+                      <div className="flex items-center justify-between gap-1 mb-2">
+                        <span className="text-[10px] font-bold text-amber-400 bg-amber-400/10 px-2 py-0.5 rounded-md">
+                          #{idx + 1}
+                        </span>
+                        <button
+                          type="button"
+                          onClick={() => handleDeletePromoItem(item.id)}
+                          className="p-1 rounded-md text-rose-400 hover:bg-rose-500/20 transition-colors"
+                          title="Remover modelo"
+                        >
+                          <Trash2 size={13} />
+                        </button>
+                      </div>
+
+                      {/* Preview da imagem em fundo branco como no site */}
+                      <div className="aspect-[4/3] w-full rounded-xl bg-white p-3 flex items-center justify-center overflow-hidden border border-slate-200 mb-2 relative">
+                        <span className="absolute top-1.5 left-1.5 text-[8px] font-bold px-1.5 py-0.5 rounded-full bg-emerald-600 text-white shadow-xs">
+                          {item.discountBadge || "-25% OFF"}
+                        </span>
+                        <img
+                          src={item.image}
+                          alt={item.name}
+                          className="max-h-full max-w-full object-contain"
+                        />
+                      </div>
+
+                      {/* Botão de Trocar Imagem via Upload */}
+                      <label className="w-full inline-flex items-center justify-center gap-1.5 py-2 px-3 rounded-xl bg-amber-400 hover:bg-amber-300 text-slate-950 font-bold text-xs uppercase tracking-wider cursor-pointer transition-all shadow-xs mb-3">
+                        <Upload size={12} />
+                        <span>
+                          {uploadingPromoId === item.id ? "Enviando..." : "Trocar Foto do Óculos"}
+                        </span>
+                        <input
+                          type="file"
+                          accept="image/*"
+                          className="hidden"
+                          disabled={uploadingPromoId === item.id}
+                          onChange={(e) => handlePromoItemUpload(item.id, e)}
+                        />
+                      </label>
+
+                      {/* Campos Editáveis */}
+                      <div className="space-y-2 text-xs">
+                        <div>
+                          <label className="block text-slate-400 text-[11px] mb-0.5">Nome do Modelo</label>
+                          <input
+                            type="text"
+                            value={item.name}
+                            onChange={(e) =>
+                              setPromotionalShowcase((prev) => ({
+                                ...prev,
+                                items: prev.items.map((it) =>
+                                  it.id === item.id ? { ...it, name: e.target.value } : it
+                                ),
+                              }))
+                            }
+                            className="w-full bg-[#040c16] border border-white/10 rounded-lg px-2.5 py-1.5 text-white text-xs focus:outline-none focus:border-amber-400"
+                          />
+                        </div>
+
+                        <div className="grid grid-cols-2 gap-2">
+                          <div>
+                            <label className="block text-slate-400 text-[11px] mb-0.5">Categoria</label>
+                            <input
+                              type="text"
+                              value={item.category}
+                              onChange={(e) =>
+                                setPromotionalShowcase((prev) => ({
+                                  ...prev,
+                                  items: prev.items.map((it) =>
+                                    it.id === item.id ? { ...it, category: e.target.value } : it
+                                  ),
+                                }))
+                              }
+                              className="w-full bg-[#040c16] border border-white/10 rounded-lg px-2.5 py-1.5 text-white text-xs focus:outline-none focus:border-amber-400"
+                            />
+                          </div>
+                          <div>
+                            <label className="block text-slate-400 text-[11px] mb-0.5">Selo Desconto</label>
+                            <input
+                              type="text"
+                              value={item.discountBadge}
+                              onChange={(e) =>
+                                setPromotionalShowcase((prev) => ({
+                                  ...prev,
+                                  items: prev.items.map((it) =>
+                                    it.id === item.id ? { ...it, discountBadge: e.target.value } : it
+                                  ),
+                                }))
+                              }
+                              className="w-full bg-[#040c16] border border-white/10 rounded-lg px-2.5 py-1.5 text-white text-xs focus:outline-none focus:border-amber-400"
+                            />
+                          </div>
+                        </div>
+
+                        <div className="grid grid-cols-2 gap-2">
+                          <div>
+                            <label className="block text-slate-400 text-[11px] mb-0.5">Preço Original</label>
+                            <input
+                              type="text"
+                              value={item.originalPrice}
+                              onChange={(e) =>
+                                setPromotionalShowcase((prev) => ({
+                                  ...prev,
+                                  items: prev.items.map((it) =>
+                                    it.id === item.id ? { ...it, originalPrice: e.target.value } : it
+                                  ),
+                                }))
+                              }
+                              className="w-full bg-[#040c16] border border-white/10 rounded-lg px-2.5 py-1.5 text-white text-xs focus:outline-none focus:border-amber-400"
+                            />
+                          </div>
+                          <div>
+                            <label className="block text-slate-400 text-[11px] mb-0.5">Preço c/ Desconto</label>
+                            <input
+                              type="text"
+                              value={item.promotionalPrice}
+                              onChange={(e) =>
+                                setPromotionalShowcase((prev) => ({
+                                  ...prev,
+                                  items: prev.items.map((it) =>
+                                    it.id === item.id ? { ...it, promotionalPrice: e.target.value } : it
+                                  ),
+                                }))
+                              }
+                              className="w-full bg-[#040c16] border border-white/10 rounded-lg px-2.5 py-1.5 text-white text-xs focus:outline-none focus:border-amber-400"
+                            />
+                          </div>
+                        </div>
+
+                        <div>
+                          <label className="block text-slate-400 text-[11px] mb-0.5">Parcelamento</label>
+                          <input
+                            type="text"
+                            value={item.installment}
+                            onChange={(e) =>
+                              setPromotionalShowcase((prev) => ({
+                                ...prev,
+                                items: prev.items.map((it) =>
+                                  it.id === item.id ? { ...it, installment: e.target.value } : it
+                                ),
+                              }))
+                            }
+                            className="w-full bg-[#040c16] border border-white/10 rounded-lg px-2.5 py-1.5 text-white text-xs focus:outline-none focus:border-amber-400"
+                          />
+                        </div>
+
+                        <div className="grid grid-cols-2 gap-2">
+                          <div>
+                            <label className="block text-slate-400 text-[11px] mb-0.5">Nome da Cor</label>
+                            <input
+                              type="text"
+                              value={item.colorName}
+                              onChange={(e) =>
+                                setPromotionalShowcase((prev) => ({
+                                  ...prev,
+                                  items: prev.items.map((it) =>
+                                    it.id === item.id ? { ...it, colorName: e.target.value } : it
+                                  ),
+                                }))
+                              }
+                              className="w-full bg-[#040c16] border border-white/10 rounded-lg px-2.5 py-1.5 text-white text-xs focus:outline-none focus:border-amber-400"
+                            />
+                          </div>
+                          <div>
+                            <label className="block text-slate-400 text-[11px] mb-0.5">Slug do Produto</label>
+                            <input
+                              type="text"
+                              value={item.slug}
+                              onChange={(e) =>
+                                setPromotionalShowcase((prev) => ({
+                                  ...prev,
+                                  items: prev.items.map((it) =>
+                                    it.id === item.id ? { ...it, slug: e.target.value } : it
+                                  ),
+                                }))
+                              }
+                              className="w-full bg-[#040c16] border border-white/10 rounded-lg px-2.5 py-1.5 text-white text-xs focus:outline-none focus:border-amber-400"
+                            />
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            <div className="pt-4 border-t border-white/10 flex justify-end gap-3">
+              <button
+                type="button"
+                onClick={handleAddPromoItem}
+                className="inline-flex items-center gap-1.5 px-4 py-2.5 rounded-xl bg-white/10 hover:bg-white/20 text-white text-xs font-semibold cursor-pointer transition-all border border-white/15"
+              >
+                <Plus size={15} />
+                <span>Adicionar Mais um Modelo</span>
+              </button>
+
+              <button
+                type="submit"
+                disabled={isSavingPromo}
+                className="inline-flex items-center gap-2 px-6 py-2.5 rounded-xl bg-amber-400 hover:bg-amber-300 disabled:opacity-50 text-slate-950 font-bold text-xs uppercase tracking-wider transition-all shadow-md shadow-amber-400/20 cursor-pointer"
+              >
+                <Save size={15} />
+                <span>{isSavingPromo ? "Salvando..." : "Salvar Vitrine Promocional"}</span>
+              </button>
             </div>
           </div>
         </form>

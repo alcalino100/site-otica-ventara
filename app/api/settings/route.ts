@@ -5,12 +5,16 @@ import {
   DEFAULT_APPEARANCE,
   DEFAULT_LAB_SHOWCASE,
   DEFAULT_SHOWCASE_MEDIA,
+  DEFAULT_HOMOLOGATED_BRANDS,
+  DEFAULT_PROMOTIONAL_SHOWCASE,
 } from "@/lib/site-settings-constants";
 import {
   SiteIdentitySettings,
   SiteAppearanceSettings,
   LabShowcaseSettings,
   ShowcaseMediaSettings,
+  HomologatedBrand,
+  PromotionalShowcaseSettings,
 } from "@/types/ecommerce";
 
 export const dynamic = "force-dynamic";
@@ -22,7 +26,14 @@ export async function GET() {
     const { data, error } = await supabase
       .from("site_settings")
       .select("key, value")
-      .in("key", ["identity", "appearance", "lab_showcase", "showcase_media"]);
+      .in("key", [
+        "identity",
+        "appearance",
+        "lab_showcase",
+        "showcase_media",
+        "homologated_brands",
+        "promotional_showcase",
+      ]);
 
     if (error || !data) {
       return NextResponse.json({
@@ -30,6 +41,8 @@ export async function GET() {
         appearance: DEFAULT_APPEARANCE,
         lab_showcase: DEFAULT_LAB_SHOWCASE,
         showcase_media: DEFAULT_SHOWCASE_MEDIA,
+        homologated_brands: DEFAULT_HOMOLOGATED_BRANDS,
+        promotional_showcase: DEFAULT_PROMOTIONAL_SHOWCASE,
       });
     }
 
@@ -37,12 +50,16 @@ export async function GET() {
     const appearanceRow = data.find((s) => s.key === "appearance");
     const labRow = data.find((s) => s.key === "lab_showcase");
     const showcaseRow = data.find((s) => s.key === "showcase_media");
+    const brandsRow = data.find((s) => s.key === "homologated_brands");
+    const promoRow = data.find((s) => s.key === "promotional_showcase");
 
     return NextResponse.json({
       identity: identityRow?.value ? { ...DEFAULT_IDENTITY, ...(identityRow.value as SiteIdentitySettings) } : DEFAULT_IDENTITY,
       appearance: appearanceRow?.value ? { ...DEFAULT_APPEARANCE, ...(appearanceRow.value as SiteAppearanceSettings) } : DEFAULT_APPEARANCE,
       lab_showcase: labRow?.value ? { ...DEFAULT_LAB_SHOWCASE, ...(labRow.value as LabShowcaseSettings) } : DEFAULT_LAB_SHOWCASE,
       showcase_media: showcaseRow?.value ? { ...DEFAULT_SHOWCASE_MEDIA, ...(showcaseRow.value as ShowcaseMediaSettings) } : DEFAULT_SHOWCASE_MEDIA,
+      homologated_brands: brandsRow?.value ? (brandsRow.value as HomologatedBrand[]) : DEFAULT_HOMOLOGATED_BRANDS,
+      promotional_showcase: promoRow?.value ? { ...DEFAULT_PROMOTIONAL_SHOWCASE, ...(promoRow.value as PromotionalShowcaseSettings) } : DEFAULT_PROMOTIONAL_SHOWCASE,
     });
   } catch {
     return NextResponse.json({
@@ -50,6 +67,8 @@ export async function GET() {
       appearance: DEFAULT_APPEARANCE,
       lab_showcase: DEFAULT_LAB_SHOWCASE,
       showcase_media: DEFAULT_SHOWCASE_MEDIA,
+      homologated_brands: DEFAULT_HOMOLOGATED_BRANDS,
+      promotional_showcase: DEFAULT_PROMOTIONAL_SHOWCASE,
     });
   }
 }

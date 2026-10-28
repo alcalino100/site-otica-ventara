@@ -41,28 +41,10 @@ export function CatalogSection({
   const [sortBy, setSortBy] = useState<string>("featured");
   const [query, setQuery] = useState<string>("");
   const [isPending, startTransition] = useTransition();
-  const [activeIndex, setActiveIndex] = useState(0);
-  const carouselRef = useRef<HTMLDivElement>(null);
-
-  const handleCarouselScroll = () => {
-    if (!carouselRef.current) return;
-    const el = carouselRef.current;
-    const itemWidth = el.scrollWidth / (filteredProducts.length || 1);
-    const index = Math.round(el.scrollLeft / itemWidth);
-    setActiveIndex(Math.min(Math.max(0, index), filteredProducts.length - 1));
-  };
-
-  const scrollPrev = () => {
-    if (carouselRef.current) {
-      carouselRef.current.scrollBy({ left: -300, behavior: "smooth" });
-    }
-  };
-
-  const scrollNext = () => {
-    if (carouselRef.current) {
-      carouselRef.current.scrollBy({ left: 300, behavior: "smooth" });
-    }
-  };
+  const [activeIndex1, setActiveIndex1] = useState(0);
+  const [activeIndex2, setActiveIndex2] = useState(0);
+  const carouselRef1 = useRef<HTMLDivElement>(null);
+  const carouselRef2 = useRef<HTMLDivElement>(null);
 
   // Listen for hash changes like #solar or #armacoes ou #grau ou #infantil
   useEffect(() => {
@@ -197,6 +179,56 @@ export function CatalogSection({
 
     return result;
   }, [products, filter, selectedShape, selectedMaterial, selectedPriceRange, query, sortBy]);
+
+  const row1Products = useMemo(() => {
+    if (filteredProducts.length <= 4) return filteredProducts;
+    return filteredProducts.slice(0, Math.ceil(filteredProducts.length / 2));
+  }, [filteredProducts]);
+
+  const row2Products = useMemo(() => {
+    if (filteredProducts.length <= 4) return [];
+    return filteredProducts.slice(Math.ceil(filteredProducts.length / 2));
+  }, [filteredProducts]);
+
+  const handleCarouselScroll1 = () => {
+    if (!carouselRef1.current) return;
+    const el = carouselRef1.current;
+    const itemWidth = el.scrollWidth / (row1Products.length || 1);
+    const index = Math.round(el.scrollLeft / itemWidth);
+    setActiveIndex1(Math.min(Math.max(0, index), row1Products.length - 1));
+  };
+
+  const handleCarouselScroll2 = () => {
+    if (!carouselRef2.current) return;
+    const el = carouselRef2.current;
+    const itemWidth = el.scrollWidth / (row2Products.length || 1);
+    const index = Math.round(el.scrollLeft / itemWidth);
+    setActiveIndex2(Math.min(Math.max(0, index), row2Products.length - 1));
+  };
+
+  const scrollPrev1 = () => {
+    if (carouselRef1.current) {
+      carouselRef1.current.scrollBy({ left: -260, behavior: "smooth" });
+    }
+  };
+
+  const scrollNext1 = () => {
+    if (carouselRef1.current) {
+      carouselRef1.current.scrollBy({ left: 260, behavior: "smooth" });
+    }
+  };
+
+  const scrollPrev2 = () => {
+    if (carouselRef2.current) {
+      carouselRef2.current.scrollBy({ left: -260, behavior: "smooth" });
+    }
+  };
+
+  const scrollNext2 = () => {
+    if (carouselRef2.current) {
+      carouselRef2.current.scrollBy({ left: 260, behavior: "smooth" });
+    }
+  };
 
   // Contagem de filtros ativos
   const activeFiltersCount =
@@ -440,56 +472,15 @@ export function CatalogSection({
           )}
         </div>
 
-        {/* Grade de Produtos no Desktop / Carrossel Horizontal de 1 Nível de Altura no Mobile */}
+        {/* Grade de Produtos no Desktop / Carrossel em 2 Níveis no Mobile ("mais uma na parte de baixo") */}
         {isPending ? (
           <ProductGridSkeleton />
         ) : filteredProducts.length > 0 ? (
           <div className="relative">
-            {/* Barra de Navegação do Carrossel Mobile - ACIMA dos Cards com espaçamento generoso */}
-            <div className="flex sm:hidden items-center justify-between pb-3.5 px-2">
-              <div className="flex items-center gap-2 text-xs font-medium text-slate-700">
-                <span className="w-2 h-2 rounded-full bg-amber-500 animate-pulse" />
-                <span>Deslize para ver os modelos</span>
-                <span className="font-mono text-slate-400 font-semibold text-[11px]">
-                  ({filteredProducts.length})
-                </span>
-              </div>
-
-              <div className="flex items-center gap-1.5">
-                <button
-                  type="button"
-                  onClick={scrollPrev}
-                  aria-label="Armação anterior"
-                  className="w-8 h-8 rounded-full border border-slate-300 bg-white shadow-xs flex items-center justify-center text-slate-700 active:scale-90 transition-transform"
-                >
-                  <ChevronLeft size={16} />
-                </button>
-                <button
-                  type="button"
-                  onClick={scrollNext}
-                  aria-label="Próxima armação"
-                  className="w-8 h-8 rounded-full border border-slate-300 bg-white shadow-xs flex items-center justify-center text-slate-700 active:scale-90 transition-transform"
-                >
-                  <ChevronRight size={16} />
-                </button>
-              </div>
-            </div>
-
-            {/* Carrossel no Mobile (1 nível de altura, tamanho compacto, margem lateral generosa UI/UX, sem sobreposição) / Grid no Desktop */}
-            <div
-              ref={carouselRef}
-              onScroll={handleCarouselScroll}
-              role="region"
-              aria-label="Carrossel de armações"
-              tabIndex={0}
-              className="flex sm:grid flex-row flex-nowrap sm:flex-none overflow-x-auto sm:overflow-visible overflow-y-hidden snap-x snap-mandatory sm:snap-none gap-6 sm:gap-6 py-2 pb-5 sm:pb-0 sm:grid-cols-2 lg:grid-cols-4 no-scrollbar -mx-4 px-6 sm:mx-0 sm:px-0 scroll-px-6"
-              style={{ WebkitOverflowScrolling: "touch" }}
-            >
+            {/* 1. VISÃO DESKTOP: Grade com todos os modelos em 4 colunas */}
+            <div className="hidden sm:grid sm:grid-cols-2 lg:grid-cols-4 sm:gap-6">
               {filteredProducts.map((product) => (
-                <div
-                  key={product.id}
-                  className="snap-start shrink-0 w-[58vw] max-w-[225px] sm:w-auto sm:max-w-none flex flex-col"
-                >
+                <div key={product.id} className="flex flex-col">
                   <ProductCard
                     product={product}
                     onSelect={onSelectProduct}
@@ -500,31 +491,174 @@ export function CatalogSection({
               ))}
             </div>
 
-            {/* Indicadores de Paginação do Carrossel no Mobile com espaçamento respirável */}
-            {filteredProducts.length > 1 && (
-              <div className="flex sm:hidden items-center justify-center gap-2 pt-4">
-                {filteredProducts.map((p, idx) => (
-                  <button
-                    key={p.id}
-                    type="button"
-                    onClick={() => {
-                      if (carouselRef.current) {
-                        const targetCard = carouselRef.current.children[idx] as HTMLElement;
-                        if (targetCard) {
-                          targetCard.scrollIntoView({ behavior: "smooth", inline: "center", block: "nearest" });
-                        }
-                      }
-                    }}
-                    aria-label={`Ver modelo ${idx + 1}`}
-                    className={`h-1.5 rounded-full transition-all duration-300 ${
-                      activeIndex === idx
-                        ? "w-6 bg-amber-500"
-                        : "w-1.5 bg-slate-300 hover:bg-slate-400"
-                    }`}
-                  />
-                ))}
+            {/* 2. VISÃO MOBILE: Carrosséis Horizontais com 2 Linhas de Modelos Sem Sobreposição */}
+            <div className="block sm:hidden space-y-7">
+              {/* LINHA 1 MOBILE */}
+              <div>
+                <div className="flex items-center justify-between pb-3 px-2">
+                  <div className="flex items-center gap-2 text-xs font-medium text-slate-700">
+                    <span className="w-2 h-2 rounded-full bg-amber-500 animate-pulse" />
+                    <span>
+                      {row2Products.length > 0 ? "Modelos em Destaque" : "Deslize para ver os modelos"}
+                    </span>
+                    <span className="font-mono text-slate-400 font-semibold text-[11px]">
+                      ({row1Products.length})
+                    </span>
+                  </div>
+
+                  <div className="flex items-center gap-1.5">
+                    <button
+                      type="button"
+                      onClick={scrollPrev1}
+                      aria-label="Armação anterior"
+                      className="w-8 h-8 rounded-full border border-slate-300 bg-white shadow-xs flex items-center justify-center text-slate-700 active:scale-90 transition-transform"
+                    >
+                      <ChevronLeft size={16} />
+                    </button>
+                    <button
+                      type="button"
+                      onClick={scrollNext1}
+                      aria-label="Próxima armação"
+                      className="w-8 h-8 rounded-full border border-slate-300 bg-white shadow-xs flex items-center justify-center text-slate-700 active:scale-90 transition-transform"
+                    >
+                      <ChevronRight size={16} />
+                    </button>
+                  </div>
+                </div>
+
+                <div
+                  ref={carouselRef1}
+                  onScroll={handleCarouselScroll1}
+                  role="region"
+                  aria-label="Carrossel linha 1 de armações"
+                  tabIndex={0}
+                  className="flex flex-row flex-nowrap overflow-x-auto overflow-y-hidden snap-x snap-mandatory gap-6 py-2 pb-4 no-scrollbar -mx-4 px-6 scroll-px-6"
+                  style={{ WebkitOverflowScrolling: "touch" }}
+                >
+                  {row1Products.map((product) => (
+                    <div
+                      key={product.id}
+                      className="snap-start shrink-0 w-[58vw] max-w-[225px] flex flex-col"
+                    >
+                      <ProductCard
+                        product={product}
+                        onSelect={onSelectProduct}
+                        onAddToCart={onAddToCart}
+                        isInCart={cartIds.includes(product.id)}
+                      />
+                    </div>
+                  ))}
+                </div>
+
+                {row1Products.length > 1 && (
+                  <div className="flex items-center justify-center gap-2 pt-2">
+                    {row1Products.map((p, idx) => (
+                      <button
+                        key={p.id}
+                        type="button"
+                        onClick={() => {
+                          if (carouselRef1.current) {
+                            const targetCard = carouselRef1.current.children[idx] as HTMLElement;
+                            if (targetCard) {
+                              targetCard.scrollIntoView({ behavior: "smooth", inline: "center", block: "nearest" });
+                            }
+                          }
+                        }}
+                        aria-label={`Ver modelo ${idx + 1}`}
+                        className={`h-1.5 rounded-full transition-all duration-300 ${
+                          activeIndex1 === idx
+                            ? "w-6 bg-amber-500"
+                            : "w-1.5 bg-slate-300 hover:bg-slate-400"
+                        }`}
+                      />
+                    ))}
+                  </div>
+                )}
               </div>
-            )}
+
+              {/* LINHA 2 MOBILE: SEGUNDA PARTE NA PARTE DE BAIXO */}
+              {row2Products.length > 0 && (
+                <div className="pt-2 border-t border-slate-200/60">
+                  <div className="flex items-center justify-between pb-3 px-2">
+                    <div className="flex items-center gap-2 text-xs font-medium text-slate-700">
+                      <span className="w-2 h-2 rounded-full bg-blue-600 animate-pulse" />
+                      <span>Mais Modelos &amp; Estilos</span>
+                      <span className="font-mono text-slate-400 font-semibold text-[11px]">
+                        ({row2Products.length})
+                      </span>
+                    </div>
+
+                    <div className="flex items-center gap-1.5">
+                      <button
+                        type="button"
+                        onClick={scrollPrev2}
+                        aria-label="Armação anterior"
+                        className="w-8 h-8 rounded-full border border-slate-300 bg-white shadow-xs flex items-center justify-center text-slate-700 active:scale-90 transition-transform"
+                      >
+                        <ChevronLeft size={16} />
+                      </button>
+                      <button
+                        type="button"
+                        onClick={scrollNext2}
+                        aria-label="Próxima armação"
+                        className="w-8 h-8 rounded-full border border-slate-300 bg-white shadow-xs flex items-center justify-center text-slate-700 active:scale-90 transition-transform"
+                      >
+                        <ChevronRight size={16} />
+                      </button>
+                    </div>
+                  </div>
+
+                  <div
+                    ref={carouselRef2}
+                    onScroll={handleCarouselScroll2}
+                    role="region"
+                    aria-label="Carrossel linha 2 de armações"
+                    tabIndex={0}
+                    className="flex flex-row flex-nowrap overflow-x-auto overflow-y-hidden snap-x snap-mandatory gap-6 py-2 pb-4 no-scrollbar -mx-4 px-6 scroll-px-6"
+                    style={{ WebkitOverflowScrolling: "touch" }}
+                  >
+                    {row2Products.map((product) => (
+                      <div
+                        key={product.id}
+                        className="snap-start shrink-0 w-[58vw] max-w-[225px] flex flex-col"
+                      >
+                        <ProductCard
+                          product={product}
+                          onSelect={onSelectProduct}
+                          onAddToCart={onAddToCart}
+                          isInCart={cartIds.includes(product.id)}
+                        />
+                      </div>
+                    ))}
+                  </div>
+
+                  {row2Products.length > 1 && (
+                    <div className="flex items-center justify-center gap-2 pt-2">
+                      {row2Products.map((p, idx) => (
+                        <button
+                          key={p.id}
+                          type="button"
+                          onClick={() => {
+                            if (carouselRef2.current) {
+                              const targetCard = carouselRef2.current.children[idx] as HTMLElement;
+                              if (targetCard) {
+                                targetCard.scrollIntoView({ behavior: "smooth", inline: "center", block: "nearest" });
+                              }
+                            }
+                          }}
+                          aria-label={`Ver modelo ${idx + 1}`}
+                          className={`h-1.5 rounded-full transition-all duration-300 ${
+                            activeIndex2 === idx
+                              ? "w-6 bg-blue-600"
+                              : "w-1.5 bg-slate-300 hover:bg-slate-400"
+                          }`}
+                        />
+                      ))}
+                    </div>
+                  )}
+                </div>
+              )}
+            </div>
           </div>
         ) : (
           <div className="empty-catalog text-center py-16 bg-white rounded-3xl border border-slate-200 max-w-md mx-auto p-8 shadow-sm space-y-3">

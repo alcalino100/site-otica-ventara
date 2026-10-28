@@ -21,6 +21,7 @@ import {
   Sun,
   Moon,
   Palette,
+  Headphones,
 } from "lucide-react";
 import { BrandLogo } from "@/components/ui/brand-logo";
 
@@ -514,52 +515,40 @@ export default function RastreioPage() {
               </div>
             </div>
 
-            {/* Rodapé do Card com Técnico Responsável e CTA WhatsApp */}
+            {/* Rodapé do Card com Suporte de Vendas e CTA WhatsApp */}
             <div className={`flex flex-col sm:flex-row sm:items-center justify-between gap-4 pt-4 border-t p-4 rounded-2xl ${
               isWhite ? "border-slate-200 bg-slate-100/60" : "border-white/10 bg-[#02070d]/60"
             }`}>
               <div className="flex items-center gap-3">
-                <div className="w-11 h-11 rounded-full overflow-hidden border border-amber-400/40 shrink-0">
-                  <img
-                    src="/images/team/gustavo-tecnico-optico.jpg"
-                    alt="Gustavo Guimarães Cordeiro"
-                    className="w-full h-full object-cover object-top"
-                  />
+                <div className={`w-11 h-11 rounded-full flex items-center justify-center shrink-0 border ${
+                  isWhite
+                    ? "bg-amber-100/80 border-amber-300 text-amber-700"
+                    : "bg-amber-400/15 border-amber-400/40 text-amber-400"
+                }`}>
+                  <Headphones size={20} />
                 </div>
                 <div>
                   <p className={`text-xs font-bold flex items-center gap-1.5 ${isWhite ? "text-slate-900" : "text-white"}`}>
-                    <span>Gustavo Guimarães Cordeiro</span>
+                    <span>Suporte de Vendas</span>
                     <ShieldCheck size={14} className="text-amber-500 dark:text-amber-400" />
                   </p>
-                  <p className={`text-[11px] ${isWhite ? "text-slate-600" : "text-slate-400"}`}>
-                    Técnico Óptico Responsável pela Calibração
+                  <p className={`text-[11px] font-medium ${isWhite ? "text-slate-700" : "text-slate-300"}`}>
+                    Equipe responsável pelo seu atendimento
                   </p>
                   <p className="text-[10px] text-amber-600 dark:text-amber-400/90 font-mono mt-0.5">
-                    Registro Nacional de Responsável Técnico
+                    Atendimento sobre seus pedidos das 9h até as 21:00
                   </p>
                 </div>
               </div>
 
-              <div className="flex flex-wrap items-center gap-2">
-                <Link
-                  href="/responsavel-tecnico"
-                  className={`inline-flex items-center justify-center gap-1 px-3.5 py-2 rounded-full border text-xs font-semibold transition-all ${
-                    isWhite
-                      ? "bg-white hover:bg-slate-200 border-slate-300 text-slate-800"
-                      : "bg-white/5 hover:bg-white/10 border-white/10 text-slate-200"
-                  }`}
-                >
-                  <span>Conhecer Perfil Técnico</span>
-                  <ArrowRight size={13} />
-                </Link>
-
+              <div className="flex items-center">
                 <a
                   href={whatsappOrderUrl}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="inline-flex items-center justify-center gap-2 px-4 py-2 rounded-full bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs tracking-wide shadow-md transition-all active:scale-95"
+                  className="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-5 py-2.5 rounded-full bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs tracking-wide shadow-md transition-all active:scale-95 cursor-pointer"
                 >
-                  <MessageCircle size={14} />
+                  <MessageCircle size={15} />
                   <span>Dúvidas no WhatsApp</span>
                 </a>
               </div>

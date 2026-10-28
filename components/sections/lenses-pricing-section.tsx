@@ -18,8 +18,8 @@ import {
 } from "lucide-react";
 import { LensOpticalGraphic } from "../ui/lens-optical-graphic";
 import { PartnerLogosRibbon } from "./partner-logos-ribbon";
-import { DEFAULT_LAB_SHOWCASE } from "@/lib/site-settings-constants";
-import { LabShowcaseSettings } from "@/types/ecommerce";
+import { DEFAULT_LAB_SHOWCASE, DEFAULT_HOMOLOGATED_BRANDS } from "@/lib/site-settings-constants";
+import { LabShowcaseSettings, HomologatedBrand } from "@/types/ecommerce";
 
 type LensCategory = "visao-simples" | "multifocal" | "tratamentos" | "marcas";
 
@@ -44,6 +44,7 @@ export function LensesPricingSection() {
   const [activeCategory, setActiveCategory] = useState<LensCategory>("visao-simples");
   const [activeLenses, setActiveLenses] = useState<LensOption[]>([]);
   const [labShowcase, setLabShowcase] = useState<LabShowcaseSettings>(DEFAULT_LAB_SHOWCASE);
+  const [homologatedBrands, setHomologatedBrands] = useState<HomologatedBrand[]>(DEFAULT_HOMOLOGATED_BRANDS);
   const [activeCardIndex, setActiveCardIndex] = useState(0);
   const carouselRef = useRef<HTMLDivElement>(null);
 
@@ -98,6 +99,9 @@ export function LensesPricingSection() {
           const data = await res.json();
           if (data.lab_showcase) {
             setLabShowcase((prev) => ({ ...prev, ...data.lab_showcase }));
+          }
+          if (data.homologated_brands && Array.isArray(data.homologated_brands) && data.homologated_brands.length > 0) {
+            setHomologatedBrands(data.homologated_brands);
           }
         }
       } catch (err) {
@@ -349,58 +353,8 @@ export function LensesPricingSection() {
     },
   ];
 
-  // Marcas oficiais parceiras com caixas e logos correspondentes (estilo Panda Elite)
-  const brandLogos = [
-    {
-      name: "OPTiSYNC HD",
-      logo: "/logos/optisync.svg",
-      boxImage: "/images/lenses/optisync-box.jpg",
-      badge: "Ventara Exclusivo",
-      desc: "Lentes cortadas e facetadas no laboratório próprio de Araçatuba em até 1 hora, sem margem de terceiros.",
-    },
-    {
-      name: "Perego Laboratório",
-      logo: "/logos/perego.svg",
-      boxImage: "/images/lenses/newflash-box.jpg",
-      badge: "Laboratório Homologado",
-      desc: "Laboratório óptico parceiro com usinagem digital de alta precisão e controle de qualidade rigoroso.",
-    },
-    {
-      name: "Lentes Correct",
-      logo: "/logos/correct.svg",
-      boxImage: "/images/lenses/correct-box.jpg",
-      badge: "Visão Simples Nacional",
-      desc: "Excelente custo-benefício e montagem ágil para visão simples com antirreflexo essencial.",
-    },
-    {
-      name: "Orgalens Mais",
-      logo: "/logos/orgaline.svg",
-      boxImage: "/images/lenses/orgaline-box.jpg",
-      badge: "Alta Nitidez",
-      desc: "Matéria-prima de alta pureza com tratamento hidrorrepelente que facilita a limpeza diária.",
-    },
-    {
-      name: "HOYA / Maxxee",
-      logo: "/logos/hoya.svg",
-      boxImage: "/images/lenses/hoya-box.jpg",
-      badge: "Precisão Global",
-      desc: "Referência japonesa mundial em óptica de alta fidelidade e durabilidade contra riscos.",
-    },
-    {
-      name: "Kodak Lens",
-      logo: "/logos/kodak.svg",
-      boxImage: "/images/lenses/kodak-box.jpg",
-      badge: "Visão Simples Acessível",
-      desc: "Mais de um século de tradição óptica, cores vivas e amplo campo visual com excelente preço.",
-    },
-    {
-      name: "Varilux (Essilor)",
-      logo: "/logos/varilux.svg",
-      boxImage: "/images/lenses/optisync-box.jpg",
-      badge: "Líder Mundial",
-      desc: "A lente multifocal progressiva mais recomendada do planeta com garantia total de adaptação.",
-    },
-  ];
+  // Marcas oficiais parceiras carregadas dinamicamente das configurações
+  const brandLogos = homologatedBrands;
 
   const currentList = activeLenses.length > 0 ? activeLenses : lensOptions;
   const filteredOptions =
@@ -646,8 +600,8 @@ export function LensesPricingSection() {
                   <div className="pt-4 border-t border-slate-800 mt-auto">
                     <div className="flex items-baseline justify-between mb-2">
                       <div>
-                        <span className="text-[10px] text-slate-400 uppercase tracking-wider block font-medium">
-                          Valor de Referência
+                        <span className="text-[11px] text-amber-400/90 uppercase tracking-wider block font-semibold">
+                          A partir de
                         </span>
                         <span className="text-xl sm:text-2xl font-extrabold text-white font-mono tracking-tight">
                           {opt.startingPrice}
@@ -689,7 +643,7 @@ export function LensesPricingSection() {
             >
               {brandLogos.map((brand, idx) => (
                 <div
-                  key={idx}
+                  key={brand.id || idx}
                   className="snap-center shrink-0 w-[78vw] max-w-[305px] md:w-auto md:max-w-none bg-[#0e192a] rounded-3xl border border-slate-800 hover:border-amber-400/50 p-5 sm:p-6 shadow-xl flex flex-col justify-between group transition-all duration-300"
                 >
                   <div>

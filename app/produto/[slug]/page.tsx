@@ -323,15 +323,15 @@ export default async function ProductDetailPage({ params }: ProductPageProps) {
                   href={`/produto/${rel.slug}`}
                   className="group p-5 rounded-2xl bg-white hover:border-amber-400/60 border border-slate-200/90 hover:shadow-xl transition-all duration-200 flex flex-col justify-between shadow-xs"
                 >
-                  <div className="bg-slate-50 rounded-xl p-6 flex items-center justify-center min-h-[160px] mb-4">
+                  <div className="bg-slate-100/90 rounded-2xl p-3 sm:p-4 flex items-center justify-center aspect-[4/3] w-full mb-4 overflow-hidden relative group-hover:bg-slate-100 transition-colors">
                     {relImg ? (
                       <img
                         src={relImg}
                         alt={rel.name}
-                        className="max-h-24 w-auto object-contain group-hover:scale-105 transition-transform duration-300"
+                        className="w-full h-full object-contain group-hover:scale-105 transition-transform duration-300"
                       />
                     ) : (
-                      <div className="w-32">
+                      <div className="w-full max-w-[160px]">
                         <FrameArt
                           solar={rel.frame_type === "Solar"}
                           round={rel.frame_shape === "Redondo"}

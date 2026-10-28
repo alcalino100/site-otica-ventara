@@ -247,3 +247,39 @@ export interface InventoryMovement {
   product?: Product | null;
   variant?: ProductVariant | null;
 }
+
+export interface HomologatedBrand {
+  id: string;
+  name: string;
+  logo: string;
+  boxImage: string;
+  badge: string;
+  desc: string;
+  isActive?: boolean;
+}
+
+export interface PromoProductItem {
+  id: string;
+  name: string;
+  category: string;
+  tag: string;
+  discountBadge: string;
+  originalPrice: string;
+  promotionalPrice: string;
+  installment: string;
+  image: string;
+  colorName: string;
+  colorHex: string;
+  slug: string;
+  description?: string;
+  extraColorsCount?: number;
+}
+
+export interface PromotionalShowcaseSettings {
+  isEnabled: boolean;
+  pillText: string;
+  title: string;
+  subtitle: string;
+  ctaText?: string;
+  items: PromoProductItem[];
+}

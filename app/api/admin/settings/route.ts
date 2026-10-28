@@ -5,12 +5,16 @@ import {
   SiteAppearanceSettings,
   LabShowcaseSettings,
   ShowcaseMediaSettings,
+  HomologatedBrand,
+  PromotionalShowcaseSettings,
 } from "@/types/ecommerce";
 import {
   DEFAULT_IDENTITY,
   DEFAULT_APPEARANCE,
   DEFAULT_LAB_SHOWCASE,
   DEFAULT_SHOWCASE_MEDIA,
+  DEFAULT_HOMOLOGATED_BRANDS,
+  DEFAULT_PROMOTIONAL_SHOWCASE,
 } from "@/lib/site-settings-constants";
 
 export async function GET() {
@@ -19,7 +23,15 @@ export async function GET() {
     const { data, error } = await adminSupabase
       .from("site_settings")
       .select("key, value")
-      .in("key", ["identity", "appearance", "shipping", "lab_showcase", "showcase_media"]);
+      .in("key", [
+        "identity",
+        "appearance",
+        "shipping",
+        "lab_showcase",
+        "showcase_media",
+        "homologated_brands",
+        "promotional_showcase",
+      ]);
 
     if (error) {
       console.warn("Aviso ao buscar configurações:", error.message);
@@ -28,6 +40,8 @@ export async function GET() {
         appearance: DEFAULT_APPEARANCE,
         lab_showcase: DEFAULT_LAB_SHOWCASE,
         showcase_media: DEFAULT_SHOWCASE_MEDIA,
+        homologated_brands: DEFAULT_HOMOLOGATED_BRANDS,
+        promotional_showcase: DEFAULT_PROMOTIONAL_SHOWCASE,
       });
     }
 
@@ -36,6 +50,8 @@ export async function GET() {
     const shippingRow = data?.find((s) => s.key === "shipping");
     const labRow = data?.find((s) => s.key === "lab_showcase");
     const showcaseRow = data?.find((s) => s.key === "showcase_media");
+    const brandsRow = data?.find((s) => s.key === "homologated_brands");
+    const promoRow = data?.find((s) => s.key === "promotional_showcase");
 
     return NextResponse.json({
       identity: identityRow?.value ? { ...DEFAULT_IDENTITY, ...(identityRow.value as SiteIdentitySettings) } : DEFAULT_IDENTITY,
@@ -43,6 +59,8 @@ export async function GET() {
       shipping: shippingRow?.value || null,
       lab_showcase: labRow?.value ? { ...DEFAULT_LAB_SHOWCASE, ...(labRow.value as LabShowcaseSettings) } : DEFAULT_LAB_SHOWCASE,
       showcase_media: showcaseRow?.value ? { ...DEFAULT_SHOWCASE_MEDIA, ...(showcaseRow.value as ShowcaseMediaSettings) } : DEFAULT_SHOWCASE_MEDIA,
+      homologated_brands: brandsRow?.value ? (brandsRow.value as HomologatedBrand[]) : DEFAULT_HOMOLOGATED_BRANDS,
+      promotional_showcase: promoRow?.value ? { ...DEFAULT_PROMOTIONAL_SHOWCASE, ...(promoRow.value as PromotionalShowcaseSettings) } : DEFAULT_PROMOTIONAL_SHOWCASE,
     });
   } catch (err: any) {
     console.error("Erro interno ao buscar configurações:", err);
@@ -51,6 +69,8 @@ export async function GET() {
       appearance: DEFAULT_APPEARANCE,
       lab_showcase: DEFAULT_LAB_SHOWCASE,
       showcase_media: DEFAULT_SHOWCASE_MEDIA,
+      homologated_brands: DEFAULT_HOMOLOGATED_BRANDS,
+      promotional_showcase: DEFAULT_PROMOTIONAL_SHOWCASE,
     });
   }
 }
@@ -109,6 +129,14 @@ export async function POST(req: NextRequest) {
 
     if (body.showcase_media) {
       await saveSetting("showcase_media", "Fotos das Vitrines, Esportivos e Banners", body.showcase_media);
+    }
+
+    if (body.homologated_brands) {
+      await saveSetting("homologated_brands", "Marcas Homologadas e Fotos das Caixas dos Laboratórios", body.homologated_brands);
+    }
+
+    if (body.promotional_showcase) {
+      await saveSetting("promotional_showcase", "Vitrine Promocional 25% OFF Fundo Branco", body.promotional_showcase);
     }
 
     return NextResponse.json({
