@@ -93,6 +93,11 @@ export function LensesPricingSection() {
     return l.category === activeCategory;
   });
 
+  const bannerGraphicSrc =
+    lensesSection?.useCustomGraphic && lensesSection?.graphicImageUrl
+      ? lensesSection.graphicImageUrl
+      : lensesSection?.graphicImageUrl || "/images/banners/lentes-3d-reflexo.png";
+
   const displayedLenses = isExpanded ? filteredLenses : filteredLenses.slice(0, INITIAL_LIMIT);
 
   const displayedBrands = isExpanded
@@ -209,12 +214,12 @@ export function LensesPricingSection() {
                 </p>
               </div>
 
-              {/* Lado Direito do Banner: Lentes 3D com Reflexo Antirreflexo Azul */}
+              {/* Lado Direito do Banner: Lentes 3D com Reflexo Antirreflexo Azul ou Imagem Personalizada do Admin */}
               <div className="md:col-span-5 flex items-center justify-center md:justify-end">
-                <div className="relative">
+                <div className="relative max-h-32 sm:max-h-44 flex items-center justify-center">
                   <img
-                    src="/images/banners/lentes-3d-reflexo.png"
-                    alt="Lentes de Grau Óticas Ventara com Antirreflexo"
+                    src={bannerGraphicSrc}
+                    alt={lensesSection?.badgeSubtitle || "Lentes de Grau Óticas Ventara com Antirreflexo"}
                     className="max-h-28 sm:max-h-36 w-auto object-contain drop-shadow-md select-none pointer-events-none"
                     loading="lazy"
                   />
@@ -225,14 +230,17 @@ export function LensesPricingSection() {
             {/* Fita de Parceiros no Rodapé do Banner Card */}
             <div className="mt-6 pt-5 border-t border-slate-200/70">
               <div className="flex items-center gap-3 sm:gap-6 overflow-x-auto no-scrollbar py-1">
-                {BANNER_STRIP_PARTNERS.map((partner, index) => (
-                  <React.Fragment key={partner.name}>
+                {(lensesSection?.partnerLogos && lensesSection.partnerLogos.length > 0
+                  ? lensesSection.partnerLogos
+                  : BANNER_STRIP_PARTNERS
+                ).map((partner: any, index: number) => (
+                  <React.Fragment key={partner.name || partner.id || index}>
                     {index > 0 && <div className="h-5 w-px bg-slate-200 shrink-0" />}
                     <div className="shrink-0 flex items-center justify-center px-1">
-                      {partner.logo ? (
+                      {partner.src || partner.logo ? (
                         <img
-                          src={partner.logo}
-                          alt={partner.name}
+                          src={partner.src || partner.logo}
+                          alt={partner.alt || partner.name}
                           className="h-5 sm:h-6 max-w-[100px] object-contain opacity-85 hover:opacity-100 transition-opacity"
                           loading="lazy"
                         />

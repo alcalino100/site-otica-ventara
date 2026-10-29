@@ -1167,14 +1167,14 @@ export default function AdminLensesPage() {
               <div>
                 <h3 className="text-base font-bold text-white flex items-center gap-2">
                   <Sparkles size={16} className="text-amber-400" />
-                  <span>Card do Padrão Óptico (Símbolo de Lentes)</span>
+                  <span>Imagem do Banner &amp; Símbolo Óptico (Página Inicial e /lentes)</span>
                 </h3>
                 <p className="text-xs text-slate-400 mt-0.5">
-                  Este card aparece em destaque no cabeçalho da seção de lentes no site (ao lado dos títulos).
+                  Esta imagem é exibida no banner destacado de Lentes de Grau na Página Inicial e na página de catálogo (/lentes).
                 </p>
               </div>
 
-              {/* Toggle Custom vs Vetor 3D */}
+              {/* Toggle Custom vs Imagem Padrão */}
               <label className="flex items-center gap-2.5 text-xs font-semibold text-slate-200 cursor-pointer bg-[#050f1d] px-3.5 py-2 rounded-xl border border-white/10 hover:border-amber-400/40 transition-colors">
                 <input
                   type="checkbox"
@@ -1195,11 +1195,11 @@ export default function AdminLensesPage() {
               {/* Preview ao Vivo do Card como fica no site */}
               <div className="lg:col-span-5 flex flex-col items-center justify-center p-6 bg-[#040c16] rounded-2xl border border-slate-800">
                 <span className="text-[10px] font-bold text-slate-500 uppercase tracking-widest mb-3">
-                  Prévia em Tempo Real (Visual do Site)
+                  Prévia em Tempo Real (Banner da Home e /lentes)
                 </span>
-                <div className="relative p-5 rounded-3xl bg-[#0f1d30] border border-slate-700/80 shadow-2xl flex flex-col items-center text-center max-w-[240px] w-full">
+                <div className="relative p-5 rounded-3xl bg-gradient-to-br from-[#0f1d30] to-[#08121f] border border-slate-700/80 shadow-2xl flex flex-col items-center text-center max-w-[260px] w-full">
                   {lensesSection.useCustomGraphic && lensesSection.graphicImageUrl ? (
-                    <div className="w-[160px] h-[160px] flex items-center justify-center relative overflow-hidden rounded-2xl bg-slate-900/50 p-2">
+                    <div className="w-[180px] h-[140px] flex items-center justify-center relative overflow-hidden rounded-2xl bg-white/5 p-2">
                       <img
                         src={lensesSection.graphicImageUrl}
                         alt="Preview"
@@ -1207,9 +1207,15 @@ export default function AdminLensesPage() {
                       />
                     </div>
                   ) : (
-                    <LensOpticalGraphic size={160} glow={true} />
+                    <div className="w-[180px] h-[140px] flex items-center justify-center relative overflow-hidden rounded-2xl bg-white/5 p-2">
+                      <img
+                        src="/images/banners/lentes-3d-reflexo.png"
+                        alt="Preview Lentes Padrão"
+                        className="max-h-24 w-auto object-contain drop-shadow-md"
+                      />
+                    </div>
                   )}
-                  <div className="mt-2.5">
+                  <div className="mt-3">
                     <span className="text-[10px] font-bold uppercase tracking-wider text-amber-400/90 block">
                       {lensesSection.badgeTag || "PADRÃO ÓPTICO VENTARA"}
                     </span>
