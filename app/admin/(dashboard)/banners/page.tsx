@@ -25,11 +25,14 @@ import {
   PromotionalShowcaseSettings,
   PromoProductItem,
   HeroBannerSettings,
+  InteractiveShowcaseSettings,
+  ShowcaseVariationItem,
 } from "@/types/ecommerce";
 import {
   DEFAULT_SHOWCASE_MEDIA,
   DEFAULT_PROMOTIONAL_SHOWCASE,
   DEFAULT_HERO_BANNER,
+  DEFAULT_INTERACTIVE_SHOWCASE,
 } from "@/lib/site-settings-constants";
 
 export default function AdminBannersPage() {
@@ -49,6 +52,11 @@ export default function AdminBannersPage() {
   const [uploadingPromoId, setUploadingPromoId] = useState<string | null>(null);
   const [feedback, setFeedback] = useState<string | null>(null);
   const [availableProducts, setAvailableProducts] = useState<any[]>([]);
+  const [interactiveShowcase, setInteractiveShowcase] =
+    useState<InteractiveShowcaseSettings>(DEFAULT_INTERACTIVE_SHOWCASE);
+  const [selectedShowcaseMode, setSelectedShowcaseMode] = useState<string>("solar_masculino");
+  const [isSavingInteractive, setIsSavingInteractive] = useState(false);
+  const [uploadingVarKey, setUploadingVarKey] = useState<string | null>(null);
 
   // Formulário de novo banner
   const [isCreating, setIsCreating] = useState(false);
@@ -96,6 +104,9 @@ export default function AdminBannersPage() {
         }
         if (data.hero_banner) {
           setHeroBanner((prev) => ({ ...prev, ...data.hero_banner }));
+        }
+        if (data.interactive_showcase) {
+          setInteractiveShowcase((prev) => ({ ...prev, ...data.interactive_showcase }));
         }
       }
     } catch (err) {
@@ -210,6 +221,118 @@ export default function AdminBannersPage() {
     } finally {
       setUploadingField(null);
     }
+  };
+
+  const handleVariationImageUpload = async (
+    modeKey: string,
+    varIndex: number,
+    e: React.ChangeEvent<HTMLInputElement>
+  ) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    const uploadKey = `${modeKey}-${varIndex}`;
+    setUploadingVarKey(uploadKey);
+    try {
+      const formData = new FormData();
+      formData.append("file", file);
+
+      const res = await fetch("/api/admin/upload", {
+        method: "POST",
+        body: formData,
+      });
+
+      const data = await res.json();
+      if (!res.ok || data.error) {
+        throw new Error(data.error || "Erro ao fazer upload da imagem.");
+      }
+
+      if (data.url) {
+        setInteractiveShowcase((prev) => {
+          const currentMode = prev[modeKey] || DEFAULT_INTERACTIVE_SHOWCASE[modeKey];
+          const updatedVars = [...currentMode.variations];
+          updatedVars[varIndex] = {
+            ...updatedVars[varIndex],
+            imageUrl: data.url,
+          };
+          return {
+            ...prev,
+            [modeKey]: {
+              ...currentMode,
+              variations: updatedVars,
+            },
+          };
+        });
+        setFeedback("Foto do óculos enviada com sucesso! Clique em 'Salvar Vitrine Esportiva & Solares' para publicar.");
+        setTimeout(() => setFeedback(null), 4000);
+      }
+    } catch (err: any) {
+      alert(err.message || "Falha no envio da imagem.");
+    } finally {
+      setUploadingVarKey(null);
+    }
+  };
+
+  const handleSaveInteractiveShowcase = async (e?: React.FormEvent) => {
+    if (e) e.preventDefault();
+    setIsSavingInteractive(true);
+    setFeedback(null);
+    try {
+      const res = await fetch("/api/admin/settings", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ interactive_showcase: interactiveShowcase }),
+      });
+
+      const data = await res.json();
+      if (!res.ok || data.error) {
+        throw new Error(data.error || "Erro ao salvar vitrine interativa.");
+      }
+
+      setFeedback("Vitrine Esportiva & Solares salva e atualizada com sucesso no site!");
+      setTimeout(() => setFeedback(null), 4000);
+    } catch (err: any) {
+      console.error(err);
+      alert(err.message || "Erro inesperado ao salvar vitrine.");
+    } finally {
+      setIsSavingInteractive(false);
+    }
+  };
+
+  const handleUpdateModeField = (modeKey: string, field: string, value: any) => {
+    setInteractiveShowcase((prev) => {
+      const currentMode = prev[modeKey] || DEFAULT_INTERACTIVE_SHOWCASE[modeKey];
+      return {
+        ...prev,
+        [modeKey]: {
+          ...currentMode,
+          [field]: value,
+        },
+      };
+    });
+  };
+
+  const handleUpdateVariation = (
+    modeKey: string,
+    varIndex: number,
+    field: string,
+    value: any
+  ) => {
+    setInteractiveShowcase((prev) => {
+      const currentMode = prev[modeKey] || DEFAULT_INTERACTIVE_SHOWCASE[modeKey];
+      const updatedVars = [...currentMode.variations];
+      updatedVars[varIndex] = {
+        ...updatedVars[varIndex],
+        [field]: value,
+      };
+      return {
+        ...prev,
+        [modeKey]: {
+          ...currentMode,
+          variations: updatedVars,
+        },
+      };
+    });
   };
 
   const handleSaveShowcaseMedia = async (e: React.FormEvent) => {
@@ -538,7 +661,7 @@ export default function AdminBannersPage() {
           }`}
         >
           <Sun size={14} />
-          <span>Fotos das Vitrines (Esportivos &amp; Seções)</span>
+          <span>Vitrine Esportiva &amp; Solares (Produtos &amp; Fotos)</span>
         </button>
 
         <button
@@ -1422,7 +1545,499 @@ export default function AdminBannersPage() {
         </form>
       )}
       {activeTab === "vitrines" && (
-        <form onSubmit={handleSaveShowcaseMedia} className="space-y-6">
+        <div className="space-y-8">
+          {/* BLOCO 1: PRODUTOS E FOTOS DA LINHA ESPORTIVA & SOLAR (VITRINE INTERATIVA) */}
+          <div className="bg-[#06111f] border border-amber-400/30 rounded-2xl p-6 sm:p-8 space-y-6 shadow-xl">
+            {/* Header com título, subtítulo e botão de salvar */}
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-white/10 pb-5">
+              <div>
+                <span className="text-[10px] font-bold uppercase tracking-widest text-amber-400 bg-amber-400/10 px-2.5 py-0.5 rounded-full border border-amber-400/20">
+                  VITRINE INTERATIVA DA HOME
+                </span>
+                <h2 className="text-xl sm:text-2xl font-bold text-white mt-1 flex items-center gap-2">
+                  <Sun className="text-amber-400" size={24} />
+                  <span>Produtos &amp; Fotos da Linha Esportiva e Solares</span>
+                </h2>
+                <p className="text-xs text-slate-300 mt-1 max-w-3xl leading-relaxed">
+                  Adicione e troque as <strong>fotos reais</strong> dos óculos esportivos e solares (ex: Ventara Horizonte Sport), ajuste títulos, acabamento e valores das 4 variações de cores que aparecem no seletor interativo da página inicial.
+                </p>
+              </div>
+
+              <button
+                type="button"
+                onClick={() => handleSaveInteractiveShowcase()}
+                disabled={isSavingInteractive}
+                className="inline-flex items-center gap-2 px-6 py-3 rounded-xl bg-amber-400 hover:bg-amber-300 disabled:opacity-50 text-slate-950 font-bold text-xs uppercase tracking-wider transition-all shadow-lg shadow-amber-400/20 cursor-pointer self-start sm:self-auto shrink-0"
+              >
+                <Save size={16} />
+                <span>{isSavingInteractive ? "Salvando..." : "Salvar Vitrine Esportiva & Solares"}</span>
+              </button>
+            </div>
+
+            {/* Sub-abas dos 4 Modos da Vitrine Interativa */}
+            <div className="space-y-2">
+              <span className="text-[11px] font-bold uppercase tracking-wider text-slate-400 block">
+                Selecione o Modelo / Linha para Editar:
+              </span>
+              <div className="grid grid-cols-2 lg:grid-cols-4 gap-2">
+                {[
+                  {
+                    key: "solar_masculino",
+                    label: "🕶️ Esportivo Masculino",
+                    model: "Ventara Horizonte Sport",
+                    desc: "Modelo do print do cliente (4 cores)",
+                    badge: "Em destaque",
+                  },
+                  {
+                    key: "solar_feminino",
+                    label: "✨ Solar Feminino",
+                    model: "Ventara Aurora Solar",
+                    desc: "Design contemporâneo",
+                    badge: "Solar",
+                  },
+                  {
+                    key: "grau_masculino",
+                    label: "👓 Grau em Titânio",
+                    model: "Ventara Urbano Titanium",
+                    desc: "Ultraleve e minimalista",
+                    badge: "Grau",
+                  },
+                  {
+                    key: "grau_feminino",
+                    label: "💎 Grau Autoral Feminino",
+                    model: "Ventara Essencial Acetato",
+                    desc: "Harmonização facial",
+                    badge: "Grau",
+                  },
+                ].map((m) => {
+                  const isSelected = selectedShowcaseMode === m.key;
+                  return (
+                    <button
+                      key={m.key}
+                      type="button"
+                      onClick={() => setSelectedShowcaseMode(m.key)}
+                      className={`text-left p-3.5 rounded-xl border transition-all cursor-pointer ${
+                        isSelected
+                          ? "bg-amber-400/15 border-amber-400 shadow-md ring-1 ring-amber-400/30"
+                          : "bg-[#091829] border-white/10 hover:border-white/20 text-slate-300"
+                      }`}
+                    >
+                      <div className="flex items-center justify-between mb-1">
+                        <span className={`text-xs font-bold ${isSelected ? "text-amber-400" : "text-white"}`}>
+                          {m.label}
+                        </span>
+                        <span
+                          className={`text-[9px] px-1.5 py-0.5 rounded-full font-semibold ${
+                            isSelected ? "bg-amber-400 text-slate-950" : "bg-white/10 text-slate-400"
+                          }`}
+                        >
+                          {m.badge}
+                        </span>
+                      </div>
+                      <p className="text-[11px] font-semibold text-slate-200 truncate">{m.model}</p>
+                      <p className="text-[10px] text-slate-400 mt-0.5">{m.desc}</p>
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+
+            {/* Informações da Linha Selecionada */}
+            {(() => {
+              const activeModeData =
+                interactiveShowcase[selectedShowcaseMode] ||
+                DEFAULT_INTERACTIVE_SHOWCASE[selectedShowcaseMode] ||
+                DEFAULT_INTERACTIVE_SHOWCASE.solar_masculino;
+
+              return (
+                <div className="space-y-6 pt-2">
+                  <div className="bg-[#091829] border border-white/10 rounded-2xl p-5 space-y-4">
+                    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-white/5 pb-3">
+                      <div>
+                        <span className="text-[10px] font-bold uppercase tracking-wider text-amber-400">
+                          Dados da Seção no Site
+                        </span>
+                        <h3 className="text-sm font-bold text-white">
+                          Textos de Destaque e Identificação da Linha
+                        </h3>
+                      </div>
+
+                      {/* Dropdown de Vínculo com Catálogo */}
+                      {availableProducts.length > 0 && (
+                        <div className="flex items-center gap-2">
+                          <span className="text-[11px] text-slate-400 whitespace-nowrap">
+                            Vincular a produto da loja:
+                          </span>
+                          <select
+                            value={activeModeData.featuredProductSlug || ""}
+                            onChange={(e) => {
+                              const selectedProd = availableProducts.find(
+                                (p) => p.slug === e.target.value
+                              );
+                              if (selectedProd) {
+                                handleUpdateModeField(
+                                  selectedShowcaseMode,
+                                  "featuredProductName",
+                                  selectedProd.name
+                                );
+                                handleUpdateModeField(
+                                  selectedShowcaseMode,
+                                  "featuredProductSlug",
+                                  selectedProd.slug
+                                );
+                              } else {
+                                handleUpdateModeField(
+                                  selectedShowcaseMode,
+                                  "featuredProductSlug",
+                                  e.target.value
+                                );
+                              }
+                            }}
+                            className="bg-[#040c16] border border-amber-400/40 rounded-lg px-2.5 py-1.5 text-xs text-white focus:outline-none focus:border-amber-400 cursor-pointer"
+                          >
+                            <option value="">Personalizado (Sem vínculo direto)</option>
+                            {availableProducts.map((p) => {
+                              const catName =
+                                typeof p.category === "object" && p.category !== null
+                                  ? p.category.name || ""
+                                  : typeof p.category === "string"
+                                  ? p.category
+                                  : "";
+                              return (
+                                <option key={p.id} value={p.slug}>
+                                  {p.name} {catName ? `(${catName})` : ""}
+                                </option>
+                              );
+                            })}
+                          </select>
+                        </div>
+                      )}
+                    </div>
+
+                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 text-xs">
+                      <div>
+                        <label className="block text-[11px] font-medium text-slate-300 mb-1">
+                          Nome do Modelo em Destaque
+                        </label>
+                        <input
+                          type="text"
+                          value={activeModeData.featuredProductName || ""}
+                          onChange={(e) =>
+                            handleUpdateModeField(
+                              selectedShowcaseMode,
+                              "featuredProductName",
+                              e.target.value
+                            )
+                          }
+                          placeholder="Ex: Ventara Horizonte Sport"
+                          className="w-full bg-[#040c16] border border-white/10 rounded-xl px-3 py-2 text-xs text-white focus:outline-none focus:border-amber-400"
+                        />
+                      </div>
+
+                      <div>
+                        <label className="block text-[11px] font-medium text-slate-300 mb-1">
+                          Tag da Seção (Topo)
+                        </label>
+                        <input
+                          type="text"
+                          value={activeModeData.sectionTag || ""}
+                          onChange={(e) =>
+                            handleUpdateModeField(
+                              selectedShowcaseMode,
+                              "sectionTag",
+                              e.target.value
+                            )
+                          }
+                          placeholder="Ex: LINHA ESPORTIVA & SOLAR"
+                          className="w-full bg-[#040c16] border border-white/10 rounded-xl px-3 py-2 text-xs text-white focus:outline-none focus:border-amber-400"
+                        />
+                      </div>
+
+                      <div>
+                        <label className="block text-[11px] font-medium text-slate-300 mb-1">
+                          Título Principal (Headline)
+                        </label>
+                        <input
+                          type="text"
+                          value={activeModeData.productHeadline || ""}
+                          onChange={(e) =>
+                            handleUpdateModeField(
+                              selectedShowcaseMode,
+                              "productHeadline",
+                              e.target.value
+                            )
+                          }
+                          placeholder="Ex: Performance em todos os detalhes."
+                          className="w-full bg-[#040c16] border border-white/10 rounded-xl px-3 py-2 text-xs text-white focus:outline-none focus:border-amber-400"
+                        />
+                      </div>
+                    </div>
+
+                    <div>
+                      <label className="block text-[11px] font-medium text-slate-300 mb-1">
+                        Descrição da Linha
+                      </label>
+                      <textarea
+                        rows={2}
+                        value={activeModeData.productDescription || ""}
+                        onChange={(e) =>
+                          handleUpdateModeField(
+                            selectedShowcaseMode,
+                            "productDescription",
+                            e.target.value
+                          )
+                        }
+                        placeholder="Ex: Óculos esportivos com curvatura panorâmica, proteção UV400..."
+                        className="w-full bg-[#040c16] border border-white/10 rounded-xl px-3 py-2 text-xs text-white focus:outline-none focus:border-amber-400 resize-none"
+                      />
+                    </div>
+                  </div>
+
+                  {/* CARDS DAS 4 VARIAÇÕES / CORES COM UPLOAD DE FOTOS */}
+                  <div className="space-y-3">
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <span className="text-[10px] font-bold uppercase tracking-wider text-amber-400">
+                          CORES &amp; FOTOS DOS ÓCULOS
+                        </span>
+                        <h4 className="text-sm font-bold text-white">
+                          As 4 Variações Exibidas no Seletor (Foto Real de Cada Modelo)
+                        </h4>
+                      </div>
+                      <span className="text-[11px] text-slate-400">
+                        {activeModeData.variations.filter((v) => v.imageUrl && v.imageUrl.trim() !== "").length} de {activeModeData.variations.length} com fotos reais
+                      </span>
+                    </div>
+
+                    <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-4">
+                      {activeModeData.variations.map((v, idx) => {
+                        const uploadKey = `${selectedShowcaseMode}-${idx}`;
+                        const isUploadingThis = uploadingVarKey === uploadKey;
+                        const hasRealImage = Boolean(v.imageUrl && v.imageUrl.trim() !== "");
+
+                        return (
+                          <div
+                            key={v.id || idx}
+                            className={`bg-[#091829] border rounded-2xl p-4 flex flex-col justify-between space-y-4 transition-all ${
+                              hasRealImage
+                                ? "border-amber-400/40 shadow-sm"
+                                : "border-white/10 hover:border-white/20"
+                            }`}
+                          >
+                            {/* Topo do card com amostra de cor e SKU */}
+                            <div className="flex items-center justify-between">
+                              <div className="flex items-center gap-2">
+                                <span
+                                  className="w-4 h-4 rounded-full border border-white/20 shadow-sm shrink-0"
+                                  style={{ backgroundColor: v.colorHex || "#0284c7" }}
+                                />
+                                <span className="text-xs font-bold text-white">
+                                  Opção #{idx + 1}
+                                </span>
+                              </div>
+                              <span className="text-[10px] font-mono text-slate-400 bg-white/5 px-2 py-0.5 rounded">
+                                {v.sku || `SKU-${idx + 1}`}
+                              </span>
+                            </div>
+
+                            {/* Preview da Imagem */}
+                            <div className="w-full aspect-[4/3] rounded-xl overflow-hidden bg-white/5 border border-white/10 flex items-center justify-center p-3 relative group">
+                              {hasRealImage ? (
+                                <img
+                                  src={v.imageUrl}
+                                  alt={v.name}
+                                  className="w-full h-full object-contain filter drop-shadow group-hover:scale-105 transition-transform"
+                                />
+                              ) : (
+                                <div className="text-center p-3 space-y-1.5">
+                                  <Glasses className="w-10 h-10 text-amber-400/50 mx-auto" />
+                                  <span className="text-[10px] text-amber-400 font-semibold block">
+                                    Ilustração Vetorial (Padrão)
+                                  </span>
+                                  <span className="text-[9px] text-slate-400 block leading-tight">
+                                    Suba uma foto real do óculos para substituir a arte
+                                  </span>
+                                </div>
+                              )}
+
+                              {hasRealImage && (
+                                <span className="absolute top-2 right-2 text-[9px] font-bold text-emerald-400 bg-emerald-950/80 border border-emerald-500/30 px-2 py-0.5 rounded-full shadow">
+                                  ✓ Foto Real
+                                </span>
+                              )}
+                            </div>
+
+                            {/* Botão de Upload da Imagem */}
+                            <div className="space-y-2">
+                              <label className="w-full py-2.5 px-3 rounded-xl bg-amber-400 hover:bg-amber-300 text-slate-950 font-bold text-xs uppercase tracking-wider flex items-center justify-center gap-2 cursor-pointer shadow-md transition-all active:scale-[0.98]">
+                                <Upload size={14} />
+                                <span>{isUploadingThis ? "Enviando Imagem..." : "📷 Trocar Foto do Óculos"}</span>
+                                <input
+                                  type="file"
+                                  accept="image/*"
+                                  disabled={uploadingVarKey !== null}
+                                  onChange={(e) =>
+                                    handleVariationImageUpload(selectedShowcaseMode, idx, e)
+                                  }
+                                  className="hidden"
+                                />
+                              </label>
+
+                              {/* Input URL direto */}
+                              <input
+                                type="text"
+                                value={v.imageUrl || ""}
+                                onChange={(e) =>
+                                  handleUpdateVariation(
+                                    selectedShowcaseMode,
+                                    idx,
+                                    "imageUrl",
+                                    e.target.value
+                                  )
+                                }
+                                placeholder="Ou cole a URL da imagem..."
+                                className="w-full bg-[#040c16] border border-white/10 rounded-lg px-2.5 py-1.5 text-[10px] text-slate-300 placeholder:text-slate-600 focus:outline-none focus:border-amber-400"
+                              />
+                            </div>
+
+                            {/* Campos da Variação */}
+                            <div className="space-y-2.5 pt-2 border-t border-white/5 text-xs">
+                              <div>
+                                <label className="block text-[10px] font-medium text-slate-400 mb-0.5">
+                                  Nome da Cor / Lente
+                                </label>
+                                <input
+                                  type="text"
+                                  value={v.name || ""}
+                                  onChange={(e) =>
+                                    handleUpdateVariation(
+                                      selectedShowcaseMode,
+                                      idx,
+                                      "name",
+                                      e.target.value
+                                    )
+                                  }
+                                  placeholder="Ex: Azul Safira Polarizado"
+                                  className="w-full bg-[#040c16] border border-white/10 rounded-lg px-2.5 py-1.5 text-xs text-white focus:outline-none focus:border-amber-400"
+                                />
+                              </div>
+
+                              <div>
+                                <label className="block text-[10px] font-medium text-slate-400 mb-0.5">
+                                  Acabamento / Armação
+                                </label>
+                                <input
+                                  type="text"
+                                  value={v.finish || ""}
+                                  onChange={(e) =>
+                                    handleUpdateVariation(
+                                      selectedShowcaseMode,
+                                      idx,
+                                      "finish",
+                                      e.target.value
+                                    )
+                                  }
+                                  placeholder="Ex: Preto Fosco com Lente Azul..."
+                                  className="w-full bg-[#040c16] border border-white/10 rounded-lg px-2.5 py-1.5 text-xs text-white focus:outline-none focus:border-amber-400"
+                                />
+                              </div>
+
+                              <div className="grid grid-cols-2 gap-2">
+                                <div>
+                                  <label className="block text-[10px] font-medium text-slate-400 mb-0.5">
+                                    Preço (R$)
+                                  </label>
+                                  <input
+                                    type="text"
+                                    value={
+                                      v.priceInCents
+                                        ? (v.priceInCents / 100).toLocaleString("pt-BR", {
+                                            minimumFractionDigits: 2,
+                                            maximumFractionDigits: 2,
+                                          })
+                                        : ""
+                                    }
+                                    onChange={(e) => {
+                                      const raw = e.target.value.replace(/\D/g, "");
+                                      const cents = parseInt(raw, 10) || 0;
+                                      handleUpdateVariation(
+                                        selectedShowcaseMode,
+                                        idx,
+                                        "priceInCents",
+                                        cents
+                                      );
+                                    }}
+                                    placeholder="489,00"
+                                    className="w-full bg-[#040c16] border border-white/10 rounded-lg px-2.5 py-1.5 text-xs text-white font-semibold focus:outline-none focus:border-amber-400"
+                                  />
+                                </div>
+
+                                <div>
+                                  <label className="block text-[10px] font-medium text-slate-400 mb-0.5">
+                                    Cor Amostra
+                                  </label>
+                                  <div className="flex items-center gap-1.5">
+                                    <input
+                                      type="color"
+                                      value={v.colorHex || "#0284c7"}
+                                      onChange={(e) =>
+                                        handleUpdateVariation(
+                                          selectedShowcaseMode,
+                                          idx,
+                                          "colorHex",
+                                          e.target.value
+                                        )
+                                      }
+                                      className="w-7 h-7 rounded border border-white/10 cursor-pointer bg-transparent p-0"
+                                    />
+                                    <input
+                                      type="text"
+                                      value={v.colorHex || ""}
+                                      onChange={(e) =>
+                                        handleUpdateVariation(
+                                          selectedShowcaseMode,
+                                          idx,
+                                          "colorHex",
+                                          e.target.value
+                                        )
+                                      }
+                                      placeholder="#0284c7"
+                                      className="w-full bg-[#040c16] border border-white/10 rounded-lg px-2 py-1 text-[11px] text-white font-mono focus:outline-none focus:border-amber-400"
+                                    />
+                                  </div>
+                                </div>
+                              </div>
+                            </div>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  </div>
+
+                  {/* Barra de ação inferior para salvar */}
+                  <div className="flex flex-col sm:flex-row items-center justify-between gap-4 p-4 rounded-xl bg-[#091829] border border-amber-400/20">
+                    <div className="flex items-center gap-2 text-xs text-slate-300">
+                      <Sparkles size={16} className="text-amber-400" />
+                      <span>Todas as alterações são aplicadas instantaneamente no site após clicar em salvar.</span>
+                    </div>
+
+                    <button
+                      type="button"
+                      onClick={() => handleSaveInteractiveShowcase()}
+                      disabled={isSavingInteractive}
+                      className="inline-flex items-center gap-2 px-6 py-2.5 rounded-xl bg-amber-400 hover:bg-amber-300 disabled:opacity-50 text-slate-950 font-bold text-xs uppercase tracking-wider transition-all shadow-md shadow-amber-400/20 cursor-pointer w-full sm:w-auto justify-center"
+                    >
+                      <Save size={15} />
+                      <span>{isSavingInteractive ? "Salvando..." : "Salvar Vitrine Esportiva & Solares"}</span>
+                    </button>
+                  </div>
+                </div>
+              );
+            })()}
+          </div>
+
+          {/* BLOCO 2: FOTOS LIFESTYLE DE CAMPANHA & GARANTIA */}
+          <form onSubmit={handleSaveShowcaseMedia} className="space-y-6">
           <div className="bg-[#06111f] border border-amber-400/30 rounded-2xl p-6 sm:p-8 space-y-6 shadow-xl">
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-white/10 pb-4">
               <div>
@@ -1706,6 +2321,7 @@ export default function AdminBannersPage() {
             </div>
           </div>
         </form>
+        </div>
       )}
 
       {/* ABA 3: VITRINE PROMOCIONAL 25% OFF (FUNDO BRANCO) */}

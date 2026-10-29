@@ -326,3 +326,39 @@ export interface HeroBannerSettings {
   secondaryButtonText: string;
   secondaryButtonLink: string;
 }
+
+export interface ShowcaseVariationItem {
+  id: string;
+  name: string;
+  finish: string;
+  colorHex: string;
+  lensColor?: string;
+  frameColor?: string;
+  priceInCents: number;
+  sku: string;
+  slug: string;
+  imageUrl?: string;
+  isAmber?: boolean;
+  isRound?: boolean;
+}
+
+export interface ShowcaseModeSettings {
+  category: "solar" | "grau";
+  gender: "masculino" | "feminino";
+  categoryBadge: string;
+  categorySubtitle: string;
+  heroCategoryTags: string;
+  heroTitle: string;
+  heroHighlight: string;
+  heroDescription: string;
+  sectionTag: string;
+  productHeadline: string;
+  productDescription: string;
+  lifestyleImage: string;
+  lifestyleAlt: string;
+  featuredProductName: string;
+  featuredProductSlug: string;
+  variations: ShowcaseVariationItem[];
+}
+
+export type InteractiveShowcaseSettings = Record<string, ShowcaseModeSettings>;

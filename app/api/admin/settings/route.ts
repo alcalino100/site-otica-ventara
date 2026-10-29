@@ -161,6 +161,10 @@ export async function POST(req: NextRequest) {
       await saveSetting("hero_banner", "Banner Principal Fixo com Degradê e Botões do Header", body.hero_banner);
     }
 
+    if (body.interactive_showcase) {
+      await saveSetting("interactive_showcase", "Vitrine Interativa de Solares e Armações (Fotos e Variações)", body.interactive_showcase);
+    }
+
     return NextResponse.json({
       success: true,
       message: "Configurações salvas e aplicadas com sucesso no site.",

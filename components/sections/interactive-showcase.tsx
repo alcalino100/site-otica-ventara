@@ -18,8 +18,8 @@ import {
 import { SportsFrameArt, SportsLensColor, SportsFrameColor } from "../catalog/sports-frame-art";
 import { FrameArt } from "../catalog/frame-art";
 import { CartProduct } from "@/lib/cart";
-import { DEFAULT_SHOWCASE_MEDIA } from "@/lib/site-settings-constants";
-import { ShowcaseMediaSettings } from "@/types/ecommerce";
+import { DEFAULT_SHOWCASE_MEDIA, DEFAULT_INTERACTIVE_SHOWCASE } from "@/lib/site-settings-constants";
+import { ShowcaseMediaSettings, InteractiveShowcaseSettings, ShowcaseVariationItem } from "@/types/ecommerce";
 
 type CategoryType = "solar" | "grau";
 type GenderType = "masculino" | "feminino";
@@ -29,11 +29,12 @@ interface Variation {
   name: string;
   finish: string;
   colorHex: string;
-  lensColor: SportsLensColor;
-  frameColor: SportsFrameColor;
+  lensColor?: SportsLensColor;
+  frameColor?: SportsFrameColor;
   priceInCents: number;
   sku: string;
   slug: string;
+  imageUrl?: string;
   isAmber?: boolean;
   isRound?: boolean;
 }
@@ -350,9 +351,11 @@ export function InteractiveShowcase({
   const [selectedVarIndex, setSelectedVarIndex] = useState(0);
   const [addedItemSku, setAddedItemSku] = useState<string | null>(null);
   const [showcaseMedia, setShowcaseMedia] = useState<ShowcaseMediaSettings>(DEFAULT_SHOWCASE_MEDIA);
+  const [showcaseConfigs, setShowcaseConfigs] =
+    useState<InteractiveShowcaseSettings>(DEFAULT_INTERACTIVE_SHOWCASE);
 
   useEffect(() => {
-    async function loadShowcaseMedia() {
+    async function loadShowcaseData() {
       try {
         const res = await fetch("/api/settings");
         if (res.ok) {
@@ -360,14 +363,17 @@ export function InteractiveShowcase({
           if (data.showcase_media) {
             setShowcaseMedia((prev) => ({ ...prev, ...data.showcase_media }));
           }
+          if (data.interactive_showcase) {
+            setShowcaseConfigs((prev) => ({ ...prev, ...data.interactive_showcase }));
+          }
         }
       } catch (err) {}
     }
-    loadShowcaseMedia();
+    loadShowcaseData();
   }, []);
 
   const activeKey = `${selectedCategory}_${selectedGender}` as const;
-  const currentData = SHOWCASE_CONFIGS[activeKey];
+  const currentData = (showcaseConfigs[activeKey] || SHOWCASE_CONFIGS[activeKey]) as ShowcaseData;
   const activeVariation = currentData.variations[selectedVarIndex] || currentData.variations[0];
 
   const currentLifestyleImage =
@@ -401,7 +407,7 @@ export function InteractiveShowcase({
       category: selectedCategory === "solar" ? "Solar" : "Grau",
       color: activeVariation.name,
       priceInCents: activeVariation.priceInCents,
-      imageUrl: undefined,
+      imageUrl: activeVariation.imageUrl || undefined,
     };
 
     if (onBuyNow) {
@@ -423,7 +429,7 @@ export function InteractiveShowcase({
         category: selectedCategory === "solar" ? "Solar" : "Grau",
         color: activeVariation.name,
         priceInCents: activeVariation.priceInCents,
-        imageUrl: undefined,
+        imageUrl: activeVariation.imageUrl || undefined,
       };
       onAddToCart(cartItem);
       setAddedItemSku(activeVariation.sku);
@@ -731,7 +737,13 @@ export function InteractiveShowcase({
                     transition={{ duration: 0.3, ease: [0.32, 0.72, 0, 1] }}
                     className="w-full max-w-[460px] flex items-center justify-center py-4"
                   >
-                    {selectedCategory === "solar" && selectedGender === "masculino" ? (
+                    {activeVariation.imageUrl && activeVariation.imageUrl.trim() !== "" ? (
+                      <img
+                        src={activeVariation.imageUrl}
+                        alt={`${currentData.featuredProductName} - ${activeVariation.name}`}
+                        className="w-full h-auto max-h-64 sm:max-h-72 object-contain filter drop-shadow-xl transition-all duration-300"
+                      />
+                    ) : selectedCategory === "solar" && selectedGender === "masculino" ? (
                       <SportsFrameArt
                         lensColor={activeVariation.lensColor}
                         frameColor={activeVariation.frameColor}
@@ -785,7 +797,13 @@ export function InteractiveShowcase({
 
                         {/* Visual da Miniatura */}
                         <div className="w-full h-16 sm:h-20 bg-slate-50 rounded-xl flex items-center justify-center p-2 mb-2 group-hover:scale-105 transition-transform overflow-hidden">
-                          {selectedCategory === "solar" && selectedGender === "masculino" ? (
+                          {v.imageUrl && v.imageUrl.trim() !== "" ? (
+                            <img
+                              src={v.imageUrl}
+                              alt={v.name}
+                              className="w-full h-full object-contain"
+                            />
+                          ) : selectedCategory === "solar" && selectedGender === "masculino" ? (
                             <SportsFrameArt
                               lensColor={v.lensColor}
                               frameColor={v.frameColor}

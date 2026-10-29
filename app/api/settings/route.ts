@@ -9,6 +9,7 @@ import {
   DEFAULT_PROMOTIONAL_SHOWCASE,
   DEFAULT_LENSES_SECTION_SETTINGS,
   DEFAULT_HERO_BANNER,
+  DEFAULT_INTERACTIVE_SHOWCASE,
 } from "@/lib/site-settings-constants";
 import {
   SiteIdentitySettings,
@@ -19,6 +20,7 @@ import {
   PromotionalShowcaseSettings,
   LensesSectionSettings,
   HeroBannerSettings,
+  InteractiveShowcaseSettings,
 } from "@/types/ecommerce";
 
 export const dynamic = "force-dynamic";
@@ -39,6 +41,7 @@ export async function GET() {
         "promotional_showcase",
         "lenses_section",
         "hero_banner",
+        "interactive_showcase",
       ]);
 
     if (error || !data) {
@@ -51,6 +54,7 @@ export async function GET() {
         promotional_showcase: DEFAULT_PROMOTIONAL_SHOWCASE,
         lenses_section: DEFAULT_LENSES_SECTION_SETTINGS,
         hero_banner: DEFAULT_HERO_BANNER,
+        interactive_showcase: DEFAULT_INTERACTIVE_SHOWCASE,
       });
     }
 
@@ -62,6 +66,7 @@ export async function GET() {
     const promoRow = data.find((s) => s.key === "promotional_showcase");
     const lensesSectionRow = data.find((s) => s.key === "lenses_section");
     const heroBannerRow = data.find((s) => s.key === "hero_banner");
+    const interactiveShowcaseRow = data.find((s) => s.key === "interactive_showcase");
 
     return NextResponse.json({
       identity: identityRow?.value ? { ...DEFAULT_IDENTITY, ...(identityRow.value as SiteIdentitySettings) } : DEFAULT_IDENTITY,
@@ -72,6 +77,7 @@ export async function GET() {
       promotional_showcase: promoRow?.value ? { ...DEFAULT_PROMOTIONAL_SHOWCASE, ...(promoRow.value as PromotionalShowcaseSettings) } : DEFAULT_PROMOTIONAL_SHOWCASE,
       lenses_section: lensesSectionRow?.value ? { ...DEFAULT_LENSES_SECTION_SETTINGS, ...(lensesSectionRow.value as LensesSectionSettings) } : DEFAULT_LENSES_SECTION_SETTINGS,
       hero_banner: heroBannerRow?.value ? { ...DEFAULT_HERO_BANNER, ...(heroBannerRow.value as HeroBannerSettings) } : DEFAULT_HERO_BANNER,
+      interactive_showcase: interactiveShowcaseRow?.value ? { ...DEFAULT_INTERACTIVE_SHOWCASE, ...(interactiveShowcaseRow.value as InteractiveShowcaseSettings) } : DEFAULT_INTERACTIVE_SHOWCASE,
     });
   } catch {
     return NextResponse.json({
@@ -83,6 +89,7 @@ export async function GET() {
       promotional_showcase: DEFAULT_PROMOTIONAL_SHOWCASE,
       lenses_section: DEFAULT_LENSES_SECTION_SETTINGS,
       hero_banner: DEFAULT_HERO_BANNER,
+      interactive_showcase: DEFAULT_INTERACTIVE_SHOWCASE,
     });
   }
 }
