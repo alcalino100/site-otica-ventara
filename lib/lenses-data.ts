@@ -198,6 +198,27 @@ export const COLORED_LENSES_LIST: ColoredLensPreset[] = [
 export const DEFAULT_LENSES: AdminLensItem[] = [
   // ---------------- VISÃO SIMPLES ----------------
   {
+    id: "byvision-audax",
+    name: "ByVISION",
+    category: "visao-simples",
+    brandName: "AUDAX",
+    brandLogo: "/logos/optisync.svg",
+    boxImage: "/images/lenses/byvision-box.jpg",
+    treatment: "Antirreflexo Premium + Anti Risco",
+    badge: "AUDAX",
+    startingPrice: "R$ 139,90",
+    installment: "10x de R$ 13,99 sem juros",
+    leadTime: "Pronto em até 1 hora",
+    description:
+      "Lente óptica de alta precisão com certificado de garantia de laboratório.",
+    features: [
+      "Antirreflexo multicamadas antirrisco",
+      "Proteção integral contra radiação UV400",
+      "Montagem de alta precisão em facetadora digital",
+    ],
+    isActive: true,
+  },
+  {
     id: "optisync-hd-ar",
     name: "OPTiSYNC HD Antirreflexo",
     category: "visao-simples",

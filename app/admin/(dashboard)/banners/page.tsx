@@ -604,8 +604,24 @@ export default function AdminBannersPage() {
                       />
                     </div>
                   ) : (
-                    /* Modo Full Bleed (Cobre todo o Fundo) */
-                    <div className="absolute inset-0 w-full h-full overflow-hidden pointer-events-none">
+                    /* Modo Full Bleed (Cobre o lado direito suavemente) */
+                    <div
+                      className={`absolute inset-y-0 right-0 pointer-events-none overflow-hidden transition-all duration-300 ${
+                        heroBanner.desktopWidth === "full_100"
+                          ? "w-full inset-0"
+                          : heroBanner.desktopWidth === "wide_65"
+                          ? "w-[65%]"
+                          : "w-[54%]"
+                      }`}
+                      style={{
+                        maskImage:
+                          "linear-gradient(to right, transparent 0%, black 24%, black 88%, transparent 100%), linear-gradient(to bottom, transparent 0%, black 15%, black 85%, transparent 100%)",
+                        WebkitMaskImage:
+                          "linear-gradient(to right, transparent 0%, black 24%, black 88%, transparent 100%), linear-gradient(to bottom, transparent 0%, black 15%, black 85%, transparent 100%)",
+                        maskComposite: "intersect",
+                        WebkitMaskComposite: "source-in",
+                      }}
+                    >
                       <img
                         src={heroBanner.bannerImageUrl || "/images/lifestyle/female-grau.jpg"}
                         alt="Preview"
@@ -615,6 +631,7 @@ export default function AdminBannersPage() {
                             heroBanner.backgroundPosition === "custom"
                               ? `${heroBanner.customPositionX ?? 80}% ${heroBanner.customPositionY ?? 50}%`
                               : heroBanner.backgroundPosition || "80% 50%",
+                          transform: `scale(${(heroBanner.desktopZoom ?? 100) / 100})`,
                           opacity: (heroBanner.bannerOpacity ?? 100) / 100,
                         }}
                       />
@@ -890,6 +907,100 @@ export default function AdminBannersPage() {
                           A foto fica dentro de um bloco com cantos arredondados no lado direito.
                         </p>
                       </button>
+                    </div>
+                  </div>
+
+                  {/* 2. Largura da Foto no Desktop (Evita zoom excessivo no óculos) */}
+                  <div>
+                    <label className="block text-xs font-semibold text-slate-300 mb-1.5">
+                      Largura da Foto no Desktop:
+                    </label>
+                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
+                      <button
+                        type="button"
+                        onClick={() =>
+                          setHeroBanner((prev) => ({ ...prev, desktopWidth: "natural_55" }))
+                        }
+                        className={`p-2.5 rounded-xl border text-left transition-all ${
+                          heroBanner.desktopWidth === "natural_55" || !heroBanner.desktopWidth
+                            ? "border-amber-400 bg-amber-400/10 shadow-sm"
+                            : "border-white/10 bg-[#040c16] hover:border-white/20"
+                        }`}
+                      >
+                        <div className="flex items-center justify-between mb-0.5">
+                          <span className="text-xs font-bold text-white">55% da Tela</span>
+                          <span className="text-[9px] font-semibold text-amber-400 bg-amber-400/20 px-1.5 py-0.5 rounded-full">
+                            Recomendado
+                          </span>
+                        </div>
+                        <p className="text-[10px] text-slate-400">
+                          Proporção natural do óculos sem zoom excessivo, focado na direita.
+                        </p>
+                      </button>
+
+                      <button
+                        type="button"
+                        onClick={() =>
+                          setHeroBanner((prev) => ({ ...prev, desktopWidth: "wide_65" }))
+                        }
+                        className={`p-2.5 rounded-xl border text-left transition-all ${
+                          heroBanner.desktopWidth === "wide_65"
+                            ? "border-amber-400 bg-amber-400/10 shadow-sm"
+                            : "border-white/10 bg-[#040c16] hover:border-white/20"
+                        }`}
+                      >
+                        <span className="text-xs font-bold text-white block mb-0.5">65% da Tela</span>
+                        <p className="text-[10px] text-slate-400">
+                          Lado direito amplo com maior presença visual.
+                        </p>
+                      </button>
+
+                      <button
+                        type="button"
+                        onClick={() =>
+                          setHeroBanner((prev) => ({ ...prev, desktopWidth: "full_100" }))
+                        }
+                        className={`p-2.5 rounded-xl border text-left transition-all ${
+                          heroBanner.desktopWidth === "full_100"
+                            ? "border-amber-400 bg-amber-400/10 shadow-sm"
+                            : "border-white/10 bg-[#040c16] hover:border-white/20"
+                        }`}
+                      >
+                        <span className="text-xs font-bold text-white block mb-0.5">100% Tela Cheia</span>
+                        <p className="text-[10px] text-slate-400">
+                          Foto estendida por toda a largura do header.
+                        </p>
+                      </button>
+                    </div>
+                  </div>
+
+                  {/* 3. Escala / Zoom do Óculos */}
+                  <div className="space-y-1.5 p-3 rounded-xl bg-[#040c16] border border-white/10">
+                    <div className="flex items-center justify-between text-xs">
+                      <span className="font-semibold text-slate-300">
+                        Zoom / Escala do Óculos ({heroBanner.desktopZoom ?? 100}%)
+                      </span>
+                      <span className="text-[10px] text-slate-400">
+                        Diminua para afastar o óculos ou aumente para aproximar
+                      </span>
+                    </div>
+                    <input
+                      type="range"
+                      min="60"
+                      max="150"
+                      value={heroBanner.desktopZoom ?? 100}
+                      onChange={(e) =>
+                        setHeroBanner((prev) => ({
+                          ...prev,
+                          desktopZoom: Number(e.target.value),
+                        }))
+                      }
+                      className="w-full accent-amber-400 cursor-pointer"
+                    />
+                    <div className="flex justify-between text-[9px] text-slate-500">
+                      <span>60% (Mais Afastado / Completo)</span>
+                      <span>100% (Natural)</span>
+                      <span>150% (Aproximado)</span>
                     </div>
                   </div>
 

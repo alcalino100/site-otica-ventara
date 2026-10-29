@@ -143,38 +143,55 @@ export function Hero({ products }: HeroProps) {
 
   return (
     <section className="hero relative overflow-hidden" id="inicio">
-      {/* 1. CAMADA DE FUNDO INTEIRO (FULL BLEED - ESTILO ELEMENTOR) */}
+      {/* 1. CAMADA DE FUNDO NO DESKTOP (FULL BLEED COM DISSOLVÊNCIA SUAVE À DIREITA) */}
       {isFullBleed && (
-        <div className="absolute inset-0 w-full h-full overflow-hidden pointer-events-none z-0">
-          <img
-            src={heroBanner.bannerImageUrl || "/images/lifestyle/female-grau.jpg"}
-            alt={heroBanner.badgeTag || "Banner Ventara Eyewear"}
-            className="w-full h-full object-cover transition-all duration-700 ease-out"
-            style={{
-              objectPosition: computedObjectPosition,
-              opacity: (heroBanner.bannerOpacity ?? 100) / 100,
-            }}
-          />
-
-          {/* Degradê Horizontal com Cobertura do Texto */}
+        <>
+          {/* Visual Desktop: Lado Direito Suave sem Zoom Excessivo */}
           <div
-            className="absolute inset-0 transition-all duration-300"
+            className={`hidden lg:block absolute inset-y-0 right-0 pointer-events-none z-0 overflow-hidden transition-all duration-700 ${
+              heroBanner.desktopWidth === "full_100"
+                ? "w-full inset-0"
+                : heroBanner.desktopWidth === "wide_65"
+                ? "w-[65vw]"
+                : "w-[54vw]"
+            }`}
             style={{
-              background: getFullBleedGradient(
-                heroBanner.gradientDirection,
-                heroBanner.gradientColor,
-                heroBanner.gradientIntensity
-              ),
+              maskImage:
+                "linear-gradient(to right, transparent 0%, black 24%, black 88%, transparent 100%), linear-gradient(to bottom, transparent 0%, black 15%, black 85%, transparent 100%)",
+              WebkitMaskImage:
+                "linear-gradient(to right, transparent 0%, black 24%, black 88%, transparent 100%), linear-gradient(to bottom, transparent 0%, black 15%, black 85%, transparent 100%)",
+              maskComposite: "intersect",
+              WebkitMaskComposite: "source-in",
             }}
-          />
+          >
+            <img
+              src={heroBanner.bannerImageUrl || "/images/lifestyle/female-grau.jpg"}
+              alt={heroBanner.badgeTag || "Banner Ventara Eyewear"}
+              className="w-full h-full object-cover transition-all duration-700 ease-out"
+              style={{
+                objectPosition: computedObjectPosition,
+                transform: `scale(${(heroBanner.desktopZoom ?? 100) / 100})`,
+                opacity: (heroBanner.bannerOpacity ?? 100) / 100,
+              }}
+            />
 
-          {/* Overlay de Proteção para Legibilidade no Mobile */}
-          <div className="absolute inset-0 bg-gradient-to-b from-[#02070D]/95 via-[#02070D]/85 to-[#02070D]/40 lg:hidden" />
+            {/* Degradê Horizontal com Cobertura do Texto */}
+            <div
+              className="absolute inset-0 transition-all duration-300"
+              style={{
+                background: getFullBleedGradient(
+                  heroBanner.gradientDirection,
+                  heroBanner.gradientColor,
+                  heroBanner.gradientIntensity
+                ),
+              }}
+            />
+          </div>
 
           {/* Vignettes Superior e Inferior para Integração Perfeita */}
-          <div className="absolute inset-x-0 top-0 h-32 bg-gradient-to-b from-[#02070D] via-[#02070D]/80 to-transparent" />
-          <div className="absolute inset-x-0 bottom-0 h-32 bg-gradient-to-t from-[#02070D] via-[#02070D]/80 to-transparent" />
-        </div>
+          <div className="hidden lg:block absolute inset-x-0 top-0 h-32 bg-gradient-to-b from-[#02070D] via-[#02070D]/80 to-transparent pointer-events-none" />
+          <div className="hidden lg:block absolute inset-x-0 bottom-0 h-32 bg-gradient-to-t from-[#02070D] via-[#02070D]/80 to-transparent pointer-events-none" />
+        </>
       )}
 
       {/* Container Unificado Padrão UI/UX Ampliado - Respiro Generoso abaixo do Header Fixo */}
@@ -232,6 +249,41 @@ export function Hero({ products }: HeroProps) {
             <span className="hero-footnote block text-[11px] text-slate-400 mt-6 tracking-wide">
               {identity.store_name} · {fullAddress}
             </span>
+
+            {/* Showcase Visual no Mobile (Sem sobreposição estranha no texto, perfeitamente responsivo) */}
+            {heroBanner.mode === "fixed_banner" && isFullBleed && (
+              <div className="lg:hidden mt-6 w-full">
+                <div className="relative aspect-[16/10] w-full rounded-2xl overflow-hidden border border-amber-400/30 shadow-2xl bg-[#040c16] group">
+                  <img
+                    src={heroBanner.bannerImageUrl || "/images/lifestyle/female-grau.jpg"}
+                    alt={heroBanner.badgeTag || "Banner Ventara Eyewear"}
+                    className="w-full h-full object-cover object-center group-hover:scale-105 transition-transform duration-700"
+                    style={{
+                      objectPosition: computedObjectPosition,
+                      opacity: (heroBanner.bannerOpacity ?? 100) / 100,
+                    }}
+                  />
+                  <div className="absolute inset-0 bg-gradient-to-t from-[#02070D] via-transparent to-transparent opacity-80 pointer-events-none" />
+                  <div className="absolute top-2.5 right-2.5 z-10 flex items-center gap-1.5 bg-slate-950/85 backdrop-blur-md px-2.5 py-1 rounded-full border border-amber-400/40">
+                    <div className="w-1.5 h-1.5 rounded-full bg-amber-400 animate-pulse" />
+                    <span className="text-[9px] font-bold uppercase tracking-wider text-amber-300">
+                      {heroBanner.badgeTag || "ARMAÇÕES DE QUALIDADE"}
+                    </span>
+                  </div>
+                  {heroBanner.badgeSubtitle && (
+                    <div className="absolute bottom-2.5 left-2.5 right-2.5 z-10">
+                      <Link
+                        href="/catalogo"
+                        className="w-full flex items-center justify-between px-3 py-1.5 rounded-xl bg-slate-950/90 backdrop-blur-md border border-white/10 text-amber-300 text-[10px] font-semibold shadow-lg"
+                      >
+                        <span className="truncate">{heroBanner.badgeSubtitle}</span>
+                        <ArrowRight size={12} className="shrink-0 text-amber-400" />
+                      </Link>
+                    </div>
+                  )}
+                </div>
+              </div>
+            )}
           </div>
 
           {/* Coluna Direita: Banner Fixo Estilizado com Degradê ou Stage 3D */}

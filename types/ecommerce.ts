@@ -308,6 +308,9 @@ export interface HeroBannerSettings {
   mode: "fixed_banner" | "carousel_3d";
   bannerImageUrl: string;
   layoutStyle?: "full_bleed" | "card_box";
+  desktopWidth?: "natural_55" | "wide_65" | "full_100";
+  desktopZoom?: number; // 60 to 150
+  mobileLayout?: "below_text" | "background";
   backgroundPosition?: string;
   customPositionX?: number; // 0 to 100
   customPositionY?: number; // 0 to 100
