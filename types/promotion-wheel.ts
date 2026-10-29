@@ -265,7 +265,7 @@ export const DEFAULT_PROMOTION_CONFIG: PromotionCampaignConfig = {
   },
   triggers: {
     is_enabled: true,
-    min_seconds_on_page: 30,
+    min_seconds_on_page: 3, // Padrão ajustado para 3 segundos de aba visível (pedido pelo cliente)
     inactivity_seconds: 45,
     exit_intent_desktop: true,
     cooldown_days_on_close: 7,

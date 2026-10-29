@@ -38,7 +38,7 @@ export function PromotionWheelCanvas({
     return fullSpins + (360 - sliceCenterAngle);
   }, [targetSegmentIndex, sliceAngle]);
 
-  // Gera o caminho SVG em arco para cada fatia
+  // Gera o caminho SVG em arco para cada fatia e os eixos de texto
   const slices = useMemo(() => {
     return segments.map((seg, idx) => {
       // Ângulo inicial e final da fatia (em radianos)
@@ -56,17 +56,34 @@ export function PromotionWheelCanvas({
       const largeArc = sliceAngle > 180 ? 1 : 0;
       const pathData = `M ${center} ${center} L ${x1} ${y1} A ${radius} ${radius} 0 ${largeArc} 1 ${x2} ${y2} Z`;
 
-      // Ângulo para rotação do texto no meio da fatia
-      const midDeg = idx * sliceAngle + sliceAngle / 2;
+      // Ângulo radial exato da bissetriz da fatia
+      const midAngle = idx * sliceAngle + sliceAngle / 2 - 90;
+
+      // Ângulo a partir do topo (0° a 360°)
+      const angleFromTop = (midAngle + 90 + 360) % 360;
+
+      // Rotação do texto para ficar sempre voltado para cima/legível (nunca de ponta-cabeça)
+      const isFlipped = angleFromTop > 90 && angleFromTop < 270;
+      const textRot = isFlipped ? -90 : 90;
+
+      // Distância radial ideal do centro (92px): longe do centro (36px) e com respiro da borda (140px)
+      const rDist = 92;
+
+      // Ajuste fino do tamanho da fonte de acordo com o tamanho do texto para nunca estourar a fatia
+      const labelLength = seg.label.length;
+      const labelFontSize = labelLength > 12 ? (total > 8 ? 9 : 9.5) : labelLength > 8 ? (total > 8 ? 10 : 10.5) : (total > 8 ? 11 : 12);
 
       return {
         seg,
         pathData,
-        midDeg,
+        midAngle,
+        textRot,
+        rDist,
+        labelFontSize,
         idx,
       };
     });
-  }, [segments, sliceAngle, radius, center]);
+  }, [segments, sliceAngle, radius, center, total]);
 
   return (
     <div
@@ -116,6 +133,11 @@ export function PromotionWheelCanvas({
         }}
       >
         <defs>
+          {/* Clip path rigoroso para impedir que qualquer texto escape para fora da roleta */}
+          <clipPath id="ventaraWheelClip">
+            <circle cx={center} cy={center} r={radius - 1} />
+          </clipPath>
+
           {/* Filtro de sombra suave interna */}
           <radialGradient id="wheelCenterShadow" cx="50%" cy="50%" r="50%">
             <stop offset="0%" stopColor="#06121C" stopOpacity="0.9" />
@@ -127,44 +149,45 @@ export function PromotionWheelCanvas({
         {/* Círculo de fundo */}
         <circle cx={center} cy={center} r={radius + 4} fill="#06121C" stroke={borderColor} strokeWidth="2" />
 
-        {/* Fatias da Roleta */}
-        <g>
-          {slices.map(({ seg, pathData, midDeg, idx }) => (
+        {/* Fatias da Roleta com Clip Seguro e Tipografia Perfeita */}
+        <g clipPath="url(#ventaraWheelClip)">
+          {slices.map(({ seg, pathData, midAngle, textRot, rDist, labelFontSize, idx }) => (
             <g key={seg.id || idx}>
               <path
                 d={pathData}
                 fill={seg.color}
-                stroke="rgba(232, 199, 101, 0.2)"
+                stroke="rgba(232, 199, 101, 0.25)"
                 strokeWidth="1.2"
               />
 
-              {/* Rótulo do Segmento posicionado e rotacionado radialmente */}
-              <g transform={`rotate(${midDeg} ${center} ${center})`}>
+              {/* Rótulo e Subtítulo transversais centrados e sempre legíveis */}
+              <g transform={`translate(${center} ${center}) rotate(${midAngle}) translate(${rDist}, 0) rotate(${textRot})`}>
                 <text
-                  x={center}
-                  y={center - radius + 38}
+                  x="0"
+                  y={seg.sublabel ? -7 : 0}
                   fill={seg.text_color || "#F5F5F2"}
-                  fontSize={total > 8 ? "11" : "12.5"}
-                  fontWeight="700"
+                  fontSize={labelFontSize}
+                  fontWeight="800"
+                  letterSpacing="0.3px"
                   fontFamily="system-ui, -apple-system, sans-serif"
                   textAnchor="middle"
-                  transform={`rotate(90 ${center} ${center - radius + 38})`}
-                  style={{ letterSpacing: "0.5px" }}
+                  dominantBaseline="central"
                 >
                   {seg.label}
                 </text>
 
                 {seg.sublabel && (
                   <text
-                    x={center}
-                    y={center - radius + 52}
+                    x="0"
+                    y="7.5"
                     fill={seg.text_color || "#F5F5F2"}
-                    opacity="0.8"
-                    fontSize="9"
-                    fontWeight="500"
+                    opacity="0.85"
+                    fontSize="8.5"
+                    fontWeight="600"
+                    letterSpacing="0.2px"
                     fontFamily="system-ui, -apple-system, sans-serif"
                     textAnchor="middle"
-                    transform={`rotate(90 ${center} ${center - radius + 52})`}
+                    dominantBaseline="central"
                   >
                     {seg.sublabel}
                   </text>

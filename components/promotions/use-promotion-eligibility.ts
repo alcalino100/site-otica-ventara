@@ -64,6 +64,12 @@ export function usePromotionEligibility({
   const checkStoredEligibility = useCallback((): boolean => {
     if (typeof window === "undefined") return false;
 
+    // 0. Modo de teste ou forçar exibição via URL (?roleta=1 ou ?teste=1)
+    const urlParams = new URLSearchParams(window.location.search);
+    if (urlParams.get("roleta") === "1" || urlParams.get("teste") === "1") {
+      return true;
+    }
+
     // 1. Já participou desta versão da campanha?
     if (safeStorage.getItem(participatedKey)) {
       return false;
@@ -118,17 +124,15 @@ export function usePromotionEligibility({
     let visibleSecondsElapsed = 0;
     let inactivitySecondsElapsed = 0;
 
-    // 1. Contador de Tempo de Aba Visível (Mínimo configurado, padrão 30s)
+    // 1. Contador de Tempo de Aba Visível (Mínimo configurado: padrão 3 segundos)
     const intervalTimer = setInterval(() => {
       if (isDocumentVisible) {
         visibleSecondsElapsed += 1;
         inactivitySecondsElapsed += 1;
 
-        // Disparo por inatividade após o tempo mínimo na página
-        if (
-          visibleSecondsElapsed >= triggers.min_seconds_on_page &&
-          inactivitySecondsElapsed >= triggers.inactivity_seconds
-        ) {
+        // Disparo automático após o tempo mínimo configurado (padrão 3s solicitado pelo cliente)
+        const minSeconds = triggers.min_seconds_on_page ?? 3;
+        if (visibleSecondsElapsed >= minSeconds) {
           triggerModal();
         }
       }
