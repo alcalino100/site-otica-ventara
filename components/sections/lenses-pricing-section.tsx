@@ -15,6 +15,8 @@ import {
   Zap,
   ChevronLeft,
   ChevronRight,
+  ChevronDown,
+  ChevronUp,
 } from "lucide-react";
 import { LensOpticalGraphic } from "../ui/lens-optical-graphic";
 import { PartnerLogosRibbon } from "./partner-logos-ribbon";
@@ -48,6 +50,8 @@ interface LensOption {
   features: string[];
 }
 
+const LENSES_INITIAL_LIMIT = 6;
+
 export function LensesPricingSection() {
   const [activeCategory, setActiveCategory] = useState<LensCategory>("visao-simples");
   const [activeLenses, setActiveLenses] = useState<LensOption[]>([]);
@@ -55,6 +59,7 @@ export function LensesPricingSection() {
   const [homologatedBrands, setHomologatedBrands] = useState<HomologatedBrand[]>(DEFAULT_HOMOLOGATED_BRANDS);
   const [lensesSection, setLensesSection] = useState<LensesSectionSettings>(DEFAULT_LENSES_SECTION_SETTINGS);
   const [activeCardIndex, setActiveCardIndex] = useState(0);
+  const [isLensesExpanded, setIsLensesExpanded] = useState(false);
   const carouselRef = useRef<HTMLDivElement>(null);
 
   const scrollPrev = () => {
@@ -81,6 +86,7 @@ export function LensesPricingSection() {
   const handleCategoryChange = (cat: LensCategory) => {
     setActiveCategory(cat);
     setActiveCardIndex(0);
+    setIsLensesExpanded(false);
     if (carouselRef.current) {
       carouselRef.current.scrollTo({ left: 0, behavior: "smooth" });
     }
@@ -410,7 +416,7 @@ export function LensesPricingSection() {
 
   return (
     <section
-      className="py-16 sm:py-24 bg-[#0a121e] text-white border-y border-slate-800 relative overflow-hidden"
+      className="pt-14 sm:pt-20 pb-8 sm:pb-12 bg-[#0a121e] text-white border-y border-slate-800 relative overflow-hidden"
       id="lentes"
     >
       {/* Luz ambiente de fundo */}
@@ -584,10 +590,14 @@ export function LensesPricingSection() {
               className="flex md:grid flex-row flex-nowrap md:flex-none overflow-x-auto md:overflow-visible overflow-y-hidden snap-x snap-mandatory md:snap-none gap-6 md:gap-8 py-2 pb-5 md:pb-0 md:grid-cols-2 lg:grid-cols-3 no-scrollbar -mx-4 px-6 md:mx-0 md:px-0 scroll-px-6 items-stretch"
               style={{ WebkitOverflowScrolling: "touch" }}
             >
-              {filteredOptions.map((opt) => (
+              {filteredOptions.map((opt, optIdx) => (
                 <div
                   key={opt.id}
-                  className="snap-center shrink-0 w-[78vw] max-w-[305px] md:w-auto md:max-w-none bg-[#0e192a] rounded-3xl border border-slate-800 hover:border-amber-400/50 transition-all duration-300 p-5 sm:p-6 flex flex-col justify-between shadow-xl group"
+                  className={`snap-center shrink-0 w-[78vw] max-w-[305px] bg-[#0e192a] rounded-3xl border border-slate-800 hover:border-amber-400/50 transition-all duration-300 p-5 sm:p-6 flex flex-col justify-between shadow-xl group ${
+                    !isLensesExpanded && optIdx >= LENSES_INITIAL_LIMIT
+                      ? "md:hidden"
+                      : "md:w-auto md:max-w-none"
+                  }`}
                 >
                   <div>
                     {/* CAPSULE ORGÂNICA BRANCA ESTILO PANDA ELITE COM A FOTO REAL DA CAIXA */}
@@ -697,7 +707,11 @@ export function LensesPricingSection() {
               {brandLogos.map((brand, idx) => (
                 <div
                   key={brand.id || idx}
-                  className="snap-center shrink-0 w-[78vw] max-w-[305px] md:w-auto md:max-w-none bg-[#0e192a] rounded-3xl border border-slate-800 hover:border-amber-400/50 p-5 sm:p-6 shadow-xl flex flex-col justify-between group transition-all duration-300"
+                  className={`snap-center shrink-0 w-[78vw] max-w-[305px] bg-[#0e192a] rounded-3xl border border-slate-800 hover:border-amber-400/50 p-5 sm:p-6 shadow-xl flex flex-col justify-between group transition-all duration-300 ${
+                    !isLensesExpanded && idx >= LENSES_INITIAL_LIMIT
+                      ? "md:hidden"
+                      : "md:w-auto md:max-w-none"
+                  }`}
                 >
                   <div>
                     {/* CAPSULE ORGÂNICA BRANCA ESTILO PANDA ELITE COM A CAIXA DA MARCA */}
@@ -773,7 +787,52 @@ export function LensesPricingSection() {
               ))}
             </div>
           )}
+
+          {/* Efeito de Degradê Cobrindo Parte das Lentes Sobrando no Desktop quando Recolhido */}
+          {!isLensesExpanded &&
+            (activeCategory === "marcas" ? brandLogos.length : filteredOptions.length) >
+              LENSES_INITIAL_LIMIT && (
+              <div className="hidden md:block pointer-events-none absolute bottom-0 inset-x-0 h-44 bg-gradient-to-t from-[#0a121e] via-[#0a121e]/85 to-transparent z-10" />
+            )}
         </div>
+
+        {/* Botão de Ver Mais / Recolher no Desktop com Contador */}
+        {(activeCategory === "marcas" ? brandLogos.length : filteredOptions.length) >
+          LENSES_INITIAL_LIMIT && (
+          <div className="hidden md:flex mt-8 flex-col items-center justify-center relative z-20">
+            <button
+              type="button"
+              onClick={() => setIsLensesExpanded((prev) => !prev)}
+              className="inline-flex items-center gap-2.5 px-7 py-3 rounded-full bg-slate-900 hover:bg-slate-800 active:scale-95 text-white font-bold text-xs sm:text-sm tracking-wide shadow-md shadow-slate-950/40 transition-all cursor-pointer border border-slate-700/80 group"
+            >
+              {isLensesExpanded ? (
+                <>
+                  <span>Recolher modelos</span>
+                  <ChevronUp size={16} className="text-amber-400 group-hover:-translate-y-0.5 transition-transform" />
+                </>
+              ) : (
+                <>
+                  <span>
+                    Ver mais{" "}
+                    {(activeCategory === "marcas" ? brandLogos.length : filteredOptions.length) -
+                      LENSES_INITIAL_LIMIT}{" "}
+                    opções
+                  </span>
+                  <ChevronDown size={16} className="text-amber-400 group-hover:translate-y-0.5 transition-transform" />
+                </>
+              )}
+            </button>
+            <span className="text-[11px] text-slate-400 mt-2 font-medium">
+              {isLensesExpanded
+                ? `Exibindo todas as ${
+                    activeCategory === "marcas" ? brandLogos.length : filteredOptions.length
+                  } opções desta categoria`
+                : `Mostrando ${LENSES_INITIAL_LIMIT} de ${
+                    activeCategory === "marcas" ? brandLogos.length : filteredOptions.length
+                  } opções`}
+            </span>
+          </div>
+        )}
 
         {/* DESTAQUE ESPECIAL DA MARCA PRÓPRIA / LABORATÓRIO PARCEIRO */}
         <div className="mt-12 bg-gradient-to-br from-[#0c182b] via-[#091526] to-[#060e1a] rounded-3xl p-6 sm:p-10 text-white shadow-2xl border border-amber-400/20 relative overflow-hidden">

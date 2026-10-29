@@ -2,17 +2,20 @@
 
 import React, { useState, useEffect } from "react";
 import Link from "next/link";
-import { MessageCircle, Sparkles, Tag, ArrowRight, ShieldCheck, ShoppingBag } from "lucide-react";
+import { MessageCircle, Sparkles, Tag, ArrowRight, ShieldCheck, ShoppingBag, ChevronDown, ChevronUp } from "lucide-react";
 import { PromotionalShowcaseSettings, PromoProductItem } from "@/types/ecommerce";
 import { DEFAULT_PROMOTIONAL_SHOWCASE } from "@/lib/site-settings-constants";
 import { useSiteSettings } from "../providers/site-settings-provider";
 import { FrameArt } from "../catalog/frame-art";
+
+const INITIAL_LIMIT = 8;
 
 export function PromotionalOffersSection() {
   const { cleanWhatsAppNumber } = useSiteSettings();
   const [promoSettings, setPromoSettings] =
     useState<PromotionalShowcaseSettings>(DEFAULT_PROMOTIONAL_SHOWCASE);
   const [imgErrors, setImgErrors] = useState<Record<string, boolean>>({});
+  const [isExpanded, setIsExpanded] = useState<boolean>(false);
 
   useEffect(() => {
     async function loadSettings() {
@@ -83,8 +86,12 @@ export function PromotionalOffersSection() {
         </div>
 
         {/* Grade de Produtos Promocionais (2 colunas no mobile, 4 no desktop) */}
-        <div className="grid grid-cols-2 lg:grid-cols-4 gap-3.5 sm:gap-6">
-          {promoSettings.items.map((item) => {
+        <div className="relative">
+          <div className="grid grid-cols-2 lg:grid-cols-4 gap-3.5 sm:gap-6">
+            {(isExpanded
+              ? promoSettings.items
+              : promoSettings.items.slice(0, INITIAL_LIMIT)
+            ).map((item) => {
             const hasError = imgErrors[item.id];
             const hasRealImage = Boolean(item.image && item.image.trim() !== "" && !hasError);
 
@@ -213,6 +220,40 @@ export function PromotionalOffersSection() {
             );
           })}
         </div>
+
+        {/* Efeito de Degradê Cobrindo Parte dos Modelos Sobrando quando Recolhido */}
+        {!isExpanded && promoSettings.items.length > INITIAL_LIMIT && (
+          <div className="pointer-events-none absolute bottom-0 inset-x-0 h-44 bg-gradient-to-t from-white via-white/85 to-transparent z-10" />
+        )}
+      </div>
+
+      {/* Botão de Ver Mais / Recolher com Contador */}
+      {promoSettings.items.length > INITIAL_LIMIT && (
+        <div className="mt-8 sm:mt-10 flex flex-col items-center justify-center relative z-20">
+          <button
+            type="button"
+            onClick={() => setIsExpanded((prev) => !prev)}
+            className="inline-flex items-center gap-2.5 px-7 py-3.5 rounded-full bg-slate-900 hover:bg-slate-800 active:scale-95 text-white font-bold text-xs sm:text-sm tracking-wide shadow-md shadow-slate-900/10 transition-all duration-200 cursor-pointer border border-slate-700/60 group"
+          >
+            {isExpanded ? (
+              <>
+                <span>Recolher modelos</span>
+                <ChevronUp size={16} className="text-amber-400 group-hover:-translate-y-0.5 transition-transform" />
+              </>
+            ) : (
+              <>
+                <span>Ver mais {promoSettings.items.length - INITIAL_LIMIT} modelos em oferta</span>
+                <ChevronDown size={16} className="text-amber-400 group-hover:translate-y-0.5 transition-transform" />
+              </>
+            )}
+          </button>
+          <span className="text-[11px] text-slate-500 mt-2 font-medium">
+            {isExpanded
+              ? `Exibindo todos os ${promoSettings.items.length} modelos selecionados`
+              : `Mostrando ${INITIAL_LIMIT} de ${promoSettings.items.length} modelos com até 25% OFF`}
+          </span>
+        </div>
+      )}
       </div>
     </section>
   );

@@ -75,27 +75,27 @@ export function ColoredLensesShowcase({ initialLenses }: ColoredLensesShowcasePr
 
   return (
     <section
-      className="py-14 sm:py-20 bg-[#02070D] text-white relative overflow-hidden border-b border-white/10 scroll-mt-16"
+      className="pt-8 sm:pt-12 pb-16 sm:pb-24 bg-[#02070D] text-white relative overflow-hidden border-b border-white/10 scroll-mt-16"
       id="lentes-coloridas"
     >
       {/* Luz ambiente de fundo */}
       <div
-        className="absolute top-1/4 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[650px] h-[350px] blur-[140px] pointer-events-none transition-colors duration-700 opacity-25"
+        className="absolute top-1/4 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[750px] h-[400px] blur-[150px] pointer-events-none transition-colors duration-700 opacity-25"
         style={{ backgroundColor: activeLens.colorHex || "#38bdf8" }}
       />
 
-      <div className="max-w-5xl mx-auto px-4 sm:px-6 relative z-10">
-        {/* Card Principal Estilo Studio Escuro (Fiel ao Print do WhatsApp) */}
-        <div className="relative rounded-[2rem] sm:rounded-[2.5rem] bg-gradient-to-b from-[#091524] via-[#070f1a] to-[#040913] border border-white/10 p-6 sm:p-10 shadow-2xl overflow-hidden">
+      <div className="max-w-[1400px] mx-auto px-4 sm:px-8 lg:px-10 relative z-10">
+        {/* Card Principal Estilo Studio Escuro - Agora integrado aos 1400px do site */}
+        <div className="relative rounded-3xl sm:rounded-[2.5rem] bg-gradient-to-b from-[#091524] via-[#070f1a] to-[#040913] border border-white/10 p-6 sm:p-12 lg:p-14 shadow-2xl overflow-hidden">
           {/* Luz interna no topo do card */}
           <div className="absolute top-0 inset-x-0 h-px bg-gradient-to-r from-transparent via-white/20 to-transparent pointer-events-none" />
 
           {/* 1. TOPO: HEADER + STAGE 3D DA LENTE HERO */}
-          <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-center">
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-12 items-center">
             {/* Coluna Texto (Lado Esquerdo) */}
-            <div className="lg:col-span-6 space-y-4">
+            <div className="lg:col-span-7 space-y-4">
               {/* Traço decorativo superior */}
-              <div className="w-8 sm:w-10 h-1 bg-slate-500/80 rounded-full" />
+              <div className="w-8 sm:w-10 h-1 bg-amber-400 rounded-full" />
 
               {/* Título Principal */}
               <div>
@@ -125,37 +125,37 @@ export function ColoredLensesShowcase({ initialLenses }: ColoredLensesShowcasePr
                   {activeLens.name}
                 </h3>
 
-                <p className="text-xs text-slate-300 leading-relaxed line-clamp-2">
+                <p className="text-xs sm:text-sm text-slate-300 leading-relaxed max-w-xl">
                   {activeLens.description}
                 </p>
 
                 {/* Diferenciais em Pílulas */}
-                <div className="flex flex-wrap gap-1.5 pt-1">
-                  <span className="inline-flex items-center gap-1 text-[10px] text-slate-300 bg-white/5 px-2 py-0.5 rounded-md border border-white/5">
-                    <Check size={11} className="text-emerald-400" />
+                <div className="flex flex-wrap gap-2 pt-1">
+                  <span className="inline-flex items-center gap-1.5 text-[10px] sm:text-xs text-slate-200 bg-white/5 px-2.5 py-1 rounded-md border border-white/10">
+                    <Check size={12} className="text-emerald-400" />
                     Proteção UV400
                   </span>
-                  <span className="inline-flex items-center gap-1 text-[10px] text-slate-300 bg-white/5 px-2 py-0.5 rounded-md border border-white/5">
-                    <Check size={11} className="text-emerald-400" />
+                  <span className="inline-flex items-center gap-1.5 text-[10px] sm:text-xs text-slate-200 bg-white/5 px-2.5 py-1 rounded-md border border-white/10">
+                    <Check size={12} className="text-emerald-400" />
                     Com ou Sem Grau
                   </span>
-                  <span className="inline-flex items-center gap-1 text-[10px] text-slate-300 bg-white/5 px-2 py-0.5 rounded-md border border-white/5">
-                    <Check size={11} className="text-emerald-400" />
+                  <span className="inline-flex items-center gap-1.5 text-[10px] sm:text-xs text-slate-200 bg-white/5 px-2.5 py-1 rounded-md border border-white/10">
+                    <Check size={12} className="text-emerald-400" />
                     Montagem Expressa
                   </span>
                 </div>
 
                 {/* Preço e Botão de Ação Direta */}
-                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pt-3 border-t border-white/10">
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pt-4 border-t border-white/10">
                   <div>
-                    <span className="text-[10px] text-slate-400 uppercase tracking-wider block">
+                    <span className="text-[10px] text-slate-400 uppercase tracking-wider block font-semibold">
                       A partir de
                     </span>
                     <div className="flex items-baseline gap-2">
-                      <span className="text-2xl font-black text-amber-400 font-mono tracking-tight">
+                      <span className="text-2xl sm:text-3xl font-black text-amber-400 font-mono tracking-tight">
                         {activeLens.priceFormatted}
                       </span>
-                      <span className="text-[11px] text-slate-400 font-medium">
+                      <span className="text-[11px] sm:text-xs text-slate-400 font-medium">
                         {activeLens.installmentFormatted}
                       </span>
                     </div>
@@ -165,7 +165,7 @@ export function ColoredLensesShowcase({ initialLenses }: ColoredLensesShowcasePr
                     href={getWhatsAppUrl(activeLens)}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="inline-flex items-center justify-center gap-2 px-5 py-2.5 rounded-xl bg-amber-400 hover:bg-amber-300 active:scale-95 text-slate-950 font-bold text-xs uppercase tracking-wider transition-all shadow-md shadow-amber-400/20 cursor-pointer"
+                    className="inline-flex items-center justify-center gap-2 px-6 py-3 rounded-xl bg-amber-400 hover:bg-amber-300 active:scale-95 text-slate-950 font-bold text-xs uppercase tracking-wider transition-all shadow-md shadow-amber-400/20 cursor-pointer"
                   >
                     <MessageCircle size={15} />
                     <span>Pedir no WhatsApp</span>
@@ -176,11 +176,11 @@ export function ColoredLensesShowcase({ initialLenses }: ColoredLensesShowcasePr
             </div>
 
             {/* Coluna Visual: Lente 3D com Reflexo de Chão e Luz Estúdio */}
-            <div className="lg:col-span-6 flex flex-col items-center justify-center">
-              <div className="relative w-full max-w-[340px] aspect-[4/3] flex items-center justify-center">
+            <div className="lg:col-span-5 flex flex-col items-center justify-center">
+              <div className="relative w-full max-w-[420px] aspect-[4/3] flex items-center justify-center">
                 {/* Brilho de chão sob a lente */}
                 <div
-                  className="absolute bottom-2 inset-x-8 h-10 rounded-full blur-xl opacity-60 transition-colors duration-500 pointer-events-none"
+                  className="absolute bottom-2 inset-x-8 h-12 rounded-full blur-2xl opacity-60 transition-colors duration-500 pointer-events-none"
                   style={{ backgroundColor: activeLens.colorHex || "#ef4444" }}
                 />
 
@@ -217,7 +217,7 @@ export function ColoredLensesShowcase({ initialLenses }: ColoredLensesShowcasePr
           {/* 3. GRID DAS 7 CORES EXATAS DO PRINT */}
           <div className="space-y-6 sm:space-y-8">
             {/* Linha 1 (3 Cores): Cinza Fumê, Marrom, Verde */}
-            <div className="grid grid-cols-3 gap-3 sm:gap-8 max-w-xl mx-auto">
+            <div className="grid grid-cols-3 gap-4 sm:gap-10 max-w-2xl mx-auto">
               {row1.map((lens) => {
                 const isSelected = lens.id === selectedId;
 
@@ -266,7 +266,7 @@ export function ColoredLensesShowcase({ initialLenses }: ColoredLensesShowcasePr
             </div>
 
             {/* Linha 2 (4 Cores): Amarelo, Azul Espelhado, Vermelho Espelhado, Degradê */}
-            <div className="grid grid-cols-4 gap-2 sm:gap-6 max-w-2xl mx-auto">
+            <div className="grid grid-cols-4 gap-3 sm:gap-8 max-w-3xl mx-auto">
               {row2.map((lens) => {
                 const isSelected = lens.id === selectedId;
 
