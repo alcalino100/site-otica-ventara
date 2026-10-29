@@ -793,6 +793,50 @@ export default function AdminBannersPage() {
                         onClick={() =>
                           setHeroBanner((prev) => ({
                             ...prev,
+                            bannerImageUrl:
+                              "https://yfokjztrhecjlijvmvmr.supabase.co/storage/v1/object/public/product-images/products/1792716830393-u708m6.jpg",
+                            layoutStyle: "card_box",
+                            customPositionX: 50,
+                            customPositionY: 50,
+                          }))
+                        }
+                        className="text-xs px-3.5 py-2 rounded-xl bg-amber-400 text-slate-950 font-bold hover:bg-amber-300 transition-colors shadow-xs"
+                      >
+                        ✨ Ventara Safari (Armação Completa)
+                      </button>
+
+                      <button
+                        type="button"
+                        onClick={() =>
+                          setHeroBanner((prev) => ({
+                            ...prev,
+                            bannerImageUrl:
+                              "https://yfokjztrhecjlijvmvmr.supabase.co/storage/v1/object/public/product-images/products/1792778393371-a3xj7o.jpg",
+                          }))
+                        }
+                        className="text-xs px-3 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 transition-colors"
+                      >
+                        Ventara Safari (Macro)
+                      </button>
+
+                      <button
+                        type="button"
+                        onClick={() =>
+                          setHeroBanner((prev) => ({
+                            ...prev,
+                            bannerImageUrl: "/images/products/ventara-sport-fire.jpg",
+                          }))
+                        }
+                        className="text-xs px-3 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 transition-colors"
+                      >
+                        Ventara Sport Fire
+                      </button>
+
+                      <button
+                        type="button"
+                        onClick={() =>
+                          setHeroBanner((prev) => ({
+                            ...prev,
                             bannerImageUrl: "/images/lifestyle/female-grau.jpg",
                           }))
                         }
@@ -812,19 +856,6 @@ export default function AdminBannersPage() {
                         className="text-xs px-3 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 transition-colors"
                       >
                         Modelo Masculino Solar
-                      </button>
-
-                      <button
-                        type="button"
-                        onClick={() =>
-                          setHeroBanner((prev) => ({
-                            ...prev,
-                            bannerImageUrl: "/images/banners/catalogo-lentes-oftalmicas.jpg",
-                          }))
-                        }
-                        className="text-xs px-3 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 transition-colors"
-                      >
-                        Banner Lentes
                       </button>
                     </div>
 
@@ -857,36 +888,12 @@ export default function AdminBannersPage() {
                     </p>
                   </div>
 
-                  {/* 1. Escolha de Layout: Fundo Inteiro vs Caixa Lateral */}
+                  {/* 1. Escolha de Layout: Vitrine Atelier de Luxo vs Fundo Inteiro */}
                   <div>
                     <label className="block text-xs font-semibold text-slate-300 mb-1.5">
                       Estilo de Layout no Header:
                     </label>
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                      <button
-                        type="button"
-                        onClick={() =>
-                          setHeroBanner((prev) => ({ ...prev, layoutStyle: "full_bleed" }))
-                        }
-                        className={`p-3 rounded-xl border text-left transition-all ${
-                          heroBanner.layoutStyle !== "card_box"
-                            ? "border-amber-400 bg-amber-400/10 shadow-md"
-                            : "border-white/10 bg-[#040c16] hover:border-white/20"
-                        }`}
-                      >
-                        <div className="flex items-center justify-between mb-1">
-                          <span className="text-xs font-bold text-white">
-                            Fundo Inteiro da Seção
-                          </span>
-                          <span className="text-[10px] font-semibold text-amber-400 bg-amber-400/20 px-2 py-0.5 rounded-full">
-                            Recomendado
-                          </span>
-                        </div>
-                        <p className="text-[11px] text-slate-400">
-                          A foto preenche todo o fundo do header sem blocos ou bordas, com degradê cobrindo o texto.
-                        </p>
-                      </button>
-
                       <button
                         type="button"
                         onClick={() =>
@@ -900,11 +907,35 @@ export default function AdminBannersPage() {
                       >
                         <div className="flex items-center justify-between mb-1">
                           <span className="text-xs font-bold text-white">
-                            Caixa Flutuante na Direita
+                            ✨ Vitrine Atelier de Luxo
+                          </span>
+                          <span className="text-[10px] font-semibold text-amber-400 bg-amber-400/20 px-2 py-0.5 rounded-full">
+                            Recomendado
                           </span>
                         </div>
                         <p className="text-[11px] text-slate-400">
-                          A foto fica dentro de um bloco com cantos arredondados no lado direito.
+                          O óculos aparece por inteiro, nítido e elegante, com reflexo de bancada e cantos curvos de luxo. Zero distorção.
+                        </p>
+                      </button>
+
+                      <button
+                        type="button"
+                        onClick={() =>
+                          setHeroBanner((prev) => ({ ...prev, layoutStyle: "full_bleed" }))
+                        }
+                        className={`p-3 rounded-xl border text-left transition-all ${
+                          heroBanner.layoutStyle !== "card_box"
+                            ? "border-amber-400 bg-amber-400/10 shadow-md"
+                            : "border-white/10 bg-[#040c16] hover:border-white/20"
+                        }`}
+                      >
+                        <div className="flex items-center justify-between mb-1">
+                          <span className="text-xs font-bold text-white">
+                            Fundo Inteiro com Degradê
+                          </span>
+                        </div>
+                        <p className="text-[11px] text-slate-400">
+                          A foto preenche o fundo da seção com degradê suave cobrindo o texto. Ideal para fotos panorâmicas.
                         </p>
                       </button>
                     </div>
