@@ -223,6 +223,7 @@ export const DEFAULT_LENSES_SECTION_SETTINGS: LensesSectionSettings = {
   ribbonSubtitle:
     "Garantia de procedência direta com laboratórios certificados e montagem expressa",
   partnerLogos: DEFAULT_PARTNER_LOGOS,
+  ribbonSpeedSeconds: 28,
 };
 
 export const DEFAULT_HERO_BANNER: HeroBannerSettings = {

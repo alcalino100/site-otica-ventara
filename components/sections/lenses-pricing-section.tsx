@@ -254,6 +254,7 @@ export function LensesPricingSection() {
           <PartnerLogosRibbon
             variant="light"
             logos={lensesSection?.partnerLogos || DEFAULT_PARTNER_LOGOS}
+            speedSeconds={lensesSection?.ribbonSpeedSeconds || 28}
             tag={lensesSection?.ribbonTag || "PARCEIROS TECNOLÓGICOS & LENTES HOMOLOGADAS"}
             subtitle={lensesSection?.ribbonSubtitle || "Garantia de procedência direta com laboratórios certificados e montagem expressa"}
           />

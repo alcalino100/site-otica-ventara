@@ -302,6 +302,7 @@ export interface LensesSectionSettings {
   ribbonTag: string;
   ribbonSubtitle: string;
   partnerLogos: PartnerLogoItem[];
+  ribbonSpeedSeconds?: number;
 }
 
 export interface HeroBannerSettings {

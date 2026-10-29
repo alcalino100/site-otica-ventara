@@ -21,6 +21,12 @@ import {
   Upload,
   Award,
   Image as ImageIcon,
+  ArrowLeft,
+  ArrowRight,
+  ArrowUp,
+  ArrowDown,
+  Gauge,
+  SlidersHorizontal,
 } from "lucide-react";
 import { AdminLensItem, DEFAULT_LENSES } from "@/lib/lenses-data";
 import {
@@ -333,6 +339,58 @@ export default function AdminLensesPage() {
     }));
   };
 
+  // Reordenação de logos do carrossel (mover para esquerda / direita)
+  const handleMovePartnerLogo = (index: number, direction: "left" | "right") => {
+    const targetIndex = direction === "left" ? index - 1 : index + 1;
+    if (targetIndex < 0 || targetIndex >= lensesSection.partnerLogos.length) return;
+
+    setLensesSection((prev) => {
+      const updated = [...prev.partnerLogos];
+      const temp = updated[index];
+      updated[index] = updated[targetIndex];
+      updated[targetIndex] = temp;
+      return { ...prev, partnerLogos: updated };
+    });
+  };
+
+  // Reordenação de marcas homologadas (mover para cima / baixo)
+  const handleMoveBrand = (index: number, direction: "up" | "down") => {
+    const targetIndex = direction === "up" ? index - 1 : index + 1;
+    if (targetIndex < 0 || targetIndex >= homologatedBrands.length) return;
+
+    setHomologatedBrands((prev) => {
+      const updated = [...prev];
+      const temp = updated[index];
+      updated[index] = updated[targetIndex];
+      updated[targetIndex] = temp;
+      return updated;
+    });
+  };
+
+  // Adicionar nova marca homologada
+  const handleAddHomologatedBrand = () => {
+    const newBrand: HomologatedBrand = {
+      id: `brand-${Date.now()}`,
+      name: "Novo Laboratório Homologado",
+      logo: "/logos/optisync.svg",
+      boxImage: "/images/lenses/optisync-box.jpg",
+      badge: "Garantia Homologada",
+      desc: "Lentes de alta precisão com tratamentos multicamadas certificados e montagem expressa em laboratório próprio.",
+    };
+    setHomologatedBrands((prev) => [...prev, newBrand]);
+  };
+
+  // Remover marca homologada
+  const handleRemoveHomologatedBrand = (id: string) => {
+    if (homologatedBrands.length <= 1) {
+      alert("É necessário manter pelo menos uma marca homologada.");
+      return;
+    }
+    if (confirm("Deseja realmente remover esta marca homologada?")) {
+      setHomologatedBrands((prev) => prev.filter((b) => b.id !== id));
+    }
+  };
+
   const handleSaveLensesSection = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsSavingLensesSection(true);
@@ -615,8 +673,8 @@ export default function AdminLensesPage() {
               : "text-amber-400 hover:bg-amber-400/10 border border-amber-400/30"
           }`}
         >
-          <ImageIcon size={13} />
-          <span>Imagens da Seção &amp; Símbolo Óptico</span>
+          <SlidersHorizontal size={13} />
+          <span>Carrossel de Parceiros (Logos &amp; Velocidade)</span>
         </button>
       </div>
 
@@ -875,25 +933,36 @@ export default function AdminLensesPage() {
                 LABORATÓRIOS &amp; FORNECEDORES OFICIAIS
               </span>
               <h2 className="text-xl font-bold text-white mt-1">
-                Marcas Homologadas &amp; Fotos das Caixas
+                Marcas Homologadas &amp; Fotos das Caixas ({homologatedBrands.length})
               </h2>
               <p className="text-xs text-slate-400 mt-0.5 max-w-2xl">
-                Altere as fotos das caixas de cada marca parceira (Perego, Correct, Orgalens, HOYA, Kodak, Varilux, OPTiSYNC). Essas fotos reais de embalagens são exibidas com estilo orgânico translúcido na aba &quot;Todas as Marcas Homologadas&quot; no site.
+                Altere a ordem, fotos das caixas, logos e descrições de cada marca parceira (Perego, Correct, Orgalens, HOYA, Kodak, Varilux, OPTiSYNC). Essas marcas aparecem no site e você pode adicionar novas ou reordenar livremente.
               </p>
             </div>
 
-            <button
-              type="button"
-              onClick={handleSaveBrands}
-              disabled={isSavingBrands}
-              className="inline-flex items-center gap-2 px-6 py-3 rounded-xl bg-amber-400 hover:bg-amber-300 disabled:opacity-50 text-slate-950 font-bold text-xs uppercase tracking-wider transition-all shadow-md shadow-amber-400/20 cursor-pointer self-start sm:self-auto"
-            >
-              <Save size={15} />
-              <span>{isSavingBrands ? "Salvando..." : "Salvar Marcas Homologadas"}</span>
-            </button>
+            <div className="flex items-center gap-2.5 flex-wrap self-start sm:self-auto">
+              <button
+                type="button"
+                onClick={handleAddHomologatedBrand}
+                className="inline-flex items-center gap-1.5 px-4 py-2.5 rounded-xl bg-amber-400/15 hover:bg-amber-400/25 text-amber-300 border border-amber-400/40 text-xs font-bold transition-all cursor-pointer"
+              >
+                <Plus size={15} />
+                <span>Adicionar Nova Marca</span>
+              </button>
+
+              <button
+                type="button"
+                onClick={handleSaveBrands}
+                disabled={isSavingBrands}
+                className="inline-flex items-center gap-2 px-6 py-2.5 rounded-xl bg-amber-400 hover:bg-amber-300 disabled:opacity-50 text-slate-950 font-bold text-xs uppercase tracking-wider transition-all shadow-md shadow-amber-400/20 cursor-pointer"
+              >
+                <Save size={15} />
+                <span>{isSavingBrands ? "Salvando..." : "Salvar Marcas Homologadas"}</span>
+              </button>
+            </div>
           </div>
 
-          {/* Grid com os 7 parceiros homologados */}
+          {/* Grid com os parceiros homologados e reordenação */}
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {homologatedBrands.map((brand, idx) => (
               <div
@@ -902,12 +971,46 @@ export default function AdminLensesPage() {
               >
                 <div>
                   <div className="flex items-center justify-between gap-2 mb-3">
-                    <span className="text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-md bg-white/5 text-amber-400 border border-white/10">
-                      #{idx + 1} · {brand.name}
-                    </span>
-                    <span className="text-[10px] font-medium text-slate-400">
-                      ID: {brand.id}
-                    </span>
+                    <div className="flex items-center gap-2">
+                      <span className="text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-md bg-white/5 text-amber-400 border border-white/10">
+                        #{idx + 1}
+                      </span>
+                      <span className="text-xs font-bold text-white truncate max-w-[130px]">
+                        {brand.name}
+                      </span>
+                    </div>
+
+                    {/* Botões de Reordenação e Exclusão */}
+                    <div className="flex items-center gap-1">
+                      <button
+                        type="button"
+                        onClick={() => handleMoveBrand(idx, "up")}
+                        disabled={idx === 0}
+                        title="Subir posição"
+                        className="w-7 h-7 rounded-lg bg-white/5 hover:bg-white/10 disabled:opacity-30 border border-white/10 flex items-center justify-center text-slate-300 hover:text-white transition-colors cursor-pointer"
+                      >
+                        <ArrowUp size={13} />
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => handleMoveBrand(idx, "down")}
+                        disabled={idx === homologatedBrands.length - 1}
+                        title="Descer posição"
+                        className="w-7 h-7 rounded-lg bg-white/5 hover:bg-white/10 disabled:opacity-30 border border-white/10 flex items-center justify-center text-slate-300 hover:text-white transition-colors cursor-pointer"
+                      >
+                        <ArrowDown size={13} />
+                      </button>
+                      {homologatedBrands.length > 1 && (
+                        <button
+                          type="button"
+                          onClick={() => handleRemoveHomologatedBrand(brand.id)}
+                          title="Remover marca"
+                          className="w-7 h-7 rounded-lg bg-rose-500/10 hover:bg-rose-500/20 border border-rose-500/30 flex items-center justify-center text-rose-300 transition-colors cursor-pointer ml-1"
+                        >
+                          <Trash2 size={13} />
+                        </button>
+                      )}
+                    </div>
                   </div>
 
                   {/* Preview idêntico ao do site oficial (fundo branco orgânico com a caixa e logo) */}
@@ -1265,7 +1368,7 @@ export default function AdminLensesPage() {
           </div>
 
           {/* BLOCO 3: CARROSSEL DE LOGOS DOS PARCEIROS & LABORATÓRIOS */}
-          <div className="bg-[#0a1526] border border-white/10 rounded-2xl p-6 space-y-5">
+          <div className="bg-[#0a1526] border border-white/10 rounded-2xl p-6 space-y-6">
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-white/10 pb-4">
               <div>
                 <h3 className="text-base font-bold text-white flex items-center gap-2">
@@ -1273,7 +1376,7 @@ export default function AdminLensesPage() {
                   <span>Carrossel de Parceiros Tecnológicos ({lensesSection.partnerLogos.length} Marcas)</span>
                 </h3>
                 <p className="text-xs text-slate-400 mt-0.5">
-                  Logos das marcas e laboratórios exibidos no carrossel animado contínuo no site.
+                  Altere a ordem das logos, ajuste a velocidade do carrossel e troque ou adicione marcas parceiras.
                 </p>
               </div>
 
@@ -1285,6 +1388,75 @@ export default function AdminLensesPage() {
                 <Plus size={14} />
                 <span>Adicionar Nova Marca / Logo</span>
               </button>
+            </div>
+
+            {/* CONTROLE DE VELOCIDADE DA ANIMAÇÃO */}
+            <div className="bg-[#050f1d] border border-white/10 rounded-xl p-4 sm:p-5 space-y-3">
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+                <div className="flex items-center gap-2">
+                  <Gauge size={16} className="text-amber-400" />
+                  <span className="text-xs font-bold text-white uppercase tracking-wider">
+                    Velocidade do Carrossel Animado
+                  </span>
+                </div>
+                <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-amber-400/10 border border-amber-400/30 text-amber-300 font-mono text-xs font-bold self-start sm:self-auto">
+                  <span>{lensesSection.ribbonSpeedSeconds || 28} segundos</span>
+                  <span className="text-slate-400 font-normal">por volta completa</span>
+                </div>
+              </div>
+
+              <p className="text-[11px] text-slate-400">
+                Quanto menor o número de segundos, mais rápido as logos se movimentam na tela do site.
+              </p>
+
+              <div className="flex items-center gap-4 pt-1">
+                <span className="text-[11px] font-bold text-slate-400 shrink-0">Rápido (10s)</span>
+                <input
+                  type="range"
+                  min="10"
+                  max="60"
+                  step="2"
+                  value={lensesSection.ribbonSpeedSeconds || 28}
+                  onChange={(e) =>
+                    setLensesSection({
+                      ...lensesSection,
+                      ribbonSpeedSeconds: Number(e.target.value),
+                    })
+                  }
+                  className="w-full accent-amber-400 cursor-pointer"
+                />
+                <span className="text-[11px] font-bold text-slate-400 shrink-0">Lento (60s)</span>
+              </div>
+
+              {/* Predefinições Rápidas */}
+              <div className="flex items-center gap-2 flex-wrap pt-1">
+                <span className="text-[10px] text-slate-500 font-semibold uppercase tracking-wider">Predefinições:</span>
+                {[
+                  { label: "Muito Rápido (16s)", val: 16 },
+                  { label: "Rápido (22s)", val: 22 },
+                  { label: "Padrão (28s)", val: 28 },
+                  { label: "Suave (36s)", val: 36 },
+                  { label: "Lento (48s)", val: 48 },
+                ].map((preset) => (
+                  <button
+                    key={preset.val}
+                    type="button"
+                    onClick={() =>
+                      setLensesSection({
+                        ...lensesSection,
+                        ribbonSpeedSeconds: preset.val,
+                      })
+                    }
+                    className={`px-2.5 py-1 rounded-lg text-[10px] font-semibold transition-all cursor-pointer ${
+                      (lensesSection.ribbonSpeedSeconds || 28) === preset.val
+                        ? "bg-amber-400 text-slate-950 font-bold shadow-xs"
+                        : "bg-white/5 hover:bg-white/10 text-slate-300 border border-white/5"
+                    }`}
+                  >
+                    {preset.label}
+                  </button>
+                ))}
+              </div>
             </div>
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
@@ -1325,66 +1497,103 @@ export default function AdminLensesPage() {
               </div>
             </div>
 
-            {/* Lista de Logos */}
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3.5 pt-2">
-              {lensesSection.partnerLogos.map((logo, idx) => (
-                <div
-                  key={logo.id || idx}
-                  className="p-3.5 rounded-xl bg-[#050f1d] border border-white/10 flex items-center gap-3 relative group hover:border-amber-400/40 transition-colors"
-                >
-                  {/* Preview da Logo */}
-                  <div className="w-20 h-12 rounded-lg bg-[#030812] border border-white/5 p-1.5 flex items-center justify-center shrink-0">
-                    <img
-                      src={logo.src}
-                      alt={logo.alt || logo.name}
-                      className="max-h-8 max-w-full object-contain"
-                    />
-                  </div>
+            {/* Lista de Logos com Controles de Reordenação (Ordem das Logos) */}
+            <div className="space-y-2 pt-1">
+              <div className="flex items-center justify-between text-xs font-semibold text-slate-400 px-1">
+                <span>Ordem das Logos no Carrossel (Use as setas para reorganizar):</span>
+                <span className="text-[11px] text-amber-400">{lensesSection.partnerLogos.length} parceiros configurados</span>
+              </div>
 
-                  {/* Informações e Botão de Trocar Logo */}
-                  <div className="flex-1 min-w-0 space-y-1">
-                    <input
-                      type="text"
-                      value={logo.name}
-                      onChange={(e) => {
-                        const newName = e.target.value;
-                        setLensesSection((prev) => ({
-                          ...prev,
-                          partnerLogos: prev.partnerLogos.map((p) =>
-                            p.id === logo.id ? { ...p, name: newName, alt: newName } : p
-                          ),
-                        }));
-                      }}
-                      placeholder="Nome da Marca"
-                      className="w-full bg-transparent border-b border-white/10 focus:border-amber-400 text-xs font-semibold text-white px-0 py-0.5 focus:outline-none"
-                    />
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3.5">
+                {lensesSection.partnerLogos.map((logo, idx) => (
+                  <div
+                    key={logo.id || idx}
+                    className="p-3.5 rounded-xl bg-[#050f1d] border border-white/10 flex flex-col justify-between space-y-3 relative group hover:border-amber-400/40 transition-colors"
+                  >
+                    {/* Barra Superior do Card: Posição e Botões de Reordenação */}
+                    <div className="flex items-center justify-between border-b border-white/5 pb-2">
+                      <span className="text-[10px] font-bold uppercase tracking-wider text-amber-400 bg-white/5 px-2 py-0.5 rounded border border-white/10">
+                        Posição #{idx + 1}
+                      </span>
 
-                    <div className="flex items-center gap-2 pt-0.5">
-                      <label className="text-[10px] text-sky-400 hover:text-sky-300 font-semibold cursor-pointer inline-flex items-center gap-1">
-                        <Upload size={10} />
-                        <span>{uploadingLogoId === logo.id ? "Enviando..." : "Alterar Logo"}</span>
-                        <input
-                          type="file"
-                          accept="image/*"
-                          onChange={(e) => handlePartnerLogoUpload(logo.id, e)}
-                          disabled={uploadingLogoId === logo.id}
-                          className="hidden"
-                        />
-                      </label>
-
-                      {lensesSection.partnerLogos.length > 1 && (
+                      <div className="flex items-center gap-1">
                         <button
                           type="button"
-                          onClick={() => handleRemovePartnerLogo(logo.id)}
-                          className="text-[10px] text-red-400/80 hover:text-red-400 font-medium ml-auto cursor-pointer"
+                          onClick={() => handleMovePartnerLogo(idx, "left")}
+                          disabled={idx === 0}
+                          title="Mover para a esquerda (aparecer antes)"
+                          className="w-6 h-6 rounded bg-white/5 hover:bg-white/10 disabled:opacity-20 border border-white/10 flex items-center justify-center text-slate-300 hover:text-white transition-colors cursor-pointer"
                         >
-                          Remover
+                          <ArrowLeft size={11} />
                         </button>
-                      )}
+                        <button
+                          type="button"
+                          onClick={() => handleMovePartnerLogo(idx, "right")}
+                          disabled={idx === lensesSection.partnerLogos.length - 1}
+                          title="Mover para a direita (aparecer depois)"
+                          className="w-6 h-6 rounded bg-white/5 hover:bg-white/10 disabled:opacity-20 border border-white/10 flex items-center justify-center text-slate-300 hover:text-white transition-colors cursor-pointer"
+                        >
+                          <ArrowRight size={11} />
+                        </button>
+                      </div>
+                    </div>
+
+                    <div className="flex items-center gap-3">
+                      {/* Preview da Logo */}
+                      <div className="w-20 h-12 rounded-lg bg-[#030812] border border-white/5 p-1.5 flex items-center justify-center shrink-0">
+                        <img
+                          src={logo.src}
+                          alt={logo.alt || logo.name}
+                          className="max-h-8 max-w-full object-contain"
+                        />
+                      </div>
+
+                      {/* Informações e Botão de Trocar Logo */}
+                      <div className="flex-1 min-w-0 space-y-1">
+                        <input
+                          type="text"
+                          value={logo.name}
+                          onChange={(e) => {
+                            const newName = e.target.value;
+                            setLensesSection((prev) => ({
+                              ...prev,
+                              partnerLogos: prev.partnerLogos.map((p) =>
+                                p.id === logo.id ? { ...p, name: newName, alt: newName } : p
+                              ),
+                            }));
+                          }}
+                          placeholder="Nome da Marca"
+                          className="w-full bg-transparent border-b border-white/10 focus:border-amber-400 text-xs font-semibold text-white px-0 py-0.5 focus:outline-none"
+                        />
+
+                        <div className="flex items-center gap-2 pt-0.5">
+                          <label className="text-[10px] text-sky-400 hover:text-sky-300 font-semibold cursor-pointer inline-flex items-center gap-1">
+                            <Upload size={10} />
+                            <span>{uploadingLogoId === logo.id ? "Enviando..." : "Alterar Logo"}</span>
+                            <input
+                              type="file"
+                              accept="image/*"
+                              onChange={(e) => handlePartnerLogoUpload(logo.id, e)}
+                              disabled={uploadingLogoId === logo.id}
+                              className="hidden"
+                            />
+                          </label>
+
+                          {lensesSection.partnerLogos.length > 1 && (
+                            <button
+                              type="button"
+                              onClick={() => handleRemovePartnerLogo(logo.id)}
+                              className="text-[10px] text-red-400/80 hover:text-red-400 font-medium ml-auto cursor-pointer"
+                            >
+                              Remover
+                            </button>
+                          )}
+                        </div>
+                      </div>
                     </div>
                   </div>
-                </div>
-              ))}
+                ))}
+              </div>
             </div>
           </div>
 

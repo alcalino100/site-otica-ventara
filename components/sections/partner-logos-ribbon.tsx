@@ -10,6 +10,7 @@ interface PartnerLogosRibbonProps {
   tag?: string;
   subtitle?: string;
   variant?: "dark" | "light";
+  speedSeconds?: number;
 }
 
 export function PartnerLogosRibbon({
@@ -17,6 +18,7 @@ export function PartnerLogosRibbon({
   tag = "PARCEIROS TECNOLÓGICOS & LENTES HOMOLOGADAS",
   subtitle = "Garantia de procedência direta com laboratórios certificados e montagem expressa",
   variant = "dark",
+  speedSeconds = 28,
 }: PartnerLogosRibbonProps) {
   const logosToRender = logos && logos.length > 0 ? logos : DEFAULT_PARTNER_LOGOS;
   const isLight = variant === "light";
@@ -64,7 +66,10 @@ export function PartnerLogosRibbon({
             } to-transparent z-10`}
           />
 
-          <div className="animate-ventara-marquee flex items-center py-2">
+          <div
+            className="animate-ventara-marquee flex items-center py-2"
+            style={{ animationDuration: `${speedSeconds || 28}s` }}
+          >
             {/* Primeiro conjunto de logos */}
             <div className="flex items-center gap-6 sm:gap-12 pr-6 sm:pr-12">
               {logosToRender.map((logo, idx) => (
