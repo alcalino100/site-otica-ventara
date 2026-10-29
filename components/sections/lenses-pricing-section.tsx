@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState, useEffect } from "react";
 import Link from "next/link";
 import {
   FlaskConical,
@@ -14,12 +14,8 @@ import {
   MessageCircle,
   ArrowRight,
   CheckCircle2,
-  ChevronLeft,
-  ChevronRight,
   ChevronDown,
   ChevronUp,
-  LayoutGrid,
-  SlidersHorizontal,
 } from "lucide-react";
 import { AdminLensItem, DEFAULT_LENSES } from "@/lib/lenses-data";
 import { DEFAULT_HOMOLOGATED_BRANDS, DEFAULT_PARTNER_LOGOS } from "@/lib/site-settings-constants";
@@ -28,7 +24,6 @@ import { useSiteSettings } from "@/components/providers/site-settings-provider";
 import { PartnerLogosRibbon } from "./partner-logos-ribbon";
 
 type LensCategory = "all" | "visao-simples" | "multifocal" | "tratamentos" | "coloridas" | "marcas";
-type ViewMode = "grid" | "carousel";
 
 const BANNER_STRIP_PARTNERS = [
   { name: "ORGALENS LENS", logo: "/logos/orgaline.svg" },
@@ -49,13 +44,7 @@ export function LensesPricingSection() {
   const [lenses, setLenses] = useState<AdminLensItem[]>(DEFAULT_LENSES);
   const [homologatedBrands, setHomologatedBrands] = useState<HomologatedBrand[]>(DEFAULT_HOMOLOGATED_BRANDS);
   const [lensesSection, setLensesSection] = useState<LensesSectionSettings | null>(null);
-
-  // Controle de Visualização: Grade ou Carrossel ("Passar de lado")
-  const [viewMode, setViewMode] = useState<ViewMode>("carousel");
   const [isExpanded, setIsExpanded] = useState(false);
-  const [activeCardIndex, setActiveCardIndex] = useState(0);
-
-  const carouselRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     async function loadData() {
@@ -106,34 +95,9 @@ export function LensesPricingSection() {
 
   const totalItems = activeCategory === "marcas" ? homologatedBrands.length : filteredLenses.length;
 
-  // Funções de Scroll do Carrossel ("Passar de lado")
-  const scrollPrev = () => {
-    if (carouselRef.current) {
-      carouselRef.current.scrollBy({ left: -320, behavior: "smooth" });
-    }
-  };
-
-  const scrollNext = () => {
-    if (carouselRef.current) {
-      carouselRef.current.scrollBy({ left: 320, behavior: "smooth" });
-    }
-  };
-
-  const handleCarouselScroll = () => {
-    if (!carouselRef.current) return;
-    const el = carouselRef.current;
-    const itemWidth = el.scrollWidth / (totalItems || 1);
-    const index = Math.round(el.scrollLeft / itemWidth);
-    setActiveCardIndex(Math.min(Math.max(0, index), totalItems - 1));
-  };
-
   const handleCategoryChange = (cat: LensCategory) => {
     setActiveCategory(cat);
-    setActiveCardIndex(0);
     setIsExpanded(false);
-    if (carouselRef.current) {
-      carouselRef.current.scrollTo({ left: 0, behavior: "smooth" });
-    }
   };
 
   const getWhatsAppLensUrl = (lens: AdminLensItem) => {
@@ -351,243 +315,15 @@ export function LensesPricingSection() {
                 <span>Marcas Homologadas ({homologatedBrands.length})</span>
               </button>
             </div>
-
-            {/* Alternador de Modo de Exibição ("Passar de Lado" ou "Grade com Ver Mais") */}
-            <div className="flex items-center justify-between sm:justify-end gap-2 shrink-0 pt-1 lg:pt-0 border-t lg:border-t-0 border-slate-200/60">
-              <span className="text-xs text-slate-500 font-semibold lg:hidden">Modo de visualização:</span>
-              <div className="inline-flex items-center p-1 rounded-full bg-slate-200/80 border border-slate-300/80">
-                <button
-                  type="button"
-                  onClick={() => setViewMode("carousel")}
-                  className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-bold transition-all cursor-pointer ${
-                    viewMode === "carousel"
-                      ? "bg-white text-slate-900 shadow-xs"
-                      : "text-slate-600 hover:text-slate-900"
-                  }`}
-                  title="Passar modelos de lado"
-                >
-                  <SlidersHorizontal size={13} className="text-amber-500" />
-                  <span>Passar de Lado</span>
-                </button>
-
-                <button
-                  type="button"
-                  onClick={() => setViewMode("grid")}
-                  className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-bold transition-all cursor-pointer ${
-                    viewMode === "grid"
-                      ? "bg-white text-slate-900 shadow-xs"
-                      : "text-slate-600 hover:text-slate-900"
-                  }`}
-                  title="Exibir em grade completa com ver mais"
-                >
-                  <LayoutGrid size={13} className="text-amber-500" />
-                  <span>Grade Completa</span>
-                </button>
-              </div>
-            </div>
           </div>
 
-          {/* ÁREA DOS CARDS: SUPORTA MODO CARROSSEL ("PASSAR DE LADO") E MODO GRADE ("EMPURRAR PRA BAIXO") */}
+          {/* ÁREA DOS CARDS: GRADE COMPLETA COM "EMPURRAR PRA BAIXO" (RECOLHER / EXPANDIR COM DEGRADÊ) */}
           <div className="relative">
-            {viewMode === "carousel" ? (
-              /* MODO 1: CARROSSEL HORIZONTAL ("PASSAR DE LADO") */
-              <div>
-                {/* Barra de Navegação com Setas e Indicador de Posição */}
-                <div className="flex items-center justify-between pb-3 px-1">
-                  <div className="flex items-center gap-2 text-xs font-semibold text-slate-600">
-                    <span className="w-2 h-2 rounded-full bg-amber-400 animate-pulse" />
-                    <span>Deslize para o lado para ver todos os modelos</span>
-                    <span className="font-mono text-amber-600 font-black text-xs">
-                      ({activeCardIndex + 1}/{totalItems})
-                    </span>
-                  </div>
-
-                  <div className="flex items-center gap-1.5">
-                    <button
-                      type="button"
-                      onClick={scrollPrev}
-                      aria-label="Modelo anterior"
-                      className="w-9 h-9 rounded-full border border-slate-300 bg-white hover:bg-slate-50 shadow-xs flex items-center justify-center text-slate-700 active:scale-95 transition-all cursor-pointer"
-                    >
-                      <ChevronLeft size={18} />
-                    </button>
-                    <button
-                      type="button"
-                      onClick={scrollNext}
-                      aria-label="Próximo modelo"
-                      className="w-9 h-9 rounded-full border border-slate-300 bg-white hover:bg-slate-50 shadow-xs flex items-center justify-center text-slate-700 active:scale-95 transition-all cursor-pointer"
-                    >
-                      <ChevronRight size={18} />
-                    </button>
-                  </div>
-                </div>
-
-                {/* Trilho Horizontal com Snap Suave */}
-                <div
-                  ref={carouselRef}
-                  onScroll={handleCarouselScroll}
-                  role="region"
-                  aria-label="Carrossel de lentes de alta precisão"
-                  tabIndex={0}
-                  className="flex flex-row flex-nowrap overflow-x-auto overflow-y-hidden snap-x snap-mandatory gap-4 sm:gap-6 py-2 pb-5 no-scrollbar -mx-4 px-4 sm:mx-0 sm:px-0 scroll-px-4 items-stretch"
-                  style={{ WebkitOverflowScrolling: "touch" }}
-                >
-                  {activeCategory !== "marcas"
-                    ? filteredLenses.map((lens) => (
-                        <div
-                          key={lens.id}
-                          className="snap-start shrink-0 w-[78vw] sm:w-[320px] max-w-[340px] group bg-white rounded-3xl p-4 sm:p-5 border border-slate-200/90 hover:border-amber-400 hover:shadow-xl shadow-xs transition-all duration-300 flex flex-col justify-between"
-                        >
-                          <div>
-                            {/* Imagem do Produto + Selo Superior */}
-                            <div className="relative w-full aspect-[4/3] rounded-2xl bg-[#fafafa] p-2.5 sm:p-3.5 flex items-center justify-center overflow-hidden mb-3 border border-slate-100 group-hover:scale-[1.01] transition-transform">
-                              {lens.badge && (
-                                <span className="absolute top-2 right-2 text-[9px] sm:text-[10px] font-black uppercase tracking-wider px-2.5 py-0.5 rounded-md bg-black text-white z-10 truncate max-w-[105px]">
-                                  {lens.badge}
-                                </span>
-                              )}
-
-                              {lens.brandLogo && (
-                                <div className="absolute top-2 left-2 max-h-5 sm:max-h-6 max-w-[70px] sm:max-w-[90px] flex items-center bg-white/95 px-1.5 py-0.5 rounded-md shadow-2xs z-10 border border-slate-100">
-                                  <img
-                                    src={lens.brandLogo}
-                                    alt={lens.brandName}
-                                    className="max-h-3.5 sm:max-h-4 max-w-full object-contain"
-                                  />
-                                </div>
-                              )}
-
-                              <img
-                                src={lens.boxImage || "/images/lenses/optisync-box.jpg"}
-                                alt={`Lente ${lens.name}`}
-                                className="max-h-full max-w-full object-contain drop-shadow-xs group-hover:scale-105 transition-transform duration-300"
-                                loading="lazy"
-                              />
-                            </div>
-
-                            {/* Informações da Lente */}
-                            <div className="space-y-1 mb-2">
-                              <span className="text-[10px] sm:text-[11px] font-black text-amber-500 uppercase tracking-wider block">
-                                LENTE
-                              </span>
-                              <h3 className="text-sm sm:text-base font-extrabold text-slate-900 tracking-tight leading-snug line-clamp-2">
-                                {lens.name}
-                              </h3>
-                            </div>
-
-                            {/* Tratamento */}
-                            <div className="p-2 sm:p-2.5 rounded-xl bg-slate-100 border border-slate-200/60 text-[10px] sm:text-xs text-slate-700 font-medium mb-3 flex items-start gap-1.5">
-                              <Zap size={13} className="text-amber-500 shrink-0 mt-0.5 fill-amber-500" />
-                              <span className="line-clamp-2">{lens.treatment}</span>
-                            </div>
-
-                            {/* Preço */}
-                            <div className="pt-2.5 border-t border-slate-100 mb-3">
-                              <span className="text-[10px] text-slate-400 block font-medium">À partir de</span>
-                              <div className="text-base sm:text-2xl font-black text-amber-500 font-mono leading-tight">
-                                {lens.startingPrice}
-                              </div>
-                              <span className="text-[10px] sm:text-xs text-slate-500 block mt-0.5">
-                                {lens.installment}
-                              </span>
-                            </div>
-                          </div>
-
-                          {/* Botão de Ação e Prazo */}
-                          <div className="space-y-2 pt-1 mt-auto">
-                            <a
-                              href={getWhatsAppLensUrl(lens)}
-                              target="_blank"
-                              rel="noopener noreferrer"
-                              className="w-full inline-flex items-center justify-center gap-1.5 py-2.5 px-3 rounded-full bg-amber-400 hover:bg-amber-300 active:scale-95 text-slate-950 font-bold text-xs sm:text-sm tracking-wide shadow-md shadow-amber-400/20 transition-all cursor-pointer"
-                            >
-                              <MessageCircle size={15} className="shrink-0" />
-                              <span>Garantir no WhatsApp</span>
-                            </a>
-
-                            <div className="flex items-center justify-center gap-1 text-[10px] sm:text-xs text-slate-500">
-                              <Clock size={12} className="text-amber-500 shrink-0" />
-                              <span>{lens.leadTime}</span>
-                            </div>
-                          </div>
-                        </div>
-                      ))
-                    : homologatedBrands.map((brand) => (
-                        <div
-                          key={brand.id}
-                          className="snap-start shrink-0 w-[78vw] sm:w-[320px] max-w-[340px] bg-white rounded-3xl p-4 sm:p-5 border border-slate-200/90 hover:border-amber-400 hover:shadow-xl shadow-xs transition-all duration-300 flex flex-col justify-between"
-                        >
-                          <div>
-                            <div className="relative w-full aspect-[4/3] rounded-2xl bg-[#fafafa] p-3 flex items-center justify-center overflow-hidden mb-3 border border-slate-100">
-                              <img
-                                src={brand.boxImage || "/images/lenses/optisync-box.jpg"}
-                                alt={`Marca ${brand.name}`}
-                                className="max-h-full max-w-full object-contain drop-shadow-xs hover:scale-105 transition-transform"
-                                loading="lazy"
-                              />
-                            </div>
-
-                            <div className="space-y-1">
-                              <span className="text-[10px] font-black uppercase tracking-wider text-amber-500">
-                                {brand.badge || "Laboratório Certificado"}
-                              </span>
-                              <h3 className="text-sm sm:text-base font-extrabold text-slate-900">
-                                {brand.name}
-                              </h3>
-                              <p className="text-[11px] text-slate-500 line-clamp-3 mt-1">
-                                {brand.desc}
-                              </p>
-                            </div>
-                          </div>
-
-                          <a
-                            href={`https://wa.me/${cleanWhatsAppNumber || "5518996155748"}?text=${encodeURIComponent(
-                              `Olá! Gostaria de consultar valores das lentes de grau da marca homologada "${brand.name}".`
-                            )}`}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="mt-4 w-full inline-flex items-center justify-center gap-1.5 py-2.5 px-3 rounded-full bg-slate-100 hover:bg-slate-200 text-slate-900 font-bold text-xs transition-colors"
-                          >
-                            <MessageCircle size={14} className="text-amber-500" />
-                            <span>Consultar Valores</span>
-                          </a>
-                        </div>
-                      ))}
-                </div>
-
-                {/* Indicadores de Paginação do Carrossel */}
-                {totalItems > 1 && (
-                  <div className="flex items-center justify-center gap-1.5 pt-3">
-                    {Array.from({ length: Math.min(totalItems, 12) }).map((_, idx) => (
-                      <button
-                        key={idx}
-                        type="button"
-                        onClick={() => {
-                          if (carouselRef.current) {
-                            const target = carouselRef.current.children[idx] as HTMLElement;
-                            if (target) {
-                              target.scrollIntoView({ behavior: "smooth", inline: "center", block: "nearest" });
-                            }
-                          }
-                        }}
-                        aria-label={`Ver modelo ${idx + 1}`}
-                        className={`h-1.5 rounded-full transition-all duration-300 ${
-                          activeCardIndex === idx
-                            ? "w-6 bg-amber-400"
-                            : "w-1.5 bg-slate-300 hover:bg-slate-400"
-                        }`}
-                      />
-                    ))}
-                  </div>
-                )}
-              </div>
-            ) : (
-              /* MODO 2: GRADE COMPLETA COM "EMPURRAR PRA BAIXO" (RECOLHER / EXPANDIR COM DEGRADÊ) */
-              <div>
-                <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 sm:gap-6">
-                  {activeCategory !== "marcas"
-                    ? displayedLenses.map((lens) => (
-                        <article
+            <div>
+              <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 sm:gap-6">
+                {activeCategory !== "marcas"
+                  ? displayedLenses.map((lens) => (
+                      <article
                           key={lens.id}
                           className="group bg-white rounded-3xl p-3 sm:p-5 border border-slate-200/90 hover:border-amber-400 hover:shadow-xl shadow-xs transition-all duration-300 flex flex-col justify-between"
                         >
@@ -713,11 +449,10 @@ export function LensesPricingSection() {
                   <div className="pointer-events-none absolute bottom-0 inset-x-0 h-44 bg-gradient-to-t from-[#fafafa] via-[#fafafa]/85 to-transparent z-10" />
                 )}
               </div>
-            )}
           </div>
 
-          {/* Botão de Ver Mais / Recolher no Modo Grade com Degradê ("Empurrar pra baixo" - pedido em 3 - Muito top.jpeg) */}
-          {viewMode === "grid" && totalItems > INITIAL_LIMIT && (
+          {/* Botão de Ver Mais / Recolher no Modo Grade com Degradê */}
+          {totalItems > INITIAL_LIMIT && (
             <div className="mt-8 sm:mt-10 flex flex-col items-center justify-center relative z-20">
               <button
                 type="button"
