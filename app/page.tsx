@@ -195,7 +195,7 @@ export default function Home() {
         {/* 8. Seção de Lentes de Alta Precisão (Visão Simples, Multifocal, Marcas Homologadas e Símbolo Óptico) */}
         <LensesPricingSection />
 
-        {/* 9. Coleção Exclusiva de Lentes Coloridas e Solares (8 Cores) */}
+        {/* 9. Coleção Exclusiva de Lentes Solares & Performance (Encontre Sua Cor) */}
         <ColoredLensesShowcase />
 
         {/* 10. CTA Final Direto para o WhatsApp */}

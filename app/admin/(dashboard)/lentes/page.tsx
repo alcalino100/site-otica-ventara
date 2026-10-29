@@ -580,7 +580,7 @@ export default function AdminLensesPage() {
           }`}
         >
           <Palette size={13} />
-          <span>Lentes Coloridas (8 Cores)</span>
+          <span>Lentes Solares &amp; Coloridas</span>
         </button>
         <button
           type="button"
