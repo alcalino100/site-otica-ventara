@@ -48,15 +48,21 @@ export function PromotionalOffersSection() {
   }
 
   const getWhatsAppBuyUrl = (item: PromoProductItem) => {
+    const hasDiscount = Boolean(item.discountBadge && item.discountBadge.trim());
+    const discountText = hasDiscount ? ` com ${item.discountBadge}` : "";
+    const hasOriginal = Boolean(item.originalPrice && item.originalPrice.trim() !== "" && item.originalPrice !== item.promotionalPrice);
+    const priceText = hasOriginal
+      ? `(de ${item.originalPrice} por ${item.promotionalPrice})`
+      : `(${item.promotionalPrice})`;
     const text = encodeURIComponent(
-      `Olá! Vi a oferta promocional "${item.name}" com ${item.discountBadge} (de ${item.originalPrice} por ${item.promotionalPrice}) no site da Óticas Ventara e gostaria de garantir o meu!`
+      `Olá! Vi o modelo "${item.name}"${discountText} ${priceText} no site da Óticas Ventara e gostaria de garantir o meu!`
     );
     return `https://wa.me/${cleanWhatsAppNumber || "5518996155748"}?text=${text}`;
   };
 
   return (
     <section
-      aria-label="Modelos Selecionados com Desconto"
+      aria-label="Modelos Selecionados"
       className="py-14 sm:py-20 bg-white border-y border-slate-200/80 relative overflow-hidden"
     >
       <div className="max-w-[1400px] mx-auto px-4 sm:px-8 lg:px-10">
@@ -65,14 +71,14 @@ export function PromotionalOffersSection() {
           <div>
             <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-amber-500/10 border border-amber-500/25 text-amber-700 text-[10px] sm:text-xs font-bold uppercase tracking-wider mb-2">
               <Sparkles size={13} className="text-amber-500" />
-              <span>{promoSettings.pillText || "OFERTA POR TEMPO LIMITADO"}</span>
+              <span>{promoSettings.pillText || "CURADORIA EXCLUSIVA"}</span>
             </div>
             <h2 className="text-2xl sm:text-3xl md:text-4xl font-extrabold text-slate-900 tracking-tight">
-              {promoSettings.title || "Até 25% OFF em modelos selecionados"}
+              {promoSettings.title || "Modelos Selecionados em Destaque"}
             </h2>
             <p className="text-xs sm:text-sm text-slate-600 max-w-2xl mt-1.5 leading-relaxed">
               {promoSettings.subtitle ||
-                "Pares icônicos com preço especial por tempo limitado. Armações com design autoral, lentes certificadas e parcelamento sem juros."}
+                "Pares icônicos com design autoral, acabamento nobre, lentes certificadas e parcelamento sem juros."}
             </p>
           </div>
 
@@ -80,7 +86,7 @@ export function PromotionalOffersSection() {
             href="#armacoes"
             className="inline-flex items-center gap-2 text-xs sm:text-sm font-bold text-amber-600 hover:text-amber-700 transition-colors self-start md:self-auto cursor-pointer"
           >
-            <span>{promoSettings.ctaText || "Ver todas as ofertas"}</span>
+            <span>{promoSettings.ctaText || "Ver todas as armações"}</span>
             <ArrowRight size={14} />
           </a>
         </div>
@@ -102,11 +108,15 @@ export function PromotionalOffersSection() {
               >
                 <div>
                   {/* Selos de Desconto e Categoria */}
-                  <div className="flex items-center justify-between gap-1.5 mb-2">
-                    <span className="inline-flex items-center gap-1 px-2 sm:px-2.5 py-0.5 rounded-full bg-emerald-600 text-white font-bold text-[9px] sm:text-[10px] tracking-wide shadow-xs">
-                      <Tag size={10} />
-                      <span>{item.discountBadge || "-25% OFF"}</span>
-                    </span>
+                  <div className="flex items-center justify-between gap-1.5 mb-2 min-h-[22px]">
+                    {item.discountBadge && item.discountBadge.trim() !== "" ? (
+                      <span className="inline-flex items-center gap-1 px-2 sm:px-2.5 py-0.5 rounded-full bg-emerald-600 text-white font-bold text-[9px] sm:text-[10px] tracking-wide shadow-xs">
+                        <Tag size={10} />
+                        <span>{item.discountBadge}</span>
+                      </span>
+                    ) : (
+                      <span />
+                    )}
 
                     {item.tag && (
                       <span className="text-[9px] font-semibold text-slate-600 bg-slate-200/70 px-2 py-0.5 rounded-full truncate">
@@ -180,19 +190,25 @@ export function PromotionalOffersSection() {
                     )}
                   </div>
 
-                  {/* Seção de Preços (Com Desconto) */}
+                  {/* Seção de Preços (Com Desconto ou Preço Regular) */}
                   <div className="pt-2 border-t border-slate-200/70 mb-3">
                     <div className="flex items-baseline gap-2">
-                      <span className="text-[11px] text-slate-400 line-through font-mono">
-                        {item.originalPrice}
-                      </span>
+                      {item.originalPrice &&
+                        item.originalPrice.trim() !== "" &&
+                        item.originalPrice !== item.promotionalPrice && (
+                          <span className="text-[11px] text-slate-400 line-through font-mono">
+                            {item.originalPrice}
+                          </span>
+                        )}
                       <span className="text-sm sm:text-base font-extrabold text-slate-900 font-mono">
                         {item.promotionalPrice}
                       </span>
                     </div>
-                    <p className="text-[10px] text-slate-500 mt-0.5">
-                      {item.installment}
-                    </p>
+                    {item.installment && (
+                      <p className="text-[10px] text-slate-500 mt-0.5">
+                        {item.installment}
+                      </p>
+                    )}
                   </div>
                 </div>
 
@@ -242,7 +258,7 @@ export function PromotionalOffersSection() {
               </>
             ) : (
               <>
-                <span>Ver mais {promoSettings.items.length - INITIAL_LIMIT} modelos em oferta</span>
+                <span>Ver mais {promoSettings.items.length - INITIAL_LIMIT} modelos</span>
                 <ChevronDown size={16} className="text-amber-400 group-hover:translate-y-0.5 transition-transform" />
               </>
             )}
@@ -250,7 +266,7 @@ export function PromotionalOffersSection() {
           <span className="text-[11px] text-slate-500 mt-2 font-medium">
             {isExpanded
               ? `Exibindo todos os ${promoSettings.items.length} modelos selecionados`
-              : `Mostrando ${INITIAL_LIMIT} de ${promoSettings.items.length} modelos com até 25% OFF`}
+              : `Mostrando ${INITIAL_LIMIT} de ${promoSettings.items.length} modelos selecionados`}
           </span>
         </div>
       )}

@@ -120,11 +120,11 @@ export const DEFAULT_HOMOLOGATED_BRANDS: HomologatedBrand[] = [
 
 export const DEFAULT_PROMOTIONAL_SHOWCASE: PromotionalShowcaseSettings = {
   isEnabled: true,
-  pillText: "OFERTA POR TEMPO LIMITADO",
-  title: "Até 25% OFF em modelos selecionados",
+  pillText: "CURADORIA EXCLUSIVA",
+  title: "Modelos Selecionados em Destaque",
   subtitle:
-    "Pares icônicos com preço especial por tempo limitado. Garanta o seu modelo com design autoral e acabamento nobre.",
-  ctaText: "Ver todas as ofertas",
+    "Pares icônicos com design autoral, acabamento nobre, lentes certificadas e parcelamento sem juros.",
+  ctaText: "Ver todos os modelos",
   items: [
     {
       id: "promo-1",

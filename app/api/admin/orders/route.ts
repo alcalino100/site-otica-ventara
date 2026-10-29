@@ -62,6 +62,16 @@ export async function PATCH(req: NextRequest) {
         delivery_type: "shipping",
       };
       dbStatus = "shipped";
+
+      // Limpa qualquer anotação de retirada antiga se o pedido foi despachado
+      const { data: currentOrder } = await adminSupabase
+        .from("orders")
+        .select("notes")
+        .eq("id", id)
+        .single();
+      if (currentOrder?.notes?.includes("[RETIRADA NA LOJA]")) {
+        updatePayload.notes = currentOrder.notes.replace("[RETIRADA NA LOJA]", "[ENVIO DESPACHADO]").trim();
+      }
     }
 
     updatePayload.status = dbStatus;

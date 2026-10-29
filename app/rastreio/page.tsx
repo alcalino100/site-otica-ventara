@@ -34,9 +34,16 @@ export default function RastreioPage() {
   // Tema interativo para testar: "navy" (Azul Nobre Ventara), "black" (Preto Puro), "white" (Branco Clean)
   const [colorTheme, setColorTheme] = useState<"navy" | "black" | "white">("navy");
 
-  // Inicializa sem busca automática para aguardar entrada real do cliente
+  // Lê parâmetros de URL caso o cliente venha de link direto do WhatsApp (ex: ?codigo=VEN-...)
   useEffect(() => {
-    // Não carrega dados fictícios ao abrir a página
+    if (typeof window !== "undefined") {
+      const params = new URLSearchParams(window.location.search);
+      const code = params.get("code") || params.get("codigo") || params.get("query");
+      if (code) {
+        setQuery(code);
+        handleSearch(code);
+      }
+    }
   }, []);
 
   const handleSearch = async (searchCode?: string) => {
@@ -506,12 +513,27 @@ export default function RastreioPage() {
                   <MapPin size={13} className="text-amber-500 dark:text-amber-400" />
                   <span>Entrega / Retirada</span>
                 </p>
-                <p className={`text-xs font-medium ${isWhite ? "text-slate-900" : "text-white"}`}>
+                <p className={`text-xs font-semibold ${isWhite ? "text-slate-900" : "text-white"}`}>
                   {order.delivery_label}
                 </p>
                 <p className={`text-[11px] leading-relaxed ${isWhite ? "text-slate-600" : "text-slate-400"}`}>
-                  Óticas Ventara · Rua Princesa Isabel, 221 - Centro, Araçatuba-SP
+                  {order.delivery_address || (order.delivery_type === "pickup_store" ? "Óticas Ventara · Rua Princesa Isabel, 221 - Centro, Araçatuba-SP" : "Endereço cadastrado no pedido (Envio Correios)")}
                 </p>
+                {order.tracking_number && (
+                  <div className={`pt-2 mt-2 border-t ${isWhite ? "border-slate-200" : "border-white/10"} flex flex-wrap items-center justify-between gap-2`}>
+                    <span className="text-[10px] font-mono text-amber-500 font-bold">
+                      Rastreio: {order.tracking_number}
+                    </span>
+                    <a
+                      href={order.tracking_url || `https://rastreamento.correios.com.br/app/index.php?codigo=${order.tracking_number}`}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="text-[10px] font-bold text-amber-500 dark:text-amber-400 hover:underline"
+                    >
+                      Acompanhar nos Correios &rarr;
+                    </a>
+                  </div>
+                )}
               </div>
             </div>
 

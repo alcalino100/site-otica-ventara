@@ -234,12 +234,14 @@ export async function GET(req: NextRequest) {
     }
 
     // Identifica se é Retirada na Loja física ou Envio por Correios
+    // Se o pedido está explicitamente como enviado/despachado ou possui código de rastreamento, é estritamente envio
     const isPickup =
       order.status === "ready_for_pickup" ||
-      order.shipping_address?.delivery_type === "pickup" ||
-      order.shipping_address?.store?.toLowerCase()?.includes("loja") ||
-      order.notes?.toLowerCase()?.includes("[retirada") ||
-      (order.shipping_fee_in_cents === 0 && !order.shipping_address?.street);
+      (order.status !== "shipped" &&
+        !order.tracking_number &&
+        (order.shipping_address?.delivery_type === "pickup" ||
+          order.shipping_address?.store?.toLowerCase()?.includes("loja") ||
+          order.notes?.toLowerCase()?.includes("[retirada")));
 
     // Mapeamento dinâmico de status respeitando modalidade de retirada vs envio
     let statusLabel = "Pedido Recebido";
@@ -270,8 +272,9 @@ export async function GET(req: NextRequest) {
         break;
       case "shipped":
         statusLabel = "Enviado e Despachado";
-        statusDesc =
-          "Seus óculos foram enviados e despachados. Aguardando a chegada no seu endereço com código de rastreamento.";
+        statusDesc = order.tracking_number
+          ? `Seus óculos foram enviados e despachados. Acompanhe com o rastreamento ${order.tracking_number}.`
+          : "Seus óculos foram enviados e despachados. Aguardando a chegada no seu endereço com código de rastreamento.";
         currentStep = 4;
         break;
       case "delivered":
@@ -326,10 +329,22 @@ export async function GET(req: NextRequest) {
             : "pending",
       },
       {
-        title: isPickup ? "Pronto para Retirada na Loja" : "Pronto / Entregue",
+        title: isPickup
+          ? "Pronto para Retirada na Loja"
+          : order.status === "shipped"
+          ? "Enviado e Despachado"
+          : order.status === "delivered"
+          ? "Pedido Entregue"
+          : "Pronto para Envio",
         description: isPickup
           ? "Aguardando retirada no balcão da Rua Princesa Isabel, 221."
-          : "Entregue no endereço informado pelo cliente.",
+          : order.status === "shipped"
+          ? order.tracking_number
+            ? `Objeto despachado com código de rastreamento: ${order.tracking_number}.`
+            : "Objeto postado e a caminho do endereço de entrega."
+          : order.status === "delivered"
+          ? "Entregue no endereço informado pelo cliente."
+          : "Em fase final de conferência para despacho.",
         status: currentStep >= 4 ? "current" : "pending",
       },
     ];
@@ -340,6 +355,11 @@ export async function GET(req: NextRequest) {
       nameParts.length > 1
         ? `${nameParts[0]} ${nameParts[1][0]}.`
         : nameParts[0];
+
+    const shippingAddr = order.shipping_address || {};
+    const formattedShippingAddress = shippingAddr.street
+      ? `${shippingAddr.street}${shippingAddr.number ? `, ${shippingAddr.number}` : ""}${shippingAddr.complement ? ` (${shippingAddr.complement})` : ""}${shippingAddr.neighborhood ? ` - ${shippingAddr.neighborhood}` : ""}${shippingAddr.city ? `, ${shippingAddr.city}` : ""}${shippingAddr.state ? `-${shippingAddr.state}` : ""}`
+      : "Endereço cadastrado no pedido (Envio pelos Correios / Transportadora)";
 
     const formattedOrder = {
       reference_code: order.reference_code,
@@ -353,6 +373,13 @@ export async function GET(req: NextRequest) {
       delivery_label: isPickup
         ? "Retirada no Balcão da Loja Física (Rua Princesa Isabel, 221 - Araçatuba/SP)"
         : "Envio para Endereço Residencial",
+      delivery_address: isPickup
+        ? "Óticas Ventara · Rua Princesa Isabel, 221 - Centro, Araçatuba-SP"
+        : formattedShippingAddress,
+      tracking_number: order.tracking_number || null,
+      tracking_url: order.tracking_number
+        ? `https://rastreamento.correios.com.br/app/index.php?codigo=${order.tracking_number}`
+        : null,
       estimated_delivery: isPickup
         ? "Disponível para retirada no horário comercial (09h às 18h)"
         : "Previsão de entrega conforme prazo dos Correios",

@@ -48,6 +48,7 @@ export default function AdminBannersPage() {
   const [uploadingField, setUploadingField] = useState<string | null>(null);
   const [uploadingPromoId, setUploadingPromoId] = useState<string | null>(null);
   const [feedback, setFeedback] = useState<string | null>(null);
+  const [availableProducts, setAvailableProducts] = useState<any[]>([]);
 
   // Formulário de novo banner
   const [isCreating, setIsCreating] = useState(false);
@@ -161,6 +162,20 @@ export default function AdminBannersPage() {
   useEffect(() => {
     fetchBanners();
     fetchShowcaseMedia();
+    const fetchAvailableProducts = async () => {
+      try {
+        const res = await fetch("/api/admin/products");
+        if (res.ok) {
+          const data = await res.json();
+          if (data.products && Array.isArray(data.products)) {
+            setAvailableProducts(data.products);
+          }
+        }
+      } catch (err) {
+        console.warn("Erro ao buscar catálogo de produtos:", err);
+      }
+    };
+    fetchAvailableProducts();
   }, []);
 
   const handleShowcaseUpload = async (
@@ -536,7 +551,7 @@ export default function AdminBannersPage() {
           }`}
         >
           <Sparkles size={14} />
-          <span>Vitrine 25% OFF (Fundo Branco)</span>
+          <span>Vitrine de Modelos (Fundo Branco)</span>
         </button>
       </div>
 
@@ -1703,10 +1718,10 @@ export default function AdminBannersPage() {
                   VITRINE EDITÁVEL · FUNDO BRANCO
                 </span>
                 <h2 className="text-xl font-bold text-white mt-1">
-                  Vitrine 25% OFF em Modelos Selecionados
+                  Vitrine de Modelos em Destaque &amp; Promocionais
                 </h2>
                 <p className="text-xs text-slate-400 mt-0.5 max-w-2xl">
-                  Edite o título, texto do selo, subtítulo e cada um dos modelos em oferta especial com fotos, descontos, preços e cores. Esta seção é exibida com fundo branco limpo na home do site.
+                  Edite o título, texto do selo, subtítulo e cada um dos modelos para exposição ou oferta especial com fotos, preços e vinculação direta aos produtos da loja.
                 </p>
               </div>
 
@@ -1772,7 +1787,7 @@ export default function AdminBannersPage() {
                   onChange={(e) =>
                     setPromotionalShowcase({ ...promotionalShowcase, title: e.target.value })
                   }
-                  placeholder="Ex: Até 25% OFF em modelos selecionados"
+                  placeholder="Ex: Modelos Selecionados em Destaque"
                   className="w-full bg-[#040c16] border border-white/10 rounded-xl px-3 py-2 text-white text-xs focus:outline-none focus:border-amber-400"
                 />
               </div>
@@ -1844,9 +1859,11 @@ export default function AdminBannersPage() {
                           ? "bg-white p-3 flex items-center justify-center"
                           : "bg-slate-900"
                       }`}>
-                        <span className="absolute top-1.5 left-1.5 z-10 text-[8px] font-bold px-1.5 py-0.5 rounded-full bg-emerald-600 text-white shadow-xs">
-                          {item.discountBadge || "-25% OFF"}
-                        </span>
+                        {item.discountBadge && item.discountBadge.trim() !== "" && (
+                          <span className="absolute top-1.5 left-1.5 z-10 text-[8px] font-bold px-1.5 py-0.5 rounded-full bg-emerald-600 text-white shadow-xs">
+                            {item.discountBadge}
+                          </span>
+                        )}
                         <img
                           src={item.image}
                           alt={item.name}
@@ -1920,6 +1937,61 @@ export default function AdminBannersPage() {
 
                       {/* Campos Editáveis */}
                       <div className="space-y-2 text-xs">
+                        {/* Seletor Rápido de Produto do Catálogo */}
+                        <div className="p-2.5 rounded-xl bg-amber-400/5 border border-amber-400/25 mb-1">
+                          <label className="block text-amber-300 text-[11px] font-bold mb-1 flex items-center justify-between">
+                            <span>Vincular Produto da Loja</span>
+                            <span className="text-[10px] text-slate-400 font-normal">Link automático</span>
+                          </label>
+                          <select
+                            value={item.slug || ""}
+                            onChange={(e) => {
+                              const selSlug = e.target.value;
+                              const found = availableProducts.find((p) => p.slug === selSlug);
+                              setPromotionalShowcase((prev) => ({
+                                ...prev,
+                                items: prev.items.map((it) => {
+                                  if (it.id !== item.id) return it;
+                                  if (!found) return { ...it, slug: selSlug };
+                                  const imgUrl =
+                                    found.images?.find((img: any) => img.is_primary)?.url ||
+                                    found.images?.[0]?.url ||
+                                    (typeof found.images?.[0] === "string" ? found.images[0] : it.image);
+                                  const formattedPrice = found.price
+                                    ? `R$ ${(found.price).toFixed(2).replace(".", ",")}`
+                                    : it.promotionalPrice;
+                                  const origFormatted =
+                                    found.promotional_price && found.price
+                                      ? `R$ ${(found.price).toFixed(2).replace(".", ",")}`
+                                      : "";
+                                  const finalPromo = found.promotional_price
+                                    ? `R$ ${(found.promotional_price).toFixed(2).replace(".", ",")}`
+                                    : formattedPrice;
+                                  return {
+                                    ...it,
+                                    slug: found.slug,
+                                    name: it.name && it.name !== "Novo Modelo em Oferta" ? it.name : found.name,
+                                    originalPrice: origFormatted || it.originalPrice,
+                                    promotionalPrice: finalPromo || it.promotionalPrice,
+                                    image: imgUrl || it.image,
+                                    category:
+                                      (found.category as any)?.name ||
+                                      (typeof found.category === "string" ? found.category : it.category),
+                                  };
+                                }),
+                              }));
+                            }}
+                            className="w-full bg-[#040c16] border border-amber-400/40 rounded-lg px-2 py-1.5 text-white text-xs focus:outline-none focus:border-amber-400 cursor-pointer font-medium"
+                          >
+                            <option value="">-- Vincular produto da loja (/produto/slug) --</option>
+                            {availableProducts.map((prod) => (
+                              <option key={prod.id || prod.slug} value={prod.slug}>
+                                {prod.name} (/produto/{prod.slug})
+                              </option>
+                            ))}
+                          </select>
+                        </div>
+
                         <div>
                           <label className="block text-slate-400 text-[11px] mb-0.5">Nome do Modelo</label>
                           <input
@@ -1955,10 +2027,28 @@ export default function AdminBannersPage() {
                             />
                           </div>
                           <div>
-                            <label className="block text-slate-400 text-[11px] mb-0.5">Selo Desconto</label>
+                            <div className="flex items-center justify-between mb-0.5">
+                              <label className="block text-slate-400 text-[11px]">Selo Desconto</label>
+                              {item.discountBadge && (
+                                <button
+                                  type="button"
+                                  onClick={() =>
+                                    setPromotionalShowcase((prev) => ({
+                                      ...prev,
+                                      items: prev.items.map((it) =>
+                                        it.id === item.id ? { ...it, discountBadge: "" } : it
+                                      ),
+                                    }))
+                                  }
+                                  className="text-[9px] text-amber-400 hover:underline cursor-pointer"
+                                >
+                                  Sem selo
+                                </button>
+                              )}
+                            </div>
                             <input
                               type="text"
-                              value={item.discountBadge}
+                              value={item.discountBadge || ""}
                               onChange={(e) =>
                                 setPromotionalShowcase((prev) => ({
                                   ...prev,
@@ -1967,6 +2057,7 @@ export default function AdminBannersPage() {
                                   ),
                                 }))
                               }
+                              placeholder="Vazio = sem selo"
                               className="w-full bg-[#040c16] border border-white/10 rounded-lg px-2.5 py-1.5 text-white text-xs focus:outline-none focus:border-amber-400"
                             />
                           </div>
@@ -1977,7 +2068,7 @@ export default function AdminBannersPage() {
                             <label className="block text-slate-400 text-[11px] mb-0.5">Preço Original</label>
                             <input
                               type="text"
-                              value={item.originalPrice}
+                              value={item.originalPrice || ""}
                               onChange={(e) =>
                                 setPromotionalShowcase((prev) => ({
                                   ...prev,
@@ -1986,11 +2077,12 @@ export default function AdminBannersPage() {
                                   ),
                                 }))
                               }
+                              placeholder="Vazio = sem risco"
                               className="w-full bg-[#040c16] border border-white/10 rounded-lg px-2.5 py-1.5 text-white text-xs focus:outline-none focus:border-amber-400"
                             />
                           </div>
                           <div>
-                            <label className="block text-slate-400 text-[11px] mb-0.5">Preço c/ Desconto</label>
+                            <label className="block text-slate-400 text-[11px] mb-0.5">Preço Final</label>
                             <input
                               type="text"
                               value={item.promotionalPrice}
@@ -2042,7 +2134,7 @@ export default function AdminBannersPage() {
                             />
                           </div>
                           <div>
-                            <label className="block text-slate-400 text-[11px] mb-0.5">Slug do Produto</label>
+                            <label className="block text-slate-400 text-[11px] mb-0.5">Slug (/produto/[slug])</label>
                             <input
                               type="text"
                               value={item.slug}
@@ -2054,7 +2146,7 @@ export default function AdminBannersPage() {
                                   ),
                                 }))
                               }
-                              className="w-full bg-[#040c16] border border-white/10 rounded-lg px-2.5 py-1.5 text-white text-xs focus:outline-none focus:border-amber-400"
+                              className="w-full bg-[#040c16] border border-white/10 rounded-lg px-2.5 py-1.5 text-white text-xs focus:outline-none focus:border-amber-400 font-mono"
                             />
                           </div>
                         </div>
