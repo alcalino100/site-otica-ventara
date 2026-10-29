@@ -16,14 +16,30 @@ export async function GET() {
       .maybeSingle();
 
     if (!error && data?.value && Array.isArray(data.value)) {
-      // Mescla com DEFAULT_LENSES para assegurar que novas adições do catálogo (ex: lentes coloridas) estejam sempre presentes
+      // Mescla com DEFAULT_LENSES para assegurar que novas adições do catálogo (ex: lentes coloridas e transitions) estejam sempre presentes
       const savedMap = new Map<string, AdminLensItem>(data.value.map((item: AdminLensItem) => [item.id, item]));
-      const merged = [...data.value];
+      const merged: AdminLensItem[] = [];
+
       for (const def of DEFAULT_LENSES) {
-        if (!savedMap.has(def.id)) {
+        if (savedMap.has(def.id)) {
+          const saved = savedMap.get(def.id)!;
+          // Se for byvision-audax ou lente-transitions, preserva preço de referência de vitrine
+          if (def.id === "byvision-audax" && (!saved.startingPrice || saved.startingPrice === "R$ 139,90")) {
+            merged.push({ ...saved, startingPrice: "R$ 179,90", installment: "10x de R$ 17,99 sem juros", badge: "AUDAX" });
+          } else {
+            merged.push(saved);
+          }
+          savedMap.delete(def.id);
+        } else {
           merged.push(def);
         }
       }
+
+      // Adiciona itens customizados restantes salvos pelo admin
+      for (const customItem of savedMap.values()) {
+        merged.push(customItem);
+      }
+
       inMemoryLensesCatalog = merged;
       return NextResponse.json({ success: true, lenses: merged });
     }
