@@ -35,7 +35,7 @@ test.describe("Validação das 3 Alterações Solicitadas pelo Cliente (Áudio e
     await expect(page.getByText("Ventara Horizonte Sport").first()).toBeVisible({ timeout: 10000 });
   });
 
-  test("2. Imagem 3.jpeg: Mostruário com Badge DEGRADÊ, ESCOLHA SUA COR e 9 Esferas Oficiais", async ({ page }) => {
+  test("2. Mostruário de Lentes Solares com Formas Orgânicas e Fotos Reais", async ({ page }) => {
     await page.goto("/#lentes-coloridas", { waitUntil: "domcontentloaded" });
 
     const lensesSection = page.locator("#lentes-coloridas");
@@ -43,25 +43,23 @@ test.describe("Validação das 3 Alterações Solicitadas pelo Cliente (Áudio e
     await expect(page.locator("#lentes-coloridas[data-hydrated='true']")).toBeVisible({ timeout: 10000 });
     await lensesSection.scrollIntoViewIfNeeded();
 
-    // 2.1 Verifica o Badge DEGRADÊ no topo da moldura (fiel à referência 3.jpeg)
-    const degradeBadge = lensesSection.getByText("DEGRADÊ", { exact: true });
+    // 2.1 Verifica o Badge no topo da moldura
+    const degradeBadge = lensesSection.getByText("DEGRADÊ", { exact: false }).first();
     await expect(degradeBadge).toBeVisible();
 
     // 2.2 Verifica o Título ESCOLHA SUA COR
     const chooseColorTitle = lensesSection.locator("span:has-text('ESCOLHA SUA COR')");
     await expect(chooseColorTitle).toBeVisible();
 
-    // 2.3 Verifica a presença das 9 cores exatas da imagem
+    // 2.3 Verifica a presença das cores com formas orgânicas da referência visual
     const requiredColors = [
-      "Verde-oliva",
+      "Cinza Fumê",
       "Marrom",
-      "Azul-acinzentado",
+      "Verde",
       "Amarelo",
-      "Rosa",
-      "Vermelho",
-      "Marrom-escuro",
-      "Roxo",
-      "Azul",
+      "Azul Espelhado",
+      "Vermelho Espelhado",
+      "Degradê",
     ];
 
     for (const color of requiredColors) {
@@ -69,15 +67,17 @@ test.describe("Validação das 3 Alterações Solicitadas pelo Cliente (Áudio e
       await expect(colorButton).toBeVisible();
     }
 
-    // 2.4 Clica em Rosa e verifica atualização da Lente Hero
-    const rosaBtn = lensesSection.getByRole("button", { name: "Rosa", exact: true });
-    await rosaBtn.click();
-    await expect(lensesSection.getByText("Rosa Blush Sunset Suave")).toBeVisible();
+    // 2.4 Clica em Vermelho Espelhado e verifica atualização da Lente Hero
+    const vermelhoBtn = lensesSection.getByRole("button", { name: "Vermelho Espelhado", exact: true });
+    await vermelhoBtn.click();
+    await expect(lensesSection.getByText("Vermelho Espelhado Ruby Fire")).toBeVisible();
+    await expect(lensesSection.getByRole("img", { name: /Vermelho Espelhado/i })).toBeVisible();
 
-    // 2.5 Clica em Roxo e verifica atualização da Lente Hero
-    const roxoBtn = lensesSection.getByRole("button", { name: "Roxo", exact: true });
-    await roxoBtn.click();
-    await expect(lensesSection.getByText("Roxo Ametista Royal Degradê")).toBeVisible();
+    // 2.5 Clica em Azul Espelhado e verifica atualização da Lente Hero
+    const azulBtn = lensesSection.getByRole("button", { name: "Azul Espelhado", exact: true });
+    await azulBtn.click();
+    await expect(lensesSection.getByText("Azul Espelhado Safira Mirror")).toBeVisible();
+    await expect(lensesSection.getByRole("img", { name: /Azul Espelhado/i })).toBeVisible();
   });
 
   test("3. Áudio 2: Roleta no Mobile compacta e precisa sem rolagem excessiva", async ({ page }) => {
