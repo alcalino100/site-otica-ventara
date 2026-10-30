@@ -96,7 +96,9 @@ export default function RastreioPage() {
     order &&
     (order.status === "ready_for_pickup" ||
       order.status === "delivered" ||
-      order.status_label?.toLowerCase().includes("pronto"));
+      order.status_label?.toLowerCase().includes("pronto") ||
+      order.status_label?.toLowerCase().includes("retirada") ||
+      (order.delivery_type === "pickup_store" && order.status === "shipped"));
 
   // Configurações dinâmicas de estilo de acordo com o tema selecionado
   const isWhite = colorTheme === "white";
@@ -198,7 +200,7 @@ export default function RastreioPage() {
           <form
             onSubmit={(e) => {
               e.preventDefault();
-              handleSearch();
+              handleSearch(query);
             }}
             className={`flex items-center gap-2 p-1.5 rounded-2xl border transition-colors ${searchBoxClass}`}
           >

@@ -2,6 +2,7 @@ import type { Metadata } from 'next';
 import './globals.css';
 import { UTMTracker } from '@/components/analytics/utm-tracker';
 import { WhatsAppFloatingButton } from '@/components/ui/whatsapp-floating-button';
+import { LiveFloatingButton } from '@/components/ui/live-floating-button';
 import { SiteSettingsProvider } from '@/components/providers/site-settings-provider';
 import { CookieConsentBanner } from '@/components/legal/cookie-consent-banner';
 
@@ -42,6 +43,7 @@ export default function RootLayout({
           {children}
           <CookieConsentBanner />
           <WhatsAppFloatingButton />
+          <LiveFloatingButton />
         </SiteSettingsProvider>
       </body>
     </html>

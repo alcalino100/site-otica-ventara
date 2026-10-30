@@ -98,7 +98,12 @@ export async function PATCH(req: NextRequest) {
         delivery_type: "pickup",
         store: "Óticas Ventara - Rua Princesa Isabel, 221 - Araçatuba/SP",
       };
-      // Tenta atualizar como ready_for_pickup, se falhar por constraint usa shipped
+      updatePayload.tracking_number = null;
+      // Garante marcação clara de retirada nas anotações internas
+      const existingNotes = currentOrder?.notes || "";
+      if (!existingNotes.includes("[RETIRADA NA LOJA]")) {
+        updatePayload.notes = `${existingNotes} [RETIRADA NA LOJA]`.trim();
+      }
       dbStatus = "shipped";
     } else if (status === "shipped") {
       updatePayload.shipping_address = {

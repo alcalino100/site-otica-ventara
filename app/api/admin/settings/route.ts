@@ -9,6 +9,7 @@ import {
   PromotionalShowcaseSettings,
   LensesSectionSettings,
   HeroBannerSettings,
+  LiveBroadcastSettings,
 } from "@/types/ecommerce";
 import {
   DEFAULT_IDENTITY,
@@ -19,6 +20,7 @@ import {
   DEFAULT_PROMOTIONAL_SHOWCASE,
   DEFAULT_LENSES_SECTION_SETTINGS,
   DEFAULT_HERO_BANNER,
+  DEFAULT_LIVE_BROADCAST,
 } from "@/lib/site-settings-constants";
 
 export async function GET() {
@@ -39,6 +41,7 @@ export async function GET() {
         "hero_banner",
         "interactive_showcase",
         "company_settings",
+        "live_broadcast",
       ]);
 
     if (error) {
@@ -67,6 +70,7 @@ export async function GET() {
     const heroBannerRow = data?.find((s) => s.key === "hero_banner");
     const interactiveShowcaseRow = data?.find((s) => s.key === "interactive_showcase");
     const companySettingsRow = data?.find((s) => s.key === "company_settings");
+    const liveBroadcastRow = data?.find((s) => s.key === "live_broadcast");
 
     return NextResponse.json({
       identity: identityRow?.value ? { ...DEFAULT_IDENTITY, ...(identityRow.value as SiteIdentitySettings) } : DEFAULT_IDENTITY,
@@ -80,6 +84,7 @@ export async function GET() {
       hero_banner: heroBannerRow?.value ? { ...DEFAULT_HERO_BANNER, ...(heroBannerRow.value as HeroBannerSettings) } : DEFAULT_HERO_BANNER,
       interactive_showcase: interactiveShowcaseRow?.value || null,
       company_settings: companySettingsRow?.value || null,
+      live_broadcast: liveBroadcastRow?.value ? { ...DEFAULT_LIVE_BROADCAST, ...(liveBroadcastRow.value as LiveBroadcastSettings) } : DEFAULT_LIVE_BROADCAST,
     });
   } catch (err: any) {
     console.error("Erro interno ao buscar configurações:", err);
@@ -92,6 +97,7 @@ export async function GET() {
       promotional_showcase: DEFAULT_PROMOTIONAL_SHOWCASE,
       lenses_section: DEFAULT_LENSES_SECTION_SETTINGS,
       hero_banner: DEFAULT_HERO_BANNER,
+      live_broadcast: DEFAULT_LIVE_BROADCAST,
     });
   }
 }
@@ -174,6 +180,10 @@ export async function POST(req: NextRequest) {
 
     if (body.company_settings) {
       await saveSetting("company_settings", "Dados Cadastrais da Empresa e Suporte", body.company_settings);
+    }
+
+    if (body.live_broadcast) {
+      await saveSetting("live_broadcast", "Configurações de Transmissão Ao Vivo e Botão Live", body.live_broadcast);
     }
 
     return NextResponse.json({
