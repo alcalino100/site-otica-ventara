@@ -55,7 +55,10 @@ const getProductBySlug = cache(async (slug: string): Promise<Product | null> => 
   }
 
   // Fallback instantâneo para o catálogo estruturado oficial (0ms)
-  const defaultFound = DEFAULT_CATALOG.find((p) => p.slug === slug);
+  let defaultFound = DEFAULT_CATALOG.find((p) => p.slug === slug);
+  if (!defaultFound && slug === "ventara-horizonte") {
+    defaultFound = DEFAULT_CATALOG.find((p) => p.slug === "ventara-horizonte-sport");
+  }
   return defaultFound || null;
 });
 

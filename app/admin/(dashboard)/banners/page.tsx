@@ -421,21 +421,22 @@ export default function AdminBannersPage() {
   };
 
   const handleAddPromoItem = () => {
+    const firstProd = availableProducts[0];
     const newItem: PromoProductItem = {
       id: `promo-${Date.now()}`,
-      name: "Novo Modelo em Oferta",
-      category: "Armação de Grau",
+      name: firstProd ? firstProd.name : "Novo Modelo em Oferta",
+      category: (firstProd?.category as any)?.name || "Armação de Grau",
       tag: "Oferta",
       discountBadge: "-25% OFF",
-      originalPrice: "R$ 499,00",
-      promotionalPrice: "R$ 374,25",
-      installment: "10x de R$ 37,42 sem juros",
-      image: "/images/products/urbano-black.png",
+      originalPrice: firstProd?.price ? `R$ ${firstProd.price.toFixed(2).replace(".", ",")}` : "R$ 499,00",
+      promotionalPrice: firstProd?.promotional_price ? `R$ ${firstProd.promotional_price.toFixed(2).replace(".", ",")}` : "R$ 374,25",
+      installment: "10x sem juros",
+      image: firstProd?.images?.[0]?.url || "/images/products/urbano-black.png",
       imageFit: "cover",
       colorName: "Preto Clássico",
       colorHex: "#0f172a",
-      slug: "ventara-safari",
-      description: "Armação leve em acetato com garantia de 1 ano.",
+      slug: firstProd?.slug || "ventara-onca",
+      description: firstProd?.description || "Armação leve com garantia de 1 ano.",
       extraColorsCount: 2,
     };
     setPromotionalShowcase((prev) => ({

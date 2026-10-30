@@ -50,11 +50,24 @@ export function PromotionWheelModal({
   const [targetSegmentIndex, setTargetSegmentIndex] = useState<number | null>(null);
   const [resultData, setResultData] = useState<WheelParticipateResponse | null>(null);
   const [copiedCoupon, setCopiedCoupon] = useState(false);
+  const [wheelSize, setWheelSize] = useState(240);
   const [idempotencyKey] = useState(() => `idem-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`);
 
   const modalRef = useRef<HTMLDivElement>(null);
   const startTimeRef = useRef<number>(Date.now());
   const previouslyFocusedElementRef = useRef<HTMLElement | null>(null);
+
+  // Calibra diâmetro da roleta para ser ultra-compacto no celular e não estourar a tela
+  useEffect(() => {
+    const updateSize = () => {
+      if (typeof window !== "undefined") {
+        setWheelSize(window.innerWidth < 640 ? 180 : 240);
+      }
+    };
+    updateSize();
+    window.addEventListener("resize", updateSize);
+    return () => window.removeEventListener("resize", updateSize);
+  }, []);
 
   const { appearance, segments, form: formConfig, coupon_rules } = config;
 
@@ -80,7 +93,7 @@ export function PromotionWheelModal({
   // Formatação em tempo real da máscara de telefone brasileira
   const handlePhoneChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const formatted = formatBrazilianPhone(e.target.value);
-    setValue("phone", formatted, { shouldValidate: true });
+    setValue("phone", formatted, { shouldValidate: true, shouldDirty: true, shouldTouch: true });
   };
 
   // Gerenciamento de acessibilidade: Foco preso (Focus Trap), restauração e fechamento por Escape
@@ -174,6 +187,10 @@ export function PromotionWheelModal({
       } else {
         // Inicia a rotação física suave da roleta
         setModalState("spinning");
+        // Garante foco visual imediato na roleta no mobile
+        if (modalRef.current) {
+          modalRef.current.scrollTo({ top: 0, behavior: "smooth" });
+        }
       }
     } catch (err: any) {
       setServerError(err.message || "Erro de conexão ao processar. Tente novamente.");
@@ -227,20 +244,20 @@ export function PromotionWheelModal({
 
         {/* COLUNA ESQUERDA: ROLETA VISUAL (COMPACTA NO MOBILE, DESTAQUE NO DESKTOP) */}
         <div
-          className="lg:w-1/2 p-4 sm:p-8 flex flex-col items-center justify-center relative overflow-hidden border-b lg:border-b-0 lg:border-r border-white/10"
+          className="lg:w-1/2 p-2.5 sm:p-8 flex flex-col items-center justify-center relative overflow-hidden border-b lg:border-b-0 lg:border-r border-white/10"
           style={{ backgroundColor: appearance.surface_color }}
         >
           {/* Luz de fundo suave e nobre */}
           <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[340px] h-[340px] bg-amber-400/10 blur-[90px] rounded-full pointer-events-none" />
 
-          {/* Badge Informativo da Campanha (Transparência Garantida - sem sorteio falso) */}
-          <div className="mb-3 inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-amber-400/15 border border-amber-400/35 text-amber-300 text-[10px] sm:text-[11px] font-bold uppercase tracking-wider shadow-sm z-10 text-center">
-            <Sparkles size={12} className="text-amber-400 shrink-0" />
+          {/* Badge Informativo da Campanha */}
+          <div className="mb-1.5 sm:mb-3 inline-flex items-center gap-1.5 px-2.5 py-0.5 sm:px-3 sm:py-1 rounded-full bg-amber-400/15 border border-amber-400/35 text-amber-300 text-[9px] sm:text-[11px] font-bold uppercase tracking-wider shadow-sm z-10 text-center">
+            <Sparkles size={11} className="text-amber-400 shrink-0" />
             <span>{config.fixed_benefit.badge_text}</span>
           </div>
 
           {/* Componente Canvas da Roleta com Tamanho Otimizado para Mobile */}
-          <div className="relative z-10 my-1">
+          <div className="relative z-10 my-0.5 sm:my-1">
             <PromotionWheelCanvas
               segments={segments}
               isSpinning={modalState === "spinning"}
@@ -248,11 +265,11 @@ export function PromotionWheelModal({
               pointerColor={appearance.pointer_color}
               borderColor={appearance.border_color}
               onSpinEnd={handleSpinEnd}
-              size={240}
+              size={wheelSize}
             />
           </div>
 
-          <p className="text-[10px] sm:text-[11px] text-slate-400 text-center mt-2 max-w-xs z-10">
+          <p className="hidden sm:block text-[10px] sm:text-[11px] text-slate-400 text-center mt-2 max-w-xs z-10">
             {modalState === "spinning"
               ? "Girando e revelando seu benefício exclusivo..."
               : "Gire para revelar seu código de desconto em armações e lentes."}
@@ -260,16 +277,16 @@ export function PromotionWheelModal({
         </div>
 
         {/* COLUNA DIREITA: FORMULÁRIO OU RESULTADO COM ACESSIBILIDADE ARIA-LIVE */}
-        <div className="lg:w-1/2 p-4 sm:p-8 flex flex-col justify-between" aria-live="polite">
+        <div className="lg:w-1/2 p-3.5 sm:p-8 flex flex-col justify-center" aria-live="polite">
           {/* TELA DE RESULTADO REVELADO */}
           {modalState === "result" && resultData ? (
-            <div className="space-y-6 my-auto animate-in fade-in zoom-in-95 duration-300">
-              <div className="space-y-2 text-center sm:text-left">
-                <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-emerald-500/20 border border-emerald-500/40 text-emerald-300 text-xs font-bold uppercase tracking-wider">
-                  <Gift size={14} className="text-emerald-400" />
+            <div className="space-y-4 sm:space-y-6 my-auto animate-in fade-in zoom-in-95 duration-300">
+              <div className="space-y-1.5 sm:space-y-2 text-center sm:text-left">
+                <div className="inline-flex items-center gap-1.5 px-2.5 py-0.5 sm:px-3 sm:py-1 rounded-full bg-emerald-500/20 border border-emerald-500/40 text-emerald-300 text-[10px] sm:text-xs font-bold uppercase tracking-wider">
+                  <Gift size={13} className="text-emerald-400" />
                   <span>Benefício Confirmado</span>
                 </div>
-                <h2 className="text-2xl sm:text-3xl font-light text-white tracking-tight">
+                <h2 className="text-xl sm:text-3xl font-light text-white tracking-tight">
                   Parabéns! Seu benefício é{" "}
                   <strong className="text-amber-400 font-bold">{resultData.benefit.label}</strong>
                 </h2>
@@ -279,12 +296,12 @@ export function PromotionWheelModal({
               </div>
 
               {/* Box de Exibição do Cupom Exclusivo */}
-              <div className="p-4 sm:p-5 rounded-2xl bg-white/[0.04] border border-amber-400/40 space-y-3 shadow-lg">
+              <div className="p-3.5 sm:p-5 rounded-2xl bg-white/[0.04] border border-amber-400/40 space-y-2.5 sm:space-y-3 shadow-lg">
                 <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest block">
                   Seu Código de Cupom Exclusivo:
                 </span>
-                <div className="flex items-center justify-between gap-3 p-3 rounded-xl bg-[#06121C] border border-white/15">
-                  <span className="font-mono text-lg sm:text-xl font-bold tracking-wider text-amber-300 select-all">
+                <div className="flex items-center justify-between gap-3 p-2.5 sm:p-3 rounded-xl bg-[#06121C] border border-white/15">
+                  <span className="font-mono text-base sm:text-xl font-bold tracking-wider text-amber-300 select-all">
                     {resultData.coupon.code}
                   </span>
                   <button
@@ -305,7 +322,7 @@ export function PromotionWheelModal({
                     )}
                   </button>
                 </div>
-                <div className="text-[11px] text-slate-400 space-y-1">
+                <div className="text-[10px] sm:text-[11px] text-slate-400 space-y-0.5">
                   <p>
                     • <strong>Validade:</strong> 7 dias corridos (até{" "}
                     {new Date(resultData.coupon.expires_at).toLocaleDateString("pt-BR")}).
@@ -315,11 +332,11 @@ export function PromotionWheelModal({
               </div>
 
               {/* Botões de Ação Final */}
-              <div className="space-y-2 pt-2">
+              <div className="space-y-2 pt-1 sm:pt-2">
                 <a
                   href="#armacoes"
                   onClick={onClose}
-                  className="w-full py-3.5 px-6 rounded-xl bg-gradient-to-r from-amber-400 to-amber-500 hover:from-amber-300 hover:to-amber-400 text-slate-950 font-bold text-xs uppercase tracking-wider transition-all shadow-md flex items-center justify-center gap-2 active:scale-98"
+                  className="w-full py-3 sm:py-3.5 px-5 rounded-xl bg-gradient-to-r from-amber-400 to-amber-500 hover:from-amber-300 hover:to-amber-400 text-slate-950 font-bold text-xs uppercase tracking-wider transition-all shadow-md flex items-center justify-center gap-2 active:scale-98"
                 >
                   <span>{appearance.result_cta_text}</span>
                   <ArrowRight size={14} />
@@ -331,30 +348,32 @@ export function PromotionWheelModal({
                   )}`}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="w-full py-3 px-6 rounded-xl bg-emerald-600/20 hover:bg-emerald-600/30 border border-emerald-500/40 text-emerald-300 text-xs font-semibold transition-all flex items-center justify-center gap-2 active:scale-98"
+                  className="w-full py-2.5 sm:py-3 px-5 rounded-xl bg-emerald-600/20 hover:bg-emerald-600/30 border border-emerald-500/40 text-emerald-300 text-xs font-semibold transition-all flex items-center justify-center gap-2 active:scale-98"
                 >
-                  <MessageCircle size={15} className="text-emerald-400" />
+                  <MessageCircle size={14} className="text-emerald-400" />
                   <span>Chamar no WhatsApp e Garantir Armação</span>
                 </a>
               </div>
             </div>
           ) : (
-            /* FORMULÁRIO DE CAPTURA DO VISITANTE */
-            <div className="space-y-5 my-auto">
+            /* FORMULÁRIO DE CAPTURA DO VISITANTE (ULTRA-COMPACTO NO MOBILE) */
+            <div className="space-y-2.5 sm:space-y-5 my-auto">
               <div>
-                <BrandLogo size="sm" />
-                <h2 id="wheel-modal-title" className="text-2xl sm:text-3xl font-light text-white tracking-tight mt-3">
+                <div className="hidden sm:block">
+                  <BrandLogo size="sm" />
+                </div>
+                <h2 id="wheel-modal-title" className="text-lg sm:text-2xl lg:text-3xl font-bold sm:font-light text-white tracking-tight mt-0.5 sm:mt-3">
                   {appearance.title_text}
                 </h2>
-                <p className="text-xs sm:text-sm text-slate-300 mt-1 leading-relaxed">
+                <p className="hidden sm:block text-xs sm:text-sm text-slate-300 mt-1 leading-relaxed">
                   {appearance.description_text}
                 </p>
               </div>
 
               {/* Alerta de Erro Recuperável */}
               {serverError && (
-                <div className="p-3.5 rounded-xl bg-red-950/70 border border-red-500/30 text-xs text-red-200 flex items-start gap-2.5">
-                  <AlertCircle size={16} className="text-red-400 shrink-0 mt-0.5" />
+                <div className="p-2 sm:p-3.5 rounded-xl bg-red-950/70 border border-red-500/30 text-xs text-red-200 flex items-start gap-2">
+                  <AlertCircle size={15} className="text-red-400 shrink-0 mt-0.5" />
                   <div>
                     <p className="font-semibold text-white">Atenção</p>
                     <p className="mt-0.5 text-slate-300">{serverError}</p>
@@ -362,11 +381,11 @@ export function PromotionWheelModal({
                 </div>
               )}
 
-              <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
+              <form onSubmit={handleSubmit(onSubmit)} className="space-y-2 sm:space-y-3.5">
                 {/* Campo Nome */}
-                <div className="space-y-1">
-                  <label htmlFor="lead-name" className="text-xs font-semibold text-slate-200 flex items-center gap-1.5">
-                    <User size={13} className="text-amber-400" />
+                <div className="space-y-0.5 sm:space-y-1">
+                  <label htmlFor="lead-name" className="text-[11px] sm:text-xs font-semibold text-slate-200 flex items-center gap-1.5">
+                    <User size={12} className="text-amber-400" />
                     <span>{formConfig.name_label}</span>
                     <span className="text-amber-400">*</span>
                   </label>
@@ -376,33 +395,34 @@ export function PromotionWheelModal({
                     placeholder={formConfig.name_placeholder}
                     {...register("name")}
                     disabled={modalState === "submitting" || modalState === "spinning"}
-                    className="w-full px-3.5 py-2.5 rounded-xl bg-white/[0.05] border border-white/15 focus:border-amber-400 text-white placeholder:text-slate-500 text-xs sm:text-sm outline-none transition-colors"
+                    className="w-full px-3 py-1.5 sm:px-3.5 sm:py-2.5 rounded-lg sm:rounded-xl bg-white/[0.05] border border-white/15 focus:border-amber-400 text-white placeholder:text-slate-500 text-xs sm:text-sm outline-none transition-colors"
                   />
                   {errors.name && (
-                    <p className="text-[11px] text-amber-400 mt-0.5 font-medium">{errors.name.message}</p>
+                    <p className="text-[10px] sm:text-[11px] text-amber-400 mt-0.5 font-medium">{errors.name.message}</p>
                   )}
                 </div>
 
                 {/* Campo Telefone / WhatsApp */}
-                <div className="space-y-1">
-                  <label htmlFor="lead-phone" className="text-xs font-semibold text-slate-200 flex items-center gap-1.5">
-                    <Phone size={13} className="text-amber-400" />
+                <div className="space-y-0.5 sm:space-y-1">
+                  <label htmlFor="lead-phone" className="text-[11px] sm:text-xs font-semibold text-slate-200 flex items-center gap-1.5">
+                    <Phone size={12} className="text-amber-400" />
                     <span>{formConfig.phone_label}</span>
                     <span className="text-amber-400">*</span>
                   </label>
                   <input
                     id="lead-phone"
                     type="tel"
+                    {...register("phone")}
                     placeholder={formConfig.phone_placeholder}
                     value={phoneValue || ""}
                     onChange={handlePhoneChange}
                     disabled={modalState === "submitting" || modalState === "spinning"}
-                    className="w-full px-3.5 py-2.5 rounded-xl bg-white/[0.05] border border-white/15 focus:border-amber-400 text-white placeholder:text-slate-500 text-xs sm:text-sm outline-none transition-colors font-mono"
+                    className="w-full px-3 py-1.5 sm:px-3.5 sm:py-2.5 rounded-lg sm:rounded-xl bg-white/[0.05] border border-white/15 focus:border-amber-400 text-white placeholder:text-slate-500 text-xs sm:text-sm outline-none transition-colors font-mono"
                   />
                   {errors.phone ? (
-                    <p className="text-[11px] text-amber-400 mt-0.5 font-medium">{errors.phone.message}</p>
+                    <p className="text-[10px] sm:text-[11px] text-amber-400 mt-0.5 font-medium">{errors.phone.message}</p>
                   ) : (
-                    <p className="text-[10px] text-slate-400 mt-0.5 leading-snug">{formConfig.phone_help}</p>
+                    <p className="hidden sm:block text-[10px] text-slate-400 mt-0.5 leading-snug">{formConfig.phone_help}</p>
                   )}
                 </div>
 
@@ -416,26 +436,26 @@ export function PromotionWheelModal({
                 />
 
                 {/* Checkbox Opcional de Marketing (Desmarcado por Padrão) */}
-                <div className="pt-1">
-                  <label className="flex items-start gap-2.5 cursor-pointer select-none group">
+                <div className="pt-0.5">
+                  <label className="flex items-start gap-2 cursor-pointer select-none group">
                     <input
                       type="checkbox"
                       {...register("marketingOptIn")}
                       disabled={modalState === "submitting" || modalState === "spinning"}
-                      className="mt-0.5 w-4 h-4 rounded border-white/20 bg-white/5 text-amber-400 focus:ring-amber-400/40 cursor-pointer"
+                      className="mt-0.5 w-3.5 h-3.5 rounded border-white/20 bg-white/5 text-amber-400 focus:ring-amber-400/40 cursor-pointer"
                     />
-                    <span className="text-[11px] text-slate-400 group-hover:text-slate-300 leading-tight">
+                    <span className="text-[10px] sm:text-[11px] text-slate-400 group-hover:text-slate-300 leading-tight">
                       {formConfig.marketing_opt_in_label}
                     </span>
                   </label>
                 </div>
 
                 {/* Botão de Envio / Girar Roleta */}
-                <div className="pt-2">
+                <div className="pt-1 sm:pt-2">
                   <button
                     type="submit"
                     disabled={!isValid || modalState === "submitting" || modalState === "spinning"}
-                    className="w-full py-3.5 px-6 rounded-xl font-bold text-xs uppercase tracking-wider transition-all duration-200 flex items-center justify-center gap-2 shadow-lg disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer active:scale-98"
+                    className="w-full py-2.5 sm:py-3.5 px-4 sm:px-6 rounded-xl font-extrabold text-xs uppercase tracking-wider transition-all duration-200 flex items-center justify-center gap-2 shadow-lg disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer active:scale-98"
                     style={{
                       backgroundColor: appearance.button_bg,
                       color: appearance.button_text,
@@ -443,13 +463,13 @@ export function PromotionWheelModal({
                   >
                     {modalState === "submitting" ? (
                       <>
-                        <RefreshCw size={15} className="animate-spin" />
+                        <RefreshCw size={14} className="animate-spin" />
                         <span>Confirmando seu benefício...</span>
                       </>
                     ) : modalState === "spinning" ? (
                       <>
-                        <Sparkles size={15} className="animate-pulse" />
-                        <span>Revelando...</span>
+                        <Sparkles size={14} className="animate-pulse text-amber-300" />
+                        <span>Girando Roleta...</span>
                       </>
                     ) : (
                       <>
@@ -461,8 +481,8 @@ export function PromotionWheelModal({
                 </div>
 
                 {/* Rodapé e Privacidade */}
-                <div className="text-[10px] text-slate-400 text-center space-y-1 pt-1">
-                  <p>{appearance.footer_note}</p>
+                <div className="text-[9px] sm:text-[10px] text-slate-400 text-center space-y-0.5 pt-0.5">
+                  <p className="hidden sm:block">{appearance.footer_note}</p>
                   <p>
                     Ao participar, você concorda com nossos{" "}
                     <button

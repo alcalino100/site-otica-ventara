@@ -275,7 +275,7 @@ export const DEFAULT_INTERACTIVE_SHOWCASE: InteractiveShowcaseSettings = {
     lifestyleImage: "/images/lifestyle/male-solar.jpg",
     lifestyleAlt: "Modelo masculino usando óculos de sol esportivo Ventara ao ar livre",
     featuredProductName: "Ventara Horizonte Sport",
-    featuredProductSlug: "ventara-horizonte",
+    featuredProductSlug: "ventara-horizonte-sport",
     variations: [
       {
         id: "sol-masc-1",
@@ -286,7 +286,7 @@ export const DEFAULT_INTERACTIVE_SHOWCASE: InteractiveShowcaseSettings = {
         frameColor: "black",
         priceInCents: 48900,
         sku: "VEN-HOR-BLU",
-        slug: "ventara-horizonte",
+        slug: "ventara-horizonte-sport",
         imageUrl: "",
       },
       {
@@ -298,7 +298,7 @@ export const DEFAULT_INTERACTIVE_SHOWCASE: InteractiveShowcaseSettings = {
         frameColor: "black",
         priceInCents: 48900,
         sku: "VEN-HOR-SMK",
-        slug: "ventara-horizonte",
+        slug: "ventara-horizonte-sport",
         imageUrl: "",
       },
       {
@@ -310,7 +310,7 @@ export const DEFAULT_INTERACTIVE_SHOWCASE: InteractiveShowcaseSettings = {
         frameColor: "black",
         priceInCents: 48900,
         sku: "VEN-HOR-FIR",
-        slug: "ventara-horizonte",
+        slug: "ventara-horizonte-sport",
         imageUrl: "",
       },
       {
@@ -322,7 +322,7 @@ export const DEFAULT_INTERACTIVE_SHOWCASE: InteractiveShowcaseSettings = {
         frameColor: "white",
         priceInCents: 48900,
         sku: "VEN-HOR-WHT",
-        slug: "ventara-horizonte",
+        slug: "ventara-horizonte-sport",
         imageUrl: "",
       },
     ],

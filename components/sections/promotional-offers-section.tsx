@@ -5,10 +5,50 @@ import Link from "next/link";
 import { MessageCircle, Sparkles, Tag, ArrowRight, ShieldCheck, ShoppingBag, ChevronDown, ChevronUp } from "lucide-react";
 import { PromotionalShowcaseSettings, PromoProductItem } from "@/types/ecommerce";
 import { DEFAULT_PROMOTIONAL_SHOWCASE } from "@/lib/site-settings-constants";
+import { DEFAULT_CATALOG } from "@/lib/catalog-data";
 import { useSiteSettings } from "../providers/site-settings-provider";
 import { FrameArt } from "../catalog/frame-art";
 
 const INITIAL_LIMIT = 8;
+
+/**
+ * Resolução resiliente de slug para garantir que o botão "Comprar"
+ * nunca aponte para um produto errado ou caia indevidamente em ventara-safari.
+ */
+function resolveProductSlug(item: PromoProductItem): string {
+  // 1. Caso o item já possua slug configurado
+  if (item.slug && item.slug.trim()) {
+    const rawSlug = item.slug.trim();
+    if (rawSlug === "ventara-horizonte") return "ventara-horizonte-sport";
+
+    // Se o slug bate diretamente com algum produto no catálogo
+    const directMatch = DEFAULT_CATALOG.find((p) => p.slug === rawSlug || p.id === rawSlug);
+    if (directMatch) return directMatch.slug;
+
+    // Se é um slug específico diferente de fallback vazio
+    if (rawSlug !== "ventara-safari") return rawSlug;
+  }
+
+  // 2. Se o slug não bateu ou era o fallback ventara-safari mas o nome é outro
+  if (item.name && item.name.trim()) {
+    const cleanName = item.name.toLowerCase().trim();
+
+    // Match exato por nome
+    const exactNameMatch = DEFAULT_CATALOG.find(
+      (p) => p.name.toLowerCase().trim() === cleanName
+    );
+    if (exactNameMatch) return exactNameMatch.slug;
+
+    // Match por inclusão de nome
+    const partialMatch = DEFAULT_CATALOG.find((p) => {
+      const pName = p.name.toLowerCase().trim();
+      return cleanName.includes(pName) || pName.includes(cleanName);
+    });
+    if (partialMatch) return partialMatch.slug;
+  }
+
+  return item.slug?.trim() || "ventara-safari";
+}
 
 export function PromotionalOffersSection() {
   const { cleanWhatsAppNumber } = useSiteSettings();
@@ -215,7 +255,7 @@ export function PromotionalOffersSection() {
                 {/* Ações Conforme Solicitação: 1. Comprar (Página do Produto) | 2. Dúvidas no WhatsApp (Amarelo) */}
                 <div className="flex flex-col gap-1.5 pt-1">
                   <Link
-                    href={`/produto/${item.slug || "ventara-safari"}`}
+                    href={`/produto/${resolveProductSlug(item)}`}
                     className="w-full inline-flex items-center justify-center gap-1.5 py-2.5 px-3 rounded-xl bg-slate-900 hover:bg-slate-800 active:scale-95 text-white font-bold text-[11px] sm:text-xs tracking-wide shadow-sm transition-all cursor-pointer"
                   >
                     <ShoppingBag size={13} className="shrink-0" />
