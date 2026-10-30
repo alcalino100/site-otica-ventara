@@ -43,7 +43,20 @@ export function RoletaClient() {
   const [resultData, setResultData] = useState<WheelParticipateResponse | null>(null);
   const [copiedCoupon, setCopiedCoupon] = useState(false);
   const [showRegulations, setShowRegulations] = useState(false);
+  const [wheelSize, setWheelSize] = useState(290);
   const [idempotencyKey] = useState(() => `roleta-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`);
+
+  // Calibra diâmetro da roleta para caber integrado no celular
+  useEffect(() => {
+    const updateSize = () => {
+      if (typeof window !== "undefined") {
+        setWheelSize(window.innerWidth < 640 ? 200 : 290);
+      }
+    };
+    updateSize();
+    window.addEventListener("resize", updateSize);
+    return () => window.removeEventListener("resize", updateSize);
+  }, []);
 
   const {
     register,
@@ -80,7 +93,7 @@ export function RoletaClient() {
 
   const handlePhoneChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const formatted = formatBrazilianPhone(e.target.value);
-    setValue("phone", formatted, { shouldValidate: true });
+    setValue("phone", formatted, { shouldValidate: true, shouldDirty: true, shouldTouch: true });
   };
 
   const onSubmit = async (data: WheelLeadFormData) => {
@@ -178,20 +191,20 @@ export function RoletaClient() {
           <div className="absolute -top-24 -left-24 w-72 h-72 bg-[#E8C765]/10 rounded-full blur-3xl pointer-events-none" />
           <div className="absolute -bottom-24 -right-24 w-72 h-72 bg-[#E8C765]/10 rounded-full blur-3xl pointer-events-none" />
 
-          <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-center relative z-10">
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-5 sm:gap-8 items-center relative z-10">
             {/* Coluna da Roleta */}
             <div className="lg:col-span-6 flex flex-col items-center justify-center">
-              <div className="p-3 sm:p-4 rounded-full bg-[#06121C]/80 border border-[#E8C765]/20 shadow-inner">
+              <div className="p-2 sm:p-4 rounded-full bg-[#06121C]/80 border border-[#E8C765]/20 shadow-inner">
                 <PromotionWheelCanvas
                   segments={config.segments}
                   isSpinning={pageState === "spinning"}
                   targetSegmentIndex={targetSegmentIndex}
                   onSpinEnd={handleSpinEnd}
-                  size={290}
+                  size={wheelSize}
                 />
               </div>
 
-              <p className="mt-3 text-xs text-gray-400 text-center flex items-center gap-1.5">
+              <p className="mt-2 text-xs text-gray-400 text-center flex items-center gap-1.5">
                 <Store className="w-3.5 h-3.5 text-[#E8C765]" />
                 <span>Válido no balcão da loja em Araçatuba e no WhatsApp</span>
               </p>
@@ -275,13 +288,13 @@ export function RoletaClient() {
                   </div>
                 </div>
               ) : (
-                /* Formulário de Identificação e Giro */
-                <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
+                /* Formulário de Identificação e Giro (Compacto e Preciso no Mobile) */
+                <form onSubmit={handleSubmit(onSubmit)} className="space-y-2.5 sm:space-y-4">
                   <div>
-                    <h3 className="text-lg sm:text-xl font-bold text-white mb-1">
+                    <h3 className="text-base sm:text-xl font-bold text-white mb-0.5">
                       {config.appearance?.title_text || "Seu próximo olhar merece um benefício"}
                     </h3>
-                    <p className="text-xs sm:text-sm text-gray-300">
+                    <p className="text-[11px] sm:text-sm text-gray-300">
                       Preencha seu WhatsApp para vincular seu cupom e gire a roleta.
                     </p>
                   </div>
@@ -291,48 +304,49 @@ export function RoletaClient() {
 
                   {/* Campo Nome */}
                   <div>
-                    <label className="block text-xs font-semibold text-gray-300 mb-1">
+                    <label className="block text-[11px] sm:text-xs font-semibold text-gray-300 mb-0.5 sm:mb-1">
                       {config.form?.name_label || "Seu nome completo"}
                     </label>
                     <div className="relative">
                       <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-gray-400">
-                        <User className="w-4 h-4" />
+                        <User className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
                       </div>
                       <input
                         type="text"
                         {...register("name")}
                         disabled={pageState === "submitting" || pageState === "spinning"}
                         placeholder={config.form?.name_placeholder || "Ex: Mariana Silva"}
-                        className="w-full pl-9 pr-3 py-2.5 bg-[#06121C] border border-gray-700 focus:border-[#E8C765] rounded-xl text-sm text-white placeholder-gray-500 focus:outline-none transition-colors"
+                        className="w-full pl-8 sm:pl-9 pr-3 py-1.5 sm:py-2.5 bg-[#06121C] border border-gray-700 focus:border-[#E8C765] rounded-lg sm:rounded-xl text-xs sm:text-sm text-white placeholder-gray-500 focus:outline-none transition-colors"
                       />
                     </div>
-                    {errors.name && <p className="text-xs text-rose-400 mt-1">{errors.name.message}</p>}
+                    {errors.name && <p className="text-[10px] sm:text-xs text-rose-400 mt-0.5">{errors.name.message}</p>}
                   </div>
 
                   {/* Campo Telefone */}
                   <div>
-                    <label className="block text-xs font-semibold text-gray-300 mb-1">
+                    <label className="block text-[11px] sm:text-xs font-semibold text-gray-300 mb-0.5 sm:mb-1">
                       {config.form?.phone_label || "WhatsApp para identificação"}
                     </label>
                     <div className="relative">
                       <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-gray-400">
-                        <Phone className="w-4 h-4" />
+                        <Phone className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
                       </div>
                       <input
                         type="tel"
+                        {...register("phone")}
                         value={phoneValue || ""}
                         onChange={handlePhoneChange}
                         disabled={pageState === "submitting" || pageState === "spinning"}
                         placeholder={config.form?.phone_placeholder || "(18) 99999-9999"}
-                        className="w-full pl-9 pr-3 py-2.5 bg-[#06121C] border border-gray-700 focus:border-[#E8C765] rounded-xl text-sm text-white placeholder-gray-500 focus:outline-none transition-colors"
+                        className="w-full pl-8 sm:pl-9 pr-3 py-1.5 sm:py-2.5 bg-[#06121C] border border-gray-700 focus:border-[#E8C765] rounded-lg sm:rounded-xl text-xs sm:text-sm text-white placeholder-gray-500 focus:outline-none transition-colors font-mono"
                       />
                     </div>
-                    {errors.phone && <p className="text-xs text-rose-400 mt-1">{errors.phone.message}</p>}
+                    {errors.phone && <p className="text-[10px] sm:text-xs text-rose-400 mt-0.5">{errors.phone.message}</p>}
                   </div>
 
                   {/* Mensagem de Erro do Servidor */}
                   {serverError && (
-                    <div className="p-3 rounded-lg bg-rose-950/60 border border-rose-500/40 text-xs text-rose-200 flex items-center gap-2">
+                    <div className="p-2 sm:p-3 rounded-lg bg-rose-950/60 border border-rose-500/40 text-xs text-rose-200 flex items-center gap-2">
                       <AlertCircle className="w-4 h-4 shrink-0 text-rose-400" />
                       <span>{serverError}</span>
                     </div>
@@ -342,7 +356,7 @@ export function RoletaClient() {
                   <button
                     type="submit"
                     disabled={!isValid || pageState === "submitting" || pageState === "spinning"}
-                    className="w-full py-3.5 px-4 rounded-xl bg-[#E8C765] hover:bg-[#d4b455] active:scale-[0.99] disabled:opacity-50 disabled:pointer-events-none text-[#06121C] font-black text-sm tracking-wide shadow-lg shadow-[#E8C765]/20 flex items-center justify-center gap-2 transition-all"
+                    className="w-full py-2.5 sm:py-3.5 px-4 rounded-xl bg-[#E8C765] hover:bg-[#d4b455] active:scale-[0.99] disabled:opacity-50 disabled:pointer-events-none text-[#06121C] font-black text-xs sm:text-sm tracking-wide shadow-lg shadow-[#E8C765]/20 flex items-center justify-center gap-2 transition-all cursor-pointer"
                   >
                     {pageState === "submitting" ? (
                       <>
@@ -362,7 +376,7 @@ export function RoletaClient() {
                     )}
                   </button>
 
-                  <p className="text-[11px] text-gray-400 text-center flex items-center justify-center gap-1">
+                  <p className="text-[10px] sm:text-[11px] text-gray-400 text-center flex items-center justify-center gap-1">
                     <ShieldCheck className="w-3.5 h-3.5 text-emerald-400" />
                     <span>Benefício real garantido. Uso intransferível por WhatsApp.</span>
                   </p>
