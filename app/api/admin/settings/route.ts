@@ -37,6 +37,8 @@ export async function GET() {
         "promotional_showcase",
         "lenses_section",
         "hero_banner",
+        "interactive_showcase",
+        "company_settings",
       ]);
 
     if (error) {
@@ -50,6 +52,7 @@ export async function GET() {
         promotional_showcase: DEFAULT_PROMOTIONAL_SHOWCASE,
         lenses_section: DEFAULT_LENSES_SECTION_SETTINGS,
         hero_banner: DEFAULT_HERO_BANNER,
+        company_settings: null,
       });
     }
 
@@ -62,6 +65,8 @@ export async function GET() {
     const promoRow = data?.find((s) => s.key === "promotional_showcase");
     const lensesSectionRow = data?.find((s) => s.key === "lenses_section");
     const heroBannerRow = data?.find((s) => s.key === "hero_banner");
+    const interactiveShowcaseRow = data?.find((s) => s.key === "interactive_showcase");
+    const companySettingsRow = data?.find((s) => s.key === "company_settings");
 
     return NextResponse.json({
       identity: identityRow?.value ? { ...DEFAULT_IDENTITY, ...(identityRow.value as SiteIdentitySettings) } : DEFAULT_IDENTITY,
@@ -73,6 +78,8 @@ export async function GET() {
       promotional_showcase: promoRow?.value ? { ...DEFAULT_PROMOTIONAL_SHOWCASE, ...(promoRow.value as PromotionalShowcaseSettings) } : DEFAULT_PROMOTIONAL_SHOWCASE,
       lenses_section: lensesSectionRow?.value ? { ...DEFAULT_LENSES_SECTION_SETTINGS, ...(lensesSectionRow.value as LensesSectionSettings) } : DEFAULT_LENSES_SECTION_SETTINGS,
       hero_banner: heroBannerRow?.value ? { ...DEFAULT_HERO_BANNER, ...(heroBannerRow.value as HeroBannerSettings) } : DEFAULT_HERO_BANNER,
+      interactive_showcase: interactiveShowcaseRow?.value || null,
+      company_settings: companySettingsRow?.value || null,
     });
   } catch (err: any) {
     console.error("Erro interno ao buscar configurações:", err);
@@ -163,6 +170,10 @@ export async function POST(req: NextRequest) {
 
     if (body.interactive_showcase) {
       await saveSetting("interactive_showcase", "Vitrine Interativa de Solares e Armações (Fotos e Variações)", body.interactive_showcase);
+    }
+
+    if (body.company_settings) {
+      await saveSetting("company_settings", "Dados Cadastrais da Empresa e Suporte", body.company_settings);
     }
 
     return NextResponse.json({

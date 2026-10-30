@@ -43,6 +43,49 @@ export async function PATCH(req: NextRequest) {
 
     const adminSupabase = createAdminClient();
 
+    // Busca pedido anterior para verificar mudança de status e itens
+    const { data: currentOrder } = await adminSupabase
+      .from("orders")
+      .select("status, reference_code, notes, items:order_items(*)")
+      .eq("id", id)
+      .single();
+
+    // Se o pedido estiver sendo cancelado e antes não estava cancelado, realiza estorno no estoque
+    if (status === "cancelled" && currentOrder && currentOrder.status !== "cancelled") {
+      if (Array.isArray(currentOrder.items)) {
+        for (const item of currentOrder.items) {
+          if (item.variant_id) {
+            try {
+              const { data: v } = await adminSupabase
+                .from("product_variants")
+                .select("stock_quantity, product_id")
+                .eq("id", item.variant_id)
+                .single();
+
+              if (v && typeof v.stock_quantity === "number") {
+                const newBalance = v.stock_quantity + (Number(item.quantity) || 1);
+                await adminSupabase
+                  .from("product_variants")
+                  .update({ stock_quantity: newBalance, updated_at: new Date().toISOString() })
+                  .eq("id", item.variant_id);
+
+                await adminSupabase.from("inventory_movements").insert({
+                  product_id: v.product_id,
+                  variant_id: item.variant_id,
+                  movement_type: "inbound",
+                  quantity: Number(item.quantity) || 1,
+                  balance_after: newBalance,
+                  reason: `Estorno por cancelamento do pedido ${currentOrder.reference_code || id}`,
+                });
+              }
+            } catch (invErr) {
+              console.warn("Aviso ao estornar estoque no cancelamento:", invErr);
+            }
+          }
+        }
+      }
+    }
+
     // Se o status for "ready_for_pickup", assegura que shipping_address tem delivery_type: "pickup"
     // e caso haja constraint no banco que só aceite 'shipped', trata adequadamente
     let dbStatus = status;
@@ -64,11 +107,6 @@ export async function PATCH(req: NextRequest) {
       dbStatus = "shipped";
 
       // Limpa qualquer anotação de retirada antiga se o pedido foi despachado
-      const { data: currentOrder } = await adminSupabase
-        .from("orders")
-        .select("notes")
-        .eq("id", id)
-        .single();
       if (currentOrder?.notes?.includes("[RETIRADA NA LOJA]")) {
         updatePayload.notes = currentOrder.notes.replace("[RETIRADA NA LOJA]", "[ENVIO DESPACHADO]").trim();
       }

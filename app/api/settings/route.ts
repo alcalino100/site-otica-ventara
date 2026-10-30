@@ -3,6 +3,7 @@ import { createStaticSupabaseClient } from "@/lib/supabase/server";
 import {
   DEFAULT_IDENTITY,
   DEFAULT_APPEARANCE,
+  DEFAULT_SHIPPING,
   DEFAULT_LAB_SHOWCASE,
   DEFAULT_SHOWCASE_MEDIA,
   DEFAULT_HOMOLOGATED_BRANDS,
@@ -14,6 +15,7 @@ import {
 import {
   SiteIdentitySettings,
   SiteAppearanceSettings,
+  SiteShippingSettings,
   LabShowcaseSettings,
   ShowcaseMediaSettings,
   HomologatedBrand,
@@ -35,6 +37,7 @@ export async function GET() {
       .in("key", [
         "identity",
         "appearance",
+        "shipping",
         "lab_showcase",
         "showcase_media",
         "homologated_brands",
@@ -48,6 +51,7 @@ export async function GET() {
       return NextResponse.json({
         identity: DEFAULT_IDENTITY,
         appearance: DEFAULT_APPEARANCE,
+        shipping: DEFAULT_SHIPPING,
         lab_showcase: DEFAULT_LAB_SHOWCASE,
         showcase_media: DEFAULT_SHOWCASE_MEDIA,
         homologated_brands: DEFAULT_HOMOLOGATED_BRANDS,
@@ -60,6 +64,7 @@ export async function GET() {
 
     const identityRow = data.find((s) => s.key === "identity");
     const appearanceRow = data.find((s) => s.key === "appearance");
+    const shippingRow = data.find((s) => s.key === "shipping");
     const labRow = data.find((s) => s.key === "lab_showcase");
     const showcaseRow = data.find((s) => s.key === "showcase_media");
     const brandsRow = data.find((s) => s.key === "homologated_brands");
@@ -71,6 +76,7 @@ export async function GET() {
     return NextResponse.json({
       identity: identityRow?.value ? { ...DEFAULT_IDENTITY, ...(identityRow.value as SiteIdentitySettings) } : DEFAULT_IDENTITY,
       appearance: appearanceRow?.value ? { ...DEFAULT_APPEARANCE, ...(appearanceRow.value as SiteAppearanceSettings) } : DEFAULT_APPEARANCE,
+      shipping: shippingRow?.value ? { ...DEFAULT_SHIPPING, ...(shippingRow.value as SiteShippingSettings) } : DEFAULT_SHIPPING,
       lab_showcase: labRow?.value ? { ...DEFAULT_LAB_SHOWCASE, ...(labRow.value as LabShowcaseSettings) } : DEFAULT_LAB_SHOWCASE,
       showcase_media: showcaseRow?.value ? { ...DEFAULT_SHOWCASE_MEDIA, ...(showcaseRow.value as ShowcaseMediaSettings) } : DEFAULT_SHOWCASE_MEDIA,
       homologated_brands: brandsRow?.value ? (brandsRow.value as HomologatedBrand[]) : DEFAULT_HOMOLOGATED_BRANDS,
@@ -83,6 +89,7 @@ export async function GET() {
     return NextResponse.json({
       identity: DEFAULT_IDENTITY,
       appearance: DEFAULT_APPEARANCE,
+      shipping: DEFAULT_SHIPPING,
       lab_showcase: DEFAULT_LAB_SHOWCASE,
       showcase_media: DEFAULT_SHOWCASE_MEDIA,
       homologated_brands: DEFAULT_HOMOLOGATED_BRANDS,

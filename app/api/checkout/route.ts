@@ -23,6 +23,7 @@ interface CheckoutRequestBody {
   delivery_type?: "store_pickup" | "delivery";
   shipping_address?: ShippingAddress;
   payment_method?: "pix" | "credit_card" | "whatsapp_assisted";
+  coupon_code?: string;
   notes?: string;
   items: CheckoutItemInput[];
 }
@@ -176,18 +177,110 @@ export async function POST(req: NextRequest) {
       });
     }
 
-    // 4. Cálculo de Frete e Total
-    // Frete grátis acima de R$ 350,00 ou retirada no espaço físico em Araçatuba
-    const isPickup = body.delivery_type === "store_pickup";
-    const shippingFeeInCents = isPickup || subtotalInCents >= 35000 ? 0 : 2500;
-    const discountInCents = 0;
-    const totalInCents = subtotalInCents + shippingFeeInCents - discountInCents;
+    // 4. Busca regras de frete dinâmicas no site_settings
+    let freeShippingThreshold = 35000;
+    let defaultShippingFee = 2500;
+    let storePickupEnabled = true;
+
+    if (hasLiveDb) {
+      try {
+        const { data: shipRow } = await adminSupabase
+          .from("site_settings")
+          .select("value")
+          .eq("key", "shipping")
+          .maybeSingle();
+
+        if (shipRow?.value) {
+          const s = shipRow.value as any;
+          if (typeof s.free_shipping_threshold_cents === "number") {
+            freeShippingThreshold = s.free_shipping_threshold_cents;
+          }
+          if (typeof s.default_shipping_fee_cents === "number") {
+            defaultShippingFee = s.default_shipping_fee_cents;
+          }
+          if (typeof s.store_pickup_enabled === "boolean") {
+            storePickupEnabled = s.store_pickup_enabled;
+          }
+        }
+      } catch (err) {
+        console.warn("Usando regras padrão de frete:", err);
+      }
+    }
+
+    const isPickup = body.delivery_type === "store_pickup" && storePickupEnabled;
+    const shippingFeeInCents = isPickup || subtotalInCents >= freeShippingThreshold ? 0 : defaultShippingFee;
+
+    // 4.1 Validação e Aplicação de Cupom de Desconto
+    let discountInCents = 0;
+    let appliedCouponCode: string | null = null;
+
+    if (body.coupon_code && body.coupon_code.trim()) {
+      const codeClean = body.coupon_code.trim().toUpperCase();
+
+      if (hasLiveDb) {
+        try {
+          const { data: couponRow } = await adminSupabase
+            .from("promotion_coupons")
+            .select("*")
+            .eq("code", codeClean)
+            .eq("status", "issued")
+            .maybeSingle();
+
+          if (couponRow && new Date(couponRow.expires_at) >= new Date()) {
+            appliedCouponCode = couponRow.code;
+            if (couponRow.benefit_type === "percentage") {
+              const pct = Number(couponRow.benefit_value) || 10;
+              discountInCents = Math.round((subtotalInCents * pct) / 100);
+            } else {
+              const valCents = Math.round((Number(couponRow.benefit_value) || 0) * 100);
+              discountInCents = Math.min(subtotalInCents, valCents);
+            }
+
+            // Marca cupom como utilizado
+            await adminSupabase
+              .from("promotion_coupons")
+              .update({
+                status: "used",
+                used_at: new Date().toISOString(),
+                used_by_operator: `Pedido Online (${body.customer_email})`,
+              })
+              .eq("id", couponRow.id);
+          }
+        } catch (err) {
+          console.warn("Erro ao consultar cupom no Supabase:", err);
+        }
+      }
+
+      // Cupons promocionais oficiais de fallback
+      if (!appliedCouponCode) {
+        if (codeClean === "VENTARA10" || codeClean === "BEMVINDO10" || codeClean.startsWith("VEN-10")) {
+          appliedCouponCode = codeClean;
+          discountInCents = Math.round((subtotalInCents * 10) / 100);
+        } else if (codeClean === "VENTARA15" || codeClean === "BEMVINDO15" || codeClean.startsWith("VEN-15")) {
+          appliedCouponCode = codeClean;
+          discountInCents = Math.round((subtotalInCents * 15) / 100);
+        } else if (codeClean === "VENTARA20" || codeClean.startsWith("VEN-20")) {
+          appliedCouponCode = codeClean;
+          discountInCents = Math.round((subtotalInCents * 20) / 100);
+        }
+      }
+    }
+
+    const totalInCents = Math.max(0, subtotalInCents + shippingFeeInCents - discountInCents);
 
     const referenceCode = generateOrderReference();
     const paymentMethod = body.payment_method || "pix";
 
     // 5. Persistência do Pedido no Banco de Dados
     let orderId = crypto.randomUUID();
+
+    const orderNotes = [
+      body.notes,
+      appliedCouponCode ? `Cupom: ${appliedCouponCode} (-R$ ${(discountInCents / 100).toFixed(2)})` : null,
+      isPickup ? "Retirada na loja física em Araçatuba" : null,
+    ]
+      .filter(Boolean)
+      .join(" | ") || null;
 
     if (hasLiveDb) {
       const { data: orderData, error: orderErr } = await adminSupabase
@@ -206,7 +299,7 @@ export async function POST(req: NextRequest) {
           total_in_cents: totalInCents,
           status: "pending",
           payment_method: paymentMethod,
-          notes: body.notes || (isPickup ? "Retirada na loja física em Araçatuba" : null),
+          notes: orderNotes,
         })
         .select()
         .single();

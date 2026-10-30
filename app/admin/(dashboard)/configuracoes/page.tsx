@@ -1,10 +1,12 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { Settings, ShieldCheck, Activity, Phone, Mail, Clock, Save, CheckCircle2 } from "lucide-react";
 
 export default function AdminSettingsPage() {
   const [feedback, setFeedback] = useState<string | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
+  const [isSaving, setIsSaving] = useState(false);
 
   const [companyName, setCompanyName] = useState("Ótica Ventara Ltda.");
   const [tradeName, setTradeName] = useState("Ótica Ventara Eyewear");
@@ -12,10 +14,72 @@ export default function AdminSettingsPage() {
   const [supportPhone, setSupportPhone] = useState("(18) 99615-5748");
   const [businessHours, setBusinessHours] = useState("Segunda a Sexta: 09h às 18h · Sábados: 09h às 13h");
 
-  const handleSave = (e: React.FormEvent) => {
+  useEffect(() => {
+    async function loadSettings() {
+      try {
+        setIsLoading(true);
+        const res = await fetch("/api/admin/settings");
+        if (res.ok) {
+          const data = await res.json();
+          if (data.company_settings) {
+            if (data.company_settings.companyName) setCompanyName(data.company_settings.companyName);
+            if (data.company_settings.tradeName) setTradeName(data.company_settings.tradeName);
+            if (data.company_settings.supportEmail) setSupportEmail(data.company_settings.supportEmail);
+            if (data.company_settings.supportPhone) setSupportPhone(data.company_settings.supportPhone);
+            if (data.company_settings.businessHours) setBusinessHours(data.company_settings.businessHours);
+          } else if (data.identity) {
+            if (data.identity.store_name) setTradeName(data.identity.store_name);
+            if (data.identity.phone_whatsapp) setSupportPhone(data.identity.phone_whatsapp);
+            if (data.identity.business_hours) setBusinessHours(data.identity.business_hours);
+          }
+        }
+      } catch (err) {
+        console.warn("Erro ao carregar configurações gerais:", err);
+      } finally {
+        setIsLoading(false);
+      }
+    }
+
+    loadSettings();
+  }, []);
+
+  const handleSave = async (e: React.FormEvent) => {
     e.preventDefault();
-    setFeedback("Configurações gerais salvas com sucesso!");
-    setTimeout(() => setFeedback(null), 3000);
+    setIsSaving(true);
+    setFeedback(null);
+
+    try {
+      const res = await fetch("/api/admin/settings", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          company_settings: {
+            companyName,
+            tradeName,
+            supportEmail,
+            supportPhone,
+            businessHours,
+          },
+          identity: {
+            store_name: tradeName,
+            phone_whatsapp: supportPhone,
+            business_hours: businessHours,
+          },
+        }),
+      });
+
+      const data = await res.json();
+      if (!res.ok || data.error) {
+        throw new Error(data.error || "Erro ao salvar configurações.");
+      }
+
+      setFeedback("Configurações corporativas salvas com sucesso e sincronizadas com o site!");
+      setTimeout(() => setFeedback(null), 3500);
+    } catch (err: any) {
+      alert(err.message || "Falha ao gravar dados no servidor.");
+    } finally {
+      setIsSaving(false);
+    }
   };
 
   return (
@@ -58,7 +122,8 @@ export default function AdminSettingsPage() {
                 type="text"
                 value={companyName}
                 onChange={(e) => setCompanyName(e.target.value)}
-                className="w-full bg-[#0a1b2e] border border-white/10 rounded-xl px-3.5 py-2.5 text-white"
+                disabled={isLoading}
+                className="w-full bg-[#0a1b2e] border border-white/10 rounded-xl px-3.5 py-2.5 text-white focus:outline-none focus:border-amber-400"
               />
             </div>
 
@@ -68,7 +133,8 @@ export default function AdminSettingsPage() {
                 type="text"
                 value={tradeName}
                 onChange={(e) => setTradeName(e.target.value)}
-                className="w-full bg-[#0a1b2e] border border-white/10 rounded-xl px-3.5 py-2.5 text-white"
+                disabled={isLoading}
+                className="w-full bg-[#0a1b2e] border border-white/10 rounded-xl px-3.5 py-2.5 text-white focus:outline-none focus:border-amber-400"
               />
             </div>
 
@@ -78,7 +144,8 @@ export default function AdminSettingsPage() {
                 type="email"
                 value={supportEmail}
                 onChange={(e) => setSupportEmail(e.target.value)}
-                className="w-full bg-[#0a1b2e] border border-white/10 rounded-xl px-3.5 py-2.5 text-white"
+                disabled={isLoading}
+                className="w-full bg-[#0a1b2e] border border-white/10 rounded-xl px-3.5 py-2.5 text-white focus:outline-none focus:border-amber-400"
               />
             </div>
 
@@ -88,7 +155,8 @@ export default function AdminSettingsPage() {
                 type="text"
                 value={supportPhone}
                 onChange={(e) => setSupportPhone(e.target.value)}
-                className="w-full bg-[#0a1b2e] border border-white/10 rounded-xl px-3.5 py-2.5 text-white"
+                disabled={isLoading}
+                className="w-full bg-[#0a1b2e] border border-white/10 rounded-xl px-3.5 py-2.5 text-white focus:outline-none focus:border-amber-400"
               />
             </div>
 
@@ -98,7 +166,8 @@ export default function AdminSettingsPage() {
                 type="text"
                 value={businessHours}
                 onChange={(e) => setBusinessHours(e.target.value)}
-                className="w-full bg-[#0a1b2e] border border-white/10 rounded-xl px-3.5 py-2.5 text-white"
+                disabled={isLoading}
+                className="w-full bg-[#0a1b2e] border border-white/10 rounded-xl px-3.5 py-2.5 text-white focus:outline-none focus:border-amber-400"
               />
             </div>
           </div>
@@ -135,10 +204,11 @@ export default function AdminSettingsPage() {
 
         <button
           type="submit"
-          className="w-full inline-flex items-center justify-center gap-2 py-3.5 px-6 rounded-xl bg-amber-400 hover:bg-amber-300 text-[#06111f] text-xs font-bold uppercase tracking-wider transition-all"
+          disabled={isSaving || isLoading}
+          className="w-full inline-flex items-center justify-center gap-2 py-3.5 px-6 rounded-xl bg-amber-400 hover:bg-amber-300 disabled:opacity-50 text-[#06111f] text-xs font-bold uppercase tracking-wider transition-all shadow-md cursor-pointer"
         >
           <Save size={16} />
-          <span>Salvar Configurações Gerais</span>
+          <span>{isSaving ? "Salvando Alterações..." : "Salvar Configurações Gerais"}</span>
         </button>
       </form>
     </div>

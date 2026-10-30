@@ -79,7 +79,7 @@ export async function generateMetadata({ params }: ProductPageProps): Promise<Me
       description:
         product.description ||
         `Armação ${product.name} com design sofisticado e alta precisão.`,
-      url: `https://otica-ventara-murex.vercel.app/produto/${product.slug}`,
+      url: `https://www.oticasventara.com.br/produto/${product.slug}`,
     },
   };
 }

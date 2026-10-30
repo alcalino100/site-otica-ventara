@@ -38,7 +38,12 @@ export default function RastreioPage() {
   useEffect(() => {
     if (typeof window !== "undefined") {
       const params = new URLSearchParams(window.location.search);
-      const code = params.get("code") || params.get("codigo") || params.get("query");
+      const code =
+        params.get("ref") ||
+        params.get("code") ||
+        params.get("codigo") ||
+        params.get("q") ||
+        params.get("query");
       if (code) {
         setQuery(code);
         handleSearch(code);

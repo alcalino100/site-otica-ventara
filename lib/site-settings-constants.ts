@@ -1,6 +1,7 @@
 import {
   SiteIdentitySettings,
   SiteAppearanceSettings,
+  SiteShippingSettings,
   LabShowcaseSettings,
   ShowcaseMediaSettings,
   HomologatedBrand,
@@ -33,6 +34,13 @@ export const DEFAULT_APPEARANCE: SiteAppearanceSettings = {
   color_electric: "#0756B8",
   color_yellow: "#FFD62E",
   color_ice_white: "#F4F6FA",
+};
+
+export const DEFAULT_SHIPPING: SiteShippingSettings = {
+  store_pickup_enabled: true,
+  free_shipping_threshold_cents: 35000,
+  default_shipping_fee_cents: 2500,
+  pickup_address: "Rua Princesa Isabel, 221, Centro, Araçatuba-SP, CEP 16010-250",
 };
 
 export const DEFAULT_LAB_SHOWCASE: LabShowcaseSettings = {

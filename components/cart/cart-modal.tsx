@@ -22,10 +22,12 @@ import {
   AlertCircle,
   Truck,
   Store,
+  Tag,
 } from "lucide-react";
 import { Button } from "../ui/button";
 import { CartProduct, buildWhatsAppCartUrl } from "@/lib/cart";
 import { FrameArt } from "../catalog/frame-art";
+import { useSiteSettings } from "../providers/site-settings-provider";
 
 interface CartModalProps {
   isOpen: boolean;
@@ -87,6 +89,22 @@ export function CartModal({
   } | null>(null);
   const [copiedPix, setCopiedPix] = useState(false);
   const [timeLeftSeconds, setTimeLeftSeconds] = useState(30 * 60);
+
+  // Regras de Frete e Cupom de Desconto
+  const { shipping } = useSiteSettings();
+  const [couponInput, setCouponInput] = useState("");
+  const [appliedCoupon, setAppliedCoupon] = useState<{
+    code: string;
+    discountType: string;
+    discountValue: number;
+    message?: string;
+  } | null>(null);
+  const [isValidatingCoupon, setIsValidatingCoupon] = useState(false);
+  const [couponFeedback, setCouponFeedback] = useState<{
+    type: "success" | "error";
+    text: string;
+  } | null>(null);
+  const [isCouponOpen, setIsCouponOpen] = useState(false);
 
   const pollingRef = useRef<NodeJS.Timeout | null>(null);
 
@@ -155,16 +173,37 @@ export function CartModal({
     };
   }, [view, createdOrder, onClearCart]);
 
-  // Formatação de valores
+  // Formatação de valores e regras dinâmicas
   const subtotalCents = cartItems.reduce(
     (acc, it) => acc + (it.priceInCents || 0),
     0
   );
+
+  const freeThreshold = shipping?.free_shipping_threshold_cents ?? 35000;
+  const defaultFee = shipping?.default_shipping_fee_cents ?? 2500;
   const isPickup = deliveryType === "store_pickup";
-  const shippingFeeCents = isPickup || subtotalCents >= 35000 ? 0 : 2500;
-  const totalCents = subtotalCents + shippingFeeCents;
+  const shippingFeeCents = isPickup || subtotalCents >= freeThreshold ? 0 : defaultFee;
+
+  // Cálculo de desconto do cupom
+  let discountCents = 0;
+  if (appliedCoupon) {
+    if (appliedCoupon.discountType === "percentage") {
+      discountCents = Math.round((subtotalCents * appliedCoupon.discountValue) / 100);
+    } else {
+      discountCents = Math.min(
+        subtotalCents,
+        Math.round(appliedCoupon.discountValue * 100)
+      );
+    }
+  }
+
+  const totalCents = Math.max(0, subtotalCents + shippingFeeCents - discountCents);
 
   const subtotalFormatted = (subtotalCents / 100).toLocaleString("pt-BR", {
+    style: "currency",
+    currency: "BRL",
+  });
+  const discountFormatted = (discountCents / 100).toLocaleString("pt-BR", {
     style: "currency",
     currency: "BRL",
   });
@@ -183,6 +222,50 @@ export function CartModal({
     style: "currency",
     currency: "BRL",
   });
+
+  const handleApplyCoupon = async (e: React.FormEvent) => {
+    e.preventDefault();
+    const code = couponInput.trim().toUpperCase();
+    if (!code) return;
+
+    setIsValidatingCoupon(true);
+    setCouponFeedback(null);
+    try {
+      const res = await fetch("/api/checkout/validate-coupon", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ code }),
+      });
+      const data = await res.json();
+      if (data.valid) {
+        setAppliedCoupon({
+          code: data.code,
+          discountType: data.discountType,
+          discountValue: data.discountValue,
+          message: data.message,
+        });
+        setCouponFeedback({ type: "success", text: data.message });
+        setCouponInput("");
+      } else {
+        setCouponFeedback({
+          type: "error",
+          text: data.message || "Cupom inválido ou expirado.",
+        });
+      }
+    } catch {
+      setCouponFeedback({
+        type: "error",
+        text: "Erro de conexão ao validar cupom.",
+      });
+    } finally {
+      setIsValidatingCoupon(false);
+    }
+  };
+
+  const handleRemoveCoupon = () => {
+    setAppliedCoupon(null);
+    setCouponFeedback(null);
+  };
 
   const handleCopyPix = () => {
     if (!pixData?.qrCode) return;
@@ -269,6 +352,7 @@ export function CartModal({
           delivery_type: deliveryType,
           shipping_address: shippingAddress,
           payment_method: paymentMethod,
+          coupon_code: appliedCoupon ? appliedCoupon.code : undefined,
           items: itemsPayload,
         }),
       });
@@ -705,6 +789,87 @@ export function CartModal({
                     )}
                   </div>
 
+                  {/* Bloco de Cupom de Desconto */}
+                  <div className="space-y-3 bg-[#06111f] border border-white/10 rounded-2xl p-4 sm:p-5">
+                    <div className="flex items-center justify-between">
+                      <span className="text-xs font-bold uppercase tracking-wider text-amber-400 flex items-center gap-1.5">
+                        <Tag size={14} />
+                        <span>Cupom de Desconto</span>
+                      </span>
+                      {appliedCoupon ? (
+                        <span className="text-[10px] font-bold text-emerald-400 bg-emerald-950/60 border border-emerald-500/30 px-2 py-0.5 rounded-full">
+                          {appliedCoupon.code} aplicado
+                        </span>
+                      ) : (
+                        <button
+                          type="button"
+                          onClick={() => setIsCouponOpen((prev) => !prev)}
+                          className="text-[11px] text-amber-400 hover:text-amber-300 font-semibold cursor-pointer"
+                        >
+                          {isCouponOpen ? "Ocultar" : "Adicionar Cupom"}
+                        </button>
+                      )}
+                    </div>
+
+                    {appliedCoupon ? (
+                      <div className="flex items-center justify-between p-3 rounded-xl bg-emerald-500/10 border border-emerald-500/30 text-xs">
+                        <div className="text-emerald-300">
+                          <strong>{appliedCoupon.code}</strong> · Desconto de{" "}
+                          <span className="font-bold">
+                            {appliedCoupon.discountType === "percentage"
+                              ? `${appliedCoupon.discountValue}% OFF`
+                              : `R$ ${appliedCoupon.discountValue.toFixed(2)} OFF`}
+                          </span>{" "}
+                          ({discountFormatted})
+                        </div>
+                        <button
+                          type="button"
+                          onClick={handleRemoveCoupon}
+                          className="text-xs text-red-400 hover:text-red-300 font-bold px-2 py-1 rounded bg-white/5 cursor-pointer"
+                        >
+                          Remover
+                        </button>
+                      </div>
+                    ) : (
+                      isCouponOpen && (
+                        <div className="space-y-2 pt-1">
+                          <div className="flex gap-2">
+                            <input
+                              type="text"
+                              value={couponInput}
+                              onChange={(e) => setCouponInput(e.target.value.toUpperCase())}
+                              placeholder="Digite o cupom (ex: VENTARA10)"
+                              className="flex-1 bg-[#040c16] border border-white/15 rounded-xl px-3.5 py-2 text-xs text-white uppercase font-mono placeholder:normal-case placeholder:font-sans focus:outline-none focus:border-amber-400"
+                            />
+                            <button
+                              type="button"
+                              onClick={handleApplyCoupon}
+                              disabled={isValidatingCoupon || !couponInput.trim()}
+                              className="px-4 py-2 rounded-xl bg-amber-400 hover:bg-amber-300 disabled:opacity-50 text-slate-950 font-bold text-xs uppercase tracking-wider transition-all cursor-pointer shrink-0"
+                            >
+                              {isValidatingCoupon ? "..." : "Aplicar"}
+                            </button>
+                          </div>
+                          <p className="text-[10px] text-slate-400">
+                            Ganhou cupom na Roleta ou tem código promocional? Digite aqui para abater no total.
+                          </p>
+                        </div>
+                      )
+                    )}
+
+                    {couponFeedback && (
+                      <p
+                        className={`text-[11px] font-medium ${
+                          couponFeedback.type === "success"
+                            ? "text-emerald-400"
+                            : "text-red-400"
+                        }`}
+                      >
+                        {couponFeedback.text}
+                      </p>
+                    )}
+                  </div>
+
                   {/* 3. Forma de Pagamento */}
                   <div className="space-y-3 bg-[#06111f] border border-white/10 rounded-2xl p-4 sm:p-5">
                     <h3 className="text-xs font-bold uppercase tracking-wider text-amber-400">
@@ -971,6 +1136,12 @@ export function CartModal({
                     <span>Subtotal:</span>
                     <span className="text-white font-mono">{subtotalFormatted}</span>
                   </div>
+                  {discountCents > 0 && (
+                    <div className="flex items-baseline justify-between text-emerald-400 font-semibold">
+                      <span>Desconto ({appliedCoupon?.code}):</span>
+                      <span className="font-mono">-{discountFormatted}</span>
+                    </div>
+                  )}
                   <div className="flex items-baseline justify-between text-slate-400">
                     <span>Frete:</span>
                     <span className="text-emerald-400 font-mono font-semibold">

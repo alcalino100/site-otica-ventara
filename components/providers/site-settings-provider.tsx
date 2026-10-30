@@ -1,20 +1,26 @@
 "use client";
 
 import React, { createContext, useContext, useState, useEffect } from "react";
-import { SiteIdentitySettings, SiteAppearanceSettings } from "@/types/ecommerce";
-import { DEFAULT_IDENTITY, DEFAULT_APPEARANCE } from "@/lib/site-settings-constants";
+import { SiteIdentitySettings, SiteAppearanceSettings, SiteShippingSettings } from "@/types/ecommerce";
+import { DEFAULT_IDENTITY, DEFAULT_APPEARANCE, DEFAULT_SHIPPING } from "@/lib/site-settings-constants";
 
 interface SiteSettingsContextValue {
   identity: SiteIdentitySettings;
   appearance: SiteAppearanceSettings;
+  shipping: SiteShippingSettings;
   fullAddress: string;
   cleanWhatsAppNumber: string;
-  updateSettings: (newIdentity?: Partial<SiteIdentitySettings>, newAppearance?: Partial<SiteAppearanceSettings>) => void;
+  updateSettings: (
+    newIdentity?: Partial<SiteIdentitySettings>,
+    newAppearance?: Partial<SiteAppearanceSettings>,
+    newShipping?: Partial<SiteShippingSettings>
+  ) => void;
 }
 
 const SiteSettingsContext = createContext<SiteSettingsContextValue>({
   identity: DEFAULT_IDENTITY,
   appearance: DEFAULT_APPEARANCE,
+  shipping: DEFAULT_SHIPPING,
   fullAddress: `${DEFAULT_IDENTITY.address_street}, ${DEFAULT_IDENTITY.address_neighborhood} · ${DEFAULT_IDENTITY.address_city}-${DEFAULT_IDENTITY.address_state}`,
   cleanWhatsAppNumber: "5518996155748",
   updateSettings: () => {},
@@ -23,6 +29,7 @@ const SiteSettingsContext = createContext<SiteSettingsContextValue>({
 export function SiteSettingsProvider({ children }: { children: React.ReactNode }) {
   const [identity, setIdentity] = useState<SiteIdentitySettings>(DEFAULT_IDENTITY);
   const [appearance, setAppearance] = useState<SiteAppearanceSettings>(DEFAULT_APPEARANCE);
+  const [shipping, setShipping] = useState<SiteShippingSettings>(DEFAULT_SHIPPING);
 
   useEffect(() => {
     async function loadSettings() {
@@ -32,6 +39,7 @@ export function SiteSettingsProvider({ children }: { children: React.ReactNode }
           const data = await res.json();
           if (data.identity) setIdentity((prev) => ({ ...prev, ...data.identity }));
           if (data.appearance) setAppearance((prev) => ({ ...prev, ...data.appearance }));
+          if (data.shipping) setShipping((prev) => ({ ...prev, ...data.shipping }));
         }
       } catch (err) {
         console.warn("Utilizando dados padrão de identidade:", err);
@@ -95,10 +103,12 @@ export function SiteSettingsProvider({ children }: { children: React.ReactNode }
 
   const updateSettings = (
     newIdentity?: Partial<SiteIdentitySettings>,
-    newAppearance?: Partial<SiteAppearanceSettings>
+    newAppearance?: Partial<SiteAppearanceSettings>,
+    newShipping?: Partial<SiteShippingSettings>
   ) => {
     if (newIdentity) setIdentity((prev) => ({ ...prev, ...newIdentity }));
     if (newAppearance) setAppearance((prev) => ({ ...prev, ...newAppearance }));
+    if (newShipping) setShipping((prev) => ({ ...prev, ...newShipping }));
   };
 
   return (
@@ -106,6 +116,7 @@ export function SiteSettingsProvider({ children }: { children: React.ReactNode }
       value={{
         identity,
         appearance,
+        shipping,
         fullAddress,
         cleanWhatsAppNumber,
         updateSettings,
