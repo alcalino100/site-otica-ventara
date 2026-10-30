@@ -234,14 +234,23 @@ export async function GET(req: NextRequest) {
     }
 
     // Identifica se é Retirada na Loja física ou Envio por Correios
-    // Se o pedido está explicitamente como enviado/despachado ou possui código de rastreamento, é estritamente envio
+    // Se o pedido tem código de rastreamento postal válido, é envio físico.
+    // Caso contrário, se foi marcado como retirada na loja (pelo endereço, notas ou status), é estritamente retirada.
+    const hasValidPostalTracking = Boolean(
+      order.tracking_number &&
+        typeof order.tracking_number === "string" &&
+        order.tracking_number.trim().length > 3 &&
+        !order.tracking_number.toLowerCase().includes("retirada")
+    );
+
     const isPickup =
-      order.status === "ready_for_pickup" ||
-      (order.status !== "shipped" &&
-        !order.tracking_number &&
-        (order.shipping_address?.delivery_type === "pickup" ||
-          order.shipping_address?.store?.toLowerCase()?.includes("loja") ||
-          order.notes?.toLowerCase()?.includes("[retirada")));
+      !hasValidPostalTracking &&
+      (order.status === "ready_for_pickup" ||
+        order.shipping_address?.delivery_type === "pickup" ||
+        order.shipping_address?.store?.toLowerCase()?.includes("loja") ||
+        order.shipping_address?.store?.toLowerCase()?.includes("araçatuba") ||
+        order.notes?.toLowerCase()?.includes("[retirada") ||
+        order.notes?.toLowerCase()?.includes("retirada na loja"));
 
     // Mapeamento dinâmico de status respeitando modalidade de retirada vs envio
     let statusLabel = "Pedido Recebido";
@@ -266,28 +275,35 @@ export async function GET(req: NextRequest) {
         currentStep = 2;
         break;
       case "ready_for_pickup":
-        statusLabel = "Pronto para Retirada";
+        statusLabel = "Pronto para Retirada na Loja";
         statusDesc = "Seus óculos foram calibrados, higienizados e estão disponíveis para retirada no balcão da Óticas Ventara (Rua Princesa Isabel, 221 - Araçatuba/SP).";
         currentStep = 4;
         break;
       case "shipped":
-        statusLabel = "Enviado e Despachado";
-        statusDesc = order.tracking_number
-          ? `Seus óculos foram enviados e despachados. Acompanhe com o rastreamento ${order.tracking_number}.`
-          : "Seus óculos foram enviados e despachados. Aguardando a chegada no seu endereço com código de rastreamento.";
+        if (isPickup) {
+          statusLabel = "Pronto para Retirada na Loja";
+          statusDesc = "Seus óculos foram calibrados, higienizados e estão disponíveis para retirada no balcão da Óticas Ventara (Rua Princesa Isabel, 221 - Araçatuba/SP).";
+        } else {
+          statusLabel = "Enviado e Despachado";
+          statusDesc = order.tracking_number
+            ? `Seus óculos foram enviados e despachados. Acompanhe com o rastreamento ${order.tracking_number}.`
+            : "Seus óculos foram enviados e despachados. Aguardando a chegada no seu endereço com código de rastreamento.";
+        }
         currentStep = 4;
         break;
       case "delivered":
         statusLabel = isPickup ? "Retirado na Loja" : "Pedido Entregue";
         statusDesc = isPickup
-          ? "Óculos retirados pelo cliente no balcão de Araçatuba."
+          ? "Óculos retirados com sucesso pelo cliente no balcão de Araçatuba."
           : "Óculos entregues com sucesso ao cliente.";
         currentStep = 4;
         break;
       default:
-        statusLabel = isPickup ? "Pronto para Retirada" : "Em Processamento";
-        statusDesc = "Seus óculos estão em acompanhamento no laboratório.";
-        currentStep = 1;
+        statusLabel = isPickup ? "Pronto para Retirada na Loja" : "Em Processamento";
+        statusDesc = isPickup
+          ? "Seus óculos estão prontos para retirada no balcão da Óticas Ventara."
+          : "Seus óculos estão em acompanhamento no laboratório.";
+        currentStep = isPickup ? 4 : 1;
         break;
     }
 
@@ -337,7 +353,7 @@ export async function GET(req: NextRequest) {
           ? "Pedido Entregue"
           : "Pronto para Envio",
         description: isPickup
-          ? "Aguardando retirada no balcão da Rua Princesa Isabel, 221."
+          ? "Aguardando retirada no balcão da Rua Princesa Isabel, 221 - Centro, Araçatuba-SP."
           : order.status === "shipped"
           ? order.tracking_number
             ? `Objeto despachado com código de rastreamento: ${order.tracking_number}.`

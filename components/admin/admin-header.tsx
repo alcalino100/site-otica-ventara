@@ -26,6 +26,7 @@ import {
   UserCheck,
   Sparkles,
   Eye,
+  Radio,
 } from "lucide-react";
 import { BrandLogo } from "@/components/ui/brand-logo";
 import { createClient } from "../../lib/supabase/client";
@@ -100,6 +101,7 @@ export function AdminHeader() {
     { href: "/admin/metricas", label: "Métricas & UTMs", icon: BarChart3, minRole: "admin" },
     { href: "/admin/identidade", label: "Identidade", icon: Palette, minRole: "super_admin" },
     { href: "/admin/banners", label: "Banners", icon: ImageIcon, minRole: "admin" },
+    { href: "/admin/live", label: "Ao Vivo (Live)", icon: Radio, minRole: "editor" },
     { href: "/admin/promocoes/roleta", label: "Roleta Promocional", icon: Sparkles, minRole: "admin" },
     { href: "/admin/produtos", label: "Produtos", icon: Package, minRole: "editor" },
     { href: "/admin/lentes", label: "Lentes & Preços", icon: Eye, minRole: "editor" },

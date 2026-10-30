@@ -98,12 +98,14 @@ export default function AdminOrdersPage() {
   }, []);
 
   const isPickupOrder = (order: Order) => {
-    if (order.status === "shipped") return false;
+    const hasPostalTracking = Boolean(order.tracking_number && String(order.tracking_number).trim().length > 3);
+    if (hasPostalTracking) return false;
     const addr = order.shipping_address as any;
     return (
       order.status === "ready_for_pickup" ||
       addr?.delivery_type === "pickup" ||
       addr?.store?.toLowerCase()?.includes("loja") ||
+      addr?.store?.toLowerCase()?.includes("araçatuba") ||
       order.notes?.toLowerCase()?.includes("[retirada")
     );
   };
@@ -281,7 +283,8 @@ export default function AdminOrdersPage() {
   };
 
   const getStatusBadge = (order: Order) => {
-    if (order.status === "ready_for_pickup") {
+    const isPickup = isPickupOrder(order);
+    if (order.status === "ready_for_pickup" || (isPickup && order.status === "shipped")) {
       return (
         <span className="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-amber-400/20 text-amber-300 border border-amber-400/40 inline-flex items-center gap-1 shadow-2xs">
           <Store size={11} /> Retirada na Loja
@@ -342,6 +345,9 @@ export default function AdminOrdersPage() {
   };
 
   const getSelectValue = (order: Order) => {
+    if (isPickupOrder(order) && (order.status === "shipped" || order.status === "ready_for_pickup")) {
+      return "ready_for_pickup";
+    }
     return order.status;
   };
 

@@ -11,6 +11,7 @@ import {
   DEFAULT_LENSES_SECTION_SETTINGS,
   DEFAULT_HERO_BANNER,
   DEFAULT_INTERACTIVE_SHOWCASE,
+  DEFAULT_LIVE_BROADCAST,
 } from "@/lib/site-settings-constants";
 import {
   SiteIdentitySettings,
@@ -23,6 +24,7 @@ import {
   LensesSectionSettings,
   HeroBannerSettings,
   InteractiveShowcaseSettings,
+  LiveBroadcastSettings,
 } from "@/types/ecommerce";
 
 export const dynamic = "force-dynamic";
@@ -45,6 +47,7 @@ export async function GET() {
         "lenses_section",
         "hero_banner",
         "interactive_showcase",
+        "live_broadcast",
       ]);
 
     if (error || !data) {
@@ -59,6 +62,7 @@ export async function GET() {
         lenses_section: DEFAULT_LENSES_SECTION_SETTINGS,
         hero_banner: DEFAULT_HERO_BANNER,
         interactive_showcase: DEFAULT_INTERACTIVE_SHOWCASE,
+        live_broadcast: DEFAULT_LIVE_BROADCAST,
       });
     }
 
@@ -72,6 +76,7 @@ export async function GET() {
     const lensesSectionRow = data.find((s) => s.key === "lenses_section");
     const heroBannerRow = data.find((s) => s.key === "hero_banner");
     const interactiveShowcaseRow = data.find((s) => s.key === "interactive_showcase");
+    const liveBroadcastRow = data.find((s) => s.key === "live_broadcast");
 
     return NextResponse.json({
       identity: identityRow?.value ? { ...DEFAULT_IDENTITY, ...(identityRow.value as SiteIdentitySettings) } : DEFAULT_IDENTITY,
@@ -84,6 +89,7 @@ export async function GET() {
       lenses_section: lensesSectionRow?.value ? { ...DEFAULT_LENSES_SECTION_SETTINGS, ...(lensesSectionRow.value as LensesSectionSettings) } : DEFAULT_LENSES_SECTION_SETTINGS,
       hero_banner: heroBannerRow?.value ? { ...DEFAULT_HERO_BANNER, ...(heroBannerRow.value as HeroBannerSettings) } : DEFAULT_HERO_BANNER,
       interactive_showcase: interactiveShowcaseRow?.value ? { ...DEFAULT_INTERACTIVE_SHOWCASE, ...(interactiveShowcaseRow.value as InteractiveShowcaseSettings) } : DEFAULT_INTERACTIVE_SHOWCASE,
+      live_broadcast: liveBroadcastRow?.value ? { ...DEFAULT_LIVE_BROADCAST, ...(liveBroadcastRow.value as LiveBroadcastSettings) } : DEFAULT_LIVE_BROADCAST,
     });
   } catch {
     return NextResponse.json({
@@ -97,6 +103,7 @@ export async function GET() {
       lenses_section: DEFAULT_LENSES_SECTION_SETTINGS,
       hero_banner: DEFAULT_HERO_BANNER,
       interactive_showcase: DEFAULT_INTERACTIVE_SHOWCASE,
+      live_broadcast: DEFAULT_LIVE_BROADCAST,
     });
   }
 }

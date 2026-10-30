@@ -126,6 +126,7 @@ export interface Order {
   status: OrderStatus;
   payment_method: string | null;
   payment_gateway_id: string | null;
+  tracking_number?: string | null;
   notes: string | null;
   created_at: string;
   updated_at: string;
@@ -362,3 +363,12 @@ export interface ShowcaseModeSettings {
 }
 
 export type InteractiveShowcaseSettings = Record<string, ShowcaseModeSettings>;
+
+export interface LiveBroadcastSettings {
+  enabled: boolean;
+  title: string;
+  platform: "instagram" | "tiktok" | "youtube" | "facebook" | "custom";
+  live_url: string;
+  label?: string;
+  call_to_action?: string;
+}

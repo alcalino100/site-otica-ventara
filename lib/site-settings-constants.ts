@@ -10,6 +10,7 @@ import {
   LensesSectionSettings,
   HeroBannerSettings,
   InteractiveShowcaseSettings,
+  LiveBroadcastSettings,
 } from "@/types/ecommerce";
 
 export const DEFAULT_IDENTITY: SiteIdentitySettings = {
@@ -545,4 +546,13 @@ export const DEFAULT_INTERACTIVE_SHOWCASE: InteractiveShowcaseSettings = {
       },
     ],
   },
+};
+
+export const DEFAULT_LIVE_BROADCAST: LiveBroadcastSettings = {
+  enabled: false,
+  title: "Estamos Ao Vivo!",
+  platform: "instagram",
+  live_url: "https://www.instagram.com/oticaventara/",
+  label: "LIVE",
+  call_to_action: "Clique para assistir",
 };
