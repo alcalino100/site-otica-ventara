@@ -704,44 +704,127 @@ export function HeroSlidesManager() {
 
                 {/* Conteúdo Sobreposto na Prévia */}
                 {!editingSlide.show_only_photo ? (
-                  <div className="absolute inset-0 p-4 sm:p-6 flex flex-col justify-between z-10 text-white">
-                    <div className="max-w-[70%] space-y-1.5">
-                      {editingSlide.show_badge_quality && (
-                        <span className="inline-block px-2 py-0.5 rounded-full bg-amber-400/20 text-amber-300 text-[8px] font-bold uppercase">
-                          {editingSlide.badge_quality_text || "QUALIDADE QUE VOCÊ VÊ"}
-                        </span>
-                      )}
-                      {editingSlide.show_title && (
-                        <h4 className="text-xs sm:text-lg font-light leading-tight">
-                          Mais que óculos, <strong className="text-amber-400">é sobre você.</strong>
-                        </h4>
-                      )}
-                      {editingSlide.show_description && (
-                        <p className="text-[9px] text-slate-300 line-clamp-2">
-                          Tecnologia, curadoria autoral e laboratório próprio...
-                        </p>
-                      )}
-                    </div>
+                  previewMode === "mobile" ? (
+                    /* PRÉVIA MOBILE FLUIDA (SEM SOBREPOSIÇÃO) */
+                    <div className="absolute inset-0 p-4 flex flex-col justify-between z-10 text-white overflow-hidden pointer-events-none">
+                      {/* Topo do Mobile */}
+                      <div className="space-y-1.5 max-w-full">
+                        {editingSlide.show_badge_quality && (
+                          <span className="inline-block px-2 py-0.5 rounded-full bg-slate-950/80 border border-white/10 text-amber-300 text-[8px] font-bold uppercase">
+                            {editingSlide.badge_quality_text || "QUALIDADE QUE VOCÊ VÊ"}
+                          </span>
+                        )}
+                        {editingSlide.show_title && (
+                          <h4 className="text-xs font-light leading-tight">
+                            Mais que óculos, <strong className="text-amber-400">é sobre você.</strong>
+                          </h4>
+                        )}
+                        {editingSlide.show_description && (
+                          <p className="text-[8px] text-slate-300 line-clamp-2">
+                            Tecnologia, curadoria autoral e laboratório próprio...
+                          </p>
+                        )}
+                        {editingSlide.show_buttons && (
+                          <div className="flex items-center gap-1.5 pt-1">
+                            <span className="px-2 py-0.5 rounded-full bg-amber-400 text-slate-950 font-bold text-[7px]">
+                              {editingSlide.primary_button_text || "Catálogo"}
+                            </span>
+                            <span className="px-2 py-0.5 rounded-full bg-slate-900 border border-white/20 text-white text-[7px]">
+                              {editingSlide.secondary_button_text || "Armações"}
+                            </span>
+                          </div>
+                        )}
+                      </div>
 
-                    {/* Badges Flutuantes na Direita */}
-                    <div className="absolute top-4 right-4 flex flex-col items-end gap-1.5">
-                      {editingSlide.show_badge_style && (
-                        <div className="px-2 py-1 rounded-full bg-black/80 border border-amber-400/40 text-[7px] text-amber-300 font-bold uppercase">
-                          {editingSlide.badge_style_text}
-                        </div>
-                      )}
-                      {editingSlide.show_badge_stock && (
-                        <div className="px-2 py-0.5 rounded-full bg-black/80 border border-white/10 text-[7px] text-slate-300">
-                          {editingSlide.badge_stock_text}
-                        </div>
-                      )}
-                      {editingSlide.show_badge_curation && (
-                        <div className="px-2 py-1 rounded-full bg-amber-400 text-slate-950 font-bold text-[7px]">
-                          {editingSlide.badge_curation_text}
+                      {/* Badges Empilhados no Meio/Base sem Colisão */}
+                      <div className="flex flex-col items-start gap-1.5 my-auto max-w-full">
+                        {editingSlide.show_badge_style && (
+                          <div className="px-2.5 py-1 rounded-full bg-slate-950/90 border border-amber-400/40 text-[7px] text-amber-300 font-bold uppercase truncate max-w-full">
+                            {editingSlide.badge_style_text}
+                          </div>
+                        )}
+                        {editingSlide.show_badge_stock && (
+                          <div className="px-2 py-0.5 rounded-full bg-slate-950/90 border border-white/10 text-[7px] text-slate-300 truncate max-w-full">
+                            {editingSlide.badge_stock_text}
+                          </div>
+                        )}
+                        {editingSlide.show_badge_curation && (
+                          <div className="px-2.5 py-1 rounded-full bg-slate-950/90 border border-amber-400 text-amber-300 font-bold text-[7px] truncate max-w-full">
+                            {editingSlide.badge_curation_text}
+                          </div>
+                        )}
+                      </div>
+
+                      {/* Rodapé Mobile */}
+                      {editingSlide.show_trust_markers && (
+                        <div className="pt-2 border-t border-white/10 flex items-center justify-between text-[7px] text-slate-400">
+                          <span>Lab Próprio</span>
+                          <span>Pronto em 1h</span>
+                          <span>100% Autoral</span>
                         </div>
                       )}
                     </div>
-                  </div>
+                  ) : (
+                    /* PRÉVIA DESKTOP */
+                    <div className="absolute inset-0 p-5 sm:p-6 flex flex-col justify-between z-10 text-white pointer-events-none">
+                      <div className="max-w-[62%] space-y-1.5">
+                        {editingSlide.show_badge_quality && (
+                          <span className="inline-block px-2.5 py-0.5 rounded-full bg-amber-400/20 text-amber-300 text-[9px] font-bold uppercase">
+                            {editingSlide.badge_quality_text || "QUALIDADE QUE VOCÊ VÊ"}
+                          </span>
+                        )}
+                        {editingSlide.show_title && (
+                          <h4 className="text-base sm:text-xl font-light leading-tight">
+                            Mais que óculos, <strong className="text-amber-400">é sobre você.</strong>
+                          </h4>
+                        )}
+                        {editingSlide.show_description && (
+                          <p className="text-[10px] text-slate-300 line-clamp-2 max-w-md">
+                            {editingSlide.description_text ||
+                              "Na Óticas Ventara, unimos tecnologia de precisão e curadoria autoral..."}
+                          </p>
+                        )}
+                        {editingSlide.show_buttons && (
+                          <div className="flex items-center gap-2 pt-1.5">
+                            <span className="px-3 py-1 rounded-full bg-amber-400 text-slate-950 font-bold text-[9px]">
+                              {editingSlide.primary_button_text || "Catálogo de Lentes"}
+                            </span>
+                            <span className="px-3 py-1 rounded-full bg-slate-900 border border-white/20 text-white text-[9px]">
+                              {editingSlide.secondary_button_text || "Ver armações"}
+                            </span>
+                          </div>
+                        )}
+                      </div>
+
+                      {/* Badges Flutuantes na Direita Desktop */}
+                      <div className="absolute top-5 right-5 flex flex-col items-end gap-2 max-w-[35%]">
+                        {editingSlide.show_badge_style && (
+                          <div className="px-3 py-1.5 rounded-full bg-slate-950/90 border border-amber-400/40 text-[9px] text-amber-300 font-bold uppercase truncate">
+                            {editingSlide.badge_style_text}
+                          </div>
+                        )}
+                        {editingSlide.show_badge_stock && (
+                          <div className="px-3 py-1 rounded-full bg-slate-950/90 border border-white/10 text-[9px] text-slate-300 truncate">
+                            {editingSlide.badge_stock_text}
+                          </div>
+                        )}
+                        {editingSlide.show_badge_curation && (
+                          <div className="px-3.5 py-1.5 rounded-full bg-amber-400 text-slate-950 font-bold text-[9px] truncate">
+                            {editingSlide.badge_curation_text}
+                          </div>
+                        )}
+                      </div>
+
+                      {/* Rodapé Desktop */}
+                      {editingSlide.show_trust_markers && (
+                        <div className="pt-2 border-t border-white/10 flex items-center justify-between text-[9px] text-slate-400">
+                          <span>Lab Próprio · Araçatuba-SP</span>
+                          <span>Pronto em 1h · Montagem Express</span>
+                          <span>100% Autoral · Acetato Nobre</span>
+                        </div>
+                      )}
+                    </div>
+                  )
                 ) : (
                   <div className="absolute top-3 left-3 bg-purple-900/80 text-purple-200 text-[9px] font-bold px-2 py-0.5 rounded">
                     [Modo Somente Foto Ativo]

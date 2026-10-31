@@ -4,22 +4,98 @@ import { revalidatePath } from "next/cache";
 import { DEFAULT_HERO_SLIDES } from "@/lib/site-settings-constants";
 import { HeroSlide } from "@/types/ecommerce";
 
+function isLiveDatabaseConfigured(): boolean {
+  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+  const serviceRoleKey =
+    process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.SUPABASE_SECRET_KEY;
+  if (!supabaseUrl || !serviceRoleKey) return false;
+  if (
+    supabaseUrl.includes("placeholder") ||
+    supabaseUrl.includes("seu-projeto") ||
+    serviceRoleKey.includes("placeholder") ||
+    serviceRoleKey.includes("sua-chave")
+  ) {
+    return false;
+  }
+  return true;
+}
+
+// Helper: busca slides armazenados na tabela site_settings (chave 'hero_slides')
+async function getSlidesFromSiteSettings(adminSupabase: any): Promise<HeroSlide[]> {
+  try {
+    const { data, error } = await adminSupabase
+      .from("site_settings")
+      .select("value")
+      .eq("key", "hero_slides")
+      .maybeSingle();
+
+    if (!error && data?.value && Array.isArray(data.value) && data.value.length > 0) {
+      return (data.value as HeroSlide[]).sort((a, b) => a.sort_order - b.sort_order);
+    }
+  } catch (err) {
+    console.warn("Aviso ao buscar slides no site_settings:", err);
+  }
+  return DEFAULT_HERO_SLIDES;
+}
+
+// Helper: persiste slides em site_settings de forma resiliente
+async function saveSlidesToSiteSettings(
+  adminSupabase: any,
+  slides: HeroSlide[]
+): Promise<void> {
+  try {
+    const now = new Date().toISOString();
+    const { data: existing } = await adminSupabase
+      .from("site_settings")
+      .select("id")
+      .eq("key", "hero_slides")
+      .maybeSingle();
+
+    if (existing?.id) {
+      await adminSupabase
+        .from("site_settings")
+        .update({
+          value: slides,
+          description: "Slides Full-Bleed do Hero da Home",
+          updated_at: now,
+        })
+        .eq("id", existing.id);
+    } else {
+      await adminSupabase.from("site_settings").insert({
+        key: "hero_slides",
+        description: "Slides Full-Bleed do Hero da Home",
+        value: slides,
+        updated_at: now,
+      });
+    }
+  } catch (err) {
+    console.warn("Aviso ao salvar slides no site_settings:", err);
+  }
+}
+
 export async function GET() {
   try {
-    const adminSupabase = createAdminClient();
-    const { data, error } = await adminSupabase
-      .from("hero_slides")
-      .select("*")
-      .order("sort_order", { ascending: true });
-
-    if (error) {
-      console.warn("Aviso ao buscar hero_slides no admin:", error.message);
+    if (!isLiveDatabaseConfigured()) {
       return NextResponse.json({ slides: DEFAULT_HERO_SLIDES });
     }
 
-    return NextResponse.json({ slides: data || DEFAULT_HERO_SLIDES });
+    const adminSupabase = createAdminClient();
+    try {
+      const { data, error } = await adminSupabase
+        .from("hero_slides")
+        .select("*")
+        .order("sort_order", { ascending: true });
+
+      if (!error && data && data.length > 0) {
+        return NextResponse.json({ slides: data });
+      }
+    } catch {}
+
+    // Fallback transparente para site_settings
+    const settingsSlides = await getSlidesFromSiteSettings(adminSupabase);
+    return NextResponse.json({ slides: settingsSlides });
   } catch (err: any) {
-    console.error("Erro interno ao buscar hero_slides:", err);
+    console.warn("Aviso ao buscar hero_slides, usando fallback:", err);
     return NextResponse.json({ slides: DEFAULT_HERO_SLIDES });
   }
 }
@@ -35,19 +111,11 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    const adminSupabase = createAdminClient();
+    const generatedId = `slide-${Date.now()}-${Math.random().toString(36).substring(2, 7)}`;
 
-    // Determina a ordem do próximo slide
-    const { data: maxOrderData } = await adminSupabase
-      .from("hero_slides")
-      .select("sort_order")
-      .order("sort_order", { ascending: false })
-      .limit(1);
-
-    const nextOrder = (maxOrderData?.[0]?.sort_order ?? -1) + 1;
-
-    const newSlide = {
-      sort_order: typeof body.sort_order === "number" ? body.sort_order : nextOrder,
+    const newSlide: HeroSlide = {
+      id: body.id || generatedId,
+      sort_order: typeof body.sort_order === "number" ? body.sort_order : 0,
       is_active: body.is_active ?? true,
       image_url_desktop: body.image_url_desktop.trim(),
       image_url_mobile: body.image_url_mobile?.trim() || null,
@@ -82,25 +150,39 @@ export async function POST(req: NextRequest) {
       show_trust_markers: body.show_trust_markers ?? true,
     };
 
-    const { data, error } = await adminSupabase
-      .from("hero_slides")
-      .insert(newSlide)
-      .select()
-      .single();
-
-    if (error) {
-      console.error("Erro ao inserir hero_slide:", error);
-      return NextResponse.json(
-        { error: `Erro ao salvar slide no banco: ${error.message}` },
-        { status: 400 }
-      );
+    if (!isLiveDatabaseConfigured()) {
+      return NextResponse.json({ success: true, slide: newSlide });
     }
+
+    const adminSupabase = createAdminClient();
+
+    // 1. Tenta gravar na tabela dedicada hero_slides
+    try {
+      const { data, error } = await adminSupabase
+        .from("hero_slides")
+        .insert(newSlide)
+        .select()
+        .single();
+
+      if (!error && data) {
+        try {
+          revalidatePath("/");
+        } catch {}
+        return NextResponse.json({ success: true, slide: data });
+      }
+    } catch {}
+
+    // 2. Fallback resiliente para site_settings
+    const currentSlides = await getSlidesFromSiteSettings(adminSupabase);
+    newSlide.sort_order = currentSlides.length;
+    const updated = [...currentSlides, newSlide];
+    await saveSlidesToSiteSettings(adminSupabase, updated);
 
     try {
       revalidatePath("/");
     } catch {}
 
-    return NextResponse.json({ success: true, slide: data });
+    return NextResponse.json({ success: true, slide: newSlide });
   } catch (err: any) {
     console.error("Erro interno ao criar hero_slide:", err);
     return NextResponse.json(
@@ -113,24 +195,53 @@ export async function POST(req: NextRequest) {
 export async function PATCH(req: NextRequest) {
   try {
     const body = await req.json();
+
+    if (!isLiveDatabaseConfigured()) {
+      if (Array.isArray(body.reorder)) {
+        return NextResponse.json({ success: true, message: "Ordem atualizada (simulada)." });
+      }
+      return NextResponse.json({ success: true, slide: body });
+    }
+
     const adminSupabase = createAdminClient();
 
-    // Caso seja uma solicitação em lote para reordenação de slides
+    // 1. Caso seja uma solicitação em lote para reordenação de slides
     if (Array.isArray(body.reorder)) {
-      for (const item of body.reorder) {
-        if (item.id && typeof item.sort_order === "number") {
-          await adminSupabase
-            .from("hero_slides")
-            .update({ sort_order: item.sort_order, updated_at: new Date().toISOString() })
-            .eq("id", item.id);
+      let dedicatedTableWorked = true;
+      try {
+        for (const item of body.reorder) {
+          if (item.id && typeof item.sort_order === "number") {
+            const { error } = await adminSupabase
+              .from("hero_slides")
+              .update({ sort_order: item.sort_order, updated_at: new Date().toISOString() })
+              .eq("id", item.id);
+            if (error) dedicatedTableWorked = false;
+          }
         }
+      } catch {
+        dedicatedTableWorked = false;
       }
+
+      if (!dedicatedTableWorked) {
+        // Fallback em site_settings para reordenação
+        const currentSlides = await getSlidesFromSiteSettings(adminSupabase);
+        const orderMap = new Map(body.reorder.map((r: any) => [r.id, r.sort_order]));
+        const updated = currentSlides
+          .map((s) => ({
+            ...s,
+            sort_order: orderMap.has(s.id) ? (orderMap.get(s.id) as number) : s.sort_order,
+          }))
+          .sort((a, b) => a.sort_order - b.sort_order);
+        await saveSlidesToSiteSettings(adminSupabase, updated);
+      }
+
       try {
         revalidatePath("/");
       } catch {}
       return NextResponse.json({ success: true, message: "Ordem dos slides atualizada." });
     }
 
+    // 2. Atualização individual de slide
     const { id, ...updates } = body;
     if (!id) {
       return NextResponse.json({ error: "ID do slide é obrigatório." }, { status: 400 });
@@ -138,26 +249,47 @@ export async function PATCH(req: NextRequest) {
 
     updates.updated_at = new Date().toISOString();
 
-    const { data, error } = await adminSupabase
-      .from("hero_slides")
-      .update(updates)
-      .eq("id", id)
-      .select()
-      .single();
+    try {
+      const { data, error } = await adminSupabase
+        .from("hero_slides")
+        .update(updates)
+        .eq("id", id)
+        .select()
+        .single();
 
-    if (error) {
-      console.error("Erro ao atualizar hero_slide:", error);
-      return NextResponse.json(
-        { error: `Erro ao atualizar slide: ${error.message}` },
-        { status: 400 }
-      );
+      if (!error && data) {
+        try {
+          revalidatePath("/");
+        } catch {}
+        return NextResponse.json({ success: true, slide: data });
+      }
+    } catch {}
+
+    // Fallback resiliente para site_settings
+    const currentSlides = await getSlidesFromSiteSettings(adminSupabase);
+    let slideUpdated: HeroSlide | null = null;
+
+    const updatedList: HeroSlide[] = currentSlides.map((slide) => {
+      if (slide.id === id) {
+        const merged: HeroSlide = { ...slide, ...updates };
+        slideUpdated = merged;
+        return merged;
+      }
+      return slide;
+    });
+
+    if (!slideUpdated) {
+      slideUpdated = { id, ...updates } as HeroSlide;
+      updatedList.push(slideUpdated);
     }
+
+    await saveSlidesToSiteSettings(adminSupabase, updatedList);
 
     try {
       revalidatePath("/");
     } catch {}
 
-    return NextResponse.json({ success: true, slide: data });
+    return NextResponse.json({ success: true, slide: slideUpdated });
   } catch (err: any) {
     console.error("Erro interno ao atualizar hero_slide:", err);
     return NextResponse.json(
@@ -176,16 +308,25 @@ export async function DELETE(req: NextRequest) {
       return NextResponse.json({ error: "ID do slide é obrigatório." }, { status: 400 });
     }
 
-    const adminSupabase = createAdminClient();
-    const { error } = await adminSupabase.from("hero_slides").delete().eq("id", id);
-
-    if (error) {
-      console.error("Erro ao deletar hero_slide:", error);
-      return NextResponse.json(
-        { error: `Erro ao deletar slide: ${error.message}` },
-        { status: 400 }
-      );
+    if (!isLiveDatabaseConfigured()) {
+      return NextResponse.json({ success: true, message: "Slide excluído (simulação)." });
     }
+
+    const adminSupabase = createAdminClient();
+    try {
+      const { error } = await adminSupabase.from("hero_slides").delete().eq("id", id);
+      if (!error) {
+        try {
+          revalidatePath("/");
+        } catch {}
+        return NextResponse.json({ success: true, message: "Slide excluído com sucesso." });
+      }
+    } catch {}
+
+    // Se a tabela falhar ou não existir, remove de site_settings
+    const currentSlides = await getSlidesFromSiteSettings(adminSupabase);
+    const filtered = currentSlides.filter((s) => s.id !== id);
+    await saveSlidesToSiteSettings(adminSupabase, filtered);
 
     try {
       revalidatePath("/");

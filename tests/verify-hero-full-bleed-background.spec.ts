@@ -70,6 +70,14 @@ test.describe("Hero Full-Bleed e Gestão de Slides no Admin", () => {
       },
     ]);
 
+    // Previne abertura do banner de cookies que pode interceptar cliques no modal
+    await page.addInitScript(() => {
+      localStorage.setItem(
+        "ventara_cookie_consent",
+        JSON.stringify({ essential: true, analytics: true, marketing: true })
+      );
+    });
+
     await page.goto("/admin/banners", { waitUntil: "domcontentloaded" });
 
     // 3.1 Verifica a aba "Hero / Banner" ativa
@@ -99,8 +107,15 @@ test.describe("Hero Full-Bleed e Gestão de Slides no Admin", () => {
     await expect(page.getByText(/Intensidade do Overlay/i)).toBeVisible();
     await expect(page.getByText(/Mostrar somente a foto \(Sem nenhum texto\)/i)).toBeVisible();
 
-    // 3.6 Fecha o modal de edição
-    await page.getByRole("button", { name: "Cancelar" }).first().click();
-    await expect(page.getByText("Novo Slide do Hero")).not.toBeVisible();
+    // 3.6 Testa alternância para visualização Mobile na Prévia
+    await page.getByRole("button", { name: "Mobile" }).click();
+    await expect(page.getByText("Pré-visualização do Hero")).toBeVisible();
+
+    // 3.7 Salva e publica o slide e verifica que não ocorre erro de schema
+    await page.getByRole("button", { name: /Salvar & Publicar Slide/i }).click();
+    await expect(
+      page.getByText(/Slide atualizado com sucesso|Novo slide publicado/i)
+    ).toBeVisible({ timeout: 10000 });
+    await expect(page.getByText(/Could not find the table/i)).not.toBeVisible();
   });
 });
