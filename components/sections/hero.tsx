@@ -172,10 +172,12 @@ export function Hero({ products }: HeroProps) {
     currentSlide.custom_position_y
   );
 
+  // No mobile, por padrão orienta o enquadramento para a base/inferior para o óculos ficar visível abaixo do texto
+  const mobileFocal = currentSlide.focal_point_mobile || "bottom";
   const mobilePosition = getObjectPosition(
-    currentSlide.focal_point_mobile || currentSlide.focal_point_desktop || "center",
-    currentSlide.custom_position_x,
-    currentSlide.custom_position_y
+    mobileFocal,
+    currentSlide.custom_position_x ?? 50,
+    currentSlide.custom_position_y ?? 80
   );
 
   // Calcula cor e opacidade do overlay
@@ -186,6 +188,28 @@ export function Hero({ products }: HeroProps) {
   const overlayOpacity = currentSlide.show_only_photo
     ? 0.08
     : Math.max(0, Math.min(100, rawIntensity)) / 100;
+
+  // Overlay com comportamento diferenciado no mobile (gradiente vertical denso no topo e transparente na metade inferior)
+  const desktopGradient = `
+    linear-gradient(to right, ${overlayColor} 0%, ${overlayColor}F2 32%, ${overlayColor}B3 55%, ${overlayColor}40 85%, transparent 100%),
+    linear-gradient(to top, ${overlayColor} 0%, ${overlayColor}E6 18%, transparent 60%),
+    linear-gradient(to bottom, ${overlayColor} 0%, transparent 22%)
+  `;
+
+  const mobileGradient = `
+    linear-gradient(to bottom, ${overlayColor} 0%, ${overlayColor}F2 36%, ${overlayColor}D9 52%, ${overlayColor}4D 70%, ${overlayColor}14 86%, transparent 100%),
+    linear-gradient(to top, ${overlayColor} 0%, ${overlayColor}99 12%, transparent 35%)
+  `;
+
+  // Configurações do Selo de Pagamento Seguro Mercado Pago
+  const showSecureBadge =
+    settings.show_secure_badge !== false &&
+    !currentSlide.show_only_photo;
+
+  const secureBadgeText =
+    settings.secure_badge_text ||
+    currentSlide.secure_badge_text ||
+    "Compra segura com Mercado Pago";
 
   // Decide transição de acordo com as preferências e configurações
   const transitionType = prefersReducedMotion ? "none" : settings.transition_type || "fade";
@@ -226,7 +250,7 @@ export function Hero({ products }: HeroProps) {
 
   return (
     <section
-      className="hero relative overflow-hidden bg-[#02070D] min-h-[100svh] lg:min-h-[780px] flex flex-col justify-between select-none"
+      className="hero relative overflow-hidden bg-[#02070D] min-h-[580px] sm:min-h-[660px] lg:min-h-[780px] flex flex-col justify-between select-none"
       id="inicio"
       onMouseEnter={() => settings.pause_on_hover && setIsPaused(true)}
       onMouseLeave={() => settings.pause_on_hover && setIsPaused(false)}
@@ -252,7 +276,13 @@ export function Hero({ products }: HeroProps) {
               priority={currentIndex === 0}
               quality={90}
               sizes="100vw"
-              className={currentSlide.fit_mode === "contain" ? "object-contain" : "object-cover"}
+              className={`transition-all duration-700 ease-out ${
+                currentSlide.fit_mode === "contain"
+                  ? "object-contain"
+                  : isMobile && !currentSlide.image_url_mobile
+                  ? "object-cover scale-110 origin-bottom"
+                  : "object-cover"
+              }`}
               style={{
                 objectPosition: isMobile ? mobilePosition : desktopPosition,
               }}
@@ -265,11 +295,7 @@ export function Hero({ products }: HeroProps) {
           className="absolute inset-0 transition-opacity duration-700 ease-out pointer-events-none z-1"
           style={{
             opacity: overlayOpacity,
-            background: `
-              linear-gradient(to right, ${overlayColor} 0%, ${overlayColor}F2 32%, ${overlayColor}B3 55%, ${overlayColor}40 85%, transparent 100%),
-              linear-gradient(to top, ${overlayColor} 0%, ${overlayColor}E6 18%, transparent 60%),
-              linear-gradient(to bottom, ${overlayColor} 0%, transparent 22%)
-            `,
+            background: isMobile ? mobileGradient : desktopGradient,
           }}
         />
 
@@ -285,7 +311,7 @@ export function Hero({ products }: HeroProps) {
       {/* =================================================================== */}
       {/* 2. CONTEÚDO PRINCIPAL (TEXTOS, BADGES E AÇÕES SOBRE A FOTO) */}
       {/* =================================================================== */}
-      <div className="max-w-[1400px] mx-auto px-4 sm:px-8 lg:px-10 w-full pt-28 sm:pt-36 lg:pt-40 pb-8 relative z-10 flex flex-col justify-between flex-1">
+      <div className="max-w-[1400px] mx-auto px-4 sm:px-8 lg:px-10 w-full pt-24 sm:pt-32 lg:pt-40 pb-6 sm:pb-8 relative z-10 flex flex-col justify-between flex-1">
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-14 items-center flex-1 my-auto">
           {/* COLUNA ESQUERDA: TEXTO, TÍTULO E CTAs */}
           {!currentSlide.show_only_photo ? (
@@ -364,35 +390,41 @@ export function Hero({ products }: HeroProps) {
 
               {/* Diferenciais de Confiança da Marca (Emil Kowalski Trust Markers) */}
               {currentSlide.show_trust_markers && (
-                <div className="grid grid-cols-3 gap-3 pt-6 mt-6 border-t border-white/10 max-w-lg">
+                <div className="grid grid-cols-3 gap-2.5 sm:gap-3 pt-5 sm:pt-6 mt-5 sm:mt-6 border-t border-white/15 max-w-lg">
                   <div className="flex flex-col">
-                    <span className="text-[11px] font-bold text-white flex items-center gap-1.5">
+                    <span className="text-[11px] font-bold text-white flex items-center gap-1.5 drop-shadow-[0_1px_2px_rgba(0,0,0,0.85)]">
                       <Sparkles size={12} className="text-amber-400 shrink-0" />
                       Lab Próprio
                     </span>
-                    <span className="text-[10px] text-slate-400 mt-0.5">Araçatuba-SP</span>
+                    <span className="text-[10px] text-slate-200 mt-0.5 font-medium drop-shadow-[0_1px_2px_rgba(0,0,0,0.85)]">
+                      Araçatuba-SP
+                    </span>
                   </div>
 
                   <div className="flex flex-col">
-                    <span className="text-[11px] font-bold text-white flex items-center gap-1.5">
+                    <span className="text-[11px] font-bold text-white flex items-center gap-1.5 drop-shadow-[0_1px_2px_rgba(0,0,0,0.85)]">
                       <Clock size={12} className="text-amber-400 shrink-0" />
                       Pronto em 1h
                     </span>
-                    <span className="text-[10px] text-slate-400 mt-0.5">Montagem Express</span>
+                    <span className="text-[10px] text-slate-200 mt-0.5 font-medium drop-shadow-[0_1px_2px_rgba(0,0,0,0.85)]">
+                      Montagem Express
+                    </span>
                   </div>
 
                   <div className="flex flex-col">
-                    <span className="text-[11px] font-bold text-white flex items-center gap-1.5">
+                    <span className="text-[11px] font-bold text-white flex items-center gap-1.5 drop-shadow-[0_1px_2px_rgba(0,0,0,0.85)]">
                       <ShieldCheck size={12} className="text-amber-400 shrink-0" />
                       100% Autoral
                     </span>
-                    <span className="text-[10px] text-slate-400 mt-0.5">Acetato Nobre</span>
+                    <span className="text-[10px] text-slate-200 mt-0.5 font-medium drop-shadow-[0_1px_2px_rgba(0,0,0,0.85)]">
+                      Acetato Nobre
+                    </span>
                   </div>
                 </div>
               )}
 
               {/* Endereço Físico Discreto */}
-              <span className="hero-footnote block text-[11px] text-slate-400 mt-4 tracking-wide">
+              <span className="hero-footnote block text-[11px] text-slate-200 mt-3 sm:mt-4 tracking-wide font-medium drop-shadow-[0_1px_2px_rgba(0,0,0,0.85)]">
                 {identity.store_name} · {fullAddress}
               </span>
             </div>
@@ -492,10 +524,31 @@ export function Hero({ products }: HeroProps) {
         </div>
 
         {/* =================================================================== */}
-        {/* 3. BARRA INFERIOR RIGOROSAMENTE MARGEADA + INDICADORES DE BOLINHA */}
+        {/* 3. BARRA INFERIOR RIGOROSAMENTE MARGEADA + SELO MERCADO PAGO */}
         {/* =================================================================== */}
-        <div className="hero-bottom pt-6 mt-6 border-t border-white/10 flex items-center justify-between text-[10px] tracking-widest text-slate-400 relative z-10">
-          <span>ESTILO · PRESENÇA · IDENTIDADE</span>
+        <div className="hero-bottom pt-4 sm:pt-6 mt-4 sm:mt-6 border-t border-white/10 flex flex-wrap items-center justify-between gap-3 text-[10px] tracking-widest text-slate-400 relative z-10">
+          <span className="hidden md:inline">ESTILO · PRESENÇA · IDENTIDADE</span>
+
+          {/* Selo Mercado Pago (Compra Segura) */}
+          {showSecureBadge && (
+            <div
+              data-testid="hero-secure-badge"
+              className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-slate-950/70 hover:bg-slate-950/90 border border-white/15 backdrop-blur-md text-slate-200 shadow-md transition-all select-none"
+            >
+              <div className="relative w-4 h-4 shrink-0 flex items-center justify-center">
+                <Image
+                  src="/logos/mercadopago.svg"
+                  alt="Mercado Pago"
+                  width={16}
+                  height={16}
+                  className="object-contain"
+                />
+              </div>
+              <span className="font-medium tracking-normal text-slate-200 text-[10.5px] sm:text-xs">
+                {secureBadgeText}
+              </span>
+            </div>
+          )}
 
           {/* Indicadores em Bolinhas do Carrossel */}
           {isMultiSlide && settings.show_indicators && (
@@ -521,7 +574,7 @@ export function Hero({ products }: HeroProps) {
             aria-label="Conhecer a Ótica Ventara"
             className="hero-explore-link flex items-center gap-2 hover:text-[#FFD62E] transition-colors"
           >
-            <span>EXPLORE A VENTARA</span>
+            <span className="hidden sm:inline">EXPLORE A VENTARA</span>
             <ArrowRight size={14} />
           </a>
         </div>

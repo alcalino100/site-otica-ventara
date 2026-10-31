@@ -267,7 +267,19 @@ export const DEFAULT_HERO_SETTINGS: HeroCarouselSettings = {
   show_arrows: true,
   show_indicators: true,
   pause_on_hover: true,
+  show_secure_badge: true,
+  secure_badge_text: "Compra segura com Mercado Pago",
 };
+
+export let IN_MEMORY_HERO_SETTINGS: HeroCarouselSettings = { ...DEFAULT_HERO_SETTINGS };
+
+export function setInMemoryHeroSettings(s: HeroCarouselSettings) {
+  IN_MEMORY_HERO_SETTINGS = { ...s };
+}
+
+export function getInMemoryHeroSettings(): HeroCarouselSettings {
+  return IN_MEMORY_HERO_SETTINGS;
+}
 
 export const DEFAULT_HERO_SLIDES: HeroSlide[] = [
   {
@@ -281,7 +293,7 @@ export const DEFAULT_HERO_SLIDES: HeroSlide[] = [
     focal_point_desktop: "center",
     custom_position_x: 50,
     custom_position_y: 50,
-    focal_point_mobile: "center",
+    focal_point_mobile: "bottom",
     fit_mode: "cover",
     overlay_intensity: 75,
     overlay_color: "#02070D",
@@ -307,6 +319,8 @@ export const DEFAULT_HERO_SLIDES: HeroSlide[] = [
     secondary_button_text: "Ver armações",
     secondary_button_url: "#armacoes",
     show_trust_markers: true,
+    show_secure_badge: true,
+    secure_badge_text: "Compra segura com Mercado Pago",
   },
 ];
 

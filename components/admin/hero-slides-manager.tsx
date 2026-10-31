@@ -292,9 +292,12 @@ export function HeroSlidesManager() {
 
   // Helper para preview da posição do fundo
   const getFocalPosition = (slide: HeroSlide, mode: "desktop" | "mobile") => {
-    const focal = mode === "mobile" ? slide.focal_point_mobile || slide.focal_point_desktop : slide.focal_point_desktop;
+    const focal =
+      mode === "mobile"
+        ? slide.focal_point_mobile || "bottom"
+        : slide.focal_point_desktop || "center";
     if (focal === "custom") {
-      return `${slide.custom_position_x ?? 50}% ${slide.custom_position_y ?? 50}%`;
+      return `${slide.custom_position_x ?? 50}% ${slide.custom_position_y ?? (mode === "mobile" ? 80 : 50)}%`;
     }
     switch (focal) {
       case "top":
@@ -306,7 +309,7 @@ export function HeroSlidesManager() {
       case "right":
         return "right center";
       default:
-        return "center center";
+        return mode === "mobile" ? "center bottom" : "center center";
     }
   };
 
@@ -358,7 +361,7 @@ export function HeroSlidesManager() {
           </button>
         </div>
 
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
           {/* Autoplay & Tempo */}
           <div className="bg-[#030913] p-4 rounded-xl border border-white/5 space-y-3">
             <div className="flex items-center justify-between">
@@ -454,6 +457,38 @@ export function HeroSlidesManager() {
                 className="w-4 h-4 accent-amber-400 rounded cursor-pointer"
               />
             </label>
+          </div>
+
+          {/* Selo Mercado Pago (Compra Segura) */}
+          <div className="bg-[#030913] p-4 rounded-xl border border-white/5 space-y-3">
+            <div className="flex items-center justify-between">
+              <div>
+                <label className="text-xs font-semibold text-white block">Selo Mercado Pago</label>
+                <span className="text-[10px] text-slate-400">Compra Segura no Hero</span>
+              </div>
+              <input
+                type="checkbox"
+                checked={settings.show_secure_badge ?? true}
+                onChange={(e) =>
+                  setSettings((prev) => ({ ...prev, show_secure_badge: e.target.checked }))
+                }
+                className="w-4 h-4 accent-amber-400 rounded cursor-pointer"
+              />
+            </div>
+            {(settings.show_secure_badge ?? true) && (
+              <div className="space-y-1">
+                <label className="text-[10px] text-slate-400 block">Texto do Selo</label>
+                <input
+                  type="text"
+                  value={settings.secure_badge_text || "Compra segura com Mercado Pago"}
+                  onChange={(e) =>
+                    setSettings((prev) => ({ ...prev, secure_badge_text: e.target.value }))
+                  }
+                  placeholder="Compra segura com Mercado Pago"
+                  className="w-full px-2.5 py-1.5 bg-slate-900 border border-white/10 rounded-lg text-xs text-white placeholder-slate-500 focus:outline-none focus:border-amber-400"
+                />
+              </div>
+            )}
           </div>
         </div>
       </div>
@@ -683,8 +718,12 @@ export function HeroSlidesManager() {
                       : editingSlide.image_url_desktop
                   }
                   alt="Prévia do slide"
-                  className={`absolute inset-0 w-full h-full ${
-                    editingSlide.fit_mode === "contain" ? "object-contain" : "object-cover"
+                  className={`absolute inset-0 w-full h-full transition-all duration-300 ${
+                    editingSlide.fit_mode === "contain"
+                      ? "object-contain"
+                      : previewMode === "mobile" && !editingSlide.image_url_mobile
+                      ? "object-cover scale-110 origin-bottom"
+                      : "object-cover"
                   }`}
                   style={{
                     objectPosition: getFocalPosition(editingSlide, previewMode),
@@ -698,7 +737,10 @@ export function HeroSlidesManager() {
                     opacity: editingSlide.show_only_photo
                       ? 0.08
                       : (editingSlide.overlay_intensity ?? 75) / 100,
-                    background: `linear-gradient(to right, ${editingSlide.overlay_color || "#02070D"} 0%, ${editingSlide.overlay_color || "#02070D"}E6 40%, transparent 100%)`,
+                    background:
+                      previewMode === "mobile"
+                        ? `linear-gradient(to bottom, ${editingSlide.overlay_color || "#02070D"} 0%, ${editingSlide.overlay_color || "#02070D"}F2 36%, ${editingSlide.overlay_color || "#02070D"}D9 52%, ${editingSlide.overlay_color || "#02070D"}4D 70%, transparent 100%)`
+                        : `linear-gradient(to right, ${editingSlide.overlay_color || "#02070D"} 0%, ${editingSlide.overlay_color || "#02070D"}E6 40%, transparent 100%)`,
                   }}
                 />
 
@@ -755,14 +797,23 @@ export function HeroSlidesManager() {
                         )}
                       </div>
 
-                      {/* Rodapé Mobile */}
-                      {editingSlide.show_trust_markers && (
-                        <div className="pt-2 border-t border-white/10 flex items-center justify-between text-[7px] text-slate-400">
-                          <span>Lab Próprio</span>
-                          <span>Pronto em 1h</span>
-                          <span>100% Autoral</span>
-                        </div>
-                      )}
+                      {/* Selo Mercado Pago e Rodapé Mobile */}
+                      <div className="pt-2 border-t border-white/10 flex items-center justify-between text-[7px] text-slate-300">
+                        {(settings.show_secure_badge ?? true) && (
+                          <div className="flex items-center gap-1 px-1.5 py-0.5 rounded-full bg-slate-950/80 border border-white/10 text-[6.5px] text-slate-200">
+                            <span className="w-1.5 h-1.5 rounded-full bg-[#009EE3]" />
+                            <span className="truncate max-w-[110px]">
+                              {settings.secure_badge_text || "Compra segura Mercado Pago"}
+                            </span>
+                          </div>
+                        )}
+                        {editingSlide.show_trust_markers && (
+                          <div className="flex items-center gap-1.5 text-slate-400">
+                            <span>Lab Próprio</span>
+                            <span>Pronto em 1h</span>
+                          </div>
+                        )}
+                      </div>
                     </div>
                   ) : (
                     /* PRÉVIA DESKTOP */
@@ -816,13 +867,23 @@ export function HeroSlidesManager() {
                       </div>
 
                       {/* Rodapé Desktop */}
-                      {editingSlide.show_trust_markers && (
-                        <div className="pt-2 border-t border-white/10 flex items-center justify-between text-[9px] text-slate-400">
-                          <span>Lab Próprio · Araçatuba-SP</span>
-                          <span>Pronto em 1h · Montagem Express</span>
-                          <span>100% Autoral · Acetato Nobre</span>
-                        </div>
-                      )}
+                      <div className="pt-2 border-t border-white/10 flex items-center justify-between text-[9px] text-slate-400">
+                        {editingSlide.show_trust_markers ? (
+                          <div className="flex items-center gap-3">
+                            <span>Lab Próprio · Araçatuba-SP</span>
+                            <span>Pronto em 1h</span>
+                            <span>100% Autoral</span>
+                          </div>
+                        ) : (
+                          <span>ESTILO · PRESENÇA · IDENTIDADE</span>
+                        )}
+                        {(settings.show_secure_badge ?? true) && (
+                          <div className="flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-slate-950/80 border border-white/15 text-slate-200 text-[8.5px]">
+                            <span className="w-1.5 h-1.5 rounded-full bg-[#009EE3]" />
+                            <span>{settings.secure_badge_text || "Compra segura com Mercado Pago"}</span>
+                          </div>
+                        )}
+                      </div>
                     </div>
                   )
                 ) : (
