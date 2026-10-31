@@ -402,44 +402,44 @@ export function Hero({ products }: HeroProps) {
           )}
 
           {/* COLUNA DIREITA: BADGES FLUTUANTES EDITÁVEIS E LINK DE PRODUTO */}
-          <div className="hero-stage lg:col-span-5 relative flex flex-col items-end justify-center w-full gap-4">
+          <div className="hero-stage lg:col-span-5 relative flex flex-col items-start lg:items-end justify-center w-full gap-3 sm:gap-4 mt-6 lg:mt-0">
             {!currentSlide.show_only_photo && (
               <>
                 {/* 1. Badge Superior Direito: "ARMAÇÕES DE QUALIDADE E ESTILO" */}
                 {currentSlide.show_badge_style && (
                   <div
                     data-testid="hero-badge-style"
-                    className="flex items-center gap-3 px-4 py-2.5 rounded-full bg-slate-950/80 backdrop-blur-md border border-amber-400/30 shadow-xl"
+                    className="flex items-center gap-2.5 sm:gap-3 px-3.5 sm:px-4 py-2 sm:py-2.5 rounded-full bg-slate-950/80 backdrop-blur-md border border-amber-400/30 shadow-xl max-w-full"
                   >
-                    <div className="w-[3px] h-4 bg-[#FFD62E] rounded-full shadow-[0_0_8px_#FFD62E]" />
-                    <span className="text-[10px] sm:text-xs tracking-[0.16em] uppercase font-bold text-amber-300">
+                    <div className="w-[3px] h-3.5 sm:h-4 bg-[#FFD62E] rounded-full shadow-[0_0_8px_#FFD62E] shrink-0" />
+                    <span className="text-[10px] sm:text-xs tracking-[0.14em] uppercase font-bold text-amber-300 truncate">
                       {currentSlide.badge_style_text || "ARMAÇÕES DE QUALIDADE E ESTILO"}
                     </span>
                   </div>
                 )}
 
-                {/* 2. Badge Inferior Esquerdo: "Em Estoque · Envio Imediato" */}
+                {/* 2. Badge Inferior: "Em Estoque · Envio Imediato" */}
                 {currentSlide.show_badge_stock && (
                   <div
                     data-testid="hero-badge-stock"
-                    className="flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-slate-950/80 backdrop-blur-md border border-white/10 text-[11px] text-slate-200 shadow-lg"
+                    className="flex items-center gap-2 px-3 sm:px-3.5 py-1.5 rounded-full bg-slate-950/80 backdrop-blur-md border border-white/10 text-[10px] sm:text-[11px] text-slate-200 shadow-lg max-w-full"
                   >
-                    <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
-                    <span>{currentSlide.badge_stock_text || "Em Estoque · Envio Imediato"}</span>
+                    <span className="w-1.5 h-1.5 sm:w-2 sm:h-2 rounded-full bg-emerald-400 animate-pulse shrink-0" />
+                    <span className="truncate">{currentSlide.badge_stock_text || "Em Estoque · Envio Imediato"}</span>
                   </div>
                 )}
 
                 {/* 3. Botão Curadoria Autoral com Link (Link para Produto ou Catálogo) */}
                 {currentSlide.show_badge_curation && (
-                  <div data-testid="hero-badge-curation" className="mt-2">
+                  <div data-testid="hero-badge-curation" className="mt-1 sm:mt-2 max-w-full">
                     <Link
                       href={currentSlide.badge_curation_url || "/catalogo"}
-                      className="inline-flex items-center justify-between gap-3 px-5 py-2.5 rounded-full bg-slate-950/90 hover:bg-slate-900 active:scale-[0.97] backdrop-blur-md border border-amber-400/30 hover:border-amber-400 text-amber-300 hover:text-amber-200 text-xs font-semibold shadow-xl transition-all duration-150 group"
+                      className="inline-flex items-center justify-between gap-2.5 sm:gap-3 px-4 sm:px-5 py-2 sm:py-2.5 rounded-full bg-slate-950/90 hover:bg-slate-900 active:scale-[0.97] backdrop-blur-md border border-amber-400/30 hover:border-amber-400 text-amber-300 hover:text-amber-200 text-xs font-semibold shadow-xl transition-all duration-150 group max-w-full"
                       style={{ touchAction: "manipulation" }}
                     >
-                      <div className="flex items-center gap-2">
+                      <div className="flex items-center gap-2 min-w-0">
                         <Sparkles size={14} className="text-amber-400 shrink-0" />
-                        <span>
+                        <span className="truncate">
                           {currentSlide.badge_curation_text ||
                             "Curadoria Autoral Ventara · Acetato Premium"}
                         </span>
@@ -457,7 +457,7 @@ export function Hero({ products }: HeroProps) {
             {/* CONTROLES DO CARROSSEL: SETAS E PAGINAÇÃO (APENAS SE HOUVER MAIS DE 1 SLIDE ATIVO) */}
             {isMultiSlide && (
               <div
-                className="flex items-center gap-4 mt-6 pt-4 bg-slate-950/60 backdrop-blur-md px-4 py-2 rounded-full border border-white/10 shadow-lg"
+                className="flex items-center gap-4 mt-4 sm:mt-6 pt-3 sm:pt-4 bg-slate-950/60 backdrop-blur-md px-4 py-2 rounded-full border border-white/10 shadow-lg self-start lg:self-end"
                 data-testid="hero-carousel-controls"
               >
                 {/* Indicador Numérico */}
