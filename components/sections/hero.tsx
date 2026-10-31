@@ -265,19 +265,9 @@ export function Hero({ products }: HeroProps) {
       data-testid="hero-section"
     >
       {/* =================================================================== */}
-      {/* 1. ZONA DE IMAGEM: IN-FLOW NA BASE NO MOBILE (ORDER-2), FULL-BLEED NO DESKTOP */}
+      {/* 1. FOTO DE FUNDO FULL-BLEED (EXCLUSIVA NO DESKTOP) */}
       {/* =================================================================== */}
-      <div
-        className="order-2 lg:order-none relative lg:absolute lg:inset-0 z-0 w-full aspect-[4/3] sm:aspect-[16/10] lg:aspect-auto lg:h-full overflow-hidden select-none"
-        style={{
-          WebkitMaskImage: isMobile
-            ? "linear-gradient(to bottom, transparent 0%, black clamp(32px, 10vw, 64px), black 100%)"
-            : undefined,
-          maskImage: isMobile
-            ? "linear-gradient(to bottom, transparent 0%, black clamp(32px, 10vw, 64px), black 100%)"
-            : undefined,
-        }}
-      >
+      <div className="hidden lg:block absolute inset-0 z-0 overflow-hidden pointer-events-none">
         <AnimatePresence mode="wait">
           <motion.div
             key={currentSlide.id || currentIndex}
@@ -288,7 +278,7 @@ export function Hero({ products }: HeroProps) {
             className="absolute inset-0 w-full h-full"
           >
             <Image
-              src={imageSrc}
+              src={currentSlide.image_url_desktop}
               alt={currentSlide.alt_text || "Ótica Ventara"}
               fill
               priority={currentIndex === 0}
@@ -300,73 +290,40 @@ export function Hero({ products }: HeroProps) {
                   : "object-cover"
               }`}
               style={{
-                objectPosition: isMobile ? mobilePosition : desktopPosition,
+                objectPosition: desktopPosition,
               }}
             />
           </motion.div>
         </AnimatePresence>
 
-        {/* OVERLAYS */}
-        {/* Mobile: gradiente sutil na base para integrar com a seção seguinte */}
-        <div className="block lg:hidden absolute inset-0 pointer-events-none z-1 bg-gradient-to-t from-[#02070D]/40 via-transparent to-transparent" />
-
-        {/* Desktop: Overlay gradiente cinematográfico Ventara */}
+        {/* OVERLAY GRADIENTE CINEMATOGRÁFICO VENTARA (DESKTOP) */}
         <div
-          className="hidden lg:block absolute inset-0 transition-opacity duration-700 ease-out pointer-events-none z-1"
+          className="absolute inset-0 transition-opacity duration-700 ease-out pointer-events-none z-1"
           style={{
             opacity: overlayOpacity,
             background: desktopGradient,
           }}
         />
 
-        {/* Desktop: Glows de Identidade da Marca */}
+        {/* Glows Estúdio Apple-Style de Identidade da Marca (Desktop) */}
         {!currentSlide.show_only_photo && (
-          <div className="hidden lg:block">
+          <>
             <div className="absolute top-1/4 right-[8%] w-[500px] h-[500px] rounded-full bg-amber-400/[0.05] blur-[150px] pointer-events-none" />
             <div className="absolute top-12 left-1/4 w-[450px] h-[350px] rounded-full bg-sky-500/[0.04] blur-[130px] pointer-events-none" />
-          </div>
+          </>
         )}
+      </div>
 
-        {/* Mobile: Badge de Estoque sobre o óculos */}
-        {isMobile && !currentSlide.show_only_photo && currentSlide.show_badge_stock && (
-          <div className="absolute bottom-3 left-3 z-10 flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-slate-950/80 backdrop-blur-md border border-white/10 text-[9.5px] text-slate-200 shadow-md pointer-events-none">
-            <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse shrink-0" />
-            <span className="truncate">{currentSlide.badge_stock_text || "Em Estoque · Envio Imediato"}</span>
-          </div>
-        )}
-
-        {/* Mobile: Controles de carrossel se houver mais de 1 slide */}
-        {isMobile && isMultiSlide && (
-          <div className="absolute bottom-3 right-3 z-10 flex items-center gap-1.5 bg-slate-950/70 backdrop-blur-md px-2.5 py-1 rounded-full border border-white/10 text-slate-300 text-[10px] select-none">
-            <span className="font-mono">{currentNumberStr}/{totalNumberStr}</span>
-            {settings.show_arrows && (
-              <div className="flex items-center gap-1 ml-1">
-                <button
-                  type="button"
-                  onClick={handlePrev}
-                  aria-label="Slide anterior"
-                  className="w-5 h-5 rounded-full bg-white/10 hover:bg-white/20 active:scale-90 flex items-center justify-center text-white cursor-pointer"
-                >
-                  <ChevronLeft size={12} />
-                </button>
-                <button
-                  type="button"
-                  onClick={handleNext}
-                  aria-label="Próximo slide"
-                  className="w-5 h-5 rounded-full bg-white/10 hover:bg-white/20 active:scale-90 flex items-center justify-center text-white cursor-pointer"
-                >
-                  <ChevronRight size={12} />
-                </button>
-              </div>
-            )}
-          </div>
-        )}
+      {/* GLOWS AMBIENTES SUTIS DE IDENTIDADE (MOBILE E TABLET) */}
+      <div className="lg:hidden absolute inset-0 pointer-events-none overflow-hidden z-0">
+        <div className="absolute -top-12 -right-12 w-[300px] h-[300px] rounded-full bg-amber-400/[0.04] blur-[100px]" />
+        <div className="absolute bottom-1/4 -left-12 w-[280px] h-[280px] rounded-full bg-sky-500/[0.04] blur-[100px]" />
       </div>
 
       {/* =================================================================== */}
       {/* 2. ZONA DE CONTEÚDO (TEXTO, BADGES, CTAS, TRUST MARKERS) */}
       {/* =================================================================== */}
-      <div className="order-1 lg:order-none max-w-[1400px] mx-auto px-[clamp(1rem,5vw,1.75rem)] lg:px-10 w-full pt-[clamp(5.25rem,10svh,6.75rem)] lg:pt-40 pb-3 lg:pb-8 relative z-10 flex flex-col justify-between flex-1">
+      <div className="max-w-[1400px] mx-auto px-[clamp(1rem,5vw,1.75rem)] lg:px-10 w-full pt-[clamp(5.5rem,11svh,7.25rem)] lg:pt-40 pb-[calc(2rem+env(safe-area-inset-bottom,0px))] lg:pb-8 relative z-10 flex flex-col justify-between flex-1">
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 lg:gap-14 items-center flex-1 my-auto">
           {/* COLUNA ESQUERDA: TEXTO, TÍTULO E CTAs */}
           {!currentSlide.show_only_photo ? (
