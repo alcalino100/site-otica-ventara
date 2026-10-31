@@ -747,9 +747,9 @@ export function HeroSlidesManager() {
                 {/* Conteúdo Sobreposto na Prévia */}
                 {!editingSlide.show_only_photo ? (
                   previewMode === "mobile" ? (
-                    /* PRÉVIA MOBILE FLUIDA (SEM SOBREPOSIÇÃO) */
-                    <div className="absolute inset-0 p-4 flex flex-col justify-between z-10 text-white overflow-hidden pointer-events-none">
-                      {/* Topo do Mobile */}
+                    /* PRÉVIA MOBILE FLUIDA (EM DUAS ZONAS) */
+                    <div className="absolute inset-0 p-3.5 flex flex-col justify-between z-10 text-white overflow-hidden pointer-events-none">
+                      {/* Zona 1: Textos, Botões e Selo Mercado Pago */}
                       <div className="space-y-1.5 max-w-full">
                         {editingSlide.show_badge_quality && (
                           <span className="inline-block px-2 py-0.5 rounded-full bg-slate-950/80 border border-white/10 text-amber-300 text-[8px] font-bold uppercase">
@@ -767,7 +767,7 @@ export function HeroSlidesManager() {
                           </p>
                         )}
                         {editingSlide.show_buttons && (
-                          <div className="flex items-center gap-1.5 pt-1">
+                          <div className="flex items-center gap-1.5 pt-0.5">
                             <span className="px-2 py-0.5 rounded-full bg-amber-400 text-slate-950 font-bold text-[7px]">
                               {editingSlide.primary_button_text || "Catálogo"}
                             </span>
@@ -776,44 +776,29 @@ export function HeroSlidesManager() {
                             </span>
                           </div>
                         )}
-                      </div>
-
-                      {/* Badges Empilhados no Meio/Base sem Colisão */}
-                      <div className="flex flex-col items-start gap-1.5 my-auto max-w-full">
-                        {editingSlide.show_badge_style && (
-                          <div className="px-2.5 py-1 rounded-full bg-slate-950/90 border border-amber-400/40 text-[7px] text-amber-300 font-bold uppercase truncate max-w-full">
-                            {editingSlide.badge_style_text}
-                          </div>
-                        )}
-                        {editingSlide.show_badge_stock && (
-                          <div className="px-2 py-0.5 rounded-full bg-slate-950/90 border border-white/10 text-[7px] text-slate-300 truncate max-w-full">
-                            {editingSlide.badge_stock_text}
-                          </div>
-                        )}
-                        {editingSlide.show_badge_curation && (
-                          <div className="px-2.5 py-1 rounded-full bg-slate-950/90 border border-amber-400 text-amber-300 font-bold text-[7px] truncate max-w-full">
-                            {editingSlide.badge_curation_text}
-                          </div>
-                        )}
-                      </div>
-
-                      {/* Selo Mercado Pago e Rodapé Mobile */}
-                      <div className="pt-2 border-t border-white/10 flex items-center justify-between text-[7px] text-slate-300">
                         {(settings.show_secure_badge ?? true) && (
-                          <div className="flex items-center gap-1 px-1.5 py-0.5 rounded-full bg-slate-950/80 border border-white/10 text-[6.5px] text-slate-200">
+                          <div className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-full bg-slate-900/90 border border-white/15 text-[6.5px] text-slate-200 mt-1">
                             <span className="w-1.5 h-1.5 rounded-full bg-[#009EE3]" />
-                            <span className="truncate max-w-[110px]">
+                            <span className="truncate max-w-[130px]">
                               {settings.secure_badge_text || "Compra segura Mercado Pago"}
                             </span>
                           </div>
                         )}
                         {editingSlide.show_trust_markers && (
-                          <div className="flex items-center gap-1.5 text-slate-400">
+                          <div className="flex items-center gap-2 pt-1 border-t border-white/10 text-[6.5px] text-slate-300">
                             <span>Lab Próprio</span>
                             <span>Pronto em 1h</span>
+                            <span>100% Autoral</span>
                           </div>
                         )}
                       </div>
+
+                      {/* Zona 2: Badge sutil sobre o óculos na base */}
+                      {editingSlide.show_badge_stock && (
+                        <div className="self-start px-2 py-0.5 rounded-full bg-slate-950/80 backdrop-blur-md border border-white/10 text-[6.5px] text-slate-300">
+                          {editingSlide.badge_stock_text || "Em Estoque · Envio Imediato"}
+                        </div>
+                      )}
                     </div>
                   ) : (
                     /* PRÉVIA DESKTOP */

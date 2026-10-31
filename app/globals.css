@@ -434,10 +434,6 @@ h1 strong {
 
 .hero-stage {
   position: relative;
-  min-height: 420px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
   width: 100%;
 }
 
@@ -525,8 +521,6 @@ h1 strong {
 .hero-bottom {
   position: relative;
   width: 100%;
-  display: flex;
-  justify-content: space-between;
   font-size: 9px;
   letter-spacing: 2px;
   color: #7994aa;
@@ -1154,10 +1148,6 @@ h1 strong {
   }
   .hero-copy {
     max-width: 100%;
-  }
-  .hero-stage {
-    min-height: 280px;
-    margin-top: 24px;
   }
   .trust {
     padding: 40px 6%;

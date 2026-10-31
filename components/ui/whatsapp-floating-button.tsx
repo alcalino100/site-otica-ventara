@@ -16,7 +16,7 @@ export function WhatsAppFloatingButton() {
   return (
     <aside
       aria-label="Atendimento pelo WhatsApp"
-      className="fixed bottom-5 right-5 sm:bottom-7 sm:right-7 z-[80] flex items-center gap-2.5 pointer-events-auto select-none"
+      className="fixed bottom-[calc(1rem+env(safe-area-inset-bottom,0px))] right-[calc(1rem+env(safe-area-inset-right,0px))] sm:bottom-7 sm:right-7 z-[80] flex items-center gap-2.5 pointer-events-auto select-none"
     >
       {/* Tooltip elegante em Desktop com transição fluida */}
       <div

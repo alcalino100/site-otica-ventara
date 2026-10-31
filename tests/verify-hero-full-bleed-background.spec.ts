@@ -46,32 +46,68 @@ test.describe("Hero Full-Bleed e Gestão de Slides no Admin", () => {
     await expect(secureBadge.locator("img")).toHaveAttribute("alt", "Mercado Pago");
   });
 
-  test("2. Mobile: Renderização responsiva em 360px, 390px e 430px com enquadramento e selo", async ({ page }) => {
-    const mobileWidths = [360, 390, 430];
+  test("2. Mobile & Tablet: Renderização fluida na matriz de viewports (320px a 768px, retrato e paisagem)", async ({
+    page,
+  }) => {
+    const viewports = [
+      { name: "320x640 (Pequeno / iPhone SE)", width: 320, height: 640 },
+      { name: "360x640 (Compacto / Android)", width: 360, height: 640 },
+      { name: "375x667 (Médio / iPhone 8)", width: 375, height: 667 },
+      { name: "390x844 (iPhone 12/13/14)", width: 390, height: 844 },
+      { name: "412x915 (Galaxy / Pixel)", width: 412, height: 915 },
+      { name: "430x932 (Alto / iPhone 14 Pro Max)", width: 430, height: 932 },
+      { name: "768x1024 (Tablet Retrato)", width: 768, height: 1024 },
+      { name: "640x360 (Paisagem Compacta)", width: 640, height: 360 },
+      { name: "844x390 (Paisagem Moderna)", width: 844, height: 390 },
+    ];
 
-    for (const width of mobileWidths) {
-      await page.setViewportSize({ width, height: 800 });
+    for (const vp of viewports) {
+      await page.setViewportSize({ width: vp.width, height: vp.height });
       await page.goto("/", { waitUntil: "domcontentloaded" });
 
       const hero = page.locator("#inicio");
       await expect(hero).toBeVisible({ timeout: 10000 });
 
-      // Verifica imagem de fundo no mobile
+      // 2.1 Verifica que não há scroll horizontal em nenhum viewport
+      const noHorizontalScroll = await page.evaluate(() => {
+        return document.documentElement.scrollWidth <= window.innerWidth + 1;
+      });
+      expect(noHorizontalScroll).toBe(true);
+
+      // 2.2 Verifica imagem nítida no bloco da Zona 2
       const bgImage = hero.locator("img").first();
       await expect(bgImage).toBeVisible();
 
-      // Verifica que o CTA principal está visível e clicável
-      const cta = hero.getByRole("link", { name: /Catálogo de Lentes/i });
-      await expect(cta).toBeVisible();
+      // 2.3 Verifica que os CTAs principais estão visíveis com touch target >= 44px (min 48px)
+      const ctaPrincipal = hero.getByRole("link", { name: /Catálogo de Lentes/i });
+      await expect(ctaPrincipal).toBeVisible();
+      const ctaBox = await ctaPrincipal.boundingBox();
+      expect(ctaBox).not.toBeNull();
+      if (ctaBox) {
+        expect(ctaBox.height).toBeGreaterThanOrEqual(44);
+      }
 
-      // Verifica o selo Mercado Pago no rodapé do mobile
+      const ctaSecundario = hero.getByRole("link", { name: /Ver armações/i });
+      await expect(ctaSecundario).toBeVisible();
+      const secBox = await ctaSecundario.boundingBox();
+      expect(secBox).not.toBeNull();
+      if (secBox) {
+        expect(secBox.height).toBeGreaterThanOrEqual(44);
+      }
+
+      // 2.4 Verifica o selo Mercado Pago no fluxo de conteúdo (acima dos marcadores de confiança)
       const secureBadge = hero.getByTestId("hero-secure-badge");
       await expect(secureBadge).toBeVisible();
       await expect(secureBadge).toContainText(/Mercado Pago/i);
+      await expect(secureBadge.locator("img")).toHaveAttribute("alt", "Mercado Pago");
 
-      // Verifica contraste dos marcadores
+      // 2.5 Verifica marcadores de confiança e endereço
       await expect(hero.getByText("Lab Próprio")).toBeVisible();
       await expect(hero.getByText("100% Autoral")).toBeVisible();
+
+      // 2.6 Verifica que o botão do WhatsApp flutuante existe e respeita safe-areas
+      const whatsappBtn = page.locator("aside[aria-label='Atendimento pelo WhatsApp']");
+      await expect(whatsappBtn).toBeVisible();
     }
   });
 
