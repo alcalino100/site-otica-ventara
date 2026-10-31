@@ -169,6 +169,19 @@ export async function PATCH(req: NextRequest) {
       .select(`*, items:order_items(*)`)
       .single();
 
+    // Se a coluna tracking_number ainda não existir no banco, remove do payload e tenta novamente
+    if (error && error.message.includes("tracking_number")) {
+      delete updatePayload.tracking_number;
+      const retryResult = await adminSupabase
+        .from("orders")
+        .update(updatePayload)
+        .eq("id", id)
+        .select(`*, items:order_items(*)`)
+        .single();
+      data = retryResult.data;
+      error = retryResult.error;
+    }
+
     // Se o banco ainda estiver com constraint antiga sem 'ready_for_pickup', faz fallback seguro
     if (error && dbStatus === "ready_for_pickup" && error.message.includes("orders_status_check")) {
       updatePayload.status = "shipped";
