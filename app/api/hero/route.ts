@@ -6,6 +6,7 @@ import {
 import {
   DEFAULT_HERO_SLIDES,
   DEFAULT_HERO_SETTINGS,
+  getInMemoryHeroSettings,
 } from "@/lib/site-settings-constants";
 import { HeroSlide, HeroCarouselSettings } from "@/types/ecommerce";
 
@@ -17,7 +18,7 @@ export async function GET() {
     if (!isSupabaseConfigured()) {
       return NextResponse.json({
         slides: DEFAULT_HERO_SLIDES,
-        settings: DEFAULT_HERO_SETTINGS,
+        settings: getInMemoryHeroSettings(),
       });
     }
 

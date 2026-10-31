@@ -1,7 +1,11 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { revalidatePath } from "next/cache";
-import { DEFAULT_HERO_SETTINGS } from "@/lib/site-settings-constants";
+import {
+  DEFAULT_HERO_SETTINGS,
+  getInMemoryHeroSettings,
+  setInMemoryHeroSettings,
+} from "@/lib/site-settings-constants";
 import { HeroCarouselSettings } from "@/types/ecommerce";
 
 function isLiveDatabaseConfigured(): boolean {
@@ -74,7 +78,7 @@ async function saveSettingsToSiteSettings(
 export async function GET() {
   try {
     if (!isLiveDatabaseConfigured()) {
-      return NextResponse.json({ settings: DEFAULT_HERO_SETTINGS });
+      return NextResponse.json({ settings: getInMemoryHeroSettings() });
     }
 
     const adminSupabase = createAdminClient();
@@ -94,7 +98,7 @@ export async function GET() {
     return NextResponse.json({ settings: fallback });
   } catch (err: any) {
     console.warn("Erro ao buscar hero_settings, usando fallback:", err);
-    return NextResponse.json({ settings: DEFAULT_HERO_SETTINGS });
+    return NextResponse.json({ settings: getInMemoryHeroSettings() });
   }
 }
 
@@ -110,10 +114,17 @@ export async function POST(req: NextRequest) {
       show_arrows: body.show_arrows ?? true,
       show_indicators: body.show_indicators ?? true,
       pause_on_hover: body.pause_on_hover ?? true,
+      show_secure_badge: body.show_secure_badge ?? true,
+      secure_badge_text: body.secure_badge_text || "Compra segura com Mercado Pago",
       updated_at: now,
     };
 
+    setInMemoryHeroSettings(payload);
+
     if (!isLiveDatabaseConfigured()) {
+      try {
+        revalidatePath("/");
+      } catch {}
       return NextResponse.json({ success: true, settings: payload });
     }
 

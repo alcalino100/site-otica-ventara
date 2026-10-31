@@ -370,6 +370,8 @@ export interface HeroSlide {
   secondary_button_text: string;
   secondary_button_url: string;
   show_trust_markers: boolean;
+  show_secure_badge?: boolean;
+  secure_badge_text?: string;
 
   created_at?: string;
   updated_at?: string;
@@ -383,6 +385,8 @@ export interface HeroCarouselSettings {
   show_arrows: boolean;
   show_indicators: boolean;
   pause_on_hover: boolean;
+  show_secure_badge?: boolean;
+  secure_badge_text?: string;
   updated_at?: string;
 }
 
