@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createAdminClient } from "@/lib/supabase/admin";
+import { revalidatePath } from "next/cache";
 import { DEFAULT_LENSES, AdminLensItem } from "@/lib/lenses-data";
 
 export const dynamic = "force-dynamic";
@@ -76,6 +77,11 @@ export async function POST(req: NextRequest) {
     if (error) {
       console.warn("Aviso ao persistir no Supabase, mantendo em memória:", error.message);
     }
+
+    try {
+      revalidatePath("/");
+      revalidatePath("/lentes");
+    } catch {}
 
     return NextResponse.json({
       success: true,

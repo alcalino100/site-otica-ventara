@@ -8,6 +8,8 @@ export interface AdminLensItem {
   treatment: string;
   badge?: string;
   startingPrice: string;
+  originalPrice?: string;
+  showDiscountBadge?: boolean;
   installment: string;
   leadTime: string;
   description: string;
@@ -282,6 +284,8 @@ export const DEFAULT_LENSES: AdminLensItem[] = [
     treatment: "Antirreflexo Premium + Anti Risco",
     badge: "AUDAX",
     startingPrice: "R$ 179,90",
+    originalPrice: "R$ 249,90",
+    showDiscountBadge: true,
     installment: "10x de R$ 17,99 sem juros",
     leadTime: "Pronto em até 1 hora",
     description:
@@ -346,6 +350,8 @@ export const DEFAULT_LENSES: AdminLensItem[] = [
     treatment: "Filtro Luz Azul Digital + Antirreflexo AR Super",
     badge: "Ventara Exclusivo · Telas",
     startingPrice: "R$ 149,90",
+    originalPrice: "R$ 199,90",
+    showDiscountBadge: true,
     installment: "10x de R$ 14,99 sem juros",
     leadTime: "Pronto em até 1 hora",
     description:
@@ -526,6 +532,8 @@ export const DEFAULT_LENSES: AdminLensItem[] = [
     treatment: "Bloqueio de 400nm a 455nm (HEV) + Antirreflexo",
     badge: "Conforto para Telas",
     startingPrice: "R$ 149,90",
+    originalPrice: "R$ 199,90",
+    showDiscountBadge: true,
     installment: "10x de R$ 14,99 sem juros",
     leadTime: "Pronto em até 1 hora",
     description:
@@ -594,6 +602,8 @@ export const DEFAULT_LENSES: AdminLensItem[] = [
     treatment: "Polarizado Solar + Contraste de Profundidade + UV400",
     badge: "Conforto para Direção",
     startingPrice: "R$ 149,90",
+    originalPrice: "R$ 199,90",
+    showDiscountBadge: true,
     installment: "10x de R$ 14,99 sem juros",
     leadTime: "Pronto em até 1 hora",
     colorHex: "#78350f",
@@ -709,6 +719,8 @@ export const DEFAULT_LENSES: AdminLensItem[] = [
     treatment: "Transição Gradiente UV400 + Proteção Solar de Alto Conforto",
     badge: "Elegância Urbana",
     startingPrice: "R$ 149,90",
+    originalPrice: "R$ 199,90",
+    showDiscountBadge: true,
     installment: "10x de R$ 14,99 sem juros",
     leadTime: "Pronto em até 1 hora",
     colorHex: "#64748b",
@@ -732,6 +744,8 @@ export const DEFAULT_LENSES: AdminLensItem[] = [
     treatment: "Filtro Anti-Fadiga Relax + Tonalidade Cosmética Rose",
     badge: "Relaxamento Visual",
     startingPrice: "R$ 149,90",
+    originalPrice: "R$ 199,90",
+    showDiscountBadge: true,
     installment: "10x de R$ 14,99 sem juros",
     leadTime: "Pronto em até 1 hora",
     colorHex: "#be185d",

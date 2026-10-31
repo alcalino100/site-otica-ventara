@@ -41,6 +41,11 @@ import {
   PartnerLogoItem,
 } from "@/types/ecommerce";
 import { LensOpticalGraphic } from "@/components/ui/lens-optical-graphic";
+import {
+  parsePriceToNumber,
+  hasValidDiscount,
+  calculateDiscountPercent,
+} from "@/lib/utils/price";
 
 export default function AdminLensesPage() {
   const [lenses, setLenses] = useState<AdminLensItem[]>(DEFAULT_LENSES);
@@ -60,6 +65,17 @@ export default function AdminLensesPage() {
   const [isNewLens, setIsNewLens] = useState(false);
   const [feedback, setFeedback] = useState<string | null>(null);
   const [isUploading, setIsUploading] = useState(false);
+  const [priceError, setPriceError] = useState<string | null>(null);
+
+  const validatePrices = (currentVal: string, originalVal?: string): string | null => {
+    if (!originalVal || !originalVal.trim()) return null;
+    const currentNum = parsePriceToNumber(currentVal);
+    const originalNum = parsePriceToNumber(originalVal);
+    if (currentNum !== null && originalNum !== null && originalNum <= currentNum) {
+      return `O preço antigo (${originalVal}) deve ser estritamente maior que o preço atual (${currentVal}).`;
+    }
+    return null;
+  };
   const [categoryFilter, setCategoryFilter] = useState<
     | "all"
     | "destaque-lab"
@@ -483,6 +499,13 @@ export default function AdminLensesPage() {
   };
 
   const handleUpdateLens = (itemToSave: AdminLensItem) => {
+    const err = validatePrices(itemToSave.startingPrice, itemToSave.originalPrice);
+    if (err) {
+      setPriceError(err);
+      return;
+    }
+    setPriceError(null);
+
     let newList: AdminLensItem[];
     if (isNewLens) {
       newList = [itemToSave, ...lenses];
@@ -532,6 +555,7 @@ export default function AdminLensesPage() {
     };
     setSelectedLens(newItem);
     setIsNewLens(true);
+    setPriceError(null);
   };
 
   const filteredLenses = lenses.filter((l) => {
@@ -1731,11 +1755,27 @@ export default function AdminLensesPage() {
                 <span>{lens.treatment}</span>
               </div>
 
-              {/* Preço de Referência */}
+              {/* Preço de Referência com Destaque Promocional */}
               <div className="mb-3">
-                <span className="text-[10px] text-slate-400 uppercase tracking-wider block">Preço de Referência</span>
-                <span className="text-xl font-extrabold text-amber-400 font-mono">{lens.startingPrice}</span>
-                <p className="text-[11px] text-slate-400">{lens.installment}</p>
+                <span className="text-[10px] text-slate-400 uppercase tracking-wider block mb-0.5">
+                  Preço de Referência
+                </span>
+                <div className="flex items-baseline gap-2 flex-wrap">
+                  {hasValidDiscount(lens.startingPrice, lens.originalPrice) && (
+                    <span className="text-xs line-through text-slate-400 font-mono">
+                      {lens.originalPrice}
+                    </span>
+                  )}
+                  <span className="text-xl font-extrabold text-amber-400 font-mono">
+                    {lens.startingPrice}
+                  </span>
+                  {hasValidDiscount(lens.startingPrice, lens.originalPrice) && (
+                    <span className="text-[10px] px-1.5 py-0.5 rounded bg-emerald-500/20 text-emerald-400 font-bold border border-emerald-500/30">
+                      -{calculateDiscountPercent(lens.startingPrice, lens.originalPrice)}%
+                    </span>
+                  )}
+                </div>
+                <p className="text-[11px] text-slate-400 mt-0.5">{lens.installment}</p>
               </div>
 
               {/* Descrição */}
@@ -1761,6 +1801,7 @@ export default function AdminLensesPage() {
                 onClick={() => {
                   setSelectedLens(lens);
                   setIsNewLens(false);
+                  setPriceError(null);
                 }}
                 className="flex-1 py-2 px-3 rounded-xl bg-white/5 hover:bg-amber-400 hover:text-slate-950 text-white font-bold text-xs uppercase tracking-wider transition-all flex items-center justify-center gap-1.5 cursor-pointer"
               >
@@ -1874,19 +1915,90 @@ export default function AdminLensesPage() {
                 </div>
               </div>
 
-              <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-slate-300 mb-1 font-medium">Preço de Referência *</label>
+                  <label className="block text-slate-300 mb-1 font-medium">Preço de Venda (Atual) *</label>
                   <input
                     type="text"
                     required
                     placeholder="Ex: R$ 149,90"
                     value={selectedLens.startingPrice}
-                    onChange={(e) => setSelectedLens({ ...selectedLens, startingPrice: e.target.value })}
+                    onChange={(e) => {
+                      const val = e.target.value;
+                      setSelectedLens({ ...selectedLens, startingPrice: val });
+                      setPriceError(validatePrices(val, selectedLens.originalPrice));
+                    }}
                     className="w-full bg-[#040e17] border border-slate-700 rounded-lg px-3 py-2 text-white font-mono focus:outline-none focus:border-amber-400"
                   />
                 </div>
 
+                <div>
+                  <div className="flex items-center justify-between mb-1">
+                    <label className="text-slate-300 font-medium">Preço Antigo (Original) - Opcional</label>
+                    <span className="text-[10px] text-slate-400">Para exibição riscada</span>
+                  </div>
+                  <input
+                    type="text"
+                    placeholder="Ex: R$ 199,90"
+                    value={selectedLens.originalPrice || ""}
+                    onChange={(e) => {
+                      const val = e.target.value;
+                      setSelectedLens({ ...selectedLens, originalPrice: val });
+                      setPriceError(validatePrices(selectedLens.startingPrice, val));
+                    }}
+                    className={`w-full bg-[#040e17] border rounded-lg px-3 py-2 text-white font-mono focus:outline-none ${
+                      priceError
+                        ? "border-rose-500 focus:border-rose-400"
+                        : "border-slate-700 focus:border-amber-400"
+                    }`}
+                  />
+                  {hasValidDiscount(selectedLens.startingPrice, selectedLens.originalPrice) && (
+                    <p className="text-[11px] text-emerald-400 mt-1 flex items-center gap-1 font-medium">
+                      <Sparkles size={12} className="shrink-0" />
+                      <span>Desconto calculado: -{calculateDiscountPercent(selectedLens.startingPrice, selectedLens.originalPrice)}%</span>
+                    </p>
+                  )}
+                </div>
+              </div>
+
+              {/* Mensagem de Erro de Validação de Preço */}
+              {priceError && (
+                <div
+                  role="alert"
+                  className="p-3 rounded-lg bg-rose-500/10 border border-rose-500/30 text-rose-300 text-xs flex items-center gap-2"
+                >
+                  <AlertCircle size={15} className="shrink-0 text-rose-400" />
+                  <span>{priceError}</span>
+                </div>
+              )}
+
+              {/* Toggle de Badge de Desconto */}
+              {selectedLens.originalPrice && selectedLens.originalPrice.trim() !== "" && (
+                <div className="p-3 rounded-lg bg-slate-900/60 border border-slate-800 flex items-center justify-between">
+                  <div>
+                    <span className="text-slate-200 font-semibold block text-xs">Exibir Selo de Desconto %</span>
+                    <span className="text-[11px] text-slate-400">
+                      Exibe o selo com a porcentagem calculada (ex: -28%) no card da lente.
+                    </span>
+                  </div>
+                  <label className="relative inline-flex items-center cursor-pointer">
+                    <input
+                      type="checkbox"
+                      checked={selectedLens.showDiscountBadge ?? true}
+                      onChange={(e) =>
+                        setSelectedLens({
+                          ...selectedLens,
+                          showDiscountBadge: e.target.checked,
+                        })
+                      }
+                      className="sr-only peer"
+                    />
+                    <div className="w-11 h-6 bg-slate-700 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-amber-500"></div>
+                  </label>
+                </div>
+              )}
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
                   <label className="block text-slate-300 mb-1 font-medium">Parcelamento *</label>
                   <input

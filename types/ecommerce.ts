@@ -71,6 +71,7 @@ export interface Product {
   description: string | null;
   price_in_cents: number;
   compare_at_price_in_cents: number | null;
+  original_price?: number | null;
   is_published: boolean;
   is_featured: boolean;
   frame_type: FrameType;
