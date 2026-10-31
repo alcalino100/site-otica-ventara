@@ -3,7 +3,11 @@
 -- PROJETO: Ótica Ventara — Atualização de Constraint para Status ready_for_pickup
 -- ============================================================================
 
--- 1. Remove a constraint antiga de status caso exista
+-- 1. Garante que a coluna tracking_number exista na tabela orders
+ALTER TABLE public.orders 
+ADD COLUMN IF NOT EXISTS tracking_number TEXT;
+
+-- 2. Remove a constraint antiga de status caso exista
 ALTER TABLE public.orders 
 DROP CONSTRAINT IF EXISTS orders_status_check;
 
