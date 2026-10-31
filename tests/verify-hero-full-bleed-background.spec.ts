@@ -74,9 +74,9 @@ test.describe("Hero Full-Bleed e Gestão de Slides no Admin", () => {
       });
       expect(noHorizontalScroll).toBe(true);
 
-      // 2.2 Verifica imagem nítida no bloco da Zona 2
-      const bgImage = hero.locator("img").first();
-      await expect(bgImage).toBeVisible();
+      // 2.2 Verifica que a foto do hero é exclusiva do desktop (oculta no mobile)
+      const desktopBg = hero.locator(".lg\\:block");
+      await expect(desktopBg).toBeHidden();
 
       // 2.3 Verifica que os CTAs principais estão visíveis com touch target >= 44px (min 48px)
       const ctaPrincipal = hero.getByRole("link", { name: /Catálogo de Lentes/i });
@@ -95,7 +95,7 @@ test.describe("Hero Full-Bleed e Gestão de Slides no Admin", () => {
         expect(secBox.height).toBeGreaterThanOrEqual(44);
       }
 
-      // 2.4 Verifica o selo Mercado Pago no fluxo de conteúdo (acima dos marcadores de confiança)
+      // 2.4 Verifica o selo Mercado Pago no fluxo de conteúdo (com logo SVG)
       const secureBadge = hero.getByTestId("hero-secure-badge");
       await expect(secureBadge).toBeVisible();
       await expect(secureBadge).toContainText(/Mercado Pago/i);

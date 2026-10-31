@@ -711,38 +711,40 @@ export function HeroSlidesManager() {
                 }`}
               >
                 {/* Imagem de Fundo com Posição Focal */}
-                <img
-                  src={
-                    previewMode === "mobile" && editingSlide.image_url_mobile
-                      ? editingSlide.image_url_mobile
-                      : editingSlide.image_url_desktop
-                  }
-                  alt="Prévia do slide"
-                  className={`absolute inset-0 w-full h-full transition-all duration-300 ${
-                    editingSlide.fit_mode === "contain"
-                      ? "object-contain"
-                      : previewMode === "mobile" && !editingSlide.image_url_mobile
-                      ? "object-cover scale-110 origin-bottom"
-                      : "object-cover"
-                  }`}
-                  style={{
-                    objectPosition: getFocalPosition(editingSlide, previewMode),
-                  }}
-                />
+                {/* Foto apenas no modo Desktop */}
+                {previewMode === "desktop" ? (
+                  <>
+                    <img
+                      src={editingSlide.image_url_desktop}
+                      alt="Prévia do slide"
+                      className={`absolute inset-0 w-full h-full transition-all duration-300 ${
+                        editingSlide.fit_mode === "contain"
+                          ? "object-contain"
+                          : "object-cover"
+                      }`}
+                      style={{
+                        objectPosition: getFocalPosition(editingSlide, previewMode),
+                      }}
+                    />
 
-                {/* Overlay Dinâmico */}
-                <div
-                  className="absolute inset-0"
-                  style={{
-                    opacity: editingSlide.show_only_photo
-                      ? 0.08
-                      : (editingSlide.overlay_intensity ?? 75) / 100,
-                    background:
-                      previewMode === "mobile"
-                        ? `linear-gradient(to bottom, ${editingSlide.overlay_color || "#02070D"} 0%, ${editingSlide.overlay_color || "#02070D"}F2 36%, ${editingSlide.overlay_color || "#02070D"}D9 52%, ${editingSlide.overlay_color || "#02070D"}4D 70%, transparent 100%)`
-                        : `linear-gradient(to right, ${editingSlide.overlay_color || "#02070D"} 0%, ${editingSlide.overlay_color || "#02070D"}E6 40%, transparent 100%)`,
-                  }}
-                />
+                    {/* Overlay Dinâmico Desktop */}
+                    <div
+                      className="absolute inset-0"
+                      style={{
+                        opacity: editingSlide.show_only_photo
+                          ? 0.08
+                          : (editingSlide.overlay_intensity ?? 75) / 100,
+                        background: `linear-gradient(to right, ${editingSlide.overlay_color || "#02070D"} 0%, ${editingSlide.overlay_color || "#02070D"}E6 40%, transparent 100%)`,
+                      }}
+                    />
+                  </>
+                ) : (
+                  /* Modo Mobile: Fundo Escuro Sem Foto */
+                  <div className="absolute inset-0 bg-[#02070D]">
+                    <div className="absolute -top-10 -right-10 w-40 h-40 rounded-full bg-amber-400/[0.04] blur-2xl" />
+                    <div className="absolute bottom-4 -left-10 w-36 h-36 rounded-full bg-sky-500/[0.04] blur-2xl" />
+                  </div>
+                )}
 
                 {/* Conteúdo Sobreposto na Prévia */}
                 {!editingSlide.show_only_photo ? (
