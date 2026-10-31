@@ -5,6 +5,7 @@ import Link from "next/link";
 import { Plus, ShoppingBag, Check, ArrowRight, MessageSquare, Sparkles } from "lucide-react";
 import { Product } from "@/types/ecommerce";
 import { FrameArt } from "./frame-art";
+import { PricePromo } from "@/components/ui/price-promo";
 
 interface ProductCardProps {
   product: Product;
@@ -32,6 +33,13 @@ export function ProductCard({
   const primaryImage =
     product.images?.find((img) => img.is_primary)?.url ||
     product.images?.[0]?.url;
+
+  const originalPriceInReais =
+    typeof product.original_price === "number"
+      ? product.original_price
+      : product.compare_at_price_in_cents
+      ? product.compare_at_price_in_cents / 100
+      : null;
 
   const priceFormatted = (product.price_in_cents / 100).toLocaleString("pt-BR", {
     style: "currency",
@@ -159,18 +167,15 @@ export function ProductCard({
 
         {/* Preço e Botão de Adicionar à Sacola */}
         <div className="pt-2 border-t border-white/10 flex items-center justify-between gap-1.5 sm:gap-2">
-          <div className="min-w-0">
-            <p className="text-lg sm:text-2xl font-black text-[#FFD62E] tracking-tight leading-none font-mono drop-shadow-sm">
-              {priceFormatted}
-            </p>
-            <span className="text-[10px] sm:text-[11px] text-slate-300 block leading-tight mt-0.5 truncate">
-              ou até 10x de{" "}
-              <strong className="font-semibold text-white">
-                {installmentFormatted}
-              </strong>{" "}
-              sem juros
-            </span>
-          </div>
+          <PricePromo
+            currentPrice={product.price_in_cents / 100}
+            originalPrice={originalPriceInReais}
+            showDiscountBadge={true}
+            installmentText={`ou até 10x de ${installmentFormatted} sem juros`}
+            theme="dark"
+            size="md"
+            className="min-w-0"
+          />
 
           <button
             type="button"

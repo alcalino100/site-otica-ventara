@@ -22,6 +22,7 @@ import { DEFAULT_HOMOLOGATED_BRANDS, DEFAULT_PARTNER_LOGOS } from "@/lib/site-se
 import { HomologatedBrand, LensesSectionSettings } from "@/types/ecommerce";
 import { useSiteSettings } from "@/components/providers/site-settings-provider";
 import { PartnerLogosRibbon } from "./partner-logos-ribbon";
+import { PricePromo } from "@/components/ui/price-promo";
 
 type LensCategory = "all" | "visao-simples" | "multifocal" | "tratamentos" | "coloridas" | "marcas";
 
@@ -370,15 +371,17 @@ export function LensesPricingSection() {
                               <span className="line-clamp-2">{lens.treatment}</span>
                             </div>
 
-                            {/* Preço */}
+                            {/* Preço com Suporte a Promoção Riscada e Acessibilidade */}
                             <div className="pt-2.5 border-t border-slate-100 mb-3">
-                              <span className="text-[10px] text-slate-400 block font-medium">À partir de</span>
-                              <div className="text-base sm:text-2xl font-black text-amber-500 font-mono leading-tight">
-                                {lens.startingPrice}
-                              </div>
-                              <span className="text-[10px] sm:text-xs text-slate-500 block mt-0.5">
-                                {lens.installment}
-                              </span>
+                              <PricePromo
+                                prefixText="À partir de"
+                                currentPrice={lens.startingPrice}
+                                originalPrice={lens.originalPrice}
+                                showDiscountBadge={lens.showDiscountBadge ?? true}
+                                installmentText={lens.installment}
+                                theme="light"
+                                size="md"
+                              />
                             </div>
                           </div>
 
