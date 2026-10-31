@@ -328,6 +328,63 @@ export interface HeroBannerSettings {
   secondaryButtonLink: string;
 }
 
+export type HeroFocalPoint = "center" | "top" | "bottom" | "left" | "right" | "custom";
+export type HeroFitMode = "cover" | "contain";
+export type HeroTransitionType = "fade" | "slide";
+
+export interface HeroSlide {
+  id: string;
+  sort_order: number;
+  is_active: boolean;
+  image_url_desktop: string;
+  image_url_mobile?: string | null;
+  alt_text: string;
+  focal_point_desktop: HeroFocalPoint;
+  custom_position_x?: number; // 0 to 100
+  custom_position_y?: number; // 0 to 100
+  focal_point_mobile?: HeroFocalPoint;
+  fit_mode: HeroFitMode;
+  overlay_intensity: number; // 0 to 100
+  overlay_color: string;
+  click_url?: string | null;
+
+  // Visibilidade e Textos de Badges / Conteúdos
+  show_only_photo: boolean;
+  show_badge_quality: boolean;
+  badge_quality_text: string;
+  show_badge_style: boolean;
+  badge_style_text: string;
+  show_badge_stock: boolean;
+  badge_stock_text: string;
+  show_badge_curation: boolean;
+  badge_curation_text: string;
+  badge_curation_url: string;
+  show_title: boolean;
+  title_text?: string | null;
+  show_description: boolean;
+  description_text?: string | null;
+  show_buttons: boolean;
+  primary_button_text: string;
+  primary_button_url: string;
+  secondary_button_text: string;
+  secondary_button_url: string;
+  show_trust_markers: boolean;
+
+  created_at?: string;
+  updated_at?: string;
+}
+
+export interface HeroCarouselSettings {
+  id?: string;
+  autoplay: boolean;
+  interval_ms: number;
+  transition_type: HeroTransitionType;
+  show_arrows: boolean;
+  show_indicators: boolean;
+  pause_on_hover: boolean;
+  updated_at?: string;
+}
+
 export interface ShowcaseVariationItem {
   id: string;
   name: string;

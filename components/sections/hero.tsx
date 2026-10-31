@@ -1,6 +1,7 @@
 "use client";
 
-import React, { useState, useEffect, useMemo } from "react";
+import React, { useState, useEffect, useMemo, useRef, useCallback } from "react";
+import Image from "next/image";
 import Link from "next/link";
 import { motion, AnimatePresence } from "motion/react";
 import {
@@ -10,14 +11,19 @@ import {
   Sparkles,
   ShieldCheck,
   Clock,
-  Award,
 } from "lucide-react";
-import { FrameArt } from "../catalog/frame-art";
 import { WordsStagger } from "@/registry/spell-ui/words-stagger";
 import { HighlightedText } from "@/registry/spell-ui/highlighted-text";
-import { Product, HeroBannerSettings } from "@/types/ecommerce";
-import { DEFAULT_CATALOG } from "@/lib/catalog-data";
-import { DEFAULT_HERO_BANNER } from "@/lib/site-settings-constants";
+import {
+  Product,
+  HeroSlide,
+  HeroCarouselSettings,
+  HeroFocalPoint,
+} from "@/types/ecommerce";
+import {
+  DEFAULT_HERO_SLIDES,
+  DEFAULT_HERO_SETTINGS,
+} from "@/lib/site-settings-constants";
 import { useSiteSettings } from "@/components/providers/site-settings-provider";
 
 interface HeroProps {
@@ -26,352 +32,490 @@ interface HeroProps {
 
 export function Hero({ products }: HeroProps) {
   const { identity, fullAddress } = useSiteSettings();
-  const [heroBanner, setHeroBanner] = useState<HeroBannerSettings>(DEFAULT_HERO_BANNER);
-
-  useEffect(() => {
-    async function loadHeroSettings() {
-      try {
-        const res = await fetch("/api/settings");
-        if (res.ok) {
-          const data = await res.json();
-          if (data.hero_banner) {
-            setHeroBanner((prev) => ({ ...prev, ...data.hero_banner }));
-          }
-        }
-      } catch {}
-    }
-    loadHeroSettings();
-  }, []);
-
-  // Filtra as armações marcadas como destaque (is_featured) no Admin
-  const featuredProducts = useMemo(() => {
-    if (products && products.length > 0) {
-      const featured = products.filter((p) => p.is_featured && p.is_published);
-      if (featured.length > 0) return featured;
-      return products.filter((p) => p.is_published).slice(0, 4);
-    }
-    const defaultFeatured = DEFAULT_CATALOG.filter((p) => p.is_featured && p.is_published);
-    return defaultFeatured.length > 0 ? defaultFeatured : DEFAULT_CATALOG.slice(0, 4);
-  }, [products]);
-
+  const [slides, setSlides] = useState<HeroSlide[]>(DEFAULT_HERO_SLIDES);
+  const [settings, setSettings] = useState<HeroCarouselSettings>(DEFAULT_HERO_SETTINGS);
   const [currentIndex, setCurrentIndex] = useState(0);
   const [isPaused, setIsPaused] = useState(false);
+  const [prefersReducedMotion, setPrefersReducedMotion] = useState(false);
+  const [isMobile, setIsMobile] = useState(false);
 
-  const total = featuredProducts.length;
-
-  // Auto-play suave a cada 5 segundos com pausa ao passar o mouse
+  // Carrega slides e configurações do endpoint /api/hero
   useEffect(() => {
-    if (isPaused || total <= 1) return;
-    const interval = setInterval(() => {
-      setCurrentIndex((prev) => (prev + 1) % total);
-    }, 5000);
-    return () => clearInterval(interval);
-  }, [isPaused, total]);
+    let isMounted = true;
+    async function loadHeroData() {
+      try {
+        const res = await fetch("/api/hero", { cache: "no-store" });
+        if (res.ok) {
+          const data = await res.json();
+          if (isMounted) {
+            if (data.slides && Array.isArray(data.slides) && data.slides.length > 0) {
+              setSlides(data.slides);
+            }
+            if (data.settings) {
+              setSettings((prev) => ({ ...prev, ...data.settings }));
+            }
+          }
+        }
+      } catch (err) {
+        console.warn("Fallback de hero ativado:", err);
+      }
+    }
+    loadHeroData();
+    return () => {
+      isMounted = false;
+    };
+  }, []);
 
+  // Detecta acessibilidade prefers-reduced-motion e breakpoint mobile
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+
+    const motionQuery = window.matchMedia("(prefers-reduced-motion: reduce)");
+    setPrefersReducedMotion(motionQuery.matches);
+
+    const handleMotionChange = (e: MediaQueryListEvent) => {
+      setPrefersReducedMotion(e.matches);
+    };
+    motionQuery.addEventListener("change", handleMotionChange);
+
+    const checkMobile = () => {
+      setIsMobile(window.innerWidth < 768);
+    };
+    checkMobile();
+    window.addEventListener("resize", checkMobile);
+
+    return () => {
+      motionQuery.removeEventListener("change", handleMotionChange);
+      window.removeEventListener("resize", checkMobile);
+    };
+  }, []);
+
+  // Filtra apenas slides ativos
+  const activeSlides = useMemo(() => {
+    const active = slides.filter((s) => s.is_active);
+    return active.length > 0 ? active : DEFAULT_HERO_SLIDES;
+  }, [slides]);
+
+  const total = activeSlides.length;
+  const isMultiSlide = total > 1;
+
+  // Ajusta currentIndex caso a lista mude
   useEffect(() => {
     if (currentIndex >= total && total > 0) {
       setCurrentIndex(0);
     }
   }, [total, currentIndex]);
 
-  const handlePrev = (e?: React.MouseEvent) => {
-    if (e) e.stopPropagation();
-    setCurrentIndex((prev) => (prev - 1 + total) % total);
+  // Autoplay inteligente com respeito a pause_on_hover e prefers-reduced-motion
+  useEffect(() => {
+    if (
+      !isMultiSlide ||
+      !settings.autoplay ||
+      isPaused ||
+      prefersReducedMotion
+    ) {
+      return;
+    }
+
+    const intervalTime = Math.max(settings.interval_ms || 5000, 2000);
+    const timer = setInterval(() => {
+      setCurrentIndex((prev) => (prev + 1) % total);
+    }, intervalTime);
+
+    return () => clearInterval(timer);
+  }, [isMultiSlide, settings.autoplay, settings.interval_ms, isPaused, prefersReducedMotion, total]);
+
+  const handlePrev = useCallback(
+    (e?: React.MouseEvent) => {
+      if (e) e.stopPropagation();
+      setCurrentIndex((prev) => (prev - 1 + total) % total);
+    },
+    [total]
+  );
+
+  const handleNext = useCallback(
+    (e?: React.MouseEvent) => {
+      if (e) e.stopPropagation();
+      setCurrentIndex((prev) => (prev + 1) % total);
+    },
+    [total]
+  );
+
+  const currentSlide: HeroSlide = activeSlides[currentIndex] || activeSlides[0];
+
+  // Helper para calcular o object-position a partir do focal point
+  const getObjectPosition = (
+    focalPoint: HeroFocalPoint,
+    customX = 50,
+    customY = 50
+  ): string => {
+    switch (focalPoint) {
+      case "top":
+        return "center top";
+      case "bottom":
+        return "center bottom";
+      case "left":
+        return "left center";
+      case "right":
+        return "right center";
+      case "custom":
+        return `${customX}% ${customY}%`;
+      case "center":
+      default:
+        return "center center";
+    }
   };
 
-  const handleNext = (e?: React.MouseEvent) => {
-    if (e) e.stopPropagation();
-    setCurrentIndex((prev) => (prev + 1) % total);
+  const desktopPosition = getObjectPosition(
+    currentSlide.focal_point_desktop || "center",
+    currentSlide.custom_position_x,
+    currentSlide.custom_position_y
+  );
+
+  const mobilePosition = getObjectPosition(
+    currentSlide.focal_point_mobile || currentSlide.focal_point_desktop || "center",
+    currentSlide.custom_position_x,
+    currentSlide.custom_position_y
+  );
+
+  // Calcula cor e opacidade do overlay
+  const overlayColor = currentSlide.overlay_color || "#02070D";
+  const rawIntensity = currentSlide.overlay_intensity ?? 75;
+
+  // Se o modo "Mostrar somente a foto" estiver ativo, reduz o overlay a uma vinheta bem sutil
+  const overlayOpacity = currentSlide.show_only_photo
+    ? 0.08
+    : Math.max(0, Math.min(100, rawIntensity)) / 100;
+
+  // Decide transição de acordo com as preferências e configurações
+  const transitionType = prefersReducedMotion ? "none" : settings.transition_type || "fade";
+
+  const slideAnimationVariants = {
+    initial: {
+      opacity: transitionType === "none" ? 1 : 0,
+      x: transitionType === "slide" ? 40 : 0,
+      scale: transitionType === "fade" ? 1.03 : 1,
+    },
+    animate: {
+      opacity: 1,
+      x: 0,
+      scale: 1,
+      transition: {
+        duration: prefersReducedMotion ? 0 : 0.6,
+        ease: [0.22, 1, 0.36, 1] as const,
+      },
+    },
+    exit: {
+      opacity: transitionType === "none" ? 1 : 0,
+      x: transitionType === "slide" ? -40 : 0,
+      scale: transitionType === "fade" ? 0.98 : 1,
+      transition: {
+        duration: prefersReducedMotion ? 0 : 0.45,
+        ease: [0.22, 1, 0.36, 1] as const,
+      },
+    },
   };
 
-  const currentProduct = featuredProducts[currentIndex] || featuredProducts[0];
-  const primaryImage =
-    currentProduct?.images?.find((img) => img.is_primary)?.url ||
-    currentProduct?.images?.[0]?.url;
+  const imageSrc =
+    isMobile && currentSlide.image_url_mobile
+      ? currentSlide.image_url_mobile
+      : currentSlide.image_url_desktop;
 
   const currentNumberStr = String(currentIndex + 1).padStart(2, "0");
   const totalNumberStr = String(total).padStart(2, "0");
 
-  const formattedPrice = ((currentProduct?.price_in_cents || 38900) / 100).toLocaleString("pt-BR", {
-    style: "currency",
-    currency: "BRL",
-  });
-
-  const bannerImageSrc =
-    heroBanner.bannerImageUrl || "/images/hero/ventara-safari-complete.jpg";
-
   return (
     <section
-      className="hero relative overflow-hidden bg-[#02070D] min-h-[100svh] lg:min-h-[760px] flex flex-col justify-between"
+      className="hero relative overflow-hidden bg-[#02070D] min-h-[100svh] lg:min-h-[780px] flex flex-col justify-between select-none"
       id="inicio"
+      onMouseEnter={() => settings.pause_on_hover && setIsPaused(true)}
+      onMouseLeave={() => settings.pause_on_hover && setIsPaused(false)}
+      data-testid="hero-section"
     >
-      {/* 1. ATMOSFERA & ILUMINAÇÃO ESTÚDIO APPLE-STYLE */}
-      <div className="absolute inset-0 pointer-events-none overflow-hidden z-0">
-        {/* Glow Dourado Ambiente no Lado Direito */}
-        <div className="absolute top-1/4 right-[5%] w-[550px] h-[550px] rounded-full bg-amber-400/[0.07] blur-[140px]" />
-        {/* Glow Ciano Suave no Topo/Centro */}
-        <div className="absolute top-10 left-1/3 w-[450px] h-[350px] rounded-full bg-sky-500/[0.05] blur-[120px]" />
-        {/* Vignettes de Borda para Integração com o Header e Seção Seguinte */}
-        <div className="absolute inset-x-0 top-0 h-32 bg-gradient-to-b from-[#02070D] to-transparent" />
-        <div className="absolute inset-x-0 bottom-0 h-28 bg-gradient-to-t from-[#02070D] to-transparent" />
+      {/* =================================================================== */}
+      {/* 1. FOTO DE FUNDO FULL-BLEED (BACKGROUND COVER OTIMIZADO) */}
+      {/* =================================================================== */}
+      <div className="absolute inset-0 z-0 overflow-hidden pointer-events-none">
+        <AnimatePresence mode="wait">
+          <motion.div
+            key={currentSlide.id || currentIndex}
+            variants={slideAnimationVariants}
+            initial="initial"
+            animate="animate"
+            exit="exit"
+            className="absolute inset-0 w-full h-full"
+          >
+            <Image
+              src={imageSrc}
+              alt={currentSlide.alt_text || "Ótica Ventara"}
+              fill
+              priority={currentIndex === 0}
+              quality={90}
+              sizes="100vw"
+              className={currentSlide.fit_mode === "contain" ? "object-contain" : "object-cover"}
+              style={{
+                objectPosition: isMobile ? mobilePosition : desktopPosition,
+              }}
+            />
+          </motion.div>
+        </AnimatePresence>
+
+        {/* OVERLAY EM GRADIENTE ESCURO CINEMATOGRÁFICO COM CORES VENTARA */}
+        <div
+          className="absolute inset-0 transition-opacity duration-700 ease-out pointer-events-none z-1"
+          style={{
+            opacity: overlayOpacity,
+            background: `
+              linear-gradient(to right, ${overlayColor} 0%, ${overlayColor}F2 32%, ${overlayColor}B3 55%, ${overlayColor}40 85%, transparent 100%),
+              linear-gradient(to top, ${overlayColor} 0%, ${overlayColor}E6 18%, transparent 60%),
+              linear-gradient(to bottom, ${overlayColor} 0%, transparent 22%)
+            `,
+          }}
+        />
+
+        {/* Glows Estúdio Apple-Style de Identidade da Marca (Azul Escuro + Dourado) */}
+        {!currentSlide.show_only_photo && (
+          <>
+            <div className="absolute top-1/4 right-[8%] w-[500px] h-[500px] rounded-full bg-amber-400/[0.05] blur-[150px] pointer-events-none" />
+            <div className="absolute top-12 left-1/4 w-[450px] h-[350px] rounded-full bg-sky-500/[0.04] blur-[130px] pointer-events-none" />
+          </>
+        )}
       </div>
 
-      {/* 2. CONTAINER PRINCIPAL UNIFICADO */}
+      {/* =================================================================== */}
+      {/* 2. CONTEÚDO PRINCIPAL (TEXTOS, BADGES E AÇÕES SOBRE A FOTO) */}
+      {/* =================================================================== */}
       <div className="max-w-[1400px] mx-auto px-4 sm:px-8 lg:px-10 w-full pt-28 sm:pt-36 lg:pt-40 pb-8 relative z-10 flex flex-col justify-between flex-1">
-        {/* Grid de 2 Colunas Perfeitamente Margeado */}
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-14 items-center flex-1 my-auto">
-          {/* ==================== COLUNA ESQUERDA: TEXTO & CONVERSÃO ==================== */}
-          <div className="hero-copy lg:col-span-6 relative z-10 max-w-xl">
-            {/* Eyebrow Pill com Pulso */}
-            <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-white/5 border border-white/10 backdrop-blur-md mb-4 shadow-xs">
-              <span className="w-1.5 h-1.5 rounded-full bg-[#FFD62E] animate-pulse" />
-              <span className="text-[10px] sm:text-[11px] font-bold tracking-[0.22em] uppercase text-amber-400">
-                QUALIDADE QUE VOCÊ VÊ
+          {/* COLUNA ESQUERDA: TEXTO, TÍTULO E CTAs */}
+          {!currentSlide.show_only_photo ? (
+            <div className="hero-copy lg:col-span-7 relative z-10 max-w-2xl">
+              {/* Badge Superior: Qualidade que Você Vê */}
+              {currentSlide.show_badge_quality && (
+                <div
+                  data-testid="hero-badge-quality"
+                  className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-slate-950/70 border border-white/10 backdrop-blur-md mb-4 shadow-sm"
+                >
+                  <span className="w-1.5 h-1.5 rounded-full bg-[#FFD62E] animate-pulse" />
+                  <span className="text-[10px] sm:text-[11px] font-bold tracking-[0.22em] uppercase text-amber-400">
+                    {currentSlide.badge_quality_text || "QUALIDADE QUE VOCÊ VÊ"}
+                  </span>
+                </div>
+              )}
+
+              {/* Título Principal Tipografia Óptica */}
+              {currentSlide.show_title && (
+                <h1 className="text-3xl sm:text-5xl lg:text-6xl font-light text-white tracking-tight leading-[1.12]">
+                  {currentSlide.title_text ? (
+                    <span className="whitespace-pre-line">{currentSlide.title_text}</span>
+                  ) : (
+                    <>
+                      Mais que óculos,
+                      <br />
+                      é sobre{" "}
+                      <HighlightedText
+                        delay={0.2}
+                        from="left"
+                        className="font-normal"
+                        highlightClassName="bg-[#FFD62E] rounded-[0.2em] shadow-sm"
+                        textClassName="text-[#02070D] font-semibold"
+                      >
+                        você.
+                      </HighlightedText>
+                    </>
+                  )}
+                </h1>
+              )}
+
+              {/* Subtítulo Descritivo com Alto Contraste */}
+              {currentSlide.show_description && (
+                <div className="hero-description my-4">
+                  <p className="text-sm sm:text-base leading-relaxed text-slate-200 font-normal max-w-xl drop-shadow-sm">
+                    {currentSlide.description_text ||
+                      "Na Óticas Ventara, unimos tecnologia de precisão, curadoria autoral em acetato nobre e laboratório próprio para cuidar da sua visão em todos os momentos."}
+                  </p>
+                </div>
+              )}
+
+              {/* CTAs com Feedback Tátil */}
+              {currentSlide.show_buttons && (
+                <div className="hero-cta-wrapper flex flex-wrap items-center gap-3.5 mt-6">
+                  <Link
+                    href={currentSlide.primary_button_url || "/lentes"}
+                    className="inline-flex items-center gap-2.5 px-6 py-3.5 rounded-full bg-[#FFD62E] hover:bg-amber-300 active:scale-[0.97] text-slate-950 font-bold text-xs sm:text-sm tracking-wide shadow-lg shadow-amber-400/25 transition-all duration-150 ease-out cursor-pointer group"
+                    style={{ touchAction: "manipulation" }}
+                  >
+                    <span>{currentSlide.primary_button_text || "Catálogo de Lentes"}</span>
+                    <ArrowRight
+                      size={16}
+                      className="text-slate-950 transform group-hover:translate-x-1 transition-transform"
+                    />
+                  </Link>
+
+                  <a
+                    href={currentSlide.secondary_button_url || "#armacoes"}
+                    className="inline-flex items-center gap-2.5 px-6 py-3.5 rounded-full bg-slate-950/80 hover:bg-slate-900 active:scale-[0.97] text-white font-semibold text-xs sm:text-sm border border-white/15 hover:border-amber-400/50 shadow-md backdrop-blur-md transition-all duration-150 ease-out cursor-pointer"
+                    style={{ touchAction: "manipulation" }}
+                  >
+                    <span>{currentSlide.secondary_button_text || "Ver armações"}</span>
+                  </a>
+                </div>
+              )}
+
+              {/* Diferenciais de Confiança da Marca (Emil Kowalski Trust Markers) */}
+              {currentSlide.show_trust_markers && (
+                <div className="grid grid-cols-3 gap-3 pt-6 mt-6 border-t border-white/10 max-w-lg">
+                  <div className="flex flex-col">
+                    <span className="text-[11px] font-bold text-white flex items-center gap-1.5">
+                      <Sparkles size={12} className="text-amber-400 shrink-0" />
+                      Lab Próprio
+                    </span>
+                    <span className="text-[10px] text-slate-400 mt-0.5">Araçatuba-SP</span>
+                  </div>
+
+                  <div className="flex flex-col">
+                    <span className="text-[11px] font-bold text-white flex items-center gap-1.5">
+                      <Clock size={12} className="text-amber-400 shrink-0" />
+                      Pronto em 1h
+                    </span>
+                    <span className="text-[10px] text-slate-400 mt-0.5">Montagem Express</span>
+                  </div>
+
+                  <div className="flex flex-col">
+                    <span className="text-[11px] font-bold text-white flex items-center gap-1.5">
+                      <ShieldCheck size={12} className="text-amber-400 shrink-0" />
+                      100% Autoral
+                    </span>
+                    <span className="text-[10px] text-slate-400 mt-0.5">Acetato Nobre</span>
+                  </div>
+                </div>
+              )}
+
+              {/* Endereço Físico Discreto */}
+              <span className="hero-footnote block text-[11px] text-slate-400 mt-4 tracking-wide">
+                {identity.store_name} · {fullAddress}
               </span>
             </div>
+          ) : (
+            /* MODO SOMENTE A FOTO: Espaço limpo e sem textos sobrepostos */
+            <div className="lg:col-span-7 py-24 sm:py-32" />
+          )}
 
-            {/* Título Principal Tipografia Óptica */}
-            <h1 className="text-3xl sm:text-5xl lg:text-6xl font-light text-white tracking-tight leading-[1.12]">
-              Mais que óculos,
-              <br />
-              é sobre{" "}
-              <HighlightedText
-                delay={0.4}
-                from="left"
-                className="font-normal"
-                highlightClassName="bg-[#FFD62E] rounded-[0.2em] shadow-sm"
-                textClassName="text-[#02070D] font-semibold"
-              >
-                você.
-              </HighlightedText>
-            </h1>
+          {/* COLUNA DIREITA: BADGES FLUTUANTES EDITÁVEIS E LINK DE PRODUTO */}
+          <div className="hero-stage lg:col-span-5 relative flex flex-col items-end justify-center w-full gap-4">
+            {!currentSlide.show_only_photo && (
+              <>
+                {/* 1. Badge Superior Direito: "ARMAÇÕES DE QUALIDADE E ESTILO" */}
+                {currentSlide.show_badge_style && (
+                  <div
+                    data-testid="hero-badge-style"
+                    className="flex items-center gap-3 px-4 py-2.5 rounded-full bg-slate-950/80 backdrop-blur-md border border-amber-400/30 shadow-xl"
+                  >
+                    <div className="w-[3px] h-4 bg-[#FFD62E] rounded-full shadow-[0_0_8px_#FFD62E]" />
+                    <span className="text-[10px] sm:text-xs tracking-[0.16em] uppercase font-bold text-amber-300">
+                      {currentSlide.badge_style_text || "ARMAÇÕES DE QUALIDADE E ESTILO"}
+                    </span>
+                  </div>
+                )}
 
-            {/* Subtítulo Descritivo com Alto Contraste */}
-            <div className="hero-description my-4">
-              <WordsStagger
-                delay={0.2}
-                duration={0.35}
-                stagger={0.03}
-                className="text-sm sm:text-base leading-relaxed text-slate-300 font-normal"
-              >
-                Na Óticas Ventara, unimos tecnologia de precisão, curadoria autoral em acetato nobre e laboratório próprio para cuidar da sua visão em todos os momentos.
-              </WordsStagger>
-            </div>
+                {/* 2. Badge Inferior Esquerdo: "Em Estoque · Envio Imediato" */}
+                {currentSlide.show_badge_stock && (
+                  <div
+                    data-testid="hero-badge-stock"
+                    className="flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-slate-950/80 backdrop-blur-md border border-white/10 text-[11px] text-slate-200 shadow-lg"
+                  >
+                    <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
+                    <span>{currentSlide.badge_stock_text || "Em Estoque · Envio Imediato"}</span>
+                  </div>
+                )}
 
-            {/* CTAs com Feedback Tátil (Apple-Grade active:scale-97) */}
-            <div className="hero-cta-wrapper flex flex-wrap items-center gap-3.5 mt-6">
-              <Link
-                href={heroBanner.primaryButtonLink || "/lentes"}
-                className="inline-flex items-center gap-2.5 px-6 py-3.5 rounded-full bg-[#FFD62E] hover:bg-amber-300 active:scale-[0.97] text-slate-950 font-bold text-xs sm:text-sm tracking-wide shadow-lg shadow-amber-400/25 transition-all duration-150 ease-out cursor-pointer group"
-                style={{ touchAction: "manipulation" }}
-              >
-                <span>{heroBanner.primaryButtonText || "Catálogo de Lentes"}</span>
-                <ArrowRight
-                  size={16}
-                  className="text-slate-950 transform group-hover:translate-x-1 transition-transform"
-                />
-              </Link>
-
-              <a
-                href={heroBanner.secondaryButtonLink || "#armacoes"}
-                className="inline-flex items-center gap-2.5 px-6 py-3.5 rounded-full bg-slate-900/80 hover:bg-slate-800 active:scale-[0.97] text-white font-semibold text-xs sm:text-sm border border-white/10 hover:border-amber-400/50 shadow-md backdrop-blur-md transition-all duration-150 ease-out cursor-pointer"
-                style={{ touchAction: "manipulation" }}
-              >
-                <span>{heroBanner.secondaryButtonText || "Ver armações"}</span>
-              </a>
-            </div>
-
-            {/* Diferenciais de Confiança da Marca (Emil Kowalski Trust Markers) */}
-            <div className="grid grid-cols-3 gap-3 pt-6 mt-6 border-t border-white/10 max-w-lg">
-              <div className="flex flex-col">
-                <span className="text-[11px] font-bold text-white flex items-center gap-1.5">
-                  <Sparkles size={12} className="text-amber-400 shrink-0" />
-                  Lab Próprio
-                </span>
-                <span className="text-[10px] text-slate-400 mt-0.5">Araçatuba-SP</span>
-              </div>
-
-              <div className="flex flex-col">
-                <span className="text-[11px] font-bold text-white flex items-center gap-1.5">
-                  <Clock size={12} className="text-amber-400 shrink-0" />
-                  Pronto em 1h
-                </span>
-                <span className="text-[10px] text-slate-400 mt-0.5">Montagem Express</span>
-              </div>
-
-              <div className="flex flex-col">
-                <span className="text-[11px] font-bold text-white flex items-center gap-1.5">
-                  <ShieldCheck size={12} className="text-amber-400 shrink-0" />
-                  100% Autoral
-                </span>
-                <span className="text-[10px] text-slate-400 mt-0.5">Acetato Nobre</span>
-              </div>
-            </div>
-
-            {/* Endereço Físico Discreto */}
-            <span className="hero-footnote block text-[11px] text-slate-400 mt-4 tracking-wide">
-              {identity.store_name} · {fullAddress}
-            </span>
-          </div>
-
-          {/* ==================== COLUNA DIREITA: VITRINE ATELIER ==================== */}
-          <div className="hero-stage lg:col-span-6 relative flex items-center justify-center w-full">
-            {heroBanner.mode === "carousel_3d" ? (
-              /* MODO CARROSSEL 3D ORIGINAL COM PEDESTAL */
-              <div
-                className="relative w-full flex items-center justify-center min-h-[360px] sm:min-h-[460px]"
-                onMouseEnter={() => setIsPaused(true)}
-                onMouseLeave={() => setIsPaused(false)}
-              >
-                <div className="beam" aria-hidden="true" />
-
-                {/* Badge Vertical Dourado */}
-                <div className="hero-side-badge hidden sm:flex items-center gap-3 absolute top-2 right-4 z-20">
-                  <div className="w-[2px] h-12 bg-[#FFD62E] shadow-[0_0_12px_#FFD62E]" />
-                  <span className="text-[10px] tracking-[0.22em] uppercase font-bold text-slate-300 leading-tight">
-                    ARMAÇÕES<br />DE QUALIDADE<br />E ESTILO
-                  </span>
-                </div>
-
-                {/* Armação no Pedestal */}
-                <div className="hero-frame-anim relative z-10 w-full max-w-[500px] mx-auto min-h-[220px] sm:min-h-[260px] flex items-center justify-center">
-                  <AnimatePresence mode="wait">
-                    <motion.div
-                      key={currentProduct?.id || currentIndex}
-                      initial={{ opacity: 0, scale: 0.92, y: 12 }}
-                      animate={{ opacity: 1, scale: 1, y: 0 }}
-                      exit={{ opacity: 0, scale: 0.92, y: -12 }}
-                      transition={{ duration: 0.35, ease: [0.22, 1, 0.36, 1] }}
-                      className="w-full flex flex-col items-center justify-center group"
+                {/* 3. Botão Curadoria Autoral com Link (Link para Produto ou Catálogo) */}
+                {currentSlide.show_badge_curation && (
+                  <div data-testid="hero-badge-curation" className="mt-2">
+                    <Link
+                      href={currentSlide.badge_curation_url || "/catalogo"}
+                      className="inline-flex items-center justify-between gap-3 px-5 py-2.5 rounded-full bg-slate-950/90 hover:bg-slate-900 active:scale-[0.97] backdrop-blur-md border border-amber-400/30 hover:border-amber-400 text-amber-300 hover:text-amber-200 text-xs font-semibold shadow-xl transition-all duration-150 group"
+                      style={{ touchAction: "manipulation" }}
                     >
-                      <Link
-                        href={`/produto/${currentProduct?.slug || "ventara-essencial"}`}
-                        className="block w-full text-center relative focus:outline-none"
-                        aria-label={`Ver modelo ${currentProduct?.name}`}
-                      >
-                        {primaryImage ? (
-                          <img
-                            src={primaryImage}
-                            alt={currentProduct?.name || "Armação Ventara"}
-                            className="w-full max-h-[240px] sm:max-h-[280px] object-contain drop-shadow-[0_20px_35px_rgba(0,0,0,0.65)] group-hover:scale-105 transition-transform duration-300"
-                          />
-                        ) : (
-                          <FrameArt
-                            hero
-                            solar={currentProduct?.frame_type === "Solar"}
-                            round={currentProduct?.frame_shape === "Redondo"}
-                            amber={
-                              currentProduct?.slug.includes("aurora") ||
-                              (currentProduct?.slug.includes("solar") && !currentProduct?.slug.includes("kids"))
-                            }
-                            customColor={
-                              currentProduct?.gender === "Infantil"
-                                ? currentProduct?.frame_type === "Solar"
-                                  ? "#0284c7"
-                                  : "#2563eb"
-                                : currentProduct?.variants?.[0]?.color_hex || undefined
-                            }
-                          />
-                        )}
+                      <div className="flex items-center gap-2">
+                        <Sparkles size={14} className="text-amber-400 shrink-0" />
+                        <span>
+                          {currentSlide.badge_curation_text ||
+                            "Curadoria Autoral Ventara · Acetato Premium"}
+                        </span>
+                      </div>
+                      <ArrowRight
+                        size={14}
+                        className="text-amber-400 transform group-hover:translate-x-1 transition-transform shrink-0"
+                      />
+                    </Link>
+                  </div>
+                )}
+              </>
+            )}
 
-                        <div className="mt-2 inline-flex items-center gap-2 px-3 py-1 rounded-full bg-[#06111f]/85 backdrop-blur-md border border-amber-400/40 text-amber-400 text-[11px] font-medium shadow-lg hover:border-amber-400 transition-all">
-                          <span>{currentProduct?.name}</span>
-                          <span className="text-white/80 font-normal">· {formattedPrice}</span>
-                          <ArrowRight size={12} className="group-hover:translate-x-0.5 transition-transform" />
-                        </div>
-                      </Link>
-                    </motion.div>
-                  </AnimatePresence>
-                </div>
+            {/* CONTROLES DO CARROSSEL: SETAS E PAGINAÇÃO (APENAS SE HOUVER MAIS DE 1 SLIDE ATIVO) */}
+            {isMultiSlide && (
+              <div
+                className="flex items-center gap-4 mt-6 pt-4 bg-slate-950/60 backdrop-blur-md px-4 py-2 rounded-full border border-white/10 shadow-lg"
+                data-testid="hero-carousel-controls"
+              >
+                {/* Indicador Numérico */}
+                <span className="text-[11px] font-mono text-slate-400 tracking-wider">
+                  <strong className="text-white">{currentNumberStr}</strong> / {totalNumberStr}
+                </span>
 
-                <div className="pedestal" aria-hidden="true" />
-
-                {/* Paginação do Carrossel */}
-                <div className="hero-stage-pagination flex items-center gap-4 absolute bottom-2 right-4 z-20">
-                  <span className="text-[11px] font-mono text-slate-400 tracking-wider">
-                    <strong className="text-white">{currentNumberStr}</strong> / {totalNumberStr}
-                  </span>
-                  <div className="flex items-center gap-1.5 text-slate-400">
+                {/* Setas Anterior e Próximo */}
+                {settings.show_arrows && (
+                  <div className="flex items-center gap-1.5 text-slate-300">
                     <button
                       type="button"
                       onClick={handlePrev}
-                      aria-label="Modelo anterior"
-                      className="w-8 h-8 rounded-full border border-white/20 bg-[#06111f]/70 hover:bg-white/20 active:scale-90 flex items-center justify-center hover:text-white transition-all shadow-md focus:outline-none"
+                      aria-label="Slide anterior"
+                      className="w-8 h-8 rounded-full border border-white/20 bg-slate-900/80 hover:bg-white/20 active:scale-90 flex items-center justify-center hover:text-white transition-all cursor-pointer focus:outline-none"
                     >
                       <ChevronLeft size={16} />
                     </button>
                     <button
                       type="button"
                       onClick={handleNext}
-                      aria-label="Próximo modelo"
-                      className="w-8 h-8 rounded-full border border-white/20 bg-[#06111f]/70 hover:bg-white/20 active:scale-90 flex items-center justify-center hover:text-white transition-all shadow-md focus:outline-none"
+                      aria-label="Próximo slide"
+                      className="w-8 h-8 rounded-full border border-white/20 bg-slate-900/80 hover:bg-white/20 active:scale-90 flex items-center justify-center hover:text-white transition-all cursor-pointer focus:outline-none"
                     >
                       <ChevronRight size={16} />
                     </button>
                   </div>
-                </div>
-              </div>
-            ) : (
-              /* MODO ATELIER SHOWCASE DE LUXO (PROPORÇÃO PERFEITA, ÓCULOS INTEIRO, ZERO ZOOM EXCESSIVO) */
-              <div className="relative w-full max-w-[560px] mx-auto group">
-                {/* Glow de Borda Estilo Apple Pro */}
-                <div className="absolute -inset-1 rounded-[2.2rem] sm:rounded-[2.7rem] bg-gradient-to-r from-amber-400/20 via-sky-500/10 to-amber-400/20 opacity-70 blur-xl group-hover:opacity-100 transition-opacity duration-700 pointer-events-none" />
-
-                {/* Card Vitrine de Vidro e Acetato */}
-                <div className="relative aspect-[4/3] sm:aspect-[16/11] w-full rounded-[2rem] sm:rounded-[2.5rem] overflow-hidden border border-amber-400/25 bg-gradient-to-b from-[#091524] via-[#050e1a] to-[#02070d] shadow-2xl">
-                  {/* Foto da Armação Completa com Reflexo */}
-                  <img
-                    src={bannerImageSrc}
-                    alt={heroBanner.badgeTag || "Óticas Ventara Eyewear"}
-                    className="w-full h-full object-cover object-center group-hover:scale-[1.03] transition-transform duration-700 ease-out"
-                    style={{
-                      opacity: (heroBanner.bannerOpacity ?? 100) / 100,
-                    }}
-                  />
-
-                  {/* Vinhetas Suaves de Iluminação Estúdio */}
-                  <div className="absolute inset-0 bg-gradient-to-t from-[#02070D]/90 via-transparent to-black/30 pointer-events-none" />
-                  <div className="absolute inset-0 bg-gradient-to-r from-[#02070D]/30 via-transparent to-transparent pointer-events-none" />
-
-                  {/* Badge Superior Direito */}
-                  <div className="absolute top-3.5 right-3.5 z-10 flex items-center gap-2 px-3 py-1.5 rounded-full bg-slate-950/80 backdrop-blur-md border border-amber-400/30 shadow-lg">
-                    <span className="w-1.5 h-1.5 rounded-full bg-amber-400 animate-pulse" />
-                    <span className="text-[9px] sm:text-[10px] font-bold uppercase tracking-wider text-amber-300">
-                      {heroBanner.badgeTag || "ARMAÇÕES DE QUALIDADE E ESTILO"}
-                    </span>
-                  </div>
-
-                  {/* Chip de Disponibilidade (Inferior Esquerdo) */}
-                  <div className="absolute bottom-3.5 left-3.5 z-10 hidden sm:flex items-center gap-1.5 px-3 py-1 rounded-full bg-slate-950/80 backdrop-blur-md border border-white/10 text-[10px] text-slate-300 shadow-md">
-                    <span className="w-1.5 h-1.5 rounded-full bg-emerald-400" />
-                    <span>Em Estoque · Envio Imediato</span>
-                  </div>
-
-                  {/* Pill Flutuante de Coleção com Link para o Catálogo (Inferior Direito) */}
-                  {heroBanner.badgeSubtitle && (
-                    <div className="absolute bottom-3.5 right-3.5 left-3.5 sm:left-auto z-10">
-                      <Link
-                        href="/catalogo"
-                        className="flex items-center justify-between gap-2.5 px-4 py-2 rounded-xl sm:rounded-full bg-slate-950/90 hover:bg-slate-900 active:scale-[0.97] backdrop-blur-md border border-white/15 hover:border-amber-400/50 text-amber-300 hover:text-amber-200 text-xs font-semibold shadow-xl transition-all duration-150"
-                        style={{ touchAction: "manipulation" }}
-                      >
-                        <div className="flex items-center gap-1.5 truncate">
-                          <Sparkles size={13} className="text-amber-400 shrink-0" />
-                          <span className="truncate">{heroBanner.badgeSubtitle}</span>
-                        </div>
-                        <ArrowRight size={13} className="text-amber-400 shrink-0" />
-                      </Link>
-                    </div>
-                  )}
-                </div>
+                )}
               </div>
             )}
           </div>
         </div>
 
-        {/* ==================== BARRA INFERIOR RIGOROSAMENTE MARGEADA ==================== */}
-        <div className="hero-bottom pt-6 mt-6 border-t border-white/10 flex items-center justify-between text-[10px] tracking-widest text-slate-400">
+        {/* =================================================================== */}
+        {/* 3. BARRA INFERIOR RIGOROSAMENTE MARGEADA + INDICADORES DE BOLINHA */}
+        {/* =================================================================== */}
+        <div className="hero-bottom pt-6 mt-6 border-t border-white/10 flex items-center justify-between text-[10px] tracking-widest text-slate-400 relative z-10">
           <span>ESTILO · PRESENÇA · IDENTIDADE</span>
+
+          {/* Indicadores em Bolinhas do Carrossel */}
+          {isMultiSlide && settings.show_indicators && (
+            <div className="flex items-center gap-2">
+              {activeSlides.map((slide, idx) => (
+                <button
+                  key={slide.id || idx}
+                  type="button"
+                  onClick={() => setCurrentIndex(idx)}
+                  aria-label={`Ir para o slide ${idx + 1}`}
+                  className={`transition-all duration-300 rounded-full cursor-pointer ${
+                    idx === currentIndex
+                      ? "w-6 h-1.5 bg-amber-400 shadow-[0_0_8px_#FFD62E]"
+                      : "w-1.5 h-1.5 bg-white/30 hover:bg-white/60"
+                  }`}
+                />
+              ))}
+            </div>
+          )}
+
           <a
             href="#sobre-nos"
             aria-label="Conhecer a Ótica Ventara"
