@@ -9,6 +9,8 @@ import {
   PartnerLogoItem,
   LensesSectionSettings,
   HeroBannerSettings,
+  HeroSlide,
+  HeroCarouselSettings,
   InteractiveShowcaseSettings,
   LiveBroadcastSettings,
 } from "@/types/ecommerce";
@@ -257,6 +259,56 @@ export const DEFAULT_HERO_BANNER: HeroBannerSettings = {
   secondaryButtonText: "Ver armações",
   secondaryButtonLink: "#armacoes",
 };
+
+export const DEFAULT_HERO_SETTINGS: HeroCarouselSettings = {
+  autoplay: true,
+  interval_ms: 5000,
+  transition_type: "fade",
+  show_arrows: true,
+  show_indicators: true,
+  pause_on_hover: true,
+};
+
+export const DEFAULT_HERO_SLIDES: HeroSlide[] = [
+  {
+    id: "default-hero-slide-1",
+    sort_order: 0,
+    is_active: true,
+    image_url_desktop:
+      "https://yfokjztrhecjlijvmvmr.supabase.co/storage/v1/object/public/product-images/products/1792716830393-u708m6.jpg",
+    image_url_mobile: null,
+    alt_text: "Ótica Ventara — Armações Nobres e Lentes de Alta Precisão",
+    focal_point_desktop: "center",
+    custom_position_x: 50,
+    custom_position_y: 50,
+    focal_point_mobile: "center",
+    fit_mode: "cover",
+    overlay_intensity: 75,
+    overlay_color: "#02070D",
+    click_url: null,
+    show_only_photo: false,
+    show_badge_quality: true,
+    badge_quality_text: "QUALIDADE QUE VOCÊ VÊ",
+    show_badge_style: true,
+    badge_style_text: "ARMAÇÕES DE QUALIDADE E ESTILO",
+    show_badge_stock: true,
+    badge_stock_text: "Em Estoque · Envio Imediato",
+    show_badge_curation: true,
+    badge_curation_text: "Curadoria Autoral Ventara · Acetato Premium",
+    badge_curation_url: "/catalogo",
+    show_title: true,
+    title_text: "Mais que óculos,\né sobre você.",
+    show_description: true,
+    description_text:
+      "Na Óticas Ventara, unimos tecnologia de precisão, curadoria autoral em acetato nobre e laboratório próprio para cuidar da sua visão em todos os momentos.",
+    show_buttons: true,
+    primary_button_text: "Catálogo de Lentes",
+    primary_button_url: "/lentes",
+    secondary_button_text: "Ver armações",
+    secondary_button_url: "#armacoes",
+    show_trust_markers: true,
+  },
+];
 
 export const DEFAULT_INTERACTIVE_SHOWCASE: InteractiveShowcaseSettings = {
   solar_masculino: {
