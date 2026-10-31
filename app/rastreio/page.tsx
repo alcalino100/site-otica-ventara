@@ -22,6 +22,8 @@ import {
   Moon,
   Palette,
   Headphones,
+  Store,
+  XCircle,
 } from "lucide-react";
 import { BrandLogo } from "@/components/ui/brand-logo";
 
@@ -91,9 +93,21 @@ export default function RastreioPage() {
     ? `https://wa.me/5518996155748?text=Ol%C3%A1%21%20Gostaria%20de%20informa%C3%A7%C3%B5es%20sobre%20meu%20pedido%20${order.reference_code}.`
     : "https://wa.me/5518996155748?text=Ol%C3%A1%21%20Gostaria%20de%20consultar%20o%20rastreio%20do%20meu%20pedido.";
 
+  // Status do pedido e modalidade
+  const isCancelled = order?.status === "cancelled";
+  const isRefunded = order?.status === "refunded";
+  const isPickup =
+    order &&
+    (order.delivery_type === "pickup_store" ||
+      order.status === "ready_for_pickup" ||
+      order.delivery_label?.toLowerCase().includes("retirada") ||
+      order.status_label?.toLowerCase().includes("retirada"));
+
   // Verifica se o pedido está pronto para retirada ou entregue
   const isReady =
     order &&
+    !isCancelled &&
+    !isRefunded &&
     (order.status === "ready_for_pickup" ||
       order.status === "delivered" ||
       order.status_label?.toLowerCase().includes("pronto") ||
@@ -350,8 +364,18 @@ export default function RastreioPage() {
                 </p>
               </div>
 
-              {/* Status Badge Dinâmico: Verde quando PRONTO, Amarelo/Âmbar quando em PRODUÇÃO */}
-              {isReady ? (
+              {/* Status Badge Dinâmico: Verde para Pronto, Vermelho para Cancelado, Cinza para Reembolso, Amarelo para Produção */}
+              {isCancelled ? (
+                <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-rose-500/20 border border-rose-500/40 text-rose-300 text-xs font-bold uppercase tracking-wider self-start sm:self-auto">
+                  <span className="w-2.5 h-2.5 rounded-full bg-rose-500" />
+                  <span>{order.status_label}</span>
+                </div>
+              ) : isRefunded ? (
+                <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-slate-700/40 border border-slate-600 text-slate-300 text-xs font-bold uppercase tracking-wider self-start sm:self-auto">
+                  <span className="w-2.5 h-2.5 rounded-full bg-slate-400" />
+                  <span>{order.status_label}</span>
+                </div>
+              ) : isReady ? (
                 <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-emerald-500/20 border border-emerald-500/40 text-emerald-600 dark:text-emerald-300 text-xs font-bold uppercase tracking-wider self-start sm:self-auto shadow-[0_0_20px_rgba(16,185,129,0.25)]">
                   <span className="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-pulse shadow-[0_0_8px_rgba(16,185,129,0.9)]" />
                   <span>{order.status_label}</span>
@@ -364,8 +388,34 @@ export default function RastreioPage() {
               )}
             </div>
 
-            {/* Mensagem Técnica do Laboratório com Destaque Verde para Pronto / Amarelo para Produção */}
-            {isReady ? (
+            {/* Mensagem Técnica do Laboratório */}
+            {isCancelled ? (
+              <div className={`p-4 sm:p-5 rounded-2xl border flex items-start gap-3.5 shadow-sm ${
+                isWhite ? "bg-rose-50 border-rose-300 text-rose-950" : "bg-rose-950/40 border-rose-500/40 text-white"
+              }`}>
+                <div className="w-10 h-10 rounded-xl bg-rose-500/20 border border-rose-500/40 text-rose-400 flex items-center justify-center shrink-0">
+                  <XCircle size={20} />
+                </div>
+                <div className="space-y-1">
+                  <p className="text-xs font-bold text-rose-500 uppercase tracking-wider">Aviso do Pedido:</p>
+                  <p className={`text-xs sm:text-sm leading-relaxed ${isWhite ? "text-slate-800" : "text-rose-100"}`}>
+                    {order.status_description}
+                  </p>
+                </div>
+              </div>
+            ) : isRefunded ? (
+              <div className={`p-4 sm:p-5 rounded-2xl border flex items-start gap-3.5 shadow-sm ${
+                isWhite ? "bg-slate-100 border-slate-300 text-slate-800" : "bg-slate-900 border-slate-700 text-slate-200"
+              }`}>
+                <div className="w-10 h-10 rounded-xl bg-slate-800 border border-slate-700 text-slate-300 flex items-center justify-center shrink-0">
+                  <CheckCircle2 size={20} />
+                </div>
+                <div className="space-y-1">
+                  <p className="text-xs font-bold text-slate-400 uppercase tracking-wider">Status Financeiro:</p>
+                  <p className="text-xs sm:text-sm leading-relaxed">{order.status_description}</p>
+                </div>
+              </div>
+            ) : isReady ? (
               <div className={`p-4 sm:p-5 rounded-2xl border flex items-start gap-3.5 shadow-sm ${
                 isWhite
                   ? "bg-emerald-50/80 border-emerald-300 text-slate-900"
@@ -380,7 +430,7 @@ export default function RastreioPage() {
                       Status da Produção:
                     </p>
                     <span className="text-[10px] px-2.5 py-0.5 rounded-full bg-emerald-500/20 text-emerald-700 dark:text-emerald-300 font-bold border border-emerald-500/40">
-                      {order.status_label || "Pronto para Retirada"}
+                      {order.status_label || (isPickup ? "Pronto para Retirada" : "Pronto para Envio")}
                     </span>
                   </div>
                   <p className={`text-xs sm:text-sm font-medium leading-relaxed ${isWhite ? "text-slate-800" : "text-emerald-100"}`}>
@@ -526,7 +576,7 @@ export default function RastreioPage() {
                 <p className={`text-[11px] leading-relaxed ${isWhite ? "text-slate-600" : "text-slate-400"}`}>
                   {order.delivery_address || (order.delivery_type === "pickup_store" ? "Óticas Ventara · Rua Princesa Isabel, 221 - Centro, Araçatuba-SP" : "Endereço cadastrado no pedido (Envio Correios)")}
                 </p>
-                {order.tracking_number && (
+                {order.tracking_number && !isPickup && (
                   <div className={`pt-2 mt-2 border-t ${isWhite ? "border-slate-200" : "border-white/10"} flex flex-wrap items-center justify-between gap-2`}>
                     <span className="text-[10px] font-mono text-amber-500 font-bold">
                       Rastreio: {order.tracking_number}
@@ -539,6 +589,12 @@ export default function RastreioPage() {
                     >
                       Acompanhar nos Correios &rarr;
                     </a>
+                  </div>
+                )}
+                {isPickup && (
+                  <div className={`pt-2 mt-2 border-t ${isWhite ? "border-slate-200" : "border-white/10"} flex items-center gap-1.5 text-[11px] text-emerald-600 dark:text-emerald-300 font-medium`}>
+                    <Store size={13} className="shrink-0 text-emerald-500" />
+                    <span>Retirada Presencial no Balcão de Araçatuba</span>
                   </div>
                 )}
               </div>

@@ -149,6 +149,7 @@ export default function AdminOrdersPage() {
             return {
               ...o,
               status: newStatus as OrderStatus,
+              tracking_number: isPickup ? null : o.tracking_number,
               shipping_address: updatedAddress,
             };
           }
