@@ -2,7 +2,8 @@
 
 import React from "react";
 import Link from "next/link";
-import { MapPin, Phone, Clock, Instagram, Facebook, ShieldCheck } from "lucide-react";
+import Image from "next/image";
+import { MapPin, Phone, Clock, Instagram, Facebook, ShieldCheck, Truck } from "lucide-react";
 import { BrandLogo } from "../ui/brand-logo";
 import { useSiteSettings } from "../providers/site-settings-provider";
 
@@ -12,7 +13,7 @@ interface FooterProps {
 
 export function Footer({ onOpenLegal }: FooterProps) {
   const currentYear = new Date().getFullYear();
-  const { identity, cleanWhatsAppNumber } = useSiteSettings();
+  const { identity, cleanWhatsAppNumber, paymentMethods } = useSiteSettings();
   const instaUrl = `https://instagram.com/${identity.instagram_handle.replace("@", "")}`;
 
   return (
@@ -83,6 +84,11 @@ export function Footer({ onOpenLegal }: FooterProps) {
                 <a href="/rastreio" className="hover:text-amber-300 transition-colors flex items-center gap-1">
                   <span>Rastrear Pedido</span>
                 </a>
+              </li>
+              <li>
+                <Link href="/entregas" className="hover:text-amber-300 transition-colors flex items-center gap-1">
+                  <span>Rede de Entregas</span>
+                </Link>
               </li>
               <li>
                 <a href="/responsavel-tecnico" className="hover:text-amber-300 transition-colors flex items-center gap-1">
@@ -184,6 +190,63 @@ export function Footer({ onOpenLegal }: FooterProps) {
             </div>
           </div>
         </div>
+
+        {/* Bloco: Formas de Pagamento Aceitas & Selo Mercado Pago */}
+        {paymentMethods?.show_footer_block && (
+          <div
+            data-testid="footer-payment-methods"
+            className="py-6 sm:py-8 border-b border-white/10 flex flex-col md:flex-row items-center justify-between gap-5"
+          >
+            <div className="flex flex-col sm:flex-row items-center gap-3 sm:gap-4 text-center sm:text-left">
+              <span className="text-xs font-semibold uppercase tracking-wider text-slate-400">
+                {paymentMethods.block_title || "Formas de Pagamento"}
+              </span>
+              <div
+                className="flex flex-wrap items-center justify-center gap-2"
+                aria-label="Bandeiras e métodos de pagamento aceitos"
+              >
+                {paymentMethods.methods
+                  ?.filter((m) => m.is_active)
+                  .sort((a, b) => a.sort_order - b.sort_order)
+                  .map((method) => (
+                    <div
+                      key={method.id}
+                      data-testid={`payment-badge-${method.id}`}
+                      className="inline-flex items-center justify-center p-1 rounded-lg bg-white/[0.04] border border-white/10 hover:border-white/20 transition-colors shadow-sm"
+                      title={method.name}
+                    >
+                      <Image
+                        src={method.icon_path}
+                        alt={method.alt_text || method.name}
+                        width={38}
+                        height={24}
+                        className="h-6 w-auto object-contain brightness-95 opacity-80 hover:opacity-100 transition-opacity"
+                      />
+                    </div>
+                  ))}
+              </div>
+            </div>
+
+            {/* Selo Pagamento Seguro com Mercado Pago */}
+            {paymentMethods.show_secure_badge && (
+              <div
+                data-testid="footer-secure-badge"
+                className="inline-flex items-center gap-2.5 px-3.5 py-1.5 rounded-full bg-white/[0.03] border border-white/10 hover:border-amber-400/30 transition-all text-slate-300"
+              >
+                <Image
+                  src="/logos/mercadopago.svg"
+                  alt="Mercado Pago"
+                  width={20}
+                  height={14}
+                  className="h-3.5 w-auto object-contain"
+                />
+                <span className="text-xs font-medium text-slate-300">
+                  {paymentMethods.secure_badge_text || "Pagamento seguro com Mercado Pago"}
+                </span>
+              </div>
+            )}
+          </div>
+        )}
 
         {/* Rodapé inferior com Copyright */}
         <div className="pt-8 flex flex-col sm:flex-row items-center justify-between text-xs text-slate-500 gap-4 text-center sm:text-left pr-14 sm:pr-0">

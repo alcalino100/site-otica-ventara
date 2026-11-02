@@ -1,21 +1,35 @@
 "use client";
 
 import React, { createContext, useContext, useState, useEffect } from "react";
-import { SiteIdentitySettings, SiteAppearanceSettings, SiteShippingSettings, LiveBroadcastSettings } from "@/types/ecommerce";
-import { DEFAULT_IDENTITY, DEFAULT_APPEARANCE, DEFAULT_SHIPPING, DEFAULT_LIVE_BROADCAST } from "@/lib/site-settings-constants";
+import {
+  SiteIdentitySettings,
+  SiteAppearanceSettings,
+  SiteShippingSettings,
+  LiveBroadcastSettings,
+  FooterPaymentSettings,
+} from "@/types/ecommerce";
+import {
+  DEFAULT_IDENTITY,
+  DEFAULT_APPEARANCE,
+  DEFAULT_SHIPPING,
+  DEFAULT_LIVE_BROADCAST,
+  DEFAULT_FOOTER_PAYMENT_SETTINGS,
+} from "@/lib/site-settings-constants";
 
 interface SiteSettingsContextValue {
   identity: SiteIdentitySettings;
   appearance: SiteAppearanceSettings;
   shipping: SiteShippingSettings;
   liveBroadcast: LiveBroadcastSettings;
+  paymentMethods: FooterPaymentSettings;
   fullAddress: string;
   cleanWhatsAppNumber: string;
   updateSettings: (
     newIdentity?: Partial<SiteIdentitySettings>,
     newAppearance?: Partial<SiteAppearanceSettings>,
     newShipping?: Partial<SiteShippingSettings>,
-    newLiveBroadcast?: Partial<LiveBroadcastSettings>
+    newLiveBroadcast?: Partial<LiveBroadcastSettings>,
+    newPaymentMethods?: Partial<FooterPaymentSettings>
   ) => void;
 }
 
@@ -24,6 +38,7 @@ const SiteSettingsContext = createContext<SiteSettingsContextValue>({
   appearance: DEFAULT_APPEARANCE,
   shipping: DEFAULT_SHIPPING,
   liveBroadcast: DEFAULT_LIVE_BROADCAST,
+  paymentMethods: DEFAULT_FOOTER_PAYMENT_SETTINGS,
   fullAddress: `${DEFAULT_IDENTITY.address_street}, ${DEFAULT_IDENTITY.address_neighborhood} · ${DEFAULT_IDENTITY.address_city}-${DEFAULT_IDENTITY.address_state}`,
   cleanWhatsAppNumber: "5518996155748",
   updateSettings: () => {},
@@ -34,6 +49,7 @@ export function SiteSettingsProvider({ children }: { children: React.ReactNode }
   const [appearance, setAppearance] = useState<SiteAppearanceSettings>(DEFAULT_APPEARANCE);
   const [shipping, setShipping] = useState<SiteShippingSettings>(DEFAULT_SHIPPING);
   const [liveBroadcast, setLiveBroadcast] = useState<LiveBroadcastSettings>(DEFAULT_LIVE_BROADCAST);
+  const [paymentMethods, setPaymentMethods] = useState<FooterPaymentSettings>(DEFAULT_FOOTER_PAYMENT_SETTINGS);
 
   useEffect(() => {
     async function loadSettings() {
@@ -45,6 +61,7 @@ export function SiteSettingsProvider({ children }: { children: React.ReactNode }
           if (data.appearance) setAppearance((prev) => ({ ...prev, ...data.appearance }));
           if (data.shipping) setShipping((prev) => ({ ...prev, ...data.shipping }));
           if (data.live_broadcast) setLiveBroadcast((prev) => ({ ...prev, ...data.live_broadcast }));
+          if (data.payment_methods) setPaymentMethods((prev) => ({ ...prev, ...data.payment_methods }));
         }
       } catch (err) {
         console.warn("Utilizando dados padrão de identidade:", err);
@@ -110,12 +127,14 @@ export function SiteSettingsProvider({ children }: { children: React.ReactNode }
     newIdentity?: Partial<SiteIdentitySettings>,
     newAppearance?: Partial<SiteAppearanceSettings>,
     newShipping?: Partial<SiteShippingSettings>,
-    newLiveBroadcast?: Partial<LiveBroadcastSettings>
+    newLiveBroadcast?: Partial<LiveBroadcastSettings>,
+    newPaymentMethods?: Partial<FooterPaymentSettings>
   ) => {
     if (newIdentity) setIdentity((prev) => ({ ...prev, ...newIdentity }));
     if (newAppearance) setAppearance((prev) => ({ ...prev, ...newAppearance }));
     if (newShipping) setShipping((prev) => ({ ...prev, ...newShipping }));
     if (newLiveBroadcast) setLiveBroadcast((prev) => ({ ...prev, ...newLiveBroadcast }));
+    if (newPaymentMethods) setPaymentMethods((prev) => ({ ...prev, ...newPaymentMethods }));
   };
 
   return (
@@ -125,6 +144,7 @@ export function SiteSettingsProvider({ children }: { children: React.ReactNode }
         appearance,
         shipping,
         liveBroadcast,
+        paymentMethods,
         fullAddress,
         cleanWhatsAppNumber,
         updateSettings,

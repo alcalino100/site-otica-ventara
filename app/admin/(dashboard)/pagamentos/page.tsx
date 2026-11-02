@@ -17,7 +17,12 @@ import {
   Zap,
   Server,
   Sparkles,
+  Layers,
+  Save,
 } from "lucide-react";
+import Image from "next/image";
+import { FooterPaymentSettings } from "@/types/shipping";
+import { DEFAULT_FOOTER_PAYMENT_SETTINGS } from "@/lib/shipping-constants";
 
 export default function AdminPaymentsPage() {
   const [loading, setLoading] = useState(true);
@@ -43,9 +48,61 @@ export default function AdminPaymentsPage() {
   } | null>(null);
   const [saveMessage, setSaveMessage] = useState<{ type: "success" | "error"; text: string } | null>(null);
 
+  // Footer Payment Methods State
+  const [footerPayments, setFooterPayments] = useState<FooterPaymentSettings>(DEFAULT_FOOTER_PAYMENT_SETTINGS);
+  const [savingFooter, setSavingFooter] = useState(false);
+  const [footerSaveFeedback, setFooterSaveFeedback] = useState<string | null>(null);
+
   useEffect(() => {
     fetchPaymentSettings();
+    fetchFooterPayments();
   }, []);
+
+  const fetchFooterPayments = async () => {
+    try {
+      const res = await fetch("/api/settings");
+      if (res.ok) {
+        const data = await res.json();
+        if (data.payment_methods) {
+          setFooterPayments(data.payment_methods);
+        }
+      }
+    } catch (err) {
+      console.warn("Erro ao carregar formas de pagamento no rodapé:", err);
+    }
+  };
+
+  const handleSaveFooterPayments = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setSavingFooter(true);
+    try {
+      const res = await fetch("/api/admin/settings", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ payment_methods: footerPayments }),
+      });
+      const data = await res.json();
+      if (!res.ok || data.error) {
+        throw new Error(data.error || "Erro ao salvar formas de pagamento.");
+      }
+      setFooterSaveFeedback("Formas de pagamento e selos do rodapé atualizados com sucesso!");
+      setTimeout(() => setFooterSaveFeedback(null), 3000);
+    } catch (err: any) {
+      setFooterSaveFeedback(err.message || "Erro ao salvar dados no servidor.");
+      setTimeout(() => setFooterSaveFeedback(null), 3000);
+    } finally {
+      setSavingFooter(false);
+    }
+  };
+
+  const toggleMethodActive = (methodId: string, isActive: boolean) => {
+    setFooterPayments((prev) => ({
+      ...prev,
+      methods: prev.methods.map((m) =>
+        m.id === methodId ? { ...m, is_active: isActive } : m
+      ),
+    }));
+  };
 
   const fetchPaymentSettings = async () => {
     try {
@@ -453,6 +510,137 @@ export default function AdminPaymentsPage() {
           </ol>
         </div>
       </div>
+
+      {/* Seção: Formas de Pagamento e Selos no Rodapé */}
+      <form onSubmit={handleSaveFooterPayments} className="bg-[#06111f] border border-white/10 rounded-2xl p-6 sm:p-8 space-y-6">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-white/5 pb-4">
+          <div>
+            <h3 className="text-sm font-semibold text-white flex items-center gap-2">
+              <CreditCard size={18} className="text-amber-400" />
+              Formas de Pagamento e Selos no Rodapé
+            </h3>
+            <p className="text-xs text-slate-400 mt-0.5">
+              Controle quais bandeiras são exibidas no rodapé da loja e personalize o selo de segurança do Mercado Pago.
+            </p>
+          </div>
+
+          <label className="flex items-center gap-2 cursor-pointer self-start sm:self-auto">
+            <span className="text-xs text-slate-300 font-medium">Exibir Bloco no Rodapé</span>
+            <input
+              type="checkbox"
+              checked={footerPayments.show_footer_block}
+              onChange={(e) =>
+                setFooterPayments({ ...footerPayments, show_footer_block: e.target.checked })
+              }
+              className="w-4 h-4 accent-amber-400 rounded cursor-pointer"
+            />
+          </label>
+        </div>
+
+        {footerSaveFeedback && (
+          <div className="p-3 rounded-xl bg-amber-400/15 border border-amber-400/30 text-amber-300 text-xs flex items-center gap-2">
+            <CheckCircle2 size={16} />
+            <span>{footerSaveFeedback}</span>
+          </div>
+        )}
+
+        {/* Título do Bloco */}
+        <div className="text-xs max-w-sm">
+          <label className="block text-slate-400 mb-1">Título do Bloco</label>
+          <input
+            type="text"
+            value={footerPayments.block_title}
+            onChange={(e) =>
+              setFooterPayments({ ...footerPayments, block_title: e.target.value })
+            }
+            className="w-full bg-[#040c16] border border-white/10 rounded-xl px-3.5 py-2 text-white"
+            placeholder="Formas de Pagamento"
+          />
+        </div>
+
+        {/* Bandeiras de Pagamento */}
+        <div className="space-y-3">
+          <label className="block text-xs font-semibold uppercase tracking-wider text-slate-400">
+            Bandeiras e Métodos Aceitos
+          </label>
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3">
+            {footerPayments.methods.map((method) => (
+              <label
+                key={method.id}
+                className={`flex items-center justify-between p-3 rounded-xl border transition-all cursor-pointer ${
+                  method.is_active
+                    ? "bg-[#040c16] border-amber-400/30 text-white"
+                    : "bg-[#040c16]/50 border-white/5 text-slate-500 opacity-60"
+                }`}
+              >
+                <div className="flex items-center gap-2.5">
+                  <div className="w-9 h-6 rounded bg-white/5 border border-white/10 flex items-center justify-center overflow-hidden">
+                    <Image
+                      src={method.icon_path}
+                      alt={method.name}
+                      width={36}
+                      height={20}
+                      className="h-5 w-auto object-contain"
+                    />
+                  </div>
+                  <span className="text-xs font-medium">{method.name}</span>
+                </div>
+                <input
+                  type="checkbox"
+                  checked={method.is_active}
+                  onChange={(e) => toggleMethodActive(method.id, e.target.checked)}
+                  className="w-4 h-4 accent-amber-400 rounded cursor-pointer"
+                />
+              </label>
+            ))}
+          </div>
+        </div>
+
+        {/* Selo Mercado Pago no Rodapé */}
+        <div className="p-4 rounded-xl bg-white/[0.02] border border-white/10 space-y-3 text-xs">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-2 text-white font-medium">
+              <ShieldCheck size={16} className="text-amber-400" />
+              <span>Selo de Compra Segura no Rodapé</span>
+            </div>
+            <label className="flex items-center gap-2 cursor-pointer">
+              <span className="text-slate-400">Ativo</span>
+              <input
+                type="checkbox"
+                checked={footerPayments.show_secure_badge}
+                onChange={(e) =>
+                  setFooterPayments({ ...footerPayments, show_secure_badge: e.target.checked })
+                }
+                className="w-4 h-4 accent-amber-400 rounded cursor-pointer"
+              />
+            </label>
+          </div>
+
+          <div>
+            <label className="block text-slate-400 mb-1">Texto do Selo</label>
+            <input
+              type="text"
+              value={footerPayments.secure_badge_text}
+              onChange={(e) =>
+                setFooterPayments({ ...footerPayments, secure_badge_text: e.target.value })
+              }
+              className="w-full bg-[#040c16] border border-white/10 rounded-xl px-3.5 py-2 text-white"
+              placeholder="Pagamento seguro com Mercado Pago"
+            />
+          </div>
+        </div>
+
+        <div className="pt-2 flex justify-end">
+          <button
+            type="submit"
+            disabled={savingFooter}
+            className="inline-flex items-center gap-2 px-7 py-3 rounded-xl bg-amber-400 hover:bg-amber-300 text-slate-950 text-xs font-bold uppercase tracking-wider transition-all active:scale-95 disabled:opacity-50 cursor-pointer shadow-lg shadow-amber-400/10"
+          >
+            <Save size={15} />
+            <span>{savingFooter ? "Salvando Rodapé..." : "Salvar Formas de Pagamento no Rodapé"}</span>
+          </button>
+        </div>
+      </form>
     </div>
   );
 }

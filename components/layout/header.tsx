@@ -75,6 +75,7 @@ export function Header({
     { title: "Sobre nós", href: "/#sobre-nos", id: "sobre-nos" },
     { title: "Laboratório", href: "/#laboratorio", id: "laboratorio" },
     { title: "Lentes", href: "/lentes", id: "lentes" },
+    { title: "Entregas", href: "/entregas", id: "entregas" },
     { title: "Contato", href: "/#contato", id: "contato" },
   ];
 
