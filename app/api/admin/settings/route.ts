@@ -21,6 +21,7 @@ import {
   DEFAULT_LENSES_SECTION_SETTINGS,
   DEFAULT_HERO_BANNER,
   DEFAULT_LIVE_BROADCAST,
+  DEFAULT_FOOTER_PAYMENT_SETTINGS,
 } from "@/lib/site-settings-constants";
 
 export async function GET() {
@@ -42,6 +43,7 @@ export async function GET() {
         "interactive_showcase",
         "company_settings",
         "live_broadcast",
+        "payment_methods",
       ]);
 
     if (error) {
@@ -71,6 +73,7 @@ export async function GET() {
     const interactiveShowcaseRow = data?.find((s) => s.key === "interactive_showcase");
     const companySettingsRow = data?.find((s) => s.key === "company_settings");
     const liveBroadcastRow = data?.find((s) => s.key === "live_broadcast");
+    const paymentMethodsRow = data?.find((s) => s.key === "payment_methods");
 
     return NextResponse.json({
       identity: identityRow?.value ? { ...DEFAULT_IDENTITY, ...(identityRow.value as SiteIdentitySettings) } : DEFAULT_IDENTITY,
@@ -85,6 +88,7 @@ export async function GET() {
       interactive_showcase: interactiveShowcaseRow?.value || null,
       company_settings: companySettingsRow?.value || null,
       live_broadcast: liveBroadcastRow?.value ? { ...DEFAULT_LIVE_BROADCAST, ...(liveBroadcastRow.value as LiveBroadcastSettings) } : DEFAULT_LIVE_BROADCAST,
+      payment_methods: paymentMethodsRow?.value ? { ...DEFAULT_FOOTER_PAYMENT_SETTINGS, ...paymentMethodsRow.value } : DEFAULT_FOOTER_PAYMENT_SETTINGS,
     });
   } catch (err: any) {
     console.error("Erro interno ao buscar configurações:", err);
@@ -98,6 +102,7 @@ export async function GET() {
       lenses_section: DEFAULT_LENSES_SECTION_SETTINGS,
       hero_banner: DEFAULT_HERO_BANNER,
       live_broadcast: DEFAULT_LIVE_BROADCAST,
+      payment_methods: DEFAULT_FOOTER_PAYMENT_SETTINGS,
     });
   }
 }
@@ -184,6 +189,10 @@ export async function POST(req: NextRequest) {
 
     if (body.live_broadcast) {
       await saveSetting("live_broadcast", "Configurações de Transmissão Ao Vivo e Botão Live", body.live_broadcast);
+    }
+
+    if (body.payment_methods) {
+      await saveSetting("payment_methods", "Configurações das formas de pagamento e selos exibidos no rodapé", body.payment_methods);
     }
 
     return NextResponse.json({

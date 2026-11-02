@@ -622,3 +622,12 @@ export const DEFAULT_LIVE_BROADCAST: LiveBroadcastSettings = {
   label: "LIVE",
   call_to_action: "Clique para assistir",
 };
+
+export {
+  DEFAULT_SHIPPING_PAGE_SETTINGS,
+  DEFAULT_SHIPPING_CARRIERS,
+  DEFAULT_SHIPPING_FAQS,
+  DEFAULT_SHIPPING_TIMELINE,
+  DEFAULT_FOOTER_PAYMENT_SETTINGS,
+} from "./shipping-constants";
+

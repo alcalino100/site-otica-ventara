@@ -1,0 +1,6 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 32" width="48" height="32" fill="none">
+  <rect width="48" height="32" rx="4" fill="#0c1826" stroke="#22364f" stroke-width="1"/>
+  <path d="M14.5 16l3.5-3.5 3.5 3.5-3.5 3.5-3.5-3.5z" fill="#32BCAD"/>
+  <path d="M18 10.2l-5.8 5.8 5.8 5.8 5.8-5.8-5.8-5.8zm0 9.8l-4-4 4-4 4 4-4 4z" fill="#32BCAD"/>
+  <text x="32" y="19" font-family="system-ui, sans-serif" font-size="9" font-weight="800" text-anchor="middle" fill="#32BCAD" letter-spacing="0.5">pix</text>
+</svg>

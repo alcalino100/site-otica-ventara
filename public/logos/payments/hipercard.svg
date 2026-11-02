@@ -1,0 +1,5 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 32" width="48" height="32" fill="none">
+  <rect width="48" height="32" rx="4" fill="#0c1826" stroke="#22364f" stroke-width="1"/>
+  <rect x="5" y="8" width="38" height="16" rx="2" fill="#B91C1C"/>
+  <text x="24" y="19" font-family="system-ui, sans-serif" font-size="6.5" font-weight="900" text-anchor="middle" fill="#FFFFFF" font-style="italic">HIPERCARD</text>
+</svg>

@@ -434,3 +434,14 @@ export interface LiveBroadcastSettings {
   label?: string;
   call_to_action?: string;
 }
+
+export type {
+  ShippingCarrier,
+  ShippingFaqItem,
+  ShippingTimelineStep,
+  ShippingPageSettings,
+  PaymentMethodItem,
+  FooterPaymentSettings,
+  FullShippingData,
+} from "./shipping";
+
