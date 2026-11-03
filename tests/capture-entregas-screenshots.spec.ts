@@ -84,7 +84,7 @@ test.describe("Captura de Screenshots Visuais da Página de Entregas", () => {
       fullPage: false,
     });
 
-    // 9. Painel Admin com Pré-Visualização ao Vivo
+    // 9. Painel Admin Completo do CMS
     await page.context().addCookies([
       {
         name: "pw_test_session",
@@ -97,7 +97,27 @@ test.describe("Captura de Screenshots Visuais da Página de Entregas", () => {
     await page.goto("/admin/entrega", { waitUntil: "domcontentloaded" });
     await page.waitForTimeout(600);
     await page.screenshot({
-      path: path.join(screenshotsDir, "admin-entrega-regional-live-preview.png"),
+      path: path.join(screenshotsDir, "admin-cms-full-dashboard.png"),
+      fullPage: false,
+    });
+
+    // 10. Acordeão Nacional Expandido no CMS
+    const nationalAccordion = page.getByTestId("cms-accordion-national_delivery");
+    if (await nationalAccordion.isVisible()) {
+      await nationalAccordion.scrollIntoViewIfNeeded();
+      await nationalAccordion.locator("#section-header-sec-national").click();
+      await page.waitForTimeout(400);
+      await page.screenshot({
+        path: path.join(screenshotsDir, "admin-cms-national-accordion.png"),
+        fullPage: false,
+      });
+    }
+
+    // 11. Página Pública com Tarja de Pré-visualização
+    await page.goto("/entregas?preview=draft", { waitUntil: "domcontentloaded" });
+    await page.waitForTimeout(400);
+    await page.screenshot({
+      path: path.join(screenshotsDir, "entregas-preview-draft-banner.png"),
       fullPage: false,
     });
   });

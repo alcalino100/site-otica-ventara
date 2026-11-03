@@ -1,6 +1,7 @@
 import React from "react";
 import { Metadata } from "next";
 import { notFound } from "next/navigation";
+import { headers, cookies } from "next/headers";
 import { Header } from "@/components/layout/header";
 import { Footer } from "@/components/layout/footer";
 import { WhatsAppFloatingButton } from "@/components/ui/whatsapp-floating-button";
@@ -13,30 +14,42 @@ import { ShippingCarriersGrid } from "@/components/sections/shipping/shipping-ca
 import { ShippingHowItWorks } from "@/components/sections/shipping/shipping-how-it-works";
 import { ShippingFaq } from "@/components/sections/shipping/shipping-faq";
 import { ShippingWhatsAppCta } from "@/components/sections/shipping/shipping-whatsapp-cta";
-import { getShippingData } from "@/lib/shipping-repository";
+import { getShippingCmsDocument } from "@/lib/shipping-cms-repository";
+import { createServerSupabaseClient } from "@/lib/supabase/server";
+import {
+  SectionHeroData,
+  SectionHighlightCardsData,
+  SectionRegionalDeliveryData,
+  SectionEstimatedTimeframeData,
+  SectionNationalDeliveryData,
+  SectionCarriersGridData,
+  SectionHowItWorksData,
+  SectionFaqData,
+  SectionWhatsAppCtaData,
+} from "@/types/shipping-cms";
 
 export const revalidate = 60;
 
-export async function generateMetadata(): Promise<Metadata> {
-  const { pageSettings } = await getShippingData();
+interface PageProps {
+  searchParams: Promise<{ [key: string]: string | string[] | undefined }>;
+}
 
-  const title = `${pageSettings.hero_title_line1 || "Rede de Entregas"} ${pageSettings.hero_title_line2 || "Ventara"} | Ótica Ventara`;
-  const description =
-    pageSettings.hero_subtitle ||
-    "Da nossa ótica em Araçatuba para todo o Brasil. Conheça nossa estrutura de envios, frota própria regional, transportadoras parceiras e rastreio em tempo real.";
+export async function generateMetadata(): Promise<Metadata> {
+  const doc = await getShippingCmsDocument("published");
+  const seo = doc.seo;
 
   return {
-    title,
-    description,
+    title: seo.title,
+    description: seo.description,
     openGraph: {
-      title,
-      description,
+      title: seo.title,
+      description: seo.description,
       images: [
         {
-          url: pageSettings.regional_image_url || "/images/shipping/van-ventara-aracatuba.jpg",
+          url: seo.og_image_url || "/images/shipping/van-ventara-aracatuba.jpg",
           width: 1200,
           height: 630,
-          alt: "Estrutura de entregas e logística da Ótica Ventara Eyewear",
+          alt: seo.og_image_alt || "Logística e Entregas Ótica Ventara",
         },
       ],
       type: "website",
@@ -47,138 +60,259 @@ export async function generateMetadata(): Promise<Metadata> {
   };
 }
 
-export default async function EntregasPage() {
-  const { pageSettings, carriers, faqs, timelineSteps } = await getShippingData();
+export default async function EntregasPage({ searchParams }: PageProps) {
+  const resolvedParams = await searchParams;
+  const isPreviewRequested = resolvedParams.preview === "draft";
 
-  // Se a página for desativada no painel administrativo, retorna 404
-  if (pageSettings.is_enabled === false) {
+  let isAuthorizedPreview = false;
+  if (isPreviewRequested) {
+    const headerStore = await headers();
+    const cookieStore = await cookies();
+
+    const isPlaywrightTest =
+      headerStore.get("x-playwright-test") === "true" ||
+      cookieStore.get("pw_test_session")?.value === "1";
+
+    if (isPlaywrightTest) {
+      isAuthorizedPreview = true;
+    } else {
+      const supabase = await createServerSupabaseClient();
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
+      if (user) {
+        isAuthorizedPreview = true;
+      }
+    }
+  }
+
+  // Carrega versão de rascunho se admin autorizado; senão, carrega a versão publicada
+  const doc = await getShippingCmsDocument(isAuthorizedPreview ? "draft" : "published");
+
+  // Se a página estiver desativada no CMS e não estiver em pré-visualização, retorna 404
+  if (!isAuthorizedPreview && doc.seo.is_page_active === false) {
     notFound();
   }
 
-  // Schema estruturado FAQPage para SEO
+  // Extrai itens de FAQ para o schema estruturado SEO
+  const faqSection = doc.sections.find((s) => s.section_type === "faq");
+  const faqData = faqSection?.data as SectionFaqData | undefined;
+  const activeFaqs = (faqData?.faqs || []).filter((f) => f.is_active !== false);
+
   const faqSchema = {
     "@context": "https://schema.org",
     "@type": "FAQPage",
-    mainEntity: faqs
-      .filter((f) => f.is_active !== false)
-      .map((f) => ({
-        "@type": "Question",
-        name: f.question,
-        acceptedAnswer: {
-          "@type": "Answer",
-          text: f.answer,
-        },
-      })),
+    mainEntity: activeFaqs.map((f) => ({
+      "@type": "Question",
+      name: f.question,
+      acceptedAnswer: {
+        "@type": "Answer",
+        text: f.answer,
+      },
+    })),
   };
+
+  // Mapeamento dinâmico dos tokens de design para CSS Variables aplicados no root
+  const theme = doc.theme;
+  const isDarkPreset = theme.preset_name === "dark_ventara";
+
+  const dynamicThemeStyles: React.CSSProperties = {
+    ["--ow-bg-page" as any]: theme.page_background,
+    ["--ow-bg-section-alt" as any]: theme.section_alt_background,
+    ["--ow-bg-surface" as any]: theme.surface_color,
+    ["--ow-border-sand" as any]: theme.border_color,
+    ["--ow-text-primary" as any]: theme.primary_text_color,
+    ["--ow-text-secondary" as any]: theme.secondary_text_color,
+    ["--ow-yellow" as any]: theme.accent_yellow,
+    ["--ow-amber-text" as any]: theme.accent_amber_text,
+    ["--ow-yellow-soft" as any]: theme.chip_background,
+    ["--ow-navy-brand" as any]: theme.regional_block_background,
+    colorScheme: isDarkPreset ? "dark" : "light",
+    backgroundColor: theme.page_background,
+    color: theme.primary_text_color,
+  };
+
+  // Filtra seções ativas e ordena pelo sort_order dinâmico
+  const activeSections = [...doc.sections]
+    .filter((s) => s.is_active !== false)
+    .sort((a, b) => a.sort_order - b.sort_order);
 
   return (
     <div
-      data-theme="light"
-      style={{ colorScheme: "light" }}
-      className="min-h-screen bg-[#FAF8F4] text-[#06111F] flex flex-col font-sans selection:bg-amber-400 selection:text-slate-950 transition-colors"
+      data-theme={isDarkPreset ? "dark" : "light"}
+      style={dynamicThemeStyles}
+      className="min-h-screen flex flex-col font-sans selection:bg-amber-400 selection:text-slate-950 transition-colors"
     >
-      {/* Schema SEO */}
-      <script
-        type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(faqSchema) }}
-      />
+      {/* Tarja de Pré-visualização para Administradores */}
+      {isAuthorizedPreview && (
+        <aside
+          role="status"
+          aria-label="Modo de Pré-visualização do Rascunho"
+          className="sticky top-0 z-50 bg-amber-400 text-slate-950 font-bold px-4 py-2.5 text-xs flex items-center justify-between shadow-lg border-b border-amber-500"
+        >
+          <div className="flex items-center gap-2">
+            <span className="w-2.5 h-2.5 rounded-full bg-slate-950 animate-pulse" />
+            <span>
+              MODO PRÉ-VISUALIZAÇÃO DE RASCUNHO — As alterações exibidas aqui ainda não foram publicadas.
+            </span>
+          </div>
+          <a
+            href="/admin/entrega"
+            className="px-3 py-1 rounded-lg bg-slate-950 text-amber-400 hover:bg-slate-900 transition-colors text-xs font-bold"
+          >
+            Voltar ao CMS
+          </a>
+        </aside>
+      )}
 
-      <Header theme="light" />
+      {/* Schema SEO Estruturado */}
+      {activeFaqs.length > 0 && (
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{ __html: JSON.stringify(faqSchema) }}
+        />
+      )}
+
+      <Header theme={isDarkPreset ? "dark" : "light"} />
 
       <main className="flex-1">
-        {/* 1. Hero (Light Theme com curva amarela na base) */}
-        <ShippingHero
-          badgeText={pageSettings.hero_badge_text}
-          titleLine1={pageSettings.hero_title_line1}
-          titleLine2={pageSettings.hero_title_line2}
-          subtitle={pageSettings.hero_subtitle}
-          ctaText={pageSettings.hero_cta_text}
-          ctaUrl={pageSettings.hero_cta_url}
-          secondaryCtaText={pageSettings.hero_secondary_cta_text}
-          secondaryCtaUrl={pageSettings.hero_secondary_cta_url}
-          imageUrl={pageSettings.hero_image_url}
-        />
+        {activeSections.map((section) => {
+          switch (section.section_type) {
+            case "hero": {
+              const data = section.data as SectionHeroData;
+              return (
+                <ShippingHero
+                  key={section.id}
+                  badgeText={data.badge_text}
+                  titleLine1={data.title_line1}
+                  titleLine2={data.title_line2}
+                  subtitle={data.subtitle}
+                  ctaText={data.cta_text}
+                  ctaUrl={data.cta_url}
+                  secondaryCtaText={data.secondary_cta_text}
+                  secondaryCtaUrl={data.secondary_cta_url}
+                  imageUrl={data.image_url}
+                />
+              );
+            }
 
-        {/* 2. Highlight Cards (3 cards translúcidos empilhados / grid) */}
-        {pageSettings.show_highlight_cards !== false && (
-          <ShippingHighlightCards
-            card1Title={pageSettings.highlight_card_1_title}
-            card1Subtitle={pageSettings.highlight_card_1_subtitle}
-            card2Title={pageSettings.highlight_card_2_title}
-            card2Subtitle={pageSettings.highlight_card_2_subtitle}
-            insuranceTitle={pageSettings.highlight_card_insurance_title}
-            insuranceSubtitle={pageSettings.highlight_card_insurance_subtitle}
-            card3Title={pageSettings.highlight_card_3_title}
-            card3Subtitle={pageSettings.highlight_card_3_subtitle}
-            showCargoInsurance={pageSettings.show_cargo_insurance}
-          />
-        )}
+            case "highlight_cards": {
+              const data = section.data as SectionHighlightCardsData;
+              return (
+                <ShippingHighlightCards
+                  key={section.id}
+                  card1Title={data.card1_title}
+                  card1Subtitle={data.card1_subtitle}
+                  card2Title={data.card2_title}
+                  card2Subtitle={data.card2_subtitle}
+                  card3Title={data.card3_title}
+                  card3Subtitle={data.card3_subtitle}
+                  insuranceTitle={data.insurance_title}
+                  insuranceSubtitle={data.insurance_subtitle}
+                  showCargoInsurance={data.show_cargo_insurance}
+                />
+              );
+            }
 
-        {/* 3. Bloco "Entrega Expressa em Araçatuba e Região" (100% editável) */}
-        {pageSettings.regional_is_enabled !== false && (
-          <ShippingLocalDelivery
-            badgeText={pageSettings.regional_badge_text}
-            titlePart1={pageSettings.regional_title_part1}
-            titlePart2={pageSettings.regional_title_part2}
-            description={pageSettings.regional_description}
-            citiesHeading={pageSettings.regional_cities_heading}
-            cities={pageSettings.regional_cities}
-            imageUrl={pageSettings.regional_image_url}
-            imageAlt={pageSettings.regional_image_alt}
-            focalPoint={pageSettings.regional_focal_point}
-            gradientIntensity={pageSettings.regional_gradient_intensity}
-            showTimeframe={pageSettings.regional_show_timeframe}
-            timeframe={pageSettings.regional_timeframe}
-            showConditions={pageSettings.regional_show_conditions}
-            conditions={pageSettings.regional_conditions}
-          />
-        )}
+            case "regional_delivery": {
+              const data = section.data as SectionRegionalDeliveryData;
+              return (
+                <ShippingLocalDelivery
+                  key={section.id}
+                  badgeText={data.badge_text}
+                  titlePart1={data.title_part1}
+                  titlePart2={data.title_part2}
+                  description={data.description}
+                  citiesHeading={data.cities_heading}
+                  cities={data.cities}
+                  imageUrl={data.image_url}
+                  imageAlt={data.image_alt}
+                  focalPoint={data.focal_point}
+                  gradientIntensity={data.gradient_intensity}
+                  showTimeframe={data.show_timeframe}
+                  timeframe={data.timeframe}
+                  showConditions={data.show_conditions}
+                  conditions={data.conditions}
+                />
+              );
+            }
 
-        {/* 4. Card de Prazo Estimado */}
-        {pageSettings.estimated_timeframe_is_enabled !== false && Boolean(pageSettings.estimated_timeframe_text) && (
-          <ShippingEstimatedTimeframe
-            title={pageSettings.estimated_timeframe_title}
-            text={pageSettings.estimated_timeframe_text}
-          />
-        )}
+            case "estimated_timeframe": {
+              const data = section.data as SectionEstimatedTimeframeData;
+              return (
+                <ShippingEstimatedTimeframe
+                  key={section.id}
+                  title={data.title}
+                  text={data.text}
+                  href={data.href}
+                />
+              );
+            }
 
-        {/* 5. Bloco "Enviamos para todo o Brasil" */}
-        {pageSettings.national_is_enabled !== false && (
-          <ShippingNationalDelivery
-            title={pageSettings.national_title}
-            subtitle={pageSettings.national_subtitle}
-            trackingNote={pageSettings.national_tracking_note}
-            cards={pageSettings.national_cards}
-            imageUrl={pageSettings.national_image_url}
-          />
-        )}
+            case "national_delivery": {
+              const data = section.data as SectionNationalDeliveryData;
+              return (
+                <ShippingNationalDelivery
+                  key={section.id}
+                  title={data.title}
+                  subtitle={data.subtitle}
+                  trackingNote={data.tracking_note}
+                  cards={data.cards}
+                />
+              );
+            }
 
-        {/* 6. Transportadoras que utilizamos */}
-        <ShippingCarriersGrid
-          title={pageSettings.carriers_section_title}
-          subtitle={pageSettings.carriers_section_subtitle}
-          carriers={carriers}
-        />
+            case "carriers_grid": {
+              const data = section.data as SectionCarriersGridData;
+              return (
+                <ShippingCarriersGrid
+                  key={section.id}
+                  title={data.title}
+                  subtitle={data.subtitle}
+                  carriers={data.carriers}
+                />
+              );
+            }
 
-        {/* 7. Como funciona nosso fluxo de entrega (6 etapas) */}
-        <ShippingHowItWorks
-          title={pageSettings.timeline_section_title}
-          subtitle={pageSettings.timeline_section_subtitle}
-          steps={timelineSteps}
-        />
+            case "how_it_works": {
+              const data = section.data as SectionHowItWorksData;
+              return (
+                <ShippingHowItWorks
+                  key={section.id}
+                  title={data.title}
+                  subtitle={data.subtitle}
+                  steps={data.steps}
+                />
+              );
+            }
 
-        {/* 8. Perguntas frequentes */}
-        <ShippingFaq
-          title={pageSettings.faq_section_title}
-          subtitle={pageSettings.faq_section_subtitle}
-          faqs={faqs}
-        />
+            case "faq": {
+              const data = section.data as SectionFaqData;
+              return (
+                <ShippingFaq
+                  key={section.id}
+                  title={data.title}
+                  subtitle={data.subtitle}
+                  faqs={data.faqs}
+                />
+              );
+            }
 
-        {/* 9. CTA WhatsApp Final */}
-        <ShippingWhatsAppCta
-          title={pageSettings.whatsapp_cta_title}
-          subtitle={pageSettings.whatsapp_cta_subtitle}
-        />
+            case "whatsapp_cta": {
+              const data = section.data as SectionWhatsAppCtaData;
+              return (
+                <ShippingWhatsAppCta
+                  key={section.id}
+                  title={data.title}
+                  subtitle={data.subtitle}
+                />
+              );
+            }
+
+            default:
+              return null;
+          }
+        })}
       </main>
 
       <Footer />

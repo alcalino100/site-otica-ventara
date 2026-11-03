@@ -94,25 +94,24 @@ test.describe("Cartões de Envio Nacional com Suporte a Fotos e Gestão no Admin
     await page.goto("/admin/entrega", { waitUntil: "domcontentloaded" });
     await page.waitForLoadState("networkidle");
 
-    // Acessa aba Envio Nacional
-    const nationalTabBtn = page.locator("[data-testid='tab-national']");
-    await expect(nationalTabBtn).toBeVisible();
-    await nationalTabBtn.click();
+    // Acessa acordeão Envio Nacional no CMS
+    const nationalAccordion = page.getByTestId("cms-accordion-national_delivery");
+    await expect(nationalAccordion).toBeVisible();
+    await nationalAccordion.scrollIntoViewIfNeeded();
+    await nationalAccordion.locator("#section-header-sec-national").click();
 
-    // Verifica seção de fotos
-    await expect(
-      page.getByText(/Cartões de Envio Nacional \(Fotos, Textos & Toggles\)/i)
-    ).toBeVisible();
+    // Verifica abas dos cartões nacionais
+    await expect(page.getByRole("button", { name: /Correios/i })).toBeVisible({ timeout: 10000 });
+    await expect(page.getByRole("button", { name: /Transportadoras Rodoviárias/i })).toBeVisible();
+    await expect(page.getByRole("button", { name: /Envio Aéreo/i })).toBeVisible();
 
-    // Verifica campos de alt text e focal point
-    await expect(page.getByText("Foto no Topo (16:9)").first()).toBeVisible();
-    await expect(page.getByText("Enquadramento").first()).toBeVisible();
-    await expect(page.getByText("Gradiente").first()).toBeVisible();
+    // Seleciona o cartão dos Correios
+    await page.getByRole("button", { name: /Correios/i }).click();
 
-    // Verifica pré-visualização ao vivo da seção nacional
-    await expect(
-      page.getByText(/Pré-visualização ao vivo do Envio Nacional/i)
-    ).toBeVisible();
+    // Verifica controles de mídia, alt text e enquadramento
+    await expect(page.getByText(/Texto Alternativo \(Alt/i)).toBeVisible();
+    await expect(page.getByText(/Enquadramento \(Ponto Focal\)/i)).toBeVisible();
+    await expect(page.getByText(/Gradiente de Integração/i)).toBeVisible();
 
     await page.screenshot({
       path: "/Users/user/.gemini/antigravity/brain/3307d6a6-ee9f-47b4-bbf9-e090e670f231/screenshots/admin-entrega-nacional-live-preview.png",
