@@ -108,9 +108,9 @@ test.describe("Refatoração da Página de Entregas (/entregas) conforme Mockup 
     await page.goto("/entregas", { waitUntil: "domcontentloaded" });
 
     await expect(page.getByRole("heading", { name: /Enviamos para todo o Brasil/i })).toBeVisible();
-    await expect(page.getByText("Correios (Sedex e PAC)")).toBeVisible();
-    await expect(page.getByText("Transportadoras Rodoviárias")).toBeVisible();
-    await expect(page.getByText("Envio Aéreo para Destinos Distantes")).toBeVisible();
+    await expect(page.getByRole("heading", { name: "Correios (Sedex e PAC)" })).toBeVisible();
+    await expect(page.getByRole("heading", { name: "Transportadoras Rodoviárias" })).toBeVisible();
+    await expect(page.getByRole("heading", { name: "Envio Aéreo para Destinos Distantes" })).toBeVisible();
     await expect(page.getByText(/Rastreamento Seguro Ponto a Ponto/i)).toBeVisible();
   });
 

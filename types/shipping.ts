@@ -21,6 +21,12 @@ export interface NationalShipmentCard {
   badge?: string;
   icon_name: "mail" | "truck" | "plane";
   is_active: boolean;
+  image_url?: string;
+  image_alt?: string;
+  image_position?: "center" | "top" | "bottom" | "left" | "right";
+  image_overlay?: "subtle" | "medium" | "strong";
+  image_caption?: string;
+  show_image?: boolean;
 }
 
 export interface ShippingCarrier {

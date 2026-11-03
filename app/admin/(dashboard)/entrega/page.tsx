@@ -22,6 +22,7 @@ import {
   Clock,
   ShieldCheck,
   AlertCircle,
+  Image as ImageIcon,
 } from "lucide-react";
 import { SiteShippingSettings } from "@/types/ecommerce";
 import {
@@ -37,6 +38,7 @@ import {
   DEFAULT_CITY_CHIPS,
 } from "@/lib/shipping-constants";
 import { ShippingLocalDelivery } from "@/components/sections/shipping/shipping-local-delivery";
+import { ShippingNationalDelivery } from "@/components/sections/shipping/shipping-national-delivery";
 
 export default function AdminShippingPage() {
   const [activeTab, setActiveTab] = useState<
@@ -184,6 +186,64 @@ export default function AdminShippingPage() {
     } finally {
       setIsUploading(false);
     }
+  };
+
+  const handleNationalCardUpload = async (
+    e: React.ChangeEvent<HTMLInputElement>,
+    cardIndex: number
+  ) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    setIsUploading(true);
+    setFeedback(null);
+    setErrorMessage(null);
+
+    try {
+      const formData = new FormData();
+      formData.append("file", file);
+
+      const res = await fetch("/api/admin/shipping/upload", {
+        method: "POST",
+        body: formData,
+      });
+
+      const json = await res.json();
+      if (res.ok && json.url) {
+        const updated = [...(pageSettings.national_cards || [])];
+        updated[cardIndex] = {
+          ...updated[cardIndex],
+          image_url: json.url,
+          show_image: true,
+        };
+        setPageSettings((prev) => ({
+          ...prev,
+          national_cards: updated,
+        }));
+        setFeedback(
+          `Foto do cartão "${updated[cardIndex].title}" enviada com sucesso! Clique em Salvar Alterações.`
+        );
+      } else {
+        setErrorMessage(json.error || "Falha no upload da foto.");
+      }
+    } catch {
+      setErrorMessage("Erro de conexão durante o upload.");
+    } finally {
+      setIsUploading(false);
+    }
+  };
+
+  const handleNationalCardRemoveImage = (cardIndex: number) => {
+    const updated = [...(pageSettings.national_cards || [])];
+    updated[cardIndex] = {
+      ...updated[cardIndex],
+      image_url: "",
+      show_image: false,
+    };
+    setPageSettings((prev) => ({
+      ...prev,
+      national_cards: updated,
+    }));
   };
 
   // Gerenciamento de Cidades (Chips)
@@ -1195,53 +1255,265 @@ export default function AdminShippingPage() {
             </div>
           </div>
 
-          {/* Cartões Nacionais (Correios, Transportadoras, Aéreo) */}
-          <div className="pt-6 border-t border-slate-800 space-y-4">
-            <h3 className="text-xs font-bold text-white uppercase tracking-wider">
-              Cartões Nacionais (Toggles e Prazos)
-            </h3>
+          {/* Cartões Nacionais (Correios, Transportadoras, Aéreo) com Gestão de Imagens */}
+          <div className="pt-6 border-t border-slate-800 space-y-6">
+            <div>
+              <h3 className="text-xs font-bold text-white uppercase tracking-wider flex items-center gap-2">
+                <ImageIcon size={15} className="text-amber-400" />
+                <span>Cartões de Envio Nacional (Fotos, Textos &amp; Toggles)</span>
+              </h3>
+              <p className="text-[11px] text-slate-400 mt-1">
+                Configure fotos no topo dos cartões (16/9), textos alternativos, enquadramento e prazos de entrega.
+              </p>
+            </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
               {(pageSettings.national_cards || []).map((card, idx) => (
                 <div
                   key={card.id}
-                  className="p-4 rounded-xl bg-slate-950 border border-slate-800 space-y-3"
+                  className="p-4 rounded-xl bg-slate-950 border border-slate-800 space-y-4 flex flex-col justify-between"
                 >
-                  <div className="flex items-center justify-between">
-                    <span className="text-xs font-bold text-white">
-                      {card.title}
-                    </span>
-                    <input
-                      type="checkbox"
-                      checked={card.is_active !== false}
-                      onChange={(e) => {
-                        const updated = [...(pageSettings.national_cards || [])];
-                        updated[idx].is_active = e.target.checked;
-                        setPageSettings((prev) => ({
-                          ...prev,
-                          national_cards: updated,
-                        }));
-                      }}
-                      className="w-4 h-4 accent-amber-400"
-                    />
+                  <div className="space-y-3">
+                    {/* Cabeçalho do Cartão: Título, Ativo e Badge */}
+                    <div className="flex items-center justify-between pb-2 border-b border-slate-800/80">
+                      <div className="flex-1 mr-2">
+                        <label className="block text-[10px] text-slate-400 uppercase font-semibold">
+                          Título
+                        </label>
+                        <input
+                          type="text"
+                          value={card.title}
+                          onChange={(e) => {
+                            const updated = [...(pageSettings.national_cards || [])];
+                            updated[idx].title = e.target.value;
+                            setPageSettings((prev) => ({
+                              ...prev,
+                              national_cards: updated,
+                            }));
+                          }}
+                          className="w-full bg-transparent text-xs font-bold text-white outline-none focus:border-b focus:border-amber-400"
+                        />
+                      </div>
+
+                      <label className="text-xs text-slate-300 flex items-center gap-1.5 cursor-pointer shrink-0">
+                        <input
+                          type="checkbox"
+                          checked={card.is_active !== false}
+                          onChange={(e) => {
+                            const updated = [...(pageSettings.national_cards || [])];
+                            updated[idx].is_active = e.target.checked;
+                            setPageSettings((prev) => ({
+                              ...prev,
+                              national_cards: updated,
+                            }));
+                          }}
+                          className="w-4 h-4 accent-amber-400"
+                        />
+                        <span className="text-[11px]">Ativo</span>
+                      </label>
+                    </div>
+
+                    {/* Selo / Badge */}
+                    <div>
+                      <label className="block text-[10px] text-slate-400 uppercase font-semibold mb-1">
+                        Selo do Cartão
+                      </label>
+                      <input
+                        type="text"
+                        value={card.badge || ""}
+                        onChange={(e) => {
+                          const updated = [...(pageSettings.national_cards || [])];
+                          updated[idx].badge = e.target.value;
+                          setPageSettings((prev) => ({
+                            ...prev,
+                            national_cards: updated,
+                          }));
+                        }}
+                        placeholder="Ex: Todo o Brasil, Alta Velocidade"
+                        className="w-full px-2.5 py-1.5 rounded-lg bg-slate-900 border border-slate-800 text-xs text-white outline-none"
+                      />
+                    </div>
+
+                    {/* Área de Foto no Topo */}
+                    <div className="p-3 rounded-lg bg-slate-900/80 border border-slate-800 space-y-2.5">
+                      <div className="flex items-center justify-between">
+                        <span className="text-[11px] font-bold text-amber-400 flex items-center gap-1.5">
+                          <ImageIcon size={13} />
+                          <span>Foto no Topo (16:9)</span>
+                        </span>
+                        <label className="text-[11px] text-slate-300 flex items-center gap-1.5 cursor-pointer">
+                          <input
+                            type="checkbox"
+                            checked={card.show_image !== false}
+                            onChange={(e) => {
+                              const updated = [...(pageSettings.national_cards || [])];
+                              updated[idx].show_image = e.target.checked;
+                              setPageSettings((prev) => ({
+                                ...prev,
+                                national_cards: updated,
+                              }));
+                            }}
+                            className="w-3.5 h-3.5 accent-amber-400"
+                          />
+                          <span>Exibir Foto</span>
+                        </label>
+                      </div>
+
+                      {/* Miniatura ou Placeholder */}
+                      {card.image_url ? (
+                        <div className="relative aspect-[16/9] w-full rounded-md overflow-hidden border border-slate-800 bg-slate-950">
+                          {/* eslint-disable-next-line @next/next/no-img-element */}
+                          <img
+                            src={card.image_url}
+                            alt={card.image_alt || card.title}
+                            className="w-full h-full object-cover"
+                            style={{ objectPosition: card.image_position || "center" }}
+                          />
+                          <button
+                            type="button"
+                            onClick={() => handleNationalCardRemoveImage(idx)}
+                            className="absolute top-1.5 right-1.5 p-1 rounded bg-black/70 hover:bg-rose-600 text-white text-[10px] transition-colors"
+                            title="Remover foto"
+                          >
+                            <Trash2 size={12} />
+                          </button>
+                        </div>
+                      ) : (
+                        <div className="aspect-[16/9] w-full rounded-md border border-dashed border-slate-800 flex items-center justify-center text-slate-500 text-[11px]">
+                          Sem foto cadastrada
+                        </div>
+                      )}
+
+                      {/* Botão de Upload */}
+                      <div>
+                        <label className="inline-flex items-center justify-center gap-1.5 w-full px-2.5 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-[11px] font-medium text-slate-200 cursor-pointer border border-slate-700 transition-colors">
+                          <Upload size={12} className="text-amber-400" />
+                          <span>{card.image_url ? "Substituir Foto" : "Enviar Foto"}</span>
+                          <input
+                            type="file"
+                            accept="image/png,image/jpeg,image/webp"
+                            onChange={(e) => handleNationalCardUpload(e, idx)}
+                            className="hidden"
+                          />
+                        </label>
+                      </div>
+
+                      {/* Configurações da Foto: Alt text, Focal Point, Gradiente e Legenda */}
+                      <div className="space-y-2 pt-1">
+                        <div>
+                          <label className="block text-[10px] text-slate-400 uppercase font-semibold mb-0.5">
+                            Texto Alternativo (Alt)
+                          </label>
+                          <input
+                            type="text"
+                            value={card.image_alt || ""}
+                            onChange={(e) => {
+                              const updated = [...(pageSettings.national_cards || [])];
+                              updated[idx].image_alt = e.target.value;
+                              setPageSettings((prev) => ({
+                                ...prev,
+                                national_cards: updated,
+                              }));
+                            }}
+                            placeholder="Descrição acessível da foto"
+                            className="w-full px-2 py-1 rounded bg-slate-950 border border-slate-800 text-[11px] text-white outline-none"
+                          />
+                        </div>
+
+                        <div className="grid grid-cols-2 gap-2">
+                          <div>
+                            <label className="block text-[10px] text-slate-400 uppercase font-semibold mb-0.5">
+                              Enquadramento
+                            </label>
+                            <select
+                              value={card.image_position || "center"}
+                              onChange={(e) => {
+                                const updated = [...(pageSettings.national_cards || [])];
+                                updated[idx].image_position = e.target.value as any;
+                                setPageSettings((prev) => ({
+                                  ...prev,
+                                  national_cards: updated,
+                                }));
+                              }}
+                              className="w-full px-2 py-1 rounded bg-slate-950 border border-slate-800 text-[11px] text-white outline-none"
+                            >
+                              <option value="center">Centro</option>
+                              <option value="top">Topo</option>
+                              <option value="bottom">Base</option>
+                              <option value="left">Esquerda</option>
+                              <option value="right">Direita</option>
+                            </select>
+                          </div>
+
+                          <div>
+                            <label className="block text-[10px] text-slate-400 uppercase font-semibold mb-0.5">
+                              Gradiente
+                            </label>
+                            <select
+                              value={card.image_overlay || "medium"}
+                              onChange={(e) => {
+                                const updated = [...(pageSettings.national_cards || [])];
+                                updated[idx].image_overlay = e.target.value as any;
+                                setPageSettings((prev) => ({
+                                  ...prev,
+                                  national_cards: updated,
+                                }));
+                              }}
+                              className="w-full px-2 py-1 rounded bg-slate-950 border border-slate-800 text-[11px] text-white outline-none"
+                            >
+                              <option value="medium">Médio</option>
+                              <option value="strong">Forte</option>
+                              <option value="subtle">Sutil</option>
+                            </select>
+                          </div>
+                        </div>
+
+                        <div>
+                          <label className="block text-[10px] text-slate-400 uppercase font-semibold mb-0.5">
+                            Legenda / Crédito (Opcional)
+                          </label>
+                          <input
+                            type="text"
+                            value={card.image_caption || ""}
+                            onChange={(e) => {
+                              const updated = [...(pageSettings.national_cards || [])];
+                              updated[idx].image_caption = e.target.value;
+                              setPageSettings((prev) => ({
+                                ...prev,
+                                national_cards: updated,
+                              }));
+                            }}
+                            placeholder="Ex: Frota Postal"
+                            className="w-full px-2 py-1 rounded bg-slate-950 border border-slate-800 text-[11px] text-slate-300 outline-none"
+                          />
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Descrição Textual */}
+                    <div>
+                      <label className="block text-[10px] text-slate-400 uppercase font-semibold mb-1">
+                        Descrição
+                      </label>
+                      <textarea
+                        rows={2}
+                        value={card.description}
+                        onChange={(e) => {
+                          const updated = [...(pageSettings.national_cards || [])];
+                          updated[idx].description = e.target.value;
+                          setPageSettings((prev) => ({
+                            ...prev,
+                            national_cards: updated,
+                          }));
+                        }}
+                        className="w-full px-2.5 py-1.5 rounded-lg bg-slate-900 border border-slate-800 text-xs text-slate-300 outline-none leading-relaxed"
+                      />
+                    </div>
                   </div>
 
-                  <textarea
-                    rows={3}
-                    value={card.description}
-                    onChange={(e) => {
-                      const updated = [...(pageSettings.national_cards || [])];
-                      updated[idx].description = e.target.value;
-                      setPageSettings((prev) => ({
-                        ...prev,
-                        national_cards: updated,
-                      }));
-                    }}
-                    className="w-full px-2.5 py-2 rounded-lg bg-slate-900 border border-slate-800 text-xs text-slate-300 outline-none leading-relaxed"
-                  />
-
-                  <div>
-                    <label className="block text-[11px] text-slate-400 mb-1">
+                  {/* Prazo Médio */}
+                  <div className="pt-2 border-t border-slate-800">
+                    <label className="block text-[10px] text-slate-400 uppercase font-semibold mb-1">
                       Prazo Médio
                     </label>
                     <input
@@ -1260,6 +1532,28 @@ export default function AdminShippingPage() {
                   </div>
                 </div>
               ))}
+            </div>
+          </div>
+
+          {/* PRÉ-VISUALIZAÇÃO AO VIVO DA SEÇÃO NACIONAL */}
+          <div className="pt-6 border-t border-slate-800 space-y-3">
+            <div className="flex items-center justify-between">
+              <h3 className="text-xs font-bold text-amber-400 uppercase tracking-wider flex items-center gap-2">
+                <Eye size={15} />
+                <span>Pré-visualização ao vivo do Envio Nacional</span>
+              </h3>
+              <span className="text-[11px] text-slate-400">
+                Visualização fiel em tempo real com as fotos dos cartões
+              </span>
+            </div>
+
+            <div className="rounded-2xl border border-slate-800 overflow-hidden bg-[#02070D]">
+              <ShippingNationalDelivery
+                title={pageSettings.national_title}
+                subtitle={pageSettings.national_subtitle}
+                trackingNote={pageSettings.national_tracking_note}
+                cards={pageSettings.national_cards}
+              />
             </div>
           </div>
         </div>
