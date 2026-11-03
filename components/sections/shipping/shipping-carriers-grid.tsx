@@ -27,9 +27,9 @@ export function ShippingCarriersGrid({
   }
 
   return (
-    <section className="py-20 sm:py-28 bg-[#030913] relative overflow-hidden border-b border-white/5">
+    <section className="py-10 sm:py-16 bg-[#030913] relative overflow-hidden border-b border-white/5">
       <div className="max-w-[1400px] mx-auto px-4 sm:px-8 lg:px-10">
-        <div className="text-center max-w-3xl mx-auto mb-14 sm:mb-16">
+        <div className="text-center max-w-3xl mx-auto mb-8 sm:mb-10">
           <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-white/[0.04] border border-white/10 text-slate-300 text-xs font-semibold tracking-wider uppercase mb-4">
             <Truck size={14} className="text-amber-400" />
             <span>Rede Integrada de Despacho</span>

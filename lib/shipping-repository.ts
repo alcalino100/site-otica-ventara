@@ -52,7 +52,10 @@ function normalizeShippingPageSettings(raw: Partial<ShippingPageSettings> | null
     hero_image_url: raw.hero_image_url || DEFAULT_SHIPPING_PAGE_SETTINGS.hero_image_url,
     regional_cities: regionalCities,
     national_cards: Array.isArray(raw.national_cards) && raw.national_cards.length > 0
-      ? raw.national_cards
+      ? raw.national_cards.map((card, idx) => ({
+          ...(DEFAULT_NATIONAL_CARDS[idx] || {}),
+          ...card,
+        }))
       : DEFAULT_NATIONAL_CARDS,
   };
 }
