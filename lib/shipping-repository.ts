@@ -6,6 +6,7 @@ import {
   ShippingPageSettings,
   FooterPaymentSettings,
   FullShippingData,
+  CityChip,
 } from "@/types/shipping";
 import {
   DEFAULT_SHIPPING_PAGE_SETTINGS,
@@ -13,6 +14,8 @@ import {
   DEFAULT_SHIPPING_FAQS,
   DEFAULT_SHIPPING_TIMELINE,
   DEFAULT_FOOTER_PAYMENT_SETTINGS,
+  DEFAULT_CITY_CHIPS,
+  DEFAULT_NATIONAL_CARDS,
 } from "./shipping-constants";
 
 // Cache em memória para resiliência e suporte a testes locais
@@ -20,6 +23,39 @@ let inMemoryShippingSettings: ShippingPageSettings = { ...DEFAULT_SHIPPING_PAGE_
 let inMemoryCarriers: ShippingCarrier[] = [...DEFAULT_SHIPPING_CARRIERS];
 let inMemoryFaqs: ShippingFaqItem[] = [...DEFAULT_SHIPPING_FAQS];
 let inMemoryPaymentSettings: FooterPaymentSettings = { ...DEFAULT_FOOTER_PAYMENT_SETTINGS };
+
+function normalizeShippingPageSettings(raw: Partial<ShippingPageSettings> | null | undefined): ShippingPageSettings {
+  if (!raw) return { ...DEFAULT_SHIPPING_PAGE_SETTINGS };
+
+  // Garante que regional_cities seja sempre uma lista válida de chips
+  let regionalCities: CityChip[] = DEFAULT_CITY_CHIPS;
+  if (Array.isArray(raw.regional_cities) && raw.regional_cities.length > 0) {
+    regionalCities = raw.regional_cities;
+  } else if (typeof raw.local_cities === "string" && raw.local_cities.trim()) {
+    regionalCities = raw.local_cities
+      .split(",")
+      .map((c, i) => ({ id: `city-migrated-${i}`, name: c.trim(), sort_order: i + 1 }))
+      .filter((c) => Boolean(c.name));
+  }
+
+  return {
+    ...DEFAULT_SHIPPING_PAGE_SETTINGS,
+    ...raw,
+    hero_badge_text: raw.hero_badge_text || DEFAULT_SHIPPING_PAGE_SETTINGS.hero_badge_text,
+    hero_title_line1: raw.hero_title_line1 || DEFAULT_SHIPPING_PAGE_SETTINGS.hero_title_line1,
+    hero_title_line2: raw.hero_title_line2 || DEFAULT_SHIPPING_PAGE_SETTINGS.hero_title_line2,
+    hero_subtitle: raw.hero_subtitle || DEFAULT_SHIPPING_PAGE_SETTINGS.hero_subtitle,
+    hero_cta_text: raw.hero_cta_text || DEFAULT_SHIPPING_PAGE_SETTINGS.hero_cta_text,
+    hero_cta_url: raw.hero_cta_url || DEFAULT_SHIPPING_PAGE_SETTINGS.hero_cta_url,
+    hero_secondary_cta_text: raw.hero_secondary_cta_text || DEFAULT_SHIPPING_PAGE_SETTINGS.hero_secondary_cta_text,
+    hero_secondary_cta_url: raw.hero_secondary_cta_url || DEFAULT_SHIPPING_PAGE_SETTINGS.hero_secondary_cta_url,
+    hero_image_url: raw.hero_image_url || DEFAULT_SHIPPING_PAGE_SETTINGS.hero_image_url,
+    regional_cities: regionalCities,
+    national_cards: Array.isArray(raw.national_cards) && raw.national_cards.length > 0
+      ? raw.national_cards
+      : DEFAULT_NATIONAL_CARDS,
+  };
+}
 
 export async function getShippingData(): Promise<FullShippingData> {
   try {
@@ -36,7 +72,7 @@ export async function getShippingData(): Promise<FullShippingData> {
         .maybeSingle();
 
       if (!pageErr && pageRow) {
-        pageSettings = { ...DEFAULT_SHIPPING_PAGE_SETTINGS, ...pageRow };
+        pageSettings = normalizeShippingPageSettings(pageRow);
         inMemoryShippingSettings = pageSettings;
       } else {
         // Tenta fallback em site_settings
@@ -47,7 +83,7 @@ export async function getShippingData(): Promise<FullShippingData> {
           .maybeSingle();
 
         if (fallbackRow?.value) {
-          pageSettings = { ...DEFAULT_SHIPPING_PAGE_SETTINGS, ...fallbackRow.value };
+          pageSettings = normalizeShippingPageSettings(fallbackRow.value);
           inMemoryShippingSettings = pageSettings;
         }
       }
@@ -129,7 +165,7 @@ export async function getShippingData(): Promise<FullShippingData> {
 }
 
 export async function saveShippingPageSettings(settings: Partial<ShippingPageSettings>) {
-  inMemoryShippingSettings = { ...inMemoryShippingSettings, ...settings };
+  inMemoryShippingSettings = normalizeShippingPageSettings({ ...inMemoryShippingSettings, ...settings });
   try {
     const adminSupabase = createAdminClient();
     const now = new Date().toISOString();
@@ -194,7 +230,6 @@ export async function saveShippingCarriers(carriers: ShippingCarrier[]) {
 
     // 1. Tenta atualizar na tabela shipping_carriers
     try {
-      // Deleta e reinsere para manter ordem e integridade das IDs
       await adminSupabase.from("shipping_carriers").delete().neq("id", "00000000-0000-0000-0000-000000000000");
       if (carriers.length > 0) {
         const rowsToInsert = carriers.map((c, idx) => ({
@@ -229,13 +264,13 @@ export async function saveShippingCarriers(carriers: ShippingCarrier[]) {
       } else {
         await adminSupabase.from("site_settings").insert({
           key: "shipping_carriers",
-          description: "Lista de Transportadoras Ativas",
+          description: "Transportadoras cadastradas na página de entregas",
           value: carriers,
           updated_at: now,
         });
       }
     } catch (e) {
-      console.warn("Falha ao gravar em site_settings (shipping_carriers):", e);
+      console.warn("Falha ao gravar carriers em site_settings:", e);
     }
   } catch (err) {
     console.error("Erro ao salvar transportadoras:", err);
@@ -281,13 +316,13 @@ export async function saveShippingFaqs(faqs: ShippingFaqItem[]) {
       } else {
         await adminSupabase.from("site_settings").insert({
           key: "shipping_faqs",
-          description: "FAQs da Página de Entregas",
+          description: "Perguntas frequentes cadastradas na página de entregas",
           value: faqs,
           updated_at: now,
         });
       }
     } catch (e) {
-      console.warn("Falha ao gravar em site_settings (shipping_faqs):", e);
+      console.warn("Falha ao gravar faqs em site_settings:", e);
     }
   } catch (err) {
     console.error("Erro ao salvar FAQs:", err);
@@ -298,19 +333,18 @@ export async function saveShippingFaqs(faqs: ShippingFaqItem[]) {
 export async function getFooterPaymentSettings(): Promise<FooterPaymentSettings> {
   try {
     const supabase = createStaticSupabaseClient();
-    const { data, error } = await supabase
+    const { data: row, error } = await supabase
       .from("site_settings")
       .select("value")
       .eq("key", "payment_methods")
       .maybeSingle();
 
-    if (!error && data?.value) {
-      const merged = { ...DEFAULT_FOOTER_PAYMENT_SETTINGS, ...(data.value as Partial<FooterPaymentSettings>) };
-      inMemoryPaymentSettings = merged;
-      return merged;
+    if (!error && row?.value) {
+      inMemoryPaymentSettings = { ...DEFAULT_FOOTER_PAYMENT_SETTINGS, ...row.value };
+      return inMemoryPaymentSettings;
     }
-  } catch (err) {
-    console.warn("Erro ao buscar formas de pagamento no banco:", err);
+  } catch {
+    // Falha silenciosa, usa inMemory
   }
   return inMemoryPaymentSettings;
 }
@@ -330,10 +364,7 @@ export async function saveFooterPaymentSettings(settings: Partial<FooterPaymentS
     if (existing?.id) {
       await adminSupabase
         .from("site_settings")
-        .update({
-          value: inMemoryPaymentSettings,
-          updated_at: now,
-        })
+        .update({ value: inMemoryPaymentSettings, updated_at: now })
         .eq("id", existing.id);
     } else {
       await adminSupabase.from("site_settings").insert({
@@ -344,7 +375,7 @@ export async function saveFooterPaymentSettings(settings: Partial<FooterPaymentS
       });
     }
   } catch (err) {
-    console.error("Erro ao salvar payment_methods:", err);
+    console.error("Erro ao salvar formas de pagamento do rodapé:", err);
   }
   return inMemoryPaymentSettings;
 }

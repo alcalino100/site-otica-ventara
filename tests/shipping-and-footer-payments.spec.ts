@@ -43,20 +43,20 @@ test.describe("Página de Entregas (/entregas) e Formas de Pagamento no Rodapé"
 
     // 1.4 Seção Araçatuba e Região
     await expect(
-      page.getByRole("heading", { name: /Entrega Expressa em Araçatuba e Região/i })
+      page.getByRole("heading", { name: /Entrega Expressa em/i })
     ).toBeVisible();
-    await expect(page.getByText("Birigui")).toBeVisible();
-    await expect(page.getByText("Bilac")).toBeVisible();
-    // Imagem da van azul
-    const vanImg = page.locator("img[alt*='Van azul de entregas personalizadas da Ótica Ventara']");
+    await expect(page.getByText("Birigui").first()).toBeVisible();
+    await expect(page.getByText("Bilac").first()).toBeVisible();
+    // Imagem da van azul no bloco regional
+    const vanImg = page.locator("#bloco-regional img[alt*='Van']").first();
     await expect(vanImg).toBeVisible();
 
     // 1.5 Seção Envio para Todo o Brasil
     await expect(
-      page.getByRole("heading", { name: /Envio Seguro para Todo o Brasil/i })
+      page.getByRole("heading", { name: /Enviamos para todo o Brasil|Envio Seguro para Todo o Brasil/i })
     ).toBeVisible();
     await expect(
-      page.getByText(/Código de Rastreamento Ponto a Ponto/i).first()
+      page.getByText(/Código de Rastreamento Ponto a Ponto|Rastreamento Seguro Ponto a Ponto/i).first()
     ).toBeVisible();
 
     // 1.6 Seção Transportadoras que Utilizamos
@@ -74,9 +74,9 @@ test.describe("Página de Entregas (/entregas) e Formas de Pagamento no Rodapé"
     await expect(page.getByText("Pedido Confirmado").first()).toBeVisible();
     await expect(page.getByText("Montagem no Laboratório Próprio").first()).toBeVisible();
     await expect(page.getByText("Controle de Qualidade").first()).toBeVisible();
-    await expect(page.getByText("Embalagem Segura").first()).toBeVisible();
-    await expect(page.getByText("Postagem com Rastreio").first()).toBeVisible();
-    await expect(page.getByText("Entrega ou Retirada").first()).toBeVisible();
+    await expect(page.getByText(/Embalagem (Segura|Protetora)/i).first()).toBeVisible();
+    await expect(page.getByText(/Postagem/i).first()).toBeVisible();
+    await expect(page.getByText(/Entrega no seu Endereço|Chegada Segura/i).first()).toBeVisible();
 
     // 1.8 Acordeão de FAQ Acessível
     await expect(
@@ -191,24 +191,25 @@ test.describe("Página de Entregas (/entregas) e Formas de Pagamento no Rodapé"
     page,
   }) => {
     await page.goto("/admin/entrega", { waitUntil: "domcontentloaded" });
+    await page.waitForLoadState("networkidle");
 
     // Abas visíveis
-    await expect(page.getByRole("button", { name: /Página \/entregas/i })).toBeVisible();
-    await expect(page.getByRole("button", { name: /Transportadoras/i })).toBeVisible();
-    await expect(page.getByRole("button", { name: /Perguntas Frequentes/i })).toBeVisible();
-    await expect(page.getByRole("button", { name: /Retirada & Frete Base/i })).toBeVisible();
+    await expect(page.locator("[data-testid='tab-regional']")).toBeVisible();
+    await expect(page.locator("[data-testid='tab-hero']")).toBeVisible();
+    await expect(page.locator("[data-testid='tab-carriers']")).toBeVisible();
+    await expect(page.locator("[data-testid='tab-faqs']")).toBeVisible();
+    await expect(page.locator("[data-testid='tab-checkout']")).toBeVisible();
 
     // Alterna para aba de transportadoras
-    await page.getByRole("button", { name: /Transportadoras/i }).click();
-    await expect(page.getByText(/Transportadoras que Utilizamos/i)).toBeVisible();
+    await page.locator("[data-testid='tab-carriers']").click();
+    await expect(page.getByRole("heading", { name: /Transportadoras que Utilizamos/i })).toBeVisible();
 
     // Alterna para aba de FAQ
-    await page.getByRole("button", { name: /Perguntas Frequentes/i }).click();
-    await expect(page.getByText(/Perguntas Frequentes \(FAQ de Entregas\)/i)).toBeVisible();
+    await page.locator("[data-testid='tab-faqs']").click();
+    await expect(page.getByRole("heading", { name: /Perguntas Frequentes sobre Entregas/i })).toBeVisible();
 
     // Alterna para aba de Retirada & Frete
-    await page.getByRole("button", { name: /Retirada & Frete Base/i }).click();
-    await expect(page.getByText(/Retirada Presencial na Loja/i)).toBeVisible();
-    await expect(page.getByText(/Regras de Frete em Domicílio/i)).toBeVisible();
+    await page.locator("[data-testid='tab-checkout']").click();
+    await expect(page.getByRole("heading", { name: /Retirada Física no Balcão/i })).toBeVisible();
   });
 });

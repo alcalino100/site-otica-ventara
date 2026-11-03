@@ -1,105 +1,126 @@
 "use client";
 
 import React from "react";
+import Image from "next/image";
 import Link from "next/link";
-import { Truck, Search, ShieldCheck, MapPin, Sparkles, Clock } from "lucide-react";
+import { Truck, Search, MapPin } from "lucide-react";
 
 interface ShippingHeroProps {
-  title?: string;
+  badgeText?: string;
+  titleLine1?: string;
+  titleLine2?: string;
   subtitle?: string;
   ctaText?: string;
   ctaUrl?: string;
+  secondaryCtaText?: string;
+  secondaryCtaUrl?: string;
+  imageUrl?: string;
 }
 
 export function ShippingHero({
-  title = "Rede de Entregas Ventara",
+  badgeText = "ESTRUTURA LOGÍSTICA & RASTREAMENTO",
+  titleLine1 = "Rede de Entregas",
+  titleLine2 = "Ventara",
   subtitle = "Da nossa ótica em Araçatuba para todo o Brasil",
   ctaText = "Rastrear seu pedido",
   ctaUrl = "/rastreio",
+  secondaryCtaText = "Ver cidades atendidas",
+  secondaryCtaUrl = "#bloco-regional",
+  imageUrl = "/images/shipping/hero-glasses-ventara.jpg",
 }: ShippingHeroProps) {
   return (
-    <section className="relative pt-32 pb-16 sm:pt-40 sm:pb-24 overflow-hidden bg-[#02070D] border-b border-white/5">
-      {/* Luzes de ambientação sutis */}
+    <section className="relative pt-28 sm:pt-36 pb-12 sm:pb-20 bg-gradient-to-b from-[#F8FAFC] via-[#F1F5F9] to-[#FFFFFF] text-slate-900 overflow-hidden">
+      {/* Luz ambiente suave de fundo */}
       <div
-        className="absolute top-0 left-1/2 -translate-x-1/2 w-[800px] h-[400px] bg-gradient-to-b from-[#0e2744]/40 via-amber-400/5 to-transparent blur-3xl pointer-events-none"
+        className="absolute top-0 right-1/4 w-[500px] h-[350px] bg-amber-200/20 rounded-full blur-3xl pointer-events-none"
         aria-hidden="true"
       />
 
-      <div className="max-w-[1400px] mx-auto px-4 sm:px-8 lg:px-10 relative z-10 text-center">
-        {/* Badge Pill */}
-        <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-amber-400/10 border border-amber-400/25 text-amber-300 text-xs font-semibold tracking-wider uppercase mb-6 shadow-sm">
-          <Truck size={14} className="text-amber-400" />
-          <span>Estrutura Logística &amp; Rastreamento</span>
-        </div>
-
-        {/* Título Principal Fluido */}
-        <h1 className="text-3xl sm:text-5xl lg:text-6xl font-light text-white tracking-tight leading-[1.1] max-w-4xl mx-auto mb-5">
-          {title.includes("Ventara") ? (
-            <>
-              {title.replace("Ventara", "").trim()}{" "}
-              <span className="font-normal text-amber-400">Ventara</span>
-            </>
-          ) : (
-            title
-          )}
-        </h1>
-
-        {/* Subtítulo Claro e com Alto Contraste */}
-        <p className="text-base sm:text-lg text-slate-300 max-w-2xl mx-auto font-light leading-relaxed mb-8">
-          {subtitle}
-        </p>
-
-        {/* CTA Rastreio */}
-        <div className="flex flex-col sm:flex-row items-center justify-center gap-4 mb-12">
-          <Link
-            href={ctaUrl}
-            className="w-full sm:w-auto inline-flex items-center justify-center gap-2.5 px-8 py-4 rounded-full bg-amber-400 hover:bg-amber-300 active:scale-95 text-[#06111f] text-xs font-bold uppercase tracking-wider transition-all duration-200 shadow-xl shadow-amber-400/15"
-          >
-            <Search size={16} />
-            <span>{ctaText}</span>
-          </Link>
-
-          <a
-            href="#aracatuba-regiao"
-            className="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-7 py-4 rounded-full bg-white/5 hover:bg-white/10 active:scale-95 text-white border border-white/15 text-xs font-semibold uppercase tracking-wider transition-all duration-200 hover:border-amber-400/40"
-          >
-            <MapPin size={15} className="text-amber-400" />
-            <span>Ver cidades atendidas</span>
-          </a>
-        </div>
-
-        {/* Indicadores de Confiança / Badges de Segurança */}
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3.5 max-w-3xl mx-auto pt-6 border-t border-white/10 text-left">
-          <div className="flex items-center gap-3 p-3.5 rounded-xl bg-white/[0.02] border border-white/5">
-            <div className="w-9 h-9 rounded-lg bg-amber-400/15 text-amber-400 flex items-center justify-center shrink-0">
-              <MapPin size={18} />
+      <div className="max-w-[1400px] mx-auto px-4 sm:px-8 lg:px-10 relative z-10">
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-12 items-center">
+          {/* Coluna de Textos & CTAs */}
+          <div className="lg:col-span-7 flex flex-col items-start text-left">
+            {/* Selo no Topo */}
+            <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-white border border-amber-400/50 text-slate-800 text-[11px] sm:text-xs font-bold tracking-wider uppercase mb-5 shadow-sm">
+              <Truck size={14} className="text-amber-500 shrink-0" />
+              <span>{badgeText}</span>
             </div>
-            <div>
-              <p className="text-xs font-semibold text-white">Araçatuba e Região</p>
-              <p className="text-[11px] text-slate-400">Entrega rápida com van própria</p>
+
+            {/* Título Principal em Duas Linhas com Destaque em Ventara */}
+            <h1 className="tracking-tight leading-[1.05] mb-4">
+              <span className="block text-2xl sm:text-4xl lg:text-5xl font-light text-slate-800">
+                {titleLine1}
+              </span>
+              <span className="block text-4xl sm:text-6xl lg:text-7xl font-extrabold text-[#0B1528] tracking-tight">
+                {titleLine2}
+              </span>
+            </h1>
+
+            {/* Subtítulo */}
+            <p className="text-sm sm:text-base lg:text-lg text-slate-600 max-w-xl font-normal leading-relaxed mb-8">
+              {subtitle}
+            </p>
+
+            {/* Botões de Ação */}
+            <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 w-full sm:w-auto">
+              <Link
+                href={ctaUrl}
+                className="inline-flex items-center justify-center gap-2.5 px-7 py-3.5 rounded-full bg-amber-400 hover:bg-amber-300 active:scale-95 text-slate-950 text-xs font-bold uppercase tracking-wider transition-all duration-200 shadow-md shadow-amber-400/25 min-h-[44px]"
+              >
+                <Search size={15} />
+                <span>{ctaText}</span>
+              </Link>
+
+              <a
+                href={secondaryCtaUrl}
+                className="inline-flex items-center justify-center gap-2 px-6 py-3.5 rounded-full bg-white hover:bg-slate-50 active:scale-95 text-slate-800 border border-slate-300 hover:border-slate-400 text-xs font-semibold uppercase tracking-wider transition-all duration-200 min-h-[44px] shadow-sm"
+              >
+                <MapPin size={15} className="text-amber-500" />
+                <span>{secondaryCtaText}</span>
+              </a>
             </div>
           </div>
 
-          <div className="flex items-center gap-3 p-3.5 rounded-xl bg-white/[0.02] border border-white/5">
-            <div className="w-9 h-9 rounded-lg bg-blue-400/15 text-blue-400 flex items-center justify-center shrink-0">
-              <ShieldCheck size={18} />
-            </div>
-            <div>
-              <p className="text-xs font-semibold text-white">Seguro de Carga Total</p>
-              <p className="text-[11px] text-slate-400">Proteção garantida em 100% dos envios</p>
-            </div>
-          </div>
-
-          <div className="flex items-center gap-3 p-3.5 rounded-xl bg-white/[0.02] border border-white/5">
-            <div className="w-9 h-9 rounded-lg bg-emerald-400/15 text-emerald-400 flex items-center justify-center shrink-0">
-              <Clock size={18} />
-            </div>
-            <div>
-              <p className="text-xs font-semibold text-white">Rastreio Ponto a Ponto</p>
-              <p className="text-[11px] text-slate-400">Atualizações em tempo real</p>
+          {/* Coluna da Imagem dos Óculos na Bancada */}
+          <div className="lg:col-span-5 relative flex justify-center lg:justify-end">
+            <div className="relative w-full max-w-[420px] lg:max-w-none aspect-[4/3] rounded-2xl overflow-hidden shadow-lg border border-slate-200/80 bg-white">
+              <Image
+                src={imageUrl}
+                alt="Armação Ventara Eyewear sobre bancada técnica em laboratório"
+                fill
+                priority
+                sizes="(max-width: 768px) 100vw, 500px"
+                className="object-cover object-center"
+              />
+              {/* Fade sutil para integrar com o fundo claro */}
+              <div
+                className="absolute inset-0 bg-gradient-to-t from-white/30 via-transparent to-transparent pointer-events-none"
+                aria-hidden="true"
+              />
             </div>
           </div>
         </div>
+      </div>
+
+      {/* Curva amarela estilizada na base do Hero */}
+      <div className="relative w-full overflow-hidden leading-none mt-10 -mb-12 sm:-mb-20 pointer-events-none">
+        <svg
+          viewBox="0 0 1440 90"
+          fill="none"
+          xmlns="http://www.w3.org/2000/svg"
+          className="w-full h-12 sm:h-20 text-amber-400 preserve-3d"
+          preserveAspectRatio="none"
+        >
+          <path
+            d="M0,45 C320,85 720,10 1440,55 L1440,90 L0,90 Z"
+            fill="currentColor"
+            fillOpacity="0.85"
+          />
+          <path
+            d="M0,60 C380,90 760,25 1440,70 L1440,90 L0,90 Z"
+            fill="#030913"
+          />
+        </svg>
       </div>
     </section>
   );
