@@ -18,40 +18,57 @@ import {
   MoveDown,
   Layers,
   Sparkles,
+  Upload,
+  Clock,
+  ShieldCheck,
+  AlertCircle,
 } from "lucide-react";
-import { createClient } from "@/lib/supabase/client";
 import { SiteShippingSettings } from "@/types/ecommerce";
 import {
   ShippingPageSettings,
   ShippingCarrier,
   ShippingFaqItem,
+  CityChip,
 } from "@/types/shipping";
 import {
   DEFAULT_SHIPPING_PAGE_SETTINGS,
   DEFAULT_SHIPPING_CARRIERS,
   DEFAULT_SHIPPING_FAQS,
+  DEFAULT_CITY_CHIPS,
 } from "@/lib/shipping-constants";
+import { ShippingLocalDelivery } from "@/components/sections/shipping/shipping-local-delivery";
 
 export default function AdminShippingPage() {
-  const supabase = createClient();
-  const [activeTab, setActiveTab] = useState<"page" | "carriers" | "faqs" | "checkout">("page");
+  const [activeTab, setActiveTab] = useState<
+    "regional" | "hero" | "national" | "carriers" | "faqs" | "checkout"
+  >("regional");
   const [feedback, setFeedback] = useState<string | null>(null);
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [isSaving, setIsSaving] = useState(false);
-  const [isLoading, setIsLoading] = useState(false);
+  const [isUploading, setIsUploading] = useState(false);
 
   // 1. Estado da Página Pública /entregas
-  const [pageSettings, setPageSettings] = useState<ShippingPageSettings>(DEFAULT_SHIPPING_PAGE_SETTINGS);
-  const [carriers, setCarriers] = useState<ShippingCarrier[]>(DEFAULT_SHIPPING_CARRIERS);
+  const [pageSettings, setPageSettings] = useState<ShippingPageSettings>(
+    DEFAULT_SHIPPING_PAGE_SETTINGS
+  );
+  const [carriers, setCarriers] = useState<ShippingCarrier[]>(
+    DEFAULT_SHIPPING_CARRIERS
+  );
   const [faqs, setFaqs] = useState<ShippingFaqItem[]>(DEFAULT_SHIPPING_FAQS);
+
+  // Estado para adicionar nova cidade
+  const [newCityName, setNewCityName] = useState("");
 
   // 2. Estado de Checkout / Retirada
   const defaultCheckoutShipping: SiteShippingSettings = {
     store_pickup_enabled: true,
     free_shipping_threshold_cents: 35000,
     default_shipping_fee_cents: 2500,
-    pickup_address: "Rua Princesa Isabel, 221, Centro, Araçatuba-SP, CEP 16010-250",
+    pickup_address:
+      "Rua Princesa Isabel, 221, Centro, Araçatuba-SP, CEP 16010-250",
   };
-  const [checkoutSettings, setCheckoutSettings] = useState<SiteShippingSettings>(defaultCheckoutShipping);
+  const [checkoutSettings, setCheckoutSettings] =
+    useState<SiteShippingSettings>(defaultCheckoutShipping);
 
   useEffect(() => {
     let isMounted = true;
@@ -62,7 +79,9 @@ export default function AdminShippingPage() {
         const timeoutId = setTimeout(() => controller.abort(), 4000);
 
         // Busca dados da página pública
-        const res = await fetch("/api/admin/shipping", { signal: controller.signal });
+        const res = await fetch("/api/admin/shipping", {
+          signal: controller.signal,
+        });
         if (res.ok && isMounted) {
           const json = await res.json();
           if (json.pageSettings) setPageSettings(json.pageSettings);
@@ -71,12 +90,17 @@ export default function AdminShippingPage() {
         }
 
         // Busca dados de checkout em settings
-        const resSettings = await fetch("/api/admin/settings", { signal: controller.signal });
+        const resSettings = await fetch("/api/admin/settings", {
+          signal: controller.signal,
+        });
         clearTimeout(timeoutId);
         if (resSettings.ok && isMounted) {
           const jsonSettings = await resSettings.json();
           if (jsonSettings.shipping) {
-            setCheckoutSettings((prev) => ({ ...prev, ...jsonSettings.shipping }));
+            setCheckoutSettings((prev) => ({
+              ...prev,
+              ...jsonSettings.shipping,
+            }));
           }
         }
       } catch (err) {
@@ -91,9 +115,12 @@ export default function AdminShippingPage() {
   }, []);
 
   // Salvar dados da Página Pública (Configurações, Transportadoras e FAQs)
-  const handleSavePublicPage = async (e: React.FormEvent) => {
-    e.preventDefault();
+  const handleSavePublicPage = async (e?: React.FormEvent) => {
+    if (e) e.preventDefault();
     setIsSaving(true);
+    setFeedback(null);
+    setErrorMessage(null);
+
     try {
       const res = await fetch("/api/admin/shipping", {
         method: "POST",
@@ -105,777 +132,1418 @@ export default function AdminShippingPage() {
         }),
       });
 
-      const json = await res.json();
-      if (!res.ok || !json.success) {
-        throw new Error(json.error || "Erro ao salvar dados de envio.");
+      if (res.ok) {
+        setFeedback("Alterações de logística e entregas salvas com sucesso!");
+      } else {
+        const errJson = await res.json().catch(() => ({}));
+        setErrorMessage(
+          errJson.error || "Ocorreu um erro ao salvar as configurações."
+        );
       }
-
-      setFeedback("Página de Entregas atualizada com sucesso!");
-      setTimeout(() => setFeedback(null), 3000);
-    } catch (err: any) {
-      console.error(err);
-      setFeedback(err.message || "Erro ao gravar dados.");
-      setTimeout(() => setFeedback(null), 3000);
+    } catch {
+      setErrorMessage("Erro de conexão ao salvar.");
     } finally {
       setIsSaving(false);
+      setTimeout(() => {
+        setFeedback(null);
+        setErrorMessage(null);
+      }, 5000);
     }
   };
 
-  // Salvar dados de Checkout / Retirada Presencial
-  const handleSaveCheckout = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setIsSaving(true);
+  // Upload genérico de fotos (van, hero, etc.)
+  const handleFileUpload = async (
+    e: React.ChangeEvent<HTMLInputElement>,
+    field: "regional_image_url" | "hero_image_url"
+  ) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    setIsUploading(true);
+    setFeedback(null);
+    setErrorMessage(null);
+
     try {
-      const res = await fetch("/api/admin/settings", {
+      const formData = new FormData();
+      formData.append("file", file);
+
+      const res = await fetch("/api/admin/shipping/upload", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ shipping: checkoutSettings }),
+        body: formData,
       });
 
       const json = await res.json();
-      if (!res.ok || json.error) {
-        throw new Error(json.error || "Erro ao gravar regras de checkout.");
+      if (res.ok && json.url) {
+        setPageSettings((prev) => ({ ...prev, [field]: json.url }));
+        setFeedback("Foto enviada com sucesso! Clique em 'Salvar Alterações'.");
+      } else {
+        setErrorMessage(json.error || "Falha no upload da foto.");
       }
-
-      setFeedback("Regras de frete e retirada presencial salvas com sucesso!");
-      setTimeout(() => setFeedback(null), 3000);
-    } catch (err: any) {
-      console.error(err);
-      setFeedback(err.message || "Erro ao gravar dados.");
-      setTimeout(() => setFeedback(null), 3000);
+    } catch {
+      setErrorMessage("Erro de conexão durante o upload.");
     } finally {
-      setIsSaving(false);
+      setIsUploading(false);
     }
   };
 
-  // Manipuladores de Transportadoras
-  const addCarrier = () => {
-    const newCarrier: ShippingCarrier = {
-      id: `carrier-${Date.now()}`,
-      name: "Nova Transportadora",
-      slug: `transportadora-${Date.now()}`,
-      description: "Descrição curta dos serviços logísticos e cobertura.",
-      delivery_time: "De 2 a 5 dias úteis",
-      logo_url: "/images/shipping/envio-brasil-azul-cargo.png",
-      is_active: true,
-      sort_order: carriers.length + 1,
+  // Gerenciamento de Cidades (Chips)
+  const handleAddCity = () => {
+    const trimmed = newCityName.trim();
+    if (!trimmed) return;
+
+    const currentCities = pageSettings.regional_cities || [];
+    const newChip: CityChip = {
+      id: `city-${Date.now()}`,
+      name: trimmed,
+      sort_order: currentCities.length + 1,
     };
-    setCarriers([...carriers, newCarrier]);
+
+    setPageSettings((prev) => ({
+      ...prev,
+      regional_cities: [...(prev.regional_cities || []), newChip],
+    }));
+    setNewCityName("");
   };
 
-  const removeCarrier = (index: number) => {
-    setCarriers(carriers.filter((_, i) => i !== index));
+  const handleUpdateCityName = (id: string, name: string) => {
+    setPageSettings((prev) => ({
+      ...prev,
+      regional_cities: (prev.regional_cities || []).map((c) =>
+        c.id === id ? { ...c, name } : c
+      ),
+    }));
   };
 
-  const updateCarrier = (index: number, field: keyof ShippingCarrier, value: any) => {
-    const updated = [...carriers];
-    updated[index] = { ...updated[index], [field]: value };
-    setCarriers(updated);
+  const handleRemoveCity = (id: string) => {
+    setPageSettings((prev) => ({
+      ...prev,
+      regional_cities: (prev.regional_cities || []).filter((c) => c.id !== id),
+    }));
   };
 
-  const moveCarrier = (index: number, direction: "up" | "down") => {
+  const handleMoveCity = (index: number, direction: "up" | "down") => {
+    const cities = [...(pageSettings.regional_cities || [])];
     const targetIndex = direction === "up" ? index - 1 : index + 1;
-    if (targetIndex < 0 || targetIndex >= carriers.length) return;
-    const updated = [...carriers];
-    const [moved] = updated.splice(index, 1);
-    updated.splice(targetIndex, 0, moved);
-    setCarriers(updated.map((c, i) => ({ ...c, sort_order: i + 1 })));
-  };
+    if (targetIndex < 0 || targetIndex >= cities.length) return;
 
-  // Manipuladores de FAQs
-  const addFaq = () => {
-    const newFaq: ShippingFaqItem = {
-      id: `faq-${Date.now()}`,
-      question: "Nova pergunta frequente sobre entrega?",
-      answer: "Resposta detalhada explicando o funcionamento do envio.",
-      category: "geral",
-      is_active: true,
-      sort_order: faqs.length + 1,
-    };
-    setFaqs([...faqs, newFaq]);
-  };
+    const temp = cities[index];
+    cities[index] = cities[targetIndex];
+    cities[targetIndex] = temp;
 
-  const removeFaq = (index: number) => {
-    setFaqs(faqs.filter((_, i) => i !== index));
-  };
+    // Atualiza sort_order
+    cities.forEach((c, idx) => {
+      c.sort_order = idx + 1;
+    });
 
-  const updateFaq = (index: number, field: keyof ShippingFaqItem, value: any) => {
-    const updated = [...faqs];
-    updated[index] = { ...updated[index], [field]: value };
-    setFaqs(updated);
-  };
-
-  const moveFaq = (index: number, direction: "up" | "down") => {
-    const targetIndex = direction === "up" ? index - 1 : index + 1;
-    if (targetIndex < 0 || targetIndex >= faqs.length) return;
-    const updated = [...faqs];
-    const [moved] = updated.splice(index, 1);
-    updated.splice(targetIndex, 0, moved);
-    setFaqs(updated.map((f, i) => ({ ...f, sort_order: i + 1 })));
+    setPageSettings((prev) => ({ ...prev, regional_cities: cities }));
   };
 
   return (
-    <div className="space-y-6 max-w-5xl mx-auto">
-      {/* Toast Feedback */}
+    <div className="space-y-6 max-w-7xl mx-auto pb-16 font-sans">
+      {/* Cabeçalho da Página */}
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 pb-6 border-b border-slate-800">
+        <div>
+          <div className="flex items-center gap-2.5 mb-1.5">
+            <div className="w-9 h-9 rounded-xl bg-amber-400/10 border border-amber-400/20 text-amber-400 flex items-center justify-center">
+              <Truck size={20} />
+            </div>
+            <h1 className="text-xl sm:text-2xl font-bold text-white tracking-tight">
+              Gestão de Entregas &amp; Logística
+            </h1>
+          </div>
+          <p className="text-xs sm:text-sm text-slate-400">
+            Configure a página pública{" "}
+            <span className="text-amber-400 font-mono">/entregas</span>, o bloco
+            regional de Araçatuba e as transportadoras.
+          </p>
+        </div>
+
+        <div className="flex items-center gap-3">
+          <a
+            href="/entregas"
+            target="_blank"
+            rel="noreferrer"
+            className="inline-flex items-center gap-2 px-3.5 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-xs font-medium text-slate-200 border border-slate-700 transition-colors"
+          >
+            <Eye size={14} />
+            <span>Ver no Site</span>
+            <ExternalLink size={12} className="text-slate-400" />
+          </a>
+
+          <button
+            onClick={() => handleSavePublicPage()}
+            disabled={isSaving}
+            className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-amber-400 hover:bg-amber-300 active:scale-95 text-slate-950 font-bold text-xs uppercase tracking-wider transition-all disabled:opacity-50 shadow-md shadow-amber-400/20"
+          >
+            <Save size={14} />
+            <span>{isSaving ? "Salvando..." : "Salvar Alterações"}</span>
+          </button>
+        </div>
+      </div>
+
+      {/* Feedback & Erros */}
       {feedback && (
-        <div className="fixed top-20 right-6 z-50 bg-amber-400 text-[#06111f] font-semibold text-xs px-4 py-2.5 rounded-lg shadow-xl animate-fade-in flex items-center gap-2">
-          <CheckCircle2 size={16} />
+        <div className="p-4 rounded-xl bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 text-xs sm:text-sm flex items-center gap-2.5">
+          <CheckCircle2 size={16} className="shrink-0" />
           <span>{feedback}</span>
         </div>
       )}
 
-      {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-white/10">
-        <div>
-          <span className="text-[11px] font-semibold tracking-widest uppercase text-amber-400">
-            LOGÍSTICA & FULFILLMENT
-          </span>
-          <h1 className="text-xl sm:text-2xl font-light text-white tracking-tight mt-0.5">
-            Rede de Entregas e <span className="font-normal text-amber-400">Retirada Física</span>
-          </h1>
-          <p className="text-xs text-slate-400 mt-1">
-            Gerencie a página pública /entregas, frota de Araçatuba, transportadoras ativas, FAQ e regras de frete.
-          </p>
+      {errorMessage && (
+        <div className="p-4 rounded-xl bg-rose-500/10 border border-rose-500/20 text-rose-400 text-xs sm:text-sm flex items-center gap-2.5">
+          <AlertCircle size={16} className="shrink-0" />
+          <span>{errorMessage}</span>
         </div>
-
-        <div className="flex items-center gap-2.5">
-          <a
-            href="/entregas"
-            target="_blank"
-            rel="noopener noreferrer"
-            className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-white/[0.04] border border-white/10 text-xs text-slate-300 hover:text-white hover:border-amber-400/40 transition-colors"
-          >
-            <Eye size={14} className="text-amber-400" />
-            <span>Ver /entregas ao vivo</span>
-            <ExternalLink size={12} className="text-slate-400" />
-          </a>
-        </div>
-      </div>
+      )}
 
       {/* Navegação por Abas */}
-      <div className="flex border-b border-white/10 gap-2 overflow-x-auto pb-1">
+      <div className="flex items-center gap-1.5 overflow-x-auto pb-2 border-b border-slate-800 scrollbar-none">
         <button
           type="button"
-          onClick={() => setActiveTab("page")}
-          className={`px-4 py-2.5 rounded-xl text-xs font-semibold tracking-wider transition-all flex items-center gap-2 shrink-0 ${
-            activeTab === "page"
-              ? "bg-amber-400 text-[#06111f] shadow-lg shadow-amber-400/10 font-bold"
-              : "text-slate-400 hover:text-white hover:bg-white/5"
+          data-testid="tab-regional"
+          onClick={() => setActiveTab("regional")}
+          className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs font-semibold whitespace-nowrap transition-all ${
+            activeTab === "regional"
+              ? "bg-amber-400 text-slate-950 shadow-md shadow-amber-400/15"
+              : "text-slate-400 hover:text-white hover:bg-slate-800/60"
+          }`}
+        >
+          <Navigation size={15} />
+          <span>Entrega Regional (Araçatuba)</span>
+          <span className="w-2 h-2 rounded-full bg-amber-500 ml-1" />
+        </button>
+
+        <button
+          type="button"
+          data-testid="tab-hero"
+          onClick={() => setActiveTab("hero")}
+          className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs font-semibold whitespace-nowrap transition-all ${
+            activeTab === "hero"
+              ? "bg-amber-400 text-slate-950 shadow-md shadow-amber-400/15"
+              : "text-slate-400 hover:text-white hover:bg-slate-800/60"
+          }`}
+        >
+          <Sparkles size={15} />
+          <span>Hero &amp; Destaques</span>
+        </button>
+
+        <button
+          type="button"
+          data-testid="tab-national"
+          onClick={() => setActiveTab("national")}
+          className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs font-semibold whitespace-nowrap transition-all ${
+            activeTab === "national"
+              ? "bg-amber-400 text-slate-950 shadow-md shadow-amber-400/15"
+              : "text-slate-400 hover:text-white hover:bg-slate-800/60"
           }`}
         >
           <Globe2 size={15} />
-          <span>Página /entregas</span>
+          <span>Envio Nacional</span>
         </button>
 
         <button
           type="button"
+          data-testid="tab-carriers"
           onClick={() => setActiveTab("carriers")}
-          className={`px-4 py-2.5 rounded-xl text-xs font-semibold tracking-wider transition-all flex items-center gap-2 shrink-0 ${
+          className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs font-semibold whitespace-nowrap transition-all ${
             activeTab === "carriers"
-              ? "bg-amber-400 text-[#06111f] shadow-lg shadow-amber-400/10 font-bold"
-              : "text-slate-400 hover:text-white hover:bg-white/5"
+              ? "bg-amber-400 text-slate-950 shadow-md shadow-amber-400/15"
+              : "text-slate-400 hover:text-white hover:bg-slate-800/60"
           }`}
         >
           <Truck size={15} />
-          <span>Transportadoras ({carriers.filter((c) => c.is_active).length})</span>
+          <span>Transportadoras Utilizadas</span>
         </button>
 
         <button
           type="button"
+          data-testid="tab-faqs"
           onClick={() => setActiveTab("faqs")}
-          className={`px-4 py-2.5 rounded-xl text-xs font-semibold tracking-wider transition-all flex items-center gap-2 shrink-0 ${
+          className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs font-semibold whitespace-nowrap transition-all ${
             activeTab === "faqs"
-              ? "bg-amber-400 text-[#06111f] shadow-lg shadow-amber-400/10 font-bold"
-              : "text-slate-400 hover:text-white hover:bg-white/5"
+              ? "bg-amber-400 text-slate-950 shadow-md shadow-amber-400/15"
+              : "text-slate-400 hover:text-white hover:bg-slate-800/60"
           }`}
         >
           <HelpCircle size={15} />
-          <span>Perguntas Frequentes ({faqs.length})</span>
+          <span>Perguntas Frequentes</span>
         </button>
 
         <button
           type="button"
+          data-testid="tab-checkout"
           onClick={() => setActiveTab("checkout")}
-          className={`px-4 py-2.5 rounded-xl text-xs font-semibold tracking-wider transition-all flex items-center gap-2 shrink-0 ${
+          className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs font-semibold whitespace-nowrap transition-all ${
             activeTab === "checkout"
-              ? "bg-amber-400 text-[#06111f] shadow-lg shadow-amber-400/10 font-bold"
-              : "text-slate-400 hover:text-white hover:bg-white/5"
+              ? "bg-amber-400 text-slate-950 shadow-md shadow-amber-400/15"
+              : "text-slate-400 hover:text-white hover:bg-slate-800/60"
           }`}
         >
           <Store size={15} />
-          <span>Retirada & Frete Base</span>
+          <span>Retirada &amp; Frete Loja</span>
         </button>
       </div>
 
-      {/* ABA 1: CONFIGURAÇÕES DA PÁGINA PÚBLICA */}
-      {activeTab === "page" && (
-            <form onSubmit={handleSavePublicPage} className="space-y-6">
-              {/* Bloco Geral & Publicação */}
-              <div className="bg-[#06111f] border border-white/10 rounded-2xl p-6 space-y-4">
-                <div className="flex items-center justify-between border-b border-white/5 pb-3">
-                  <h3 className="text-sm font-semibold text-white flex items-center gap-2">
-                    <Globe2 size={16} className="text-amber-400" />
-                    1. Visibilidade e Slug da Página
+      {/* =========================================================================
+          ABA 1: BLOCO REGIONAL (100% EDITÁVEL + PRÉ-VISUALIZAÇÃO AO VIVO)
+         ========================================================================= */}
+      {activeTab === "regional" && (
+        <div className="space-y-8">
+          {/* Card de Configurações */}
+          <div className="p-6 rounded-2xl bg-slate-900 border border-slate-800 space-y-6">
+            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 pb-4 border-b border-slate-800">
+              <div>
+                <h2 className="text-base font-bold text-white flex items-center gap-2">
+                  <Navigation size={18} className="text-amber-400" />
+                  <span>Configuração da Entrega Expressa Regional</span>
+                </h2>
+                <p className="text-xs text-slate-400">
+                  Edite textos, títulos em duas cores, chips de cidades, fotos e
+                  gradiente com pré-visualização ao vivo.
+                </p>
+              </div>
+
+              <div className="flex items-center gap-3">
+                <label className="relative inline-flex items-center cursor-pointer">
+                  <input
+                    type="checkbox"
+                    checked={pageSettings.regional_is_enabled !== false}
+                    onChange={(e) =>
+                      setPageSettings((prev) => ({
+                        ...prev,
+                        regional_is_enabled: e.target.checked,
+                      }))
+                    }
+                    className="sr-only peer"
+                  />
+                  <div className="w-11 h-6 bg-slate-800 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-amber-400"></div>
+                  <span className="ml-2.5 text-xs font-semibold text-slate-300">
+                    {pageSettings.regional_is_enabled !== false
+                      ? "Bloco Ativo no Site"
+                      : "Bloco Oculto"}
+                  </span>
+                </label>
+              </div>
+            </div>
+
+            {/* Campos de Textos e Título em Duas Cores */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
+                <label className="block text-xs font-medium text-slate-300 mb-1.5">
+                  Selo / Badge (Topo)
+                </label>
+                <input
+                  type="text"
+                  value={pageSettings.regional_badge_text || ""}
+                  onChange={(e) =>
+                    setPageSettings((prev) => ({
+                      ...prev,
+                      regional_badge_text: e.target.value,
+                    }))
+                  }
+                  className="w-full px-3.5 py-2.5 rounded-xl bg-slate-950 border border-slate-800 text-xs text-white focus:border-amber-400 outline-none"
+                  placeholder="LOGÍSTICA PRÓPRIA REGIONAL"
+                />
+              </div>
+
+              <div>
+                <label className="block text-xs font-medium text-slate-300 mb-1.5">
+                  Título das Cidades
+                </label>
+                <input
+                  type="text"
+                  value={pageSettings.regional_cities_heading || ""}
+                  onChange={(e) =>
+                    setPageSettings((prev) => ({
+                      ...prev,
+                      regional_cities_heading: e.target.value,
+                    }))
+                  }
+                  className="w-full px-3.5 py-2.5 rounded-xl bg-slate-950 border border-slate-800 text-xs text-white focus:border-amber-400 outline-none"
+                  placeholder="CIDADES ATENDIDAS COM ROTA LOCAL"
+                />
+              </div>
+
+              <div>
+                <label className="block text-xs font-medium text-slate-300 mb-1.5">
+                  Título Parte 1 (Cor Branca)
+                </label>
+                <input
+                  type="text"
+                  value={pageSettings.regional_title_part1 || ""}
+                  onChange={(e) =>
+                    setPageSettings((prev) => ({
+                      ...prev,
+                      regional_title_part1: e.target.value,
+                    }))
+                  }
+                  className="w-full px-3.5 py-2.5 rounded-xl bg-slate-950 border border-slate-800 text-xs text-white focus:border-amber-400 outline-none font-semibold"
+                  placeholder="Entrega Expressa em"
+                />
+              </div>
+
+              <div>
+                <label className="block text-xs font-medium text-amber-400 mb-1.5">
+                  Título Parte 2 (Cor Amarelo Ventara)
+                </label>
+                <input
+                  type="text"
+                  value={pageSettings.regional_title_part2 || ""}
+                  onChange={(e) =>
+                    setPageSettings((prev) => ({
+                      ...prev,
+                      regional_title_part2: e.target.value,
+                    }))
+                  }
+                  className="w-full px-3.5 py-2.5 rounded-xl bg-slate-950 border border-amber-400/40 text-xs text-amber-400 focus:border-amber-400 outline-none font-bold"
+                  placeholder="Araçatuba e Região"
+                />
+              </div>
+
+              <div className="md:col-span-2">
+                <label className="block text-xs font-medium text-slate-300 mb-1.5">
+                  Descrição Completa
+                </label>
+                <textarea
+                  rows={2}
+                  value={pageSettings.regional_description || ""}
+                  onChange={(e) =>
+                    setPageSettings((prev) => ({
+                      ...prev,
+                      regional_description: e.target.value,
+                    }))
+                  }
+                  className="w-full px-3.5 py-2.5 rounded-xl bg-slate-950 border border-slate-800 text-xs text-white focus:border-amber-400 outline-none leading-relaxed"
+                  placeholder="Com frota própria e equipe dedicada..."
+                />
+              </div>
+            </div>
+
+            {/* Gerenciamento de Cidades (Chips) */}
+            <div className="pt-4 border-t border-slate-800 space-y-4">
+              <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+                <div>
+                  <h3 className="text-xs font-bold text-amber-400 uppercase tracking-wider flex items-center gap-1.5">
+                    <MapPin size={15} />
+                    <span>Lista de Cidades Atendidas (Chips com Bolinha Amarela)</span>
                   </h3>
-                  <label className="flex items-center gap-2 cursor-pointer">
-                    <span className="text-xs text-slate-300">Página Pública Ativa</span>
-                    <input
-                      type="checkbox"
-                      checked={pageSettings.is_enabled}
-                      onChange={(e) =>
-                        setPageSettings({ ...pageSettings, is_enabled: e.target.checked })
-                      }
-                      className="w-4 h-4 accent-amber-400 rounded cursor-pointer"
-                    />
-                  </label>
+                  <p className="text-[11px] text-slate-400">
+                    Adicione, renomeie, reordene e remova municípios atendidos.
+                  </p>
                 </div>
 
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-xs">
-                  <div>
-                    <label className="block text-slate-400 mb-1">Slug da Rota</label>
-                    <input
-                      type="text"
-                      value={pageSettings.slug}
-                      onChange={(e) =>
-                        setPageSettings({ ...pageSettings, slug: e.target.value })
-                      }
-                      className="w-full bg-[#0a1b2e] border border-white/10 rounded-xl px-3.5 py-2.5 text-white"
-                      placeholder="entregas"
-                    />
-                    <span className="text-[11px] text-slate-500 mt-1 block">
-                      Acessível em /entregas
-                    </span>
-                  </div>
-
-                  <div>
-                    <label className="block text-slate-400 mb-1">Título do Hero</label>
-                    <input
-                      type="text"
-                      value={pageSettings.hero_title}
-                      onChange={(e) =>
-                        setPageSettings({ ...pageSettings, hero_title: e.target.value })
-                      }
-                      className="w-full bg-[#0a1b2e] border border-white/10 rounded-xl px-3.5 py-2.5 text-white"
-                    />
-                  </div>
-
-                  <div className="sm:col-span-2">
-                    <label className="block text-slate-400 mb-1">Subtítulo do Hero</label>
-                    <input
-                      type="text"
-                      value={pageSettings.hero_subtitle}
-                      onChange={(e) =>
-                        setPageSettings({ ...pageSettings, hero_subtitle: e.target.value })
-                      }
-                      className="w-full bg-[#0a1b2e] border border-white/10 rounded-xl px-3.5 py-2.5 text-white"
-                    />
-                  </div>
-                </div>
-              </div>
-
-              {/* Bloco Araçatuba e Região */}
-              <div className="bg-[#06111f] border border-white/10 rounded-2xl p-6 space-y-4">
-                <h3 className="text-sm font-semibold text-white flex items-center gap-2 border-b border-white/5 pb-3">
-                  <Navigation size={16} className="text-amber-400" />
-                  2. Bloco: Entrega Expressa em Araçatuba e Região
-                </h3>
-
-                <div className="space-y-4 text-xs">
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                    <div>
-                      <label className="block text-slate-400 mb-1">Título do Bloco</label>
-                      <input
-                        type="text"
-                        value={pageSettings.local_title}
-                        onChange={(e) =>
-                          setPageSettings({ ...pageSettings, local_title: e.target.value })
-                        }
-                        className="w-full bg-[#0a1b2e] border border-white/10 rounded-xl px-3.5 py-2.5 text-white"
-                      />
-                    </div>
-
-                    <div>
-                      <label className="block text-slate-400 mb-1">Imagem da Van Local</label>
-                      <input
-                        type="text"
-                        value={pageSettings.local_image_url}
-                        onChange={(e) =>
-                          setPageSettings({ ...pageSettings, local_image_url: e.target.value })
-                        }
-                        className="w-full bg-[#0a1b2e] border border-white/10 rounded-xl px-3.5 py-2.5 text-white font-mono text-[11px]"
-                      />
-                    </div>
-                  </div>
-
-                  <div>
-                    <label className="block text-slate-400 mb-1">Texto Institucional Regional</label>
-                    <textarea
-                      rows={3}
-                      value={pageSettings.local_description}
-                      onChange={(e) =>
-                        setPageSettings({ ...pageSettings, local_description: e.target.value })
-                      }
-                      className="w-full bg-[#0a1b2e] border border-white/10 rounded-xl p-3 text-white leading-relaxed"
-                    />
-                  </div>
-
-                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-                    <div>
-                      <label className="block text-slate-400 mb-1">Cidades Atendidas (separadas por vírgula)</label>
-                      <input
-                        type="text"
-                        value={pageSettings.local_cities}
-                        onChange={(e) =>
-                          setPageSettings({ ...pageSettings, local_cities: e.target.value })
-                        }
-                        className="w-full bg-[#0a1b2e] border border-white/10 rounded-xl px-3.5 py-2.5 text-white"
-                      />
-                    </div>
-
-                    <div>
-                      <label className="block text-slate-400 mb-1">Prazo Estimado</label>
-                      <input
-                        type="text"
-                        value={pageSettings.local_timeframe}
-                        onChange={(e) =>
-                          setPageSettings({ ...pageSettings, local_timeframe: e.target.value })
-                        }
-                        className="w-full bg-[#0a1b2e] border border-white/10 rounded-xl px-3.5 py-2.5 text-white"
-                      />
-                    </div>
-
-                    <div>
-                      <label className="block text-slate-400 mb-1">Condições Especiais</label>
-                      <input
-                        type="text"
-                        value={pageSettings.local_conditions}
-                        onChange={(e) =>
-                          setPageSettings({ ...pageSettings, local_conditions: e.target.value })
-                        }
-                        className="w-full bg-[#0a1b2e] border border-white/10 rounded-xl px-3.5 py-2.5 text-white"
-                      />
-                    </div>
-                  </div>
-                </div>
-              </div>
-
-              {/* Bloco Envio Brasil */}
-              <div className="bg-[#06111f] border border-white/10 rounded-2xl p-6 space-y-4">
-                <h3 className="text-sm font-semibold text-white flex items-center gap-2 border-b border-white/5 pb-3">
-                  <Truck size={16} className="text-amber-400" />
-                  3. Bloco: Envio Seguro para Todo o Brasil
-                </h3>
-
-                <div className="space-y-4 text-xs">
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                    <div>
-                      <label className="block text-slate-400 mb-1">Título do Bloco</label>
-                      <input
-                        type="text"
-                        value={pageSettings.national_title}
-                        onChange={(e) =>
-                          setPageSettings({ ...pageSettings, national_title: e.target.value })
-                        }
-                        className="w-full bg-[#0a1b2e] border border-white/10 rounded-xl px-3.5 py-2.5 text-white"
-                      />
-                    </div>
-
-                    <div>
-                      <label className="block text-slate-400 mb-1">Imagem da Carga Expressa</label>
-                      <input
-                        type="text"
-                        value={pageSettings.national_image_url}
-                        onChange={(e) =>
-                          setPageSettings({ ...pageSettings, national_image_url: e.target.value })
-                        }
-                        className="w-full bg-[#0a1b2e] border border-white/10 rounded-xl px-3.5 py-2.5 text-white font-mono text-[11px]"
-                      />
-                    </div>
-                  </div>
-
-                  <div>
-                    <label className="block text-slate-400 mb-1">Texto Explicativo de Envio Nacional</label>
-                    <textarea
-                      rows={3}
-                      value={pageSettings.national_description}
-                      onChange={(e) =>
-                        setPageSettings({ ...pageSettings, national_description: e.target.value })
-                      }
-                      className="w-full bg-[#0a1b2e] border border-white/10 rounded-xl p-3 text-white leading-relaxed"
-                    />
-                  </div>
-                </div>
-              </div>
-
-              <button
-                type="submit"
-                disabled={isSaving}
-                className="w-full inline-flex items-center justify-center gap-2 py-3.5 px-6 rounded-xl bg-amber-400 hover:bg-amber-300 text-[#06111f] text-xs font-bold uppercase tracking-wider transition-all"
-              >
-                <Save size={16} />
-                <span>{isSaving ? "Gravando no Banco..." : "Salvar Configurações da Página"}</span>
-              </button>
-            </form>
-          )}
-
-          {/* ABA 2: CRUD DE TRANSPORTADORAS */}
-          {activeTab === "carriers" && (
-            <form onSubmit={handleSavePublicPage} className="space-y-6">
-              <div className="bg-[#06111f] border border-white/10 rounded-2xl p-6 space-y-4">
-                <div className="flex items-center justify-between border-b border-white/5 pb-3">
-                  <div>
-                    <h3 className="text-sm font-semibold text-white flex items-center gap-2">
-                      <Truck size={16} className="text-amber-400" />
-                      Transportadoras que Utilizamos
-                    </h3>
-                    <p className="text-[11px] text-slate-400 mt-0.5">
-                      Adicione e ordene as transportadoras exibidas na seção de parceiros logísticos.
-                    </p>
-                  </div>
+                {/* Campo para adicionar nova cidade */}
+                <div className="flex items-center gap-2">
+                  <input
+                    type="text"
+                    value={newCityName}
+                    onChange={(e) => setNewCityName(e.target.value)}
+                    onKeyDown={(e) => e.key === "Enter" && handleAddCity()}
+                    placeholder="Nome da cidade (ex: Birigui)"
+                    className="px-3 py-1.5 rounded-lg bg-slate-950 border border-slate-700 text-xs text-white outline-none focus:border-amber-400 w-48"
+                  />
                   <button
                     type="button"
-                    onClick={addCarrier}
-                    className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-amber-400/15 border border-amber-400/30 text-amber-300 hover:bg-amber-400/25 text-xs font-semibold transition-all"
+                    onClick={handleAddCity}
+                    className="inline-flex items-center gap-1 px-3 py-1.5 rounded-lg bg-amber-400 hover:bg-amber-300 text-slate-950 text-xs font-bold uppercase transition-all"
                   >
                     <Plus size={14} />
-                    <span>Adicionar Transportadora</span>
+                    <span>Adicionar</span>
                   </button>
-                </div>
-
-                <div className="space-y-4">
-                  {carriers.map((carrier, index) => (
-                    <div
-                      key={carrier.id || index}
-                      className="p-4 rounded-xl bg-[#030913] border border-white/10 space-y-3"
-                    >
-                      <div className="flex items-center justify-between gap-3 border-b border-white/5 pb-2">
-                        <div className="flex items-center gap-2">
-                          <span className="text-xs font-mono font-bold text-amber-400">
-                            #{index + 1}
-                          </span>
-                          <span className="text-xs font-semibold text-white">{carrier.name}</span>
-                        </div>
-
-                        <div className="flex items-center gap-2">
-                          <label className="flex items-center gap-1.5 cursor-pointer text-xs text-slate-400 mr-2">
-                            <span>Ativa</span>
-                            <input
-                              type="checkbox"
-                              checked={carrier.is_active}
-                              onChange={(e) => updateCarrier(index, "is_active", e.target.checked)}
-                              className="w-4 h-4 accent-amber-400 rounded cursor-pointer"
-                            />
-                          </label>
-
-                          <button
-                            type="button"
-                            onClick={() => moveCarrier(index, "up")}
-                            disabled={index === 0}
-                            className="p-1 rounded bg-white/5 text-slate-400 hover:text-white disabled:opacity-30"
-                            title="Mover para cima"
-                          >
-                            <MoveUp size={14} />
-                          </button>
-                          <button
-                            type="button"
-                            onClick={() => moveCarrier(index, "down")}
-                            disabled={index === carriers.length - 1}
-                            className="p-1 rounded bg-white/5 text-slate-400 hover:text-white disabled:opacity-30"
-                            title="Mover para baixo"
-                          >
-                            <MoveDown size={14} />
-                          </button>
-                          <button
-                            type="button"
-                            onClick={() => removeCarrier(index)}
-                            className="p-1 rounded bg-rose-500/10 text-rose-400 hover:bg-rose-500/20"
-                            title="Remover transportadora"
-                          >
-                            <Trash2 size={14} />
-                          </button>
-                        </div>
-                      </div>
-
-                      <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 text-xs">
-                        <div>
-                          <label className="block text-slate-400 mb-1">Nome</label>
-                          <input
-                            type="text"
-                            value={carrier.name}
-                            onChange={(e) => updateCarrier(index, "name", e.target.value)}
-                            className="w-full bg-[#0a1b2e] border border-white/10 rounded-lg px-3 py-2 text-white"
-                          />
-                        </div>
-
-                        <div>
-                          <label className="block text-slate-400 mb-1">Prazo Médio</label>
-                          <input
-                            type="text"
-                            value={carrier.delivery_time}
-                            onChange={(e) => updateCarrier(index, "delivery_time", e.target.value)}
-                            className="w-full bg-[#0a1b2e] border border-white/10 rounded-lg px-3 py-2 text-white"
-                          />
-                        </div>
-
-                        <div>
-                          <label className="block text-slate-400 mb-1">Caminho da Imagem/Logo</label>
-                          <input
-                            type="text"
-                            value={carrier.logo_url}
-                            onChange={(e) => updateCarrier(index, "logo_url", e.target.value)}
-                            className="w-full bg-[#0a1b2e] border border-white/10 rounded-lg px-3 py-2 text-white font-mono text-[11px]"
-                          />
-                        </div>
-
-                        <div className="sm:col-span-3">
-                          <label className="block text-slate-400 mb-1">Descrição Curta</label>
-                          <input
-                            type="text"
-                            value={carrier.description}
-                            onChange={(e) => updateCarrier(index, "description", e.target.value)}
-                            className="w-full bg-[#0a1b2e] border border-white/10 rounded-lg px-3 py-2 text-white"
-                          />
-                        </div>
-                      </div>
-                    </div>
-                  ))}
                 </div>
               </div>
 
-              <button
-                type="submit"
-                disabled={isSaving}
-                className="w-full inline-flex items-center justify-center gap-2 py-3.5 px-6 rounded-xl bg-amber-400 hover:bg-amber-300 text-[#06111f] text-xs font-bold uppercase tracking-wider transition-all"
-              >
-                <Save size={16} />
-                <span>{isSaving ? "Gravando no Banco..." : "Salvar Transportadoras"}</span>
-              </button>
-            </form>
-          )}
+              {/* Lista reordenável de chips */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2.5">
+                {(pageSettings.regional_cities || []).map((city, idx) => (
+                  <div
+                    key={city.id}
+                    className="flex items-center justify-between gap-2 p-2.5 rounded-xl bg-slate-950 border border-slate-800 group"
+                  >
+                    <div className="flex items-center gap-2 flex-1 min-w-0">
+                      <span className="w-2 h-2 rounded-full bg-amber-400 shrink-0" />
+                      <input
+                        type="text"
+                        value={city.name}
+                        onChange={(e) =>
+                          handleUpdateCityName(city.id, e.target.value)
+                        }
+                        className="bg-transparent text-xs text-white font-medium outline-none focus:border-b focus:border-amber-400 flex-1 min-w-0"
+                      />
+                    </div>
 
-          {/* ABA 3: CRUD DE FAQ */}
-          {activeTab === "faqs" && (
-            <form onSubmit={handleSavePublicPage} className="space-y-6">
-              <div className="bg-[#06111f] border border-white/10 rounded-2xl p-6 space-y-4">
-                <div className="flex items-center justify-between border-b border-white/5 pb-3">
-                  <div>
-                    <h3 className="text-sm font-semibold text-white flex items-center gap-2">
-                      <HelpCircle size={16} className="text-amber-400" />
-                      Perguntas Frequentes (FAQ de Entregas)
-                    </h3>
-                    <p className="text-[11px] text-slate-400 mt-0.5">
-                      Edite as dúvidas sobre prazo, rastreio, embalagem e trocas exibidas no acordeão.
-                    </p>
+                    <div className="flex items-center gap-1 shrink-0">
+                      <button
+                        type="button"
+                        onClick={() => handleMoveCity(idx, "up")}
+                        disabled={idx === 0}
+                        title="Subir posição"
+                        className="p-1 rounded text-slate-400 hover:text-white disabled:opacity-30"
+                      >
+                        <MoveUp size={13} />
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => handleMoveCity(idx, "down")}
+                        disabled={
+                          idx === (pageSettings.regional_cities || []).length - 1
+                        }
+                        title="Descer posição"
+                        className="p-1 rounded text-slate-400 hover:text-white disabled:opacity-30"
+                      >
+                        <MoveDown size={13} />
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => handleRemoveCity(city.id)}
+                        title="Remover cidade"
+                        className="p-1 rounded text-rose-400 hover:text-rose-300 hover:bg-rose-500/10 ml-0.5"
+                      >
+                        <Trash2 size={13} />
+                      </button>
+                    </div>
                   </div>
-                  <button
-                    type="button"
-                    onClick={addFaq}
-                    className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-amber-400/15 border border-amber-400/30 text-amber-300 hover:bg-amber-400/25 text-xs font-semibold transition-all"
-                  >
-                    <Plus size={14} />
-                    <span>Adicionar Pergunta</span>
-                  </button>
-                </div>
-
-                <div className="space-y-4">
-                  {faqs.map((faq, index) => (
-                    <div
-                      key={faq.id || index}
-                      className="p-4 rounded-xl bg-[#030913] border border-white/10 space-y-3"
-                    >
-                      <div className="flex items-center justify-between gap-3 border-b border-white/5 pb-2">
-                        <span className="text-xs font-mono font-bold text-amber-400">
-                          Pergunta #{index + 1}
-                        </span>
-
-                        <div className="flex items-center gap-2">
-                          <label className="flex items-center gap-1.5 cursor-pointer text-xs text-slate-400 mr-2">
-                            <span>Ativa</span>
-                            <input
-                              type="checkbox"
-                              checked={faq.is_active}
-                              onChange={(e) => updateFaq(index, "is_active", e.target.checked)}
-                              className="w-4 h-4 accent-amber-400 rounded cursor-pointer"
-                            />
-                          </label>
-
-                          <button
-                            type="button"
-                            onClick={() => moveFaq(index, "up")}
-                            disabled={index === 0}
-                            className="p-1 rounded bg-white/5 text-slate-400 hover:text-white disabled:opacity-30"
-                            title="Mover para cima"
-                          >
-                            <MoveUp size={14} />
-                          </button>
-                          <button
-                            type="button"
-                            onClick={() => moveFaq(index, "down")}
-                            disabled={index === faqs.length - 1}
-                            className="p-1 rounded bg-white/5 text-slate-400 hover:text-white disabled:opacity-30"
-                            title="Mover para baixo"
-                          >
-                            <MoveDown size={14} />
-                          </button>
-                          <button
-                            type="button"
-                            onClick={() => removeFaq(index)}
-                            className="p-1 rounded bg-rose-500/10 text-rose-400 hover:bg-rose-500/20"
-                            title="Remover pergunta"
-                          >
-                            <Trash2 size={14} />
-                          </button>
-                        </div>
-                      </div>
-
-                      <div className="space-y-3 text-xs">
-                        <div>
-                          <label className="block text-slate-400 mb-1">Pergunta</label>
-                          <input
-                            type="text"
-                            value={faq.question}
-                            onChange={(e) => updateFaq(index, "question", e.target.value)}
-                            className="w-full bg-[#0a1b2e] border border-white/10 rounded-lg px-3 py-2 text-white font-medium"
-                          />
-                        </div>
-
-                        <div>
-                          <label className="block text-slate-400 mb-1">Resposta</label>
-                          <textarea
-                            rows={3}
-                            value={faq.answer}
-                            onChange={(e) => updateFaq(index, "answer", e.target.value)}
-                            className="w-full bg-[#0a1b2e] border border-white/10 rounded-lg p-3 text-white leading-relaxed font-light"
-                          />
-                        </div>
-                      </div>
-                    </div>
-                  ))}
-                </div>
+                ))}
               </div>
+            </div>
 
-              <button
-                type="submit"
-                disabled={isSaving}
-                className="w-full inline-flex items-center justify-center gap-2 py-3.5 px-6 rounded-xl bg-amber-400 hover:bg-amber-300 text-[#06111f] text-xs font-bold uppercase tracking-wider transition-all"
-              >
-                <Save size={16} />
-                <span>{isSaving ? "Gravando no Banco..." : "Salvar Perguntas Frequentes"}</span>
-              </button>
-            </form>
-          )}
+            {/* Imagem de Fundo da Van e Controles de Gradiente */}
+            <div className="pt-4 border-t border-slate-800 space-y-4">
+              <h3 className="text-xs font-bold text-white uppercase tracking-wider">
+                Foto da Van &amp; Enquadramento
+              </h3>
 
-          {/* ABA 4: RETIRADA NO ESPAÇO FÍSICO & FRETE BASE (CHECKOUT) */}
-          {activeTab === "checkout" && (
-            <form onSubmit={handleSaveCheckout} className="space-y-6">
-              {/* Bloco 1: Retirada no Balcão */}
-              <div className="bg-[#06111f] border border-white/10 rounded-2xl p-6 space-y-4">
-                <div className="flex items-center justify-between border-b border-white/5 pb-3">
-                  <h3 className="text-sm font-semibold text-white flex items-center gap-2">
-                    <Store size={16} className="text-amber-400" />
-                    1. Retirada Presencial na Loja
-                  </h3>
-                  <label className="flex items-center gap-2 cursor-pointer">
-                    <span className="text-xs text-slate-400">Habilitar no Checkout</span>
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div>
+                  <label className="block text-xs font-medium text-slate-300 mb-1.5">
+                    URL da Imagem
+                  </label>
+                  <input
+                    type="text"
+                    value={pageSettings.regional_image_url || ""}
+                    onChange={(e) =>
+                      setPageSettings((prev) => ({
+                        ...prev,
+                        regional_image_url: e.target.value,
+                      }))
+                    }
+                    className="w-full px-3.5 py-2.5 rounded-xl bg-slate-950 border border-slate-800 text-xs text-white focus:border-amber-400 outline-none font-mono"
+                    placeholder="/images/shipping/van-ventara-aracatuba.jpg"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-xs font-medium text-slate-300 mb-1.5">
+                    Focal Point (Alinhamento)
+                  </label>
+                  <select
+                    value={pageSettings.regional_focal_point || "center right"}
+                    onChange={(e) =>
+                      setPageSettings((prev) => ({
+                        ...prev,
+                        regional_focal_point: e.target.value,
+                      }))
+                    }
+                    className="w-full px-3 py-2.5 rounded-xl bg-slate-950 border border-slate-800 text-xs text-white focus:border-amber-400 outline-none"
+                  >
+                    <option value="center right">Centro-Direita (Recomendado)</option>
+                    <option value="center center">Centro</option>
+                    <option value="right top">Superior Direito</option>
+                    <option value="right bottom">Inferior Direito</option>
+                  </select>
+                </div>
+
+                <div>
+                  <label className="block text-xs font-medium text-slate-300 mb-1.5">
+                    Intensidade do Gradiente de Leitura
+                  </label>
+                  <select
+                    value={pageSettings.regional_gradient_intensity || "strong"}
+                    onChange={(e) =>
+                      setPageSettings((prev) => ({
+                        ...prev,
+                        regional_gradient_intensity: e.target.value as any,
+                      }))
+                    }
+                    className="w-full px-3 py-2.5 rounded-xl bg-slate-950 border border-slate-800 text-xs text-white focus:border-amber-400 outline-none"
+                  >
+                    <option value="strong">Forte (Garante contraste em mobile)</option>
+                    <option value="medium">Médio</option>
+                    <option value="subtle">Sutil (Mais foto visível)</option>
+                  </select>
+                </div>
+
+                <div className="md:col-span-3">
+                  <label className="inline-flex items-center gap-2 px-3.5 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-xs font-semibold text-slate-200 cursor-pointer border border-slate-700">
+                    <Upload size={14} className="text-amber-400" />
+                    <span>
+                      {isUploading
+                        ? "Enviando foto..."
+                        : "Fazer upload de nova foto da Van"}
+                    </span>
                     <input
-                      type="checkbox"
-                      checked={checkoutSettings.store_pickup_enabled}
+                      type="file"
+                      accept="image/png,image/jpeg,image/webp"
                       onChange={(e) =>
-                        setCheckoutSettings({
-                          ...checkoutSettings,
-                          store_pickup_enabled: e.target.checked,
-                        })
+                        handleFileUpload(e, "regional_image_url")
                       }
-                      className="w-4 h-4 accent-amber-400 rounded cursor-pointer"
+                      className="hidden"
                     />
                   </label>
+                  <span className="text-[11px] text-slate-400 ml-3">
+                    PNG, JPG ou WebP até 5 MB
+                  </span>
+                </div>
+              </div>
+            </div>
+
+            {/* Prazos e Condições Opcionais */}
+            <div className="pt-4 border-t border-slate-800 space-y-4">
+              <h3 className="text-xs font-bold text-white uppercase tracking-wider">
+                Campos Opcionais de Prazo e Frete
+              </h3>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="p-4 rounded-xl bg-slate-950 border border-slate-800 space-y-2">
+                  <div className="flex items-center justify-between">
+                    <label className="text-xs font-bold text-slate-300 flex items-center gap-1.5">
+                      <Clock size={14} className="text-amber-400" />
+                      <span>Exibir Prazo Estimado</span>
+                    </label>
+                    <input
+                      type="checkbox"
+                      checked={pageSettings.regional_show_timeframe || false}
+                      onChange={(e) =>
+                        setPageSettings((prev) => ({
+                          ...prev,
+                          regional_show_timeframe: e.target.checked,
+                        }))
+                      }
+                      className="w-4 h-4 accent-amber-400"
+                    />
+                  </div>
+                  <input
+                    type="text"
+                    value={pageSettings.regional_timeframe || ""}
+                    onChange={(e) =>
+                      setPageSettings((prev) => ({
+                        ...prev,
+                        regional_timeframe: e.target.value,
+                      }))
+                    }
+                    disabled={!pageSettings.regional_show_timeframe}
+                    placeholder="Consulte o prazo no checkout..."
+                    className="w-full px-3 py-2 rounded-lg bg-slate-900 border border-slate-800 text-xs text-white outline-none disabled:opacity-40"
+                  />
                 </div>
 
-                <div className="space-y-3 text-xs">
+                <div className="p-4 rounded-xl bg-slate-950 border border-slate-800 space-y-2">
+                  <div className="flex items-center justify-between">
+                    <label className="text-xs font-bold text-slate-300 flex items-center gap-1.5">
+                      <ShieldCheck size={14} className="text-blue-400" />
+                      <span>Exibir Condições / Retirada</span>
+                    </label>
+                    <input
+                      type="checkbox"
+                      checked={pageSettings.regional_show_conditions || false}
+                      onChange={(e) =>
+                        setPageSettings((prev) => ({
+                          ...prev,
+                          regional_show_conditions: e.target.checked,
+                        }))
+                      }
+                      className="w-4 h-4 accent-amber-400"
+                    />
+                  </div>
+                  <input
+                    type="text"
+                    value={pageSettings.regional_conditions || ""}
+                    onChange={(e) =>
+                      setPageSettings((prev) => ({
+                        ...prev,
+                        regional_conditions: e.target.value,
+                      }))
+                    }
+                    disabled={!pageSettings.regional_show_conditions}
+                    placeholder="Opção de retirada gratuita no balcão..."
+                    className="w-full px-3 py-2 rounded-lg bg-slate-900 border border-slate-800 text-xs text-white outline-none disabled:opacity-40"
+                  />
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* PRÉ-VISUALIZAÇÃO AO VIVO IDÊNTICA AO SITE */}
+          <div className="space-y-3">
+            <div className="flex items-center justify-between">
+              <h3 className="text-xs font-bold text-amber-400 uppercase tracking-wider flex items-center gap-2">
+                <Eye size={15} />
+                <span>Pré-visualização ao vivo do Bloco Regional</span>
+              </h3>
+              <span className="text-[11px] text-slate-400">
+                Visualização em tempo real conforme configurações acima
+              </span>
+            </div>
+
+            <div className="rounded-2xl border border-slate-800 overflow-hidden bg-[#030913]">
+              <ShippingLocalDelivery
+                badgeText={pageSettings.regional_badge_text}
+                titlePart1={pageSettings.regional_title_part1}
+                titlePart2={pageSettings.regional_title_part2}
+                description={pageSettings.regional_description}
+                citiesHeading={pageSettings.regional_cities_heading}
+                cities={pageSettings.regional_cities}
+                imageUrl={pageSettings.regional_image_url}
+                imageAlt={pageSettings.regional_image_alt}
+                focalPoint={pageSettings.regional_focal_point}
+                gradientIntensity={pageSettings.regional_gradient_intensity}
+                showTimeframe={pageSettings.regional_show_timeframe}
+                timeframe={pageSettings.regional_timeframe}
+                showConditions={pageSettings.regional_show_conditions}
+                conditions={pageSettings.regional_conditions}
+                isLivePreview={true}
+              />
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* =========================================================================
+          ABA 2: HERO & CARDS DE DESTAQUE
+         ========================================================================= */}
+      {activeTab === "hero" && (
+        <div className="p-6 rounded-2xl bg-slate-900 border border-slate-800 space-y-6">
+          <div className="pb-4 border-b border-slate-800">
+            <h2 className="text-base font-bold text-white flex items-center gap-2">
+              <Sparkles size={18} className="text-amber-400" />
+              <span>Hero da Página &amp; 3 Cards de Destaque</span>
+            </h2>
+            <p className="text-xs text-slate-400">
+              Configure os títulos do Hero com o tema claro e o toggle do seguro
+              de carga.
+            </p>
+          </div>
+
+          {/* Configurações do Hero */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div>
+              <label className="block text-xs font-medium text-slate-300 mb-1.5">
+                Selo / Badge do Hero
+              </label>
+              <input
+                type="text"
+                value={pageSettings.hero_badge_text || ""}
+                onChange={(e) =>
+                  setPageSettings((prev) => ({
+                    ...prev,
+                    hero_badge_text: e.target.value,
+                  }))
+                }
+                className="w-full px-3.5 py-2.5 rounded-xl bg-slate-950 border border-slate-800 text-xs text-white focus:border-amber-400 outline-none"
+              />
+            </div>
+
+            <div>
+              <label className="block text-xs font-medium text-slate-300 mb-1.5">
+                Subtítulo do Hero
+              </label>
+              <input
+                type="text"
+                value={pageSettings.hero_subtitle || ""}
+                onChange={(e) =>
+                  setPageSettings((prev) => ({
+                    ...prev,
+                    hero_subtitle: e.target.value,
+                  }))
+                }
+                className="w-full px-3.5 py-2.5 rounded-xl bg-slate-950 border border-slate-800 text-xs text-white focus:border-amber-400 outline-none"
+              />
+            </div>
+
+            <div>
+              <label className="block text-xs font-medium text-slate-300 mb-1.5">
+                Título Linha 1 (Peso Regular)
+              </label>
+              <input
+                type="text"
+                value={pageSettings.hero_title_line1 || ""}
+                onChange={(e) =>
+                  setPageSettings((prev) => ({
+                    ...prev,
+                    hero_title_line1: e.target.value,
+                  }))
+                }
+                className="w-full px-3.5 py-2.5 rounded-xl bg-slate-950 border border-slate-800 text-xs text-white focus:border-amber-400 outline-none font-semibold"
+              />
+            </div>
+
+            <div>
+              <label className="block text-xs font-medium text-amber-400 mb-1.5">
+                Título Linha 2 (Destaque Ventara)
+              </label>
+              <input
+                type="text"
+                value={pageSettings.hero_title_line2 || ""}
+                onChange={(e) =>
+                  setPageSettings((prev) => ({
+                    ...prev,
+                    hero_title_line2: e.target.value,
+                  }))
+                }
+                className="w-full px-3.5 py-2.5 rounded-xl bg-slate-950 border border-amber-400/40 text-xs text-amber-400 focus:border-amber-400 outline-none font-bold"
+              />
+            </div>
+
+            <div>
+              <label className="block text-xs font-medium text-slate-300 mb-1.5">
+                Botão Principal (Texto)
+              </label>
+              <input
+                type="text"
+                value={pageSettings.hero_cta_text || ""}
+                onChange={(e) =>
+                  setPageSettings((prev) => ({
+                    ...prev,
+                    hero_cta_text: e.target.value,
+                  }))
+                }
+                className="w-full px-3.5 py-2.5 rounded-xl bg-slate-950 border border-slate-800 text-xs text-white focus:border-amber-400 outline-none"
+              />
+            </div>
+
+            <div>
+              <label className="block text-xs font-medium text-slate-300 mb-1.5">
+                Botão Principal (Link)
+              </label>
+              <input
+                type="text"
+                value={pageSettings.hero_cta_url || ""}
+                onChange={(e) =>
+                  setPageSettings((prev) => ({
+                    ...prev,
+                    hero_cta_url: e.target.value,
+                  }))
+                }
+                className="w-full px-3.5 py-2.5 rounded-xl bg-slate-950 border border-slate-800 text-xs text-white focus:border-amber-400 outline-none"
+              />
+            </div>
+
+            <div className="md:col-span-2">
+              <label className="block text-xs font-medium text-slate-300 mb-1.5">
+                Foto dos Óculos na Bancada (Lado Direito do Hero)
+              </label>
+              <div className="flex items-center gap-3">
+                <input
+                  type="text"
+                  value={pageSettings.hero_image_url || ""}
+                  onChange={(e) =>
+                    setPageSettings((prev) => ({
+                      ...prev,
+                      hero_image_url: e.target.value,
+                    }))
+                  }
+                  className="flex-1 px-3.5 py-2.5 rounded-xl bg-slate-950 border border-slate-800 text-xs text-white focus:border-amber-400 outline-none font-mono"
+                />
+                <label className="inline-flex items-center gap-2 px-3.5 py-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-xs font-semibold text-slate-200 cursor-pointer border border-slate-700 shrink-0">
+                  <Upload size={14} className="text-amber-400" />
+                  <span>Upload Foto</span>
+                  <input
+                    type="file"
+                    accept="image/png,image/jpeg,image/webp"
+                    onChange={(e) => handleFileUpload(e, "hero_image_url")}
+                    className="hidden"
+                  />
+                </label>
+              </div>
+            </div>
+          </div>
+
+          {/* Cards de Destaque & Toggle de Seguro */}
+          <div className="pt-6 border-t border-slate-800 space-y-4">
+            <h3 className="text-xs font-bold text-white uppercase tracking-wider">
+              3 Cards de Destaque Abaixo do Hero
+            </h3>
+
+            <div className="p-4 rounded-xl bg-slate-950 border border-slate-800 flex items-center justify-between">
+              <div>
+                <p className="text-xs font-bold text-white">
+                  Ativar Card &quot;Seguro de Carga Total&quot;
+                </p>
+                <p className="text-[11px] text-slate-400">
+                  Se desativado (padrão), o card exibirá &quot;Envio para todo o
+                  Brasil: Correios e transporte aéreo&quot;.
+                </p>
+              </div>
+              <input
+                type="checkbox"
+                checked={pageSettings.show_cargo_insurance || false}
+                onChange={(e) =>
+                  setPageSettings((prev) => ({
+                    ...prev,
+                    show_cargo_insurance: e.target.checked,
+                  }))
+                }
+                className="w-4 h-4 accent-amber-400"
+              />
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              <div className="p-3.5 rounded-xl bg-slate-950 border border-slate-800 space-y-2">
+                <p className="text-[11px] font-bold text-amber-400 uppercase">
+                  Card 1: Regional
+                </p>
+                <input
+                  type="text"
+                  value={pageSettings.highlight_card_1_title || ""}
+                  onChange={(e) =>
+                    setPageSettings((prev) => ({
+                      ...prev,
+                      highlight_card_1_title: e.target.value,
+                    }))
+                  }
+                  className="w-full px-2.5 py-1.5 rounded-lg bg-slate-900 border border-slate-800 text-xs text-white outline-none"
+                  placeholder="Título"
+                />
+                <input
+                  type="text"
+                  value={pageSettings.highlight_card_1_subtitle || ""}
+                  onChange={(e) =>
+                    setPageSettings((prev) => ({
+                      ...prev,
+                      highlight_card_1_subtitle: e.target.value,
+                    }))
+                  }
+                  className="w-full px-2.5 py-1.5 rounded-lg bg-slate-900 border border-slate-800 text-xs text-slate-400 outline-none"
+                  placeholder="Subtítulo"
+                />
+              </div>
+
+              <div className="p-3.5 rounded-xl bg-slate-950 border border-slate-800 space-y-2">
+                <p className="text-[11px] font-bold text-blue-400 uppercase">
+                  Card 2: Nacional (Sem Seguro)
+                </p>
+                <input
+                  type="text"
+                  value={pageSettings.highlight_card_2_title || ""}
+                  onChange={(e) =>
+                    setPageSettings((prev) => ({
+                      ...prev,
+                      highlight_card_2_title: e.target.value,
+                    }))
+                  }
+                  className="w-full px-2.5 py-1.5 rounded-lg bg-slate-900 border border-slate-800 text-xs text-white outline-none"
+                  placeholder="Título"
+                />
+                <input
+                  type="text"
+                  value={pageSettings.highlight_card_2_subtitle || ""}
+                  onChange={(e) =>
+                    setPageSettings((prev) => ({
+                      ...prev,
+                      highlight_card_2_subtitle: e.target.value,
+                    }))
+                  }
+                  className="w-full px-2.5 py-1.5 rounded-lg bg-slate-900 border border-slate-800 text-xs text-slate-400 outline-none"
+                  placeholder="Subtítulo"
+                />
+              </div>
+
+              <div className="p-3.5 rounded-xl bg-slate-950 border border-slate-800 space-y-2">
+                <p className="text-[11px] font-bold text-emerald-400 uppercase">
+                  Card 3: Rastreio
+                </p>
+                <input
+                  type="text"
+                  value={pageSettings.highlight_card_3_title || ""}
+                  onChange={(e) =>
+                    setPageSettings((prev) => ({
+                      ...prev,
+                      highlight_card_3_title: e.target.value,
+                    }))
+                  }
+                  className="w-full px-2.5 py-1.5 rounded-lg bg-slate-900 border border-slate-800 text-xs text-white outline-none"
+                  placeholder="Título"
+                />
+                <input
+                  type="text"
+                  value={pageSettings.highlight_card_3_subtitle || ""}
+                  onChange={(e) =>
+                    setPageSettings((prev) => ({
+                      ...prev,
+                      highlight_card_3_subtitle: e.target.value,
+                    }))
+                  }
+                  className="w-full px-2.5 py-1.5 rounded-lg bg-slate-900 border border-slate-800 text-xs text-slate-400 outline-none"
+                  placeholder="Subtítulo"
+                />
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* =========================================================================
+          ABA 3: ENVIO NACIONAL & PRAZO ESTIMADO
+         ========================================================================= */}
+      {activeTab === "national" && (
+        <div className="p-6 rounded-2xl bg-slate-900 border border-slate-800 space-y-6">
+          <div className="pb-4 border-b border-slate-800">
+            <h2 className="text-base font-bold text-white flex items-center gap-2">
+              <Globe2 size={18} className="text-amber-400" />
+              <span>Envio para Todo o Brasil &amp; Prazo Estimado</span>
+            </h2>
+            <p className="text-xs text-slate-400">
+              Configure o bloco nacional, os 3 cartões de envio e o card de
+              prazo estimado.
+            </p>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div>
+              <label className="block text-xs font-medium text-slate-300 mb-1.5">
+                Título da Seção Nacional
+              </label>
+              <input
+                type="text"
+                value={pageSettings.national_title || ""}
+                onChange={(e) =>
+                  setPageSettings((prev) => ({
+                    ...prev,
+                    national_title: e.target.value,
+                  }))
+                }
+                className="w-full px-3.5 py-2.5 rounded-xl bg-slate-950 border border-slate-800 text-xs text-white focus:border-amber-400 outline-none"
+              />
+            </div>
+
+            <div>
+              <label className="block text-xs font-medium text-slate-300 mb-1.5">
+                Subtítulo da Seção Nacional
+              </label>
+              <input
+                type="text"
+                value={pageSettings.national_subtitle || ""}
+                onChange={(e) =>
+                  setPageSettings((prev) => ({
+                    ...prev,
+                    national_subtitle: e.target.value,
+                  }))
+                }
+                className="w-full px-3.5 py-2.5 rounded-xl bg-slate-950 border border-slate-800 text-xs text-white focus:border-amber-400 outline-none"
+              />
+            </div>
+
+            <div className="md:col-span-2">
+              <label className="block text-xs font-medium text-slate-300 mb-1.5">
+                Nota de Rastreamento Ponto a Ponto
+              </label>
+              <input
+                type="text"
+                value={pageSettings.national_tracking_note || ""}
+                onChange={(e) =>
+                  setPageSettings((prev) => ({
+                    ...prev,
+                    national_tracking_note: e.target.value,
+                  }))
+                }
+                className="w-full px-3.5 py-2.5 rounded-xl bg-slate-950 border border-slate-800 text-xs text-white focus:border-amber-400 outline-none"
+              />
+            </div>
+          </div>
+
+          {/* Card de Prazo Estimado */}
+          <div className="pt-6 border-t border-slate-800 space-y-4">
+            <h3 className="text-xs font-bold text-white uppercase tracking-wider flex items-center gap-2">
+              <Clock size={15} className="text-amber-400" />
+              <span>Card em Destaque: Prazo Estimado</span>
+            </h3>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
+                <label className="block text-xs font-medium text-slate-300 mb-1.5">
+                  Título do Card
+                </label>
+                <input
+                  type="text"
+                  value={pageSettings.estimated_timeframe_title || ""}
+                  onChange={(e) =>
+                    setPageSettings((prev) => ({
+                      ...prev,
+                      estimated_timeframe_title: e.target.value,
+                    }))
+                  }
+                  className="w-full px-3.5 py-2.5 rounded-xl bg-slate-950 border border-slate-800 text-xs text-white focus:border-amber-400 outline-none"
+                />
+              </div>
+
+              <div>
+                <label className="block text-xs font-medium text-slate-300 mb-1.5">
+                  Texto Informativo
+                </label>
+                <input
+                  type="text"
+                  value={pageSettings.estimated_timeframe_text || ""}
+                  onChange={(e) =>
+                    setPageSettings((prev) => ({
+                      ...prev,
+                      estimated_timeframe_text: e.target.value,
+                    }))
+                  }
+                  className="w-full px-3.5 py-2.5 rounded-xl bg-slate-950 border border-slate-800 text-xs text-white focus:border-amber-400 outline-none"
+                />
+              </div>
+            </div>
+          </div>
+
+          {/* Cartões Nacionais (Correios, Transportadoras, Aéreo) */}
+          <div className="pt-6 border-t border-slate-800 space-y-4">
+            <h3 className="text-xs font-bold text-white uppercase tracking-wider">
+              Cartões Nacionais (Toggles e Prazos)
+            </h3>
+
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              {(pageSettings.national_cards || []).map((card, idx) => (
+                <div
+                  key={card.id}
+                  className="p-4 rounded-xl bg-slate-950 border border-slate-800 space-y-3"
+                >
+                  <div className="flex items-center justify-between">
+                    <span className="text-xs font-bold text-white">
+                      {card.title}
+                    </span>
+                    <input
+                      type="checkbox"
+                      checked={card.is_active !== false}
+                      onChange={(e) => {
+                        const updated = [...(pageSettings.national_cards || [])];
+                        updated[idx].is_active = e.target.checked;
+                        setPageSettings((prev) => ({
+                          ...prev,
+                          national_cards: updated,
+                        }));
+                      }}
+                      className="w-4 h-4 accent-amber-400"
+                    />
+                  </div>
+
+                  <textarea
+                    rows={3}
+                    value={card.description}
+                    onChange={(e) => {
+                      const updated = [...(pageSettings.national_cards || [])];
+                      updated[idx].description = e.target.value;
+                      setPageSettings((prev) => ({
+                        ...prev,
+                        national_cards: updated,
+                      }));
+                    }}
+                    className="w-full px-2.5 py-2 rounded-lg bg-slate-900 border border-slate-800 text-xs text-slate-300 outline-none leading-relaxed"
+                  />
+
                   <div>
-                    <label className="block text-slate-400 mb-1">Endereço Oficial de Retirada</label>
+                    <label className="block text-[11px] text-slate-400 mb-1">
+                      Prazo Médio
+                    </label>
                     <input
                       type="text"
-                      value={checkoutSettings.pickup_address}
-                      onChange={(e) =>
-                        setCheckoutSettings({
-                          ...checkoutSettings,
-                          pickup_address: e.target.value,
-                        })
-                      }
-                      className="w-full bg-[#0a1b2e] border border-white/10 rounded-xl px-3.5 py-2.5 text-white"
+                      value={card.delivery_time}
+                      onChange={(e) => {
+                        const updated = [...(pageSettings.national_cards || [])];
+                        updated[idx].delivery_time = e.target.value;
+                        setPageSettings((prev) => ({
+                          ...prev,
+                          national_cards: updated,
+                        }));
+                      }}
+                      className="w-full px-2.5 py-1.5 rounded-lg bg-slate-900 border border-slate-800 text-xs text-amber-400 outline-none font-semibold"
                     />
-                    <span className="text-[11px] text-slate-500 mt-1 block">
-                      O cliente não paga frete ao selecionar retirada presencial.
-                    </span>
                   </div>
                 </div>
-              </div>
+              ))}
+            </div>
+          </div>
+        </div>
+      )}
 
-              {/* Bloco 2: Regras de Frete em Domicílio */}
-              <div className="bg-[#06111f] border border-white/10 rounded-2xl p-6 space-y-4">
-                <h3 className="text-sm font-semibold text-white flex items-center gap-2 border-b border-white/5 pb-3">
-                  <Truck size={16} className="text-amber-400" />
-                  2. Regras de Frete em Domicílio
-                </h3>
+      {/* =========================================================================
+          ABA 4: TRANSPORTADORAS UTILIZADAS (CRUD)
+         ========================================================================= */}
+      {activeTab === "carriers" && (
+        <div className="p-6 rounded-2xl bg-slate-900 border border-slate-800 space-y-6">
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 pb-4 border-b border-slate-800">
+            <div>
+              <h2 className="text-base font-bold text-white flex items-center gap-2">
+                <Truck size={18} className="text-amber-400" />
+                <span>Transportadoras que Utilizamos</span>
+              </h2>
+              <p className="text-xs text-slate-400">
+                Cards dinâmicos com operadores parceiros (Azul Cargo, Gollog,
+                Sedex, etc.).
+              </p>
+            </div>
 
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-xs">
-                  <div>
-                    <label className="block text-slate-400 mb-1">Valor para Frete Grátis (R$)</label>
-                    <input
-                      type="number"
-                      step="0.01"
-                      min={0}
-                      value={(checkoutSettings.free_shipping_threshold_cents / 100).toFixed(2)}
-                      onChange={(e) =>
-                        setCheckoutSettings({
-                          ...checkoutSettings,
-                          free_shipping_threshold_cents: Math.round(
-                            parseFloat(e.target.value || "0") * 100
-                          ),
-                        })
-                      }
-                      className="w-full bg-[#0a1b2e] border border-white/10 rounded-xl px-3.5 py-2.5 text-white font-mono"
-                    />
-                    <span className="text-[11px] text-slate-500 mt-1 block">
-                      Pedidos com subtotal igual ou superior a este valor recebem frete gratuito.
-                    </span>
-                  </div>
+            <button
+              type="button"
+              onClick={() => {
+                const newCarrier: ShippingCarrier = {
+                  id: `carrier-${Date.now()}`,
+                  name: "Nova Transportadora",
+                  slug: `carrier-${Date.now()}`,
+                  description: "Descrição dos envios e abrangência logística.",
+                  delivery_time: "Em média 2 a 5 dias úteis",
+                  logo_url: "/images/shipping/envio-brasil-azul-cargo.png",
+                  is_active: true,
+                  sort_order: carriers.length + 1,
+                };
+                setCarriers([...carriers, newCarrier]);
+              }}
+              className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-amber-400 hover:bg-amber-300 text-slate-950 font-bold text-xs uppercase"
+            >
+              <Plus size={14} />
+              <span>Adicionar Transportadora</span>
+            </button>
+          </div>
 
-                  <div>
-                    <label className="block text-slate-400 mb-1">Taxa Padrão de Frete (R$)</label>
-                    <input
-                      type="number"
-                      step="0.01"
-                      min={0}
-                      value={(checkoutSettings.default_shipping_fee_cents / 100).toFixed(2)}
-                      onChange={(e) =>
-                        setCheckoutSettings({
-                          ...checkoutSettings,
-                          default_shipping_fee_cents: Math.round(
-                            parseFloat(e.target.value || "0") * 100
-                          ),
-                        })
-                      }
-                      className="w-full bg-[#0a1b2e] border border-white/10 rounded-xl px-3.5 py-2.5 text-white font-mono"
-                    />
-                    <span className="text-[11px] text-slate-500 mt-1 block">
-                      Cobrado para pedidos abaixo da faixa de frete grátis.
-                    </span>
-                  </div>
-                </div>
-              </div>
-
-              <button
-                type="submit"
-                disabled={isSaving}
-                className="w-full inline-flex items-center justify-center gap-2 py-3.5 px-6 rounded-xl bg-amber-400 hover:bg-amber-300 text-[#06111f] text-xs font-bold uppercase tracking-wider transition-all"
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            {carriers.map((carrier, idx) => (
+              <div
+                key={carrier.id}
+                className="p-4 rounded-xl bg-slate-950 border border-slate-800 space-y-3 relative group"
               >
-                <Save size={16} />
-                <span>{isSaving ? "Gravando no Banco..." : "Salvar Configurações de Frete"}</span>
-              </button>
-            </form>
-          )}
+                <div className="flex items-center justify-between">
+                  <span className="text-xs font-bold text-amber-400 uppercase tracking-wide">
+                    #{idx + 1} {carrier.name}
+                  </span>
+                  <div className="flex items-center gap-2">
+                    <label className="text-xs text-slate-300 flex items-center gap-1.5 cursor-pointer">
+                      <input
+                        type="checkbox"
+                        checked={carrier.is_active}
+                        onChange={(e) => {
+                          const updated = [...carriers];
+                          updated[idx].is_active = e.target.checked;
+                          setCarriers(updated);
+                        }}
+                        className="w-4 h-4 accent-amber-400"
+                      />
+                      <span>Ativo</span>
+                    </label>
+                    <button
+                      type="button"
+                      onClick={() =>
+                        setCarriers(carriers.filter((_, i) => i !== idx))
+                      }
+                      className="p-1 text-rose-400 hover:text-rose-300 hover:bg-rose-500/10 rounded ml-2"
+                    >
+                      <Trash2 size={14} />
+                    </button>
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-2 gap-2">
+                  <input
+                    type="text"
+                    value={carrier.name}
+                    onChange={(e) => {
+                      const updated = [...carriers];
+                      updated[idx].name = e.target.value;
+                      setCarriers(updated);
+                    }}
+                    placeholder="Nome"
+                    className="px-2.5 py-1.5 rounded-lg bg-slate-900 border border-slate-800 text-xs text-white outline-none"
+                  />
+                  <input
+                    type="text"
+                    value={carrier.delivery_time}
+                    onChange={(e) => {
+                      const updated = [...carriers];
+                      updated[idx].delivery_time = e.target.value;
+                      setCarriers(updated);
+                    }}
+                    placeholder="Prazo"
+                    className="px-2.5 py-1.5 rounded-lg bg-slate-900 border border-slate-800 text-xs text-white outline-none"
+                  />
+                </div>
+
+                <textarea
+                  rows={2}
+                  value={carrier.description}
+                  onChange={(e) => {
+                    const updated = [...carriers];
+                    updated[idx].description = e.target.value;
+                    setCarriers(updated);
+                  }}
+                  placeholder="Descrição"
+                  className="w-full px-2.5 py-1.5 rounded-lg bg-slate-900 border border-slate-800 text-xs text-slate-300 outline-none leading-relaxed"
+                />
+
+                <input
+                  type="text"
+                  value={carrier.logo_url}
+                  onChange={(e) => {
+                    const updated = [...carriers];
+                    updated[idx].logo_url = e.target.value;
+                    setCarriers(updated);
+                  }}
+                  placeholder="URL do Logo / Foto"
+                  className="w-full px-2.5 py-1.5 rounded-lg bg-slate-900 border border-slate-800 text-xs text-slate-400 font-mono outline-none"
+                />
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* =========================================================================
+          ABA 5: PERGUNTAS FREQUENTES (FAQ)
+         ========================================================================= */}
+      {activeTab === "faqs" && (
+        <div className="p-6 rounded-2xl bg-slate-900 border border-slate-800 space-y-6">
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 pb-4 border-b border-slate-800">
+            <div>
+              <h2 className="text-base font-bold text-white flex items-center gap-2">
+                <HelpCircle size={18} className="text-amber-400" />
+                <span>Perguntas Frequentes sobre Entregas</span>
+              </h2>
+              <p className="text-xs text-slate-400">
+                Acordeão acessível para tirar dúvidas de clientes sobre prazos e
+                rastreio.
+              </p>
+            </div>
+
+            <button
+              type="button"
+              onClick={() => {
+                const newFaq: ShippingFaqItem = {
+                  id: `faq-${Date.now()}`,
+                  question: "Nova Pergunta sobre Entregas?",
+                  answer: "Resposta explicativa detalhada.",
+                  is_active: true,
+                  sort_order: faqs.length + 1,
+                };
+                setFaqs([...faqs, newFaq]);
+              }}
+              className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-amber-400 hover:bg-amber-300 text-slate-950 font-bold text-xs uppercase"
+            >
+              <Plus size={14} />
+              <span>Adicionar FAQ</span>
+            </button>
+          </div>
+
+          <div className="space-y-3">
+            {faqs.map((faq, idx) => (
+              <div
+                key={faq.id}
+                className="p-4 rounded-xl bg-slate-950 border border-slate-800 space-y-2.5"
+              >
+                <div className="flex items-center justify-between">
+                  <input
+                    type="text"
+                    value={faq.question}
+                    onChange={(e) => {
+                      const updated = [...faqs];
+                      updated[idx].question = e.target.value;
+                      setFaqs(updated);
+                    }}
+                    className="text-xs font-bold text-white bg-transparent outline-none flex-1 focus:border-b focus:border-amber-400 mr-2"
+                  />
+                  <div className="flex items-center gap-2">
+                    <label className="text-xs text-slate-300 flex items-center gap-1 cursor-pointer">
+                      <input
+                        type="checkbox"
+                        checked={faq.is_active}
+                        onChange={(e) => {
+                          const updated = [...faqs];
+                          updated[idx].is_active = e.target.checked;
+                          setFaqs(updated);
+                        }}
+                        className="w-4 h-4 accent-amber-400"
+                      />
+                      <span>Ativo</span>
+                    </label>
+                    <button
+                      type="button"
+                      onClick={() => setFaqs(faqs.filter((_, i) => i !== idx))}
+                      className="p-1 text-rose-400 hover:text-rose-300 rounded ml-2"
+                    >
+                      <Trash2 size={14} />
+                    </button>
+                  </div>
+                </div>
+
+                <textarea
+                  rows={2}
+                  value={faq.answer}
+                  onChange={(e) => {
+                    const updated = [...faqs];
+                    updated[idx].answer = e.target.value;
+                    setFaqs(updated);
+                  }}
+                  className="w-full px-2.5 py-2 rounded-lg bg-slate-900 border border-slate-800 text-xs text-slate-300 outline-none leading-relaxed"
+                />
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* =========================================================================
+          ABA 6: RETIRADA & FRETE LOJA
+         ========================================================================= */}
+      {activeTab === "checkout" && (
+        <div className="p-6 rounded-2xl bg-slate-900 border border-slate-800 space-y-6">
+          <div className="pb-4 border-b border-slate-800">
+            <h2 className="text-base font-bold text-white flex items-center gap-2">
+              <Store size={18} className="text-amber-400" />
+              <span>Retirada Física no Balcão &amp; Frete de Checkout</span>
+            </h2>
+            <p className="text-xs text-slate-400">
+              Regras aplicadas diretamente na finalização da compra no carrinho.
+            </p>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="p-4 rounded-xl bg-slate-950 border border-slate-800 flex items-center justify-between">
+              <div>
+                <p className="text-xs font-bold text-white">
+                  Permitir Retirada Gratuita na Loja
+                </p>
+                <p className="text-[11px] text-slate-400">
+                  Opção para clientes retirarem na ótica física em Araçatuba.
+                </p>
+              </div>
+              <input
+                type="checkbox"
+                checked={checkoutSettings.store_pickup_enabled}
+                onChange={(e) =>
+                  setCheckoutSettings((prev) => ({
+                    ...prev,
+                    store_pickup_enabled: e.target.checked,
+                  }))
+                }
+                className="w-4 h-4 accent-amber-400"
+              />
+            </div>
+
+            <div>
+              <label className="block text-xs font-medium text-slate-300 mb-1.5">
+                Endereço de Retirada
+              </label>
+              <input
+                type="text"
+                value={checkoutSettings.pickup_address}
+                onChange={(e) =>
+                  setCheckoutSettings((prev) => ({
+                    ...prev,
+                    pickup_address: e.target.value,
+                  }))
+                }
+                className="w-full px-3.5 py-2.5 rounded-xl bg-slate-950 border border-slate-800 text-xs text-white focus:border-amber-400 outline-none"
+              />
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

@@ -2,117 +2,159 @@
 
 import React from "react";
 import Image from "next/image";
-import { MapPin, Clock, CheckCircle2, ShieldCheck, Sparkles, Navigation } from "lucide-react";
+import { Navigation, MapPin, Clock, ShieldCheck } from "lucide-react";
+import { CityChip } from "@/types/shipping";
 
 interface ShippingLocalDeliveryProps {
-  title?: string;
+  badgeText?: string;
+  titlePart1?: string;
+  titlePart2?: string;
   description?: string;
-  cities?: string;
-  timeframe?: string;
-  conditions?: string;
+  citiesHeading?: string;
+  cities?: CityChip[];
   imageUrl?: string;
+  imageAlt?: string;
+  focalPoint?: string;
+  gradientIntensity?: "strong" | "medium" | "subtle";
+  showTimeframe?: boolean;
+  timeframe?: string;
+  showConditions?: boolean;
+  conditions?: string;
+  isLivePreview?: boolean;
 }
 
 export function ShippingLocalDelivery({
-  title = "Entrega Expressa em Araçatuba e Região",
+  badgeText = "LOGÍSTICA PRÓPRIA REGIONAL",
+  titlePart1 = "Entrega Expressa em",
+  titlePart2 = "Araçatuba e Região",
   description = "Com frota própria e equipe dedicada, garantimos transporte rápido e seguro diretamente do nosso laboratório até o seu endereço em Araçatuba e municípios vizinhos.",
-  cities = "Araçatuba, Birigui, Bilac, Gabriel Monteiro, Coroados e Guararapes",
-  timeframe = "Consulte o prazo no checkout (média de 24h a 48h úteis após montagem técnica)",
-  conditions = "Opção de retirada gratuita no balcão da loja física ou entrega direta",
+  citiesHeading = "CIDADES ATENDIDAS COM ROTA LOCAL",
+  cities = [],
   imageUrl = "/images/shipping/van-ventara-aracatuba.jpg",
+  imageAlt = "Van de entregas expressas da Ótica Ventara Eyewear em Araçatuba e região",
+  focalPoint = "center right",
+  gradientIntensity = "strong",
+  showTimeframe = false,
+  timeframe,
+  showConditions = false,
+  conditions,
+  isLivePreview = false,
 }: ShippingLocalDeliveryProps) {
-  const cityList = cities
-    .split(",")
-    .map((c) => c.trim())
-    .filter(Boolean);
+  // Configuração da intensidade do gradiente para garantir leitura perfeita
+  const gradientClass =
+    gradientIntensity === "subtle"
+      ? "from-[#081326] via-[#081326]/80 to-transparent"
+      : gradientIntensity === "medium"
+      ? "from-[#081326] via-[#081326]/90 to-transparent"
+      : "from-[#081326] via-[#081326]/95 to-black/30";
 
   return (
-    <section id="aracatuba-regiao" className="py-20 sm:py-28 bg-[#030913] relative overflow-hidden border-b border-white/5">
+    <section id="bloco-regional" className="py-8 sm:py-14 bg-[#030913]">
       <div className="max-w-[1400px] mx-auto px-4 sm:px-8 lg:px-10">
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 lg:gap-14 items-center">
-          {/* Coluna da Esquerda: Textos & Dados Técnicos */}
-          <div className="lg:col-span-7 space-y-6">
-            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-blue-500/10 border border-blue-500/20 text-blue-300 text-xs font-semibold tracking-wider uppercase">
-              <Navigation size={13} className="text-blue-400" />
-              <span>Logística Própria Regional</span>
+        {/* Banner Card Azul-Marinho Fiel ao Mockup */}
+        <div className="relative overflow-hidden rounded-2xl sm:rounded-3xl bg-[#081326] border border-blue-900/40 shadow-2xl p-6 sm:p-10 lg:p-12">
+          {/* Imagem de Fundo / Van à Direita */}
+          <div className="absolute inset-0 z-0">
+            <Image
+              src={imageUrl}
+              alt={imageAlt}
+              fill
+              sizes="(max-width: 1024px) 100vw, 1200px"
+              style={{ objectPosition: focalPoint }}
+              className="object-cover transition-opacity duration-300"
+            />
+            {/* Gradiente de leitura escuro da esquerda para a direita */}
+            <div
+              className={`absolute inset-0 bg-gradient-to-r ${gradientClass} pointer-events-none`}
+              aria-hidden="true"
+            />
+            {/* Gradiente vertical para telas mobile */}
+            <div
+              className="absolute inset-0 bg-gradient-to-t from-[#081326] via-[#081326]/60 to-transparent sm:hidden pointer-events-none"
+              aria-hidden="true"
+            />
+          </div>
+
+          {/* Conteúdo Técnico e Textos (Z-10 garantindo leitura e clique) */}
+          <div className="relative z-10 max-w-2xl flex flex-col items-start text-left">
+            {/* Badge Pílula Azul */}
+            <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-blue-600/30 border border-blue-400/30 text-blue-300 text-[11px] sm:text-xs font-bold tracking-wider uppercase mb-5 backdrop-blur-sm">
+              <Navigation size={13} className="text-blue-400 shrink-0" />
+              <span>{badgeText}</span>
             </div>
 
-            <h2 className="text-2xl sm:text-4xl font-light text-white tracking-tight leading-tight">
-              {title}
+            {/* Título em Duas Cores (Branco + Amarelo Ventara) */}
+            <h2 className="tracking-tight leading-tight mb-4">
+              <span className="block text-2xl sm:text-4xl lg:text-5xl font-bold text-white">
+                {titlePart1}
+              </span>
+              <span className="block text-2xl sm:text-4xl lg:text-5xl font-extrabold text-amber-400">
+                {titlePart2}
+              </span>
             </h2>
 
-            <p className="text-sm sm:text-base text-slate-300 leading-relaxed font-light">
+            {/* Descrição */}
+            <p className="text-sm sm:text-base text-slate-200 leading-relaxed font-light mb-8 max-w-xl">
               {description}
             </p>
 
-            {/* Cidades Atendidas com Tags Elegantes */}
-            <div className="pt-2">
-              <h3 className="text-xs font-bold text-amber-400 uppercase tracking-wider mb-3 flex items-center gap-1.5">
-                <MapPin size={14} />
-                <span>Cidades Atendidas com Rota Local</span>
-              </h3>
-              <div className="flex flex-wrap gap-2">
-                {cityList.map((city, idx) => (
+            {/* Subtítulo das Cidades com Ícone */}
+            <div className="flex items-center gap-2 text-xs sm:text-sm font-bold text-amber-400 uppercase tracking-wider mb-3.5">
+              <MapPin size={15} className="shrink-0" />
+              <span>{citiesHeading}</span>
+            </div>
+
+            {/* Chips de Cidades com Bolinha Amarela (Flex-wrap fluido) */}
+            <div className="flex flex-wrap gap-2 sm:gap-2.5 mb-6">
+              {cities && cities.length > 0 ? (
+                cities.map((city) => (
                   <span
-                    key={idx}
-                    className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-white/[0.04] border border-white/10 text-xs text-slate-200 font-medium hover:border-amber-400/40 transition-colors"
+                    key={city.id}
+                    className="inline-flex items-center gap-2 px-3 sm:px-4 py-1.5 rounded-full bg-slate-900/80 border border-slate-700/70 text-xs sm:text-sm text-white font-medium shadow-sm hover:border-amber-400/40 transition-colors"
                   >
-                    <span className="w-1.5 h-1.5 rounded-full bg-amber-400" />
-                    {city}
+                    <span className="w-2 h-2 rounded-full bg-amber-400 shrink-0" />
+                    <span>{city.name}</span>
                   </span>
-                ))}
-              </div>
+                ))
+              ) : (
+                <span className="text-xs text-slate-400 italic">
+                  Nenhuma cidade cadastrada no momento.
+                </span>
+              )}
             </div>
 
-            {/* Cartões Informativos: Prazos e Condições */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-4">
-              <div className="p-4 rounded-xl bg-white/[0.02] border border-white/10 space-y-1.5">
-                <div className="flex items-center gap-2 text-xs font-semibold text-white">
-                  <Clock size={15} className="text-amber-400" />
-                  <span>Prazo Estimado</span>
-                </div>
-                <p className="text-xs text-slate-300 leading-relaxed">
-                  {timeframe}
-                </p>
-              </div>
+            {/* Prazos e Condições Opcionais (Apenas se preenchidos e ativados) */}
+            {(showTimeframe && timeframe) || (showConditions && conditions) ? (
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-3 border-t border-white/10 w-full">
+                {showTimeframe && timeframe && (
+                  <div className="flex items-start gap-2.5 p-3 rounded-xl bg-slate-950/60 border border-white/10">
+                    <Clock size={16} className="text-amber-400 shrink-0 mt-0.5" />
+                    <div>
+                      <p className="text-[11px] font-bold text-amber-400 uppercase tracking-wide">
+                        Prazo Estimado
+                      </p>
+                      <p className="text-xs text-slate-300 leading-snug">
+                        {timeframe}
+                      </p>
+                    </div>
+                  </div>
+                )}
 
-              <div className="p-4 rounded-xl bg-white/[0.02] border border-white/10 space-y-1.5">
-                <div className="flex items-center gap-2 text-xs font-semibold text-white">
-                  <ShieldCheck size={15} className="text-blue-400" />
-                  <span>Condições Especiais</span>
-                </div>
-                <p className="text-xs text-slate-300 leading-relaxed">
-                  {conditions}
-                </p>
+                {showConditions && conditions && (
+                  <div className="flex items-start gap-2.5 p-3 rounded-xl bg-slate-950/60 border border-white/10">
+                    <ShieldCheck size={16} className="text-blue-400 shrink-0 mt-0.5" />
+                    <div>
+                      <p className="text-[11px] font-bold text-blue-300 uppercase tracking-wide">
+                        Condições Especiais
+                      </p>
+                      <p className="text-xs text-slate-300 leading-snug">
+                        {conditions}
+                      </p>
+                    </div>
+                  </div>
+                )}
               </div>
-            </div>
-          </div>
-
-          {/* Coluna da Direita: Imagem da Van Azul Ventara */}
-          <div className="lg:col-span-5 relative">
-            <div className="relative rounded-3xl overflow-hidden border border-white/15 bg-[#061424] shadow-2xl group">
-              <div className="relative aspect-[4/3] w-full">
-                <Image
-                  src={imageUrl}
-                  alt="Van azul de entregas personalizadas da Ótica Ventara Eyewear em Araçatuba e região"
-                  fill
-                  sizes="(max-width: 768px) 100vw, 550px"
-                  className="object-cover transition-transform duration-500 group-hover:scale-105"
-                  quality={90}
-                />
-              </div>
-
-              {/* Overlay inferior com legenda da frota */}
-              <div className="absolute bottom-0 inset-x-0 p-4 sm:p-5 bg-gradient-to-t from-[#02070e] via-[#02070e]/80 to-transparent">
-                <div className="flex items-center justify-between text-xs">
-                  <span className="font-semibold text-white flex items-center gap-1.5">
-                    <Sparkles size={14} className="text-amber-400" />
-                    Frota Exclusiva Ventara
-                  </span>
-                  <span className="text-slate-400 font-mono text-[11px]">Araçatuba-SP</span>
-                </div>
-              </div>
-            </div>
+            ) : null}
           </div>
         </div>
       </div>
