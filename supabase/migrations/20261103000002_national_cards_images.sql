@@ -5,7 +5,7 @@
 
 -- 1. Garante que a tabela shipping_page_settings exista
 CREATE TABLE IF NOT EXISTS public.shipping_page_settings (
-  id TEXT PRIMARY KEY DEFAULT 'default',
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   is_enabled BOOLEAN NOT NULL DEFAULT true,
   slug TEXT NOT NULL DEFAULT 'entregas',
   hero_title TEXT NOT NULL DEFAULT 'Rede de Entregas Ventara',
@@ -68,9 +68,9 @@ ALTER TABLE public.shipping_page_settings ADD COLUMN IF NOT EXISTS national_trac
 ALTER TABLE public.shipping_page_settings ADD COLUMN IF NOT EXISTS national_cards JSONB NOT NULL DEFAULT '[]'::jsonb;
 
 -- 3. Insere registro padrão caso a tabela esteja vazia
-INSERT INTO public.shipping_page_settings (id, is_enabled, slug)
-VALUES ('default', true, 'entregas')
-ON CONFLICT (id) DO NOTHING;
+INSERT INTO public.shipping_page_settings (is_enabled, slug)
+SELECT true, 'entregas'
+WHERE NOT EXISTS (SELECT 1 FROM public.shipping_page_settings LIMIT 1);
 
 -- 4. Atualiza os dados com suporte a fotos nos cartões nacionais e redação neutra
 UPDATE public.shipping_page_settings
