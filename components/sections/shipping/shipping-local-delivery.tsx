@@ -49,7 +49,7 @@ export function ShippingLocalDelivery({
       : "from-[#081326] via-[#081326]/95 to-black/30";
 
   return (
-    <section id="bloco-regional" className="py-8 sm:py-14 bg-[#030913]">
+    <section id="bloco-regional" className="py-8 sm:py-14 bg-[#FAF8F4]">
       <div className="max-w-[1400px] mx-auto px-4 sm:px-8 lg:px-10">
         {/* Banner Card Azul-Marinho Fiel ao Mockup */}
         <div className="relative overflow-hidden rounded-2xl sm:rounded-3xl bg-[#081326] border border-blue-900/40 shadow-2xl p-6 sm:p-10 lg:p-12">

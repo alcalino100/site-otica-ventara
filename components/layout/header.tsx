@@ -10,6 +10,7 @@ interface HeaderProps {
   onOpenCart?: () => void;
   onToggleSearch?: () => void;
   isSearchOpen?: boolean;
+  theme?: "dark" | "light";
 }
 
 export function Header({
@@ -17,10 +18,12 @@ export function Header({
   onOpenCart = () => {},
   onToggleSearch = () => {},
   isSearchOpen = false,
+  theme = "dark",
 }: HeaderProps) {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [isScrolled, setIsScrolled] = useState(false);
   const [activeSection, setActiveSection] = useState("inicio");
+  const isLight = theme === "light";
 
   useEffect(() => {
     const handleScroll = () => {
@@ -83,20 +86,26 @@ export function Header({
     <header className={`site-header ${isScrolled ? "scrolled" : ""}`}>
       <div className="max-w-[1400px] mx-auto px-4 sm:px-8 lg:px-10 w-full flex items-center justify-between">
         <a href="#inicio" className="brand" aria-label="Ótica Ventara, ir para o início">
-          <BrandLogo size="sm" />
+          <BrandLogo size="sm" tone={isLight ? "light" : undefined} />
         </a>
 
         {/* Desktop Navigation com Highlight Dinâmico e Glassmorphism */}
         <nav className="nav hidden md:flex items-center gap-6 lg:gap-7" aria-label="Navegação principal">
           {navItems.map((item) => {
             const isActive = activeSection === item.id;
+            const textClass = isLight
+              ? isActive
+                ? "text-[#06111F]"
+                : "text-[#4A5875] hover:text-[#06111F]"
+              : isActive
+              ? "text-white"
+              : "text-slate-300 hover:text-white";
+
             return (
               <a
                 key={item.id}
                 href={item.href}
-                className={`nav-link text-xs font-semibold tracking-wider transition-colors relative py-1 ${
-                  isActive ? "text-white" : "text-slate-300 hover:text-white"
-                }`}
+                className={`nav-link text-xs font-semibold tracking-wider transition-colors relative py-1 ${textClass}`}
               >
                 {item.title}
                 {isActive && (
@@ -113,20 +122,28 @@ export function Header({
           {/* Link para a página de Medição por Foto */}
           <a
             href="/medicao-por-foto"
-            className="text-[11px] font-semibold text-amber-300 hover:text-amber-200 transition-colors flex items-center gap-1 px-3 py-1 rounded-full bg-amber-400/10 border border-amber-400/30 hover:bg-amber-400/20"
+            className={`text-[11px] font-semibold transition-colors flex items-center gap-1 px-3 py-1 rounded-full ${
+              isLight
+                ? "text-[#9A6700] hover:text-[#7A5000] bg-amber-400/10 border border-amber-500/30 hover:bg-amber-400/20"
+                : "text-amber-300 hover:text-amber-200 bg-amber-400/10 border border-amber-400/30 hover:bg-amber-400/20"
+            }`}
             title="Conheça a tecnologia de medição de DNP por foto"
           >
-            <Sparkles size={12} className="text-amber-400" />
+            <Sparkles size={12} className={isLight ? "text-[#9A6700]" : "text-amber-400"} />
             <span>Medição por Foto</span>
           </a>
 
           {/* Link para Rastreamento de Pedido */}
           <a
             href="/rastreio"
-            className="text-[11px] font-semibold text-slate-300 hover:text-white transition-colors flex items-center gap-1.5 px-3 py-1 rounded-full bg-white/5 hover:bg-white/10 border border-white/10 hover:border-amber-400/30"
+            className={`text-[11px] font-semibold transition-colors flex items-center gap-1.5 px-3 py-1 rounded-full ${
+              isLight
+                ? "text-[#06111F] hover:text-black bg-black/5 hover:bg-black/10 border border-[#E8E3D8] hover:border-[#06111F]/30"
+                : "text-slate-300 hover:text-white bg-white/5 hover:bg-white/10 border border-white/10 hover:border-amber-400/30"
+            }`}
             title="Acompanhe o corte na facetadora e status do seu pedido em tempo real"
           >
-            <Package size={12} className="text-amber-400" />
+            <Package size={12} className={isLight ? "text-[#9A6700]" : "text-amber-400"} />
             <span>Rastrear seu pedido</span>
           </a>
         </nav>
@@ -205,7 +222,13 @@ export function Header({
                 key={item.id}
                 href={item.href}
                 className={`mobile-nav-link text-sm font-semibold tracking-wider transition-colors py-1 ${
-                  activeSection === item.id ? "text-[#FFD62E]" : "text-slate-200"
+                  activeSection === item.id
+                    ? isLight
+                      ? "text-[#06111F] font-bold"
+                      : "text-[#FFD62E]"
+                    : isLight
+                    ? "text-[#4A5875] hover:text-[#06111F]"
+                    : "text-slate-200 hover:text-white"
                 }`}
                 onClick={() => setMobileMenuOpen(false)}
               >
@@ -215,33 +238,41 @@ export function Header({
 
             <a
               href="/medicao-por-foto"
-              className="mobile-nav-link text-sm font-semibold text-amber-400 flex items-center justify-between py-2 border-t border-white/10 mt-2"
+              className={`mobile-nav-link text-sm font-semibold flex items-center justify-between py-2 border-t mt-2 ${
+                isLight
+                  ? "text-[#9A6700] border-slate-200"
+                  : "text-amber-400 border-white/10"
+              }`}
               onClick={() => setMobileMenuOpen(false)}
             >
               <span className="flex items-center gap-1.5">
                 <Sparkles size={14} />
                 <span>Medição de DNP por Foto</span>
               </span>
-              <span className="text-[10px] bg-amber-400/20 text-amber-300 px-2 py-0.5 rounded-full border border-amber-400/30">
+              <span className="text-[10px] bg-amber-400/20 text-amber-700 dark:text-amber-300 px-2 py-0.5 rounded-full border border-amber-400/30">
                 Novo
               </span>
             </a>
 
             <a
               href="/rastreio"
-              className="mobile-nav-link text-sm font-semibold text-slate-200 flex items-center gap-2 py-2"
+              className={`mobile-nav-link text-sm font-semibold flex items-center gap-2 py-2 ${
+                isLight ? "text-[#06111F]" : "text-slate-200"
+              }`}
               onClick={() => setMobileMenuOpen(false)}
             >
-              <Package size={14} className="text-amber-400" />
+              <Package size={14} className={isLight ? "text-[#9A6700]" : "text-amber-400"} />
               <span>Rastrear seu pedido</span>
             </a>
 
             <a
               href="/responsavel-tecnico"
-              className="mobile-nav-link text-sm font-semibold text-slate-200 flex items-center gap-2 py-2"
+              className={`mobile-nav-link text-sm font-semibold flex items-center gap-2 py-2 ${
+                isLight ? "text-[#4A5875]" : "text-slate-200"
+              }`}
               onClick={() => setMobileMenuOpen(false)}
             >
-              <ShieldCheck size={14} className="text-blue-400" />
+              <ShieldCheck size={14} className="text-blue-500" />
               <span>Responsável Técnico (Gustavo Cordeiro)</span>
             </a>
           </motion.nav>

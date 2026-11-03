@@ -72,14 +72,18 @@ export default async function EntregasPage() {
   };
 
   return (
-    <div className="min-h-screen bg-[#02070D] text-slate-100 flex flex-col font-sans selection:bg-amber-400 selection:text-slate-950">
+    <div
+      data-theme="light"
+      style={{ colorScheme: "light" }}
+      className="min-h-screen bg-[#FAF8F4] text-[#06111F] flex flex-col font-sans selection:bg-amber-400 selection:text-slate-950 transition-colors"
+    >
       {/* Schema SEO */}
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(faqSchema) }}
       />
 
-      <Header />
+      <Header theme="light" />
 
       <main className="flex-1">
         {/* 1. Hero (Light Theme com curva amarela na base) */}
