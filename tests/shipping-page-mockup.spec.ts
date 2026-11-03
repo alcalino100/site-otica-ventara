@@ -140,6 +140,12 @@ test.describe("Refatoração da Página de Entregas (/entregas) conforme Mockup 
       // Elementos essenciais visíveis
       await expect(page.getByText("Rede de Entregas").first()).toBeVisible();
       await expect(page.locator("#bloco-regional")).toBeVisible();
+
+      // Salva captura de tela com a nova estética Off-White
+      await page.screenshot({
+        path: `/Users/user/.gemini/antigravity/brain/3307d6a6-ee9f-47b4-bbf9-e090e670f231/screenshots/entregas-offwhite-${vp.width}px.png`,
+        fullPage: false,
+      });
     }
   });
 

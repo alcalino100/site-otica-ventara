@@ -27,19 +27,19 @@ export function ShippingCarriersGrid({
   }
 
   return (
-    <section className="py-10 sm:py-16 bg-[#030913] relative overflow-hidden border-b border-white/5">
+    <section className="py-12 sm:py-20 bg-[#F3F0E9] relative overflow-hidden border-b border-[#E8E3D8]">
       <div className="max-w-[1400px] mx-auto px-4 sm:px-8 lg:px-10">
-        <div className="text-center max-w-3xl mx-auto mb-8 sm:mb-10">
-          <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-white/[0.04] border border-white/10 text-slate-300 text-xs font-semibold tracking-wider uppercase mb-4">
-            <Truck size={14} className="text-amber-400" />
+        <div className="text-center max-w-3xl mx-auto mb-8 sm:mb-12">
+          <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-[#FFF4C7] border border-amber-400/40 text-[#9A6700] text-xs font-semibold tracking-wider uppercase mb-4 shadow-2xs">
+            <Truck size={14} className="text-[#9A6700]" />
             <span>Rede Integrada de Despacho</span>
           </div>
 
-          <h2 className="text-2xl sm:text-4xl font-light text-white tracking-tight leading-tight mb-4">
+          <h2 className="text-2xl sm:text-4xl font-light text-[#06111F] tracking-tight leading-tight mb-4">
             {title}
           </h2>
 
-          <p className="text-sm sm:text-base text-slate-400 font-light leading-relaxed">
+          <p className="text-sm sm:text-base text-[#4A5875] font-normal leading-relaxed">
             {subtitle}
           </p>
         </div>
@@ -49,12 +49,12 @@ export function ShippingCarriersGrid({
           {activeCarriers.map((carrier) => (
             <div
               key={carrier.id}
-              className="group rounded-2xl bg-[#061424]/60 border border-white/10 hover:border-amber-400/40 p-5 sm:p-6 transition-all duration-300 flex flex-col justify-between shadow-lg hover:shadow-xl hover:-translate-y-1"
+              className="group rounded-2xl bg-white border border-[#E8E3D8] hover:border-[#06111F]/30 p-5 sm:p-6 transition-all duration-300 flex flex-col justify-between shadow-xs hover:shadow-lg hover:-translate-y-1"
             >
               <div className="space-y-4">
                 {/* Imagem / Logo da Transportadora */}
                 {carrier.logo_url && (
-                  <div className="relative h-32 w-full rounded-xl overflow-hidden bg-[#02070e] border border-white/5">
+                  <div className="relative h-32 w-full rounded-xl overflow-hidden bg-[#FAF8F4] border border-[#E8E3D8]">
                     <Image
                       src={carrier.logo_url}
                       alt={`Veículo ou serviço logístico: ${carrier.name}`}
@@ -66,24 +66,24 @@ export function ShippingCarriersGrid({
                 )}
 
                 <div>
-                  <h3 className="text-base font-semibold text-white tracking-tight flex items-center justify-between">
+                  <h3 className="text-base font-bold text-[#06111F] tracking-tight flex items-center justify-between">
                     <span>{carrier.name}</span>
-                    <span className="w-2 h-2 rounded-full bg-emerald-400" title="Ativa e operando" />
+                    <span className="w-2 h-2 rounded-full bg-emerald-500" title="Ativa e operando" />
                   </h3>
-                  <p className="text-xs text-slate-400 mt-2 leading-relaxed font-light">
+                  <p className="text-xs text-[#4A5875] mt-2 leading-relaxed font-normal">
                     {carrier.description}
                   </p>
                 </div>
               </div>
 
               {/* Prazo Médio */}
-              <div className="mt-5 pt-4 border-t border-white/10 space-y-2">
-                <div className="flex items-center gap-2 text-xs text-amber-400 font-medium">
-                  <Clock size={14} className="shrink-0" />
+              <div className="mt-5 pt-4 border-t border-[#E8E3D8] space-y-2">
+                <div className="flex items-center gap-2 text-xs text-[#9A6700] font-semibold">
+                  <Clock size={14} className="shrink-0 text-[#9A6700]" />
                   <span className="truncate">{carrier.delivery_time}</span>
                 </div>
-                <div className="flex items-center gap-1.5 text-[11px] text-slate-400">
-                  <Check size={13} className="text-emerald-400 shrink-0" />
+                <div className="flex items-center gap-1.5 text-[11px] text-[#64748B]">
+                  <Check size={13} className="text-[#059669] shrink-0" />
                   <span>Código de rastreamento incluso</span>
                 </div>
               </div>
@@ -93,7 +93,7 @@ export function ShippingCarriersGrid({
 
         {/* Nota de conformidade e transparência */}
         <div className="mt-10 text-center">
-          <p className="text-[11px] text-slate-400 max-w-2xl mx-auto leading-relaxed">
+          <p className="text-[11px] text-[#64748B] max-w-2xl mx-auto leading-relaxed">
             * Trabalhamos com operadores logísticos e serviços postais independentes para assegurar a melhor rota e menor prazo até a sua localidade. Os prazos são estimativas que podem variar em feriados ou áreas com restrições temporárias.
           </p>
         </div>

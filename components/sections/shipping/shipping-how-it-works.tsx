@@ -43,19 +43,19 @@ export function ShippingHowItWorks({
   };
 
   return (
-    <section className="py-20 sm:py-28 bg-[#02070D] relative overflow-hidden border-b border-white/5">
+    <section className="py-16 sm:py-24 bg-[#FAF8F4] relative overflow-hidden border-b border-[#E8E3D8]">
       <div className="max-w-[1400px] mx-auto px-4 sm:px-8 lg:px-10">
-        <div className="text-center max-w-3xl mx-auto mb-14 sm:mb-16">
-          <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-amber-400/10 border border-amber-400/20 text-amber-300 text-xs font-semibold tracking-wider uppercase mb-4">
-            <Cpu size={14} className="text-amber-400" />
+        <div className="text-center max-w-3xl mx-auto mb-12 sm:mb-16">
+          <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-[#FFF4C7] border border-amber-400/40 text-[#9A6700] text-xs font-semibold tracking-wider uppercase mb-4 shadow-2xs">
+            <Cpu size={14} className="text-[#9A6700]" />
             <span>Processo Técnico &amp; Rastreável</span>
           </div>
 
-          <h2 className="text-2xl sm:text-4xl font-light text-white tracking-tight leading-tight mb-4">
+          <h2 className="text-2xl sm:text-4xl font-light text-[#06111F] tracking-tight leading-tight mb-4">
             {title}
           </h2>
 
-          <p className="text-sm sm:text-base text-slate-400 font-light leading-relaxed">
+          <p className="text-sm sm:text-base text-[#4A5875] font-normal leading-relaxed">
             {subtitle}
           </p>
         </div>
@@ -67,34 +67,34 @@ export function ShippingHowItWorks({
             return (
               <div
                 key={step.step_number || idx}
-                className="relative p-6 sm:p-7 rounded-2xl bg-[#061424]/50 border border-white/10 hover:border-amber-400/30 transition-all duration-300 flex flex-col justify-between group shadow-lg"
+                className="relative p-6 sm:p-7 rounded-2xl bg-white border border-[#E8E3D8] hover:border-[#06111F]/30 transition-all duration-300 flex flex-col justify-between group shadow-xs hover:shadow-lg hover:-translate-y-0.5"
               >
                 {/* Cabeçalho do Passo com Número e Ícone */}
                 <div>
                   <div className="flex items-center justify-between mb-5">
-                    <span className="text-2xl font-light font-mono text-amber-400/80">
+                    <span className="text-2xl font-bold font-mono text-[#9A6700]">
                       0{step.step_number || idx + 1}
                     </span>
-                    <div className="w-10 h-10 rounded-xl bg-amber-400/10 text-amber-400 border border-amber-400/20 flex items-center justify-center group-hover:scale-110 transition-transform">
+                    <div className="w-10 h-10 rounded-xl bg-[#FFF4C7] text-[#9A6700] border border-amber-300/50 flex items-center justify-center group-hover:scale-110 transition-transform shadow-2xs">
                       <Icon size={18} />
                     </div>
                   </div>
 
-                  <h3 className="text-base font-semibold text-white tracking-tight mb-1.5">
+                  <h3 className="text-base font-bold text-[#06111F] tracking-tight mb-1.5">
                     {step.title}
                   </h3>
-                  <p className="text-xs text-amber-400/90 font-medium mb-3">
+                  <p className="text-xs text-[#9A6700] font-semibold mb-3">
                     {step.short_description}
                   </p>
-                  <p className="text-xs text-slate-300 leading-relaxed font-light">
+                  <p className="text-xs text-[#4A5875] leading-relaxed font-normal">
                     {step.detail}
                   </p>
                 </div>
 
                 {/* Linha decorativa de progresso na base do card */}
-                <div className="mt-6 pt-3 border-t border-white/5 flex items-center gap-1.5">
-                  <span className="w-2 h-2 rounded-full bg-amber-400" />
-                  <span className="text-[10px] text-slate-400 font-mono uppercase tracking-wider">
+                <div className="mt-6 pt-3 border-t border-[#E8E3D8] flex items-center gap-2">
+                  <span className="w-2 h-2 rounded-full bg-[#FFD62E]" />
+                  <span className="text-[10px] text-[#64748B] font-mono uppercase tracking-wider">
                     Etapa {idx + 1} de {steps.length}
                   </span>
                 </div>
