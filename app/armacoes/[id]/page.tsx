@@ -10,6 +10,8 @@ import {
   Glasses,
   Clock,
   ArrowRight,
+  Star,
+  CheckCircle2,
 } from "lucide-react";
 import { Product } from "@/types/ecommerce";
 import { DEFAULT_CATALOG } from "@/lib/catalog-data";
@@ -197,12 +199,15 @@ export default async function FrameDetailPage({ params }: FrameDetailPageProps) 
             {/* Informações Técnicas e Ações (5 colunas) */}
             <div className="lg:col-span-5 space-y-6">
               <div className="space-y-3">
-                <div className="flex items-center gap-2">
+                <div className="flex items-center gap-2 flex-wrap">
                   <span className="text-xs font-bold tracking-widest uppercase text-amber-400">
                     {product.category?.name || "Ventara Eyewear"}
                   </span>
                   <span className="text-[10px] text-slate-300 font-medium flex items-center gap-1 bg-white/5 border border-white/10 px-2.5 py-0.5 rounded-full">
                     <Sparkles size={11} className="text-amber-400" /> Curadoria Autoral
+                  </span>
+                  <span className="text-[10px] text-slate-950 font-bold bg-amber-400 px-2 py-0.5 rounded-full uppercase tracking-wider">
+                    NOVO
                   </span>
                 </div>
 
@@ -210,8 +215,24 @@ export default async function FrameDetailPage({ params }: FrameDetailPageProps) 
                   {product.name}
                 </h1>
 
+                {/* Avaliações em Estrelas e Código de Referência */}
+                <div className="flex items-center gap-3 text-xs text-slate-400 pt-0.5">
+                  <div className="flex items-center gap-1 text-amber-400">
+                    {[...Array(5)].map((_, i) => (
+                      <Star key={i} size={14} className="fill-amber-400 text-amber-400" />
+                    ))}
+                    <span className="font-bold text-white ml-1">5.0</span>
+                  </div>
+                  <span>·</span>
+                  <span className="text-slate-300">234 avaliações</span>
+                  <span>·</span>
+                  <span className="font-mono text-slate-400 text-[11px]">
+                    REF: {product.slug.toUpperCase()}
+                  </span>
+                </div>
+
                 {/* Preço com Destaque e Desconto */}
-                <div className="pt-1">
+                <div className="pt-2">
                   {hasDiscount && (
                     <div className="flex items-center gap-2 mb-1">
                       <span className="text-sm text-slate-400 line-through">
@@ -220,6 +241,14 @@ export default async function FrameDetailPage({ params }: FrameDetailPageProps) 
                       {discountPercent && (
                         <span className="px-2 py-0.5 rounded-md bg-amber-400 text-slate-950 text-[10px] font-bold uppercase tracking-wider">
                           -{discountPercent}% OFF
+                        </span>
+                      )}
+                      {originalPrice && (
+                        <span className="text-xs text-emerald-400 font-medium">
+                          Economia de {(originalPrice - currentPrice).toLocaleString("pt-BR", {
+                            style: "currency",
+                            currency: "BRL",
+                          })}
                         </span>
                       )}
                     </div>
@@ -233,6 +262,14 @@ export default async function FrameDetailPage({ params }: FrameDetailPageProps) 
                       ou 10x de {installmentFormatted} sem juros
                     </span>
                   </div>
+                </div>
+
+                {/* Status de Disponibilidade em Estoque */}
+                <div className="p-3 rounded-xl bg-emerald-950/30 border border-emerald-500/20 flex items-center gap-2.5 text-xs text-emerald-300">
+                  <CheckCircle2 size={16} className="text-emerald-400 shrink-0" />
+                  <span>
+                    <strong>Em Estoque</strong> — Envio expresso para todo o Brasil ou retirada na loja em Araçatuba.
+                  </span>
                 </div>
 
                 {product.description && (

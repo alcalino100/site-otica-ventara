@@ -42,7 +42,10 @@ export function PaymentAuditPanel() {
       if (searchQuery.trim()) params.set("search", searchQuery.trim());
       params.set("limit", "100");
 
-      const res = await fetch(`/api/admin/payments/audit?${params.toString()}`);
+      let res = await fetch(`/api/admin/payments/transactions?${params.toString()}`);
+      if (!res.ok) {
+        res = await fetch(`/api/admin/payments/audit?${params.toString()}`);
+      }
       if (res.ok) {
         const data = await res.json();
         setTransactions(data.transactions || []);

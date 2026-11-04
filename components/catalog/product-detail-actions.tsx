@@ -10,6 +10,7 @@ import {
   Layers,
   ShieldCheck,
   CreditCard,
+  Heart,
 } from "lucide-react";
 import { Product } from "@/types/ecommerce";
 import { getStoredCart, saveStoredCart, CartProduct } from "@/lib/cart";
@@ -25,13 +26,45 @@ export function ProductDetailActions({
   onAddedNotification,
 }: ProductDetailActionsProps) {
   const [isAdded, setIsAdded] = useState(false);
+  const [isWishlist, setIsWishlist] = useState(false);
   const [isCartOpen, setIsCartOpen] = useState(false);
   const [cartModalView, setCartModalView] = useState<"items" | "checkout">("checkout");
   const [cartItems, setCartItems] = useState<CartProduct[]>([]);
 
   useEffect(() => {
     setCartItems(getStoredCart());
-  }, []);
+    try {
+      const saved = localStorage.getItem("ventara_wishlist");
+      if (saved) {
+        const list = JSON.parse(saved);
+        if (Array.isArray(list) && list.includes(product.id)) {
+          setIsWishlist(true);
+        }
+      }
+    } catch {
+      // Ignora erro de localStorage
+    }
+  }, [product.id]);
+
+  const toggleWishlist = () => {
+    try {
+      const saved = localStorage.getItem("ventara_wishlist");
+      let list: string[] = saved ? JSON.parse(saved) : [];
+      if (!Array.isArray(list)) list = [];
+      if (list.includes(product.id)) {
+        list = list.filter((id) => id !== product.id);
+        setIsWishlist(false);
+        if (onAddedNotification) onAddedNotification("Removido dos favoritos.");
+      } else {
+        list.push(product.id);
+        setIsWishlist(true);
+        if (onAddedNotification) onAddedNotification("Adicionado aos seus favoritos!");
+      }
+      localStorage.setItem("ventara_wishlist", JSON.stringify(list));
+    } catch {
+      setIsWishlist(!isWishlist);
+    }
+  };
 
   // Variantes de Cor disponíveis
   const variants =
@@ -248,24 +281,40 @@ export function ProductDetailActions({
           <span>COMPRAR AGORA</span>
         </button>
 
-        {/* Botão Secundário: Adicionar à Seleção / Sacola para continuar navegando */}
-        <button
-          type="button"
-          onClick={handleAdd}
-          className="w-full bg-slate-900 hover:bg-slate-800 active:scale-95 text-white font-semibold text-xs tracking-wider uppercase py-3.5 px-6 rounded-2xl flex items-center justify-center gap-2 transition-all shadow-sm cursor-pointer"
-        >
-          {isAdded ? (
-            <>
-              <Check size={16} className="text-emerald-400 stroke-[3]" />
-              <span className="font-bold text-emerald-300">Adicionado à Seleção!</span>
-            </>
-          ) : (
-            <>
-              <ShoppingBag size={16} className="text-amber-400" />
-              <span>Adicionar à seleção</span>
-            </>
-          )}
-        </button>
+        {/* Botão Secundário: Adicionar à Seleção + Favoritos */}
+        <div className="flex items-center gap-2">
+          <button
+            type="button"
+            onClick={handleAdd}
+            className="flex-1 bg-slate-900 hover:bg-slate-800 active:scale-95 text-white font-semibold text-xs tracking-wider uppercase py-3.5 px-6 rounded-2xl flex items-center justify-center gap-2 transition-all shadow-sm cursor-pointer"
+          >
+            {isAdded ? (
+              <>
+                <Check size={16} className="text-emerald-400 stroke-[3]" />
+                <span className="font-bold text-emerald-300">Adicionado à Seleção!</span>
+              </>
+            ) : (
+              <>
+                <ShoppingBag size={16} className="text-amber-400" />
+                <span>Adicionar à seleção</span>
+              </>
+            )}
+          </button>
+
+          <button
+            type="button"
+            onClick={toggleWishlist}
+            className={`p-3.5 rounded-2xl border transition-all active:scale-95 cursor-pointer ${
+              isWishlist
+                ? "bg-red-500/10 border-red-500/30 text-red-400"
+                : "bg-white/5 border-white/10 text-slate-400 hover:text-white hover:border-white/20"
+            }`}
+            title={isWishlist ? "Remover dos favoritos" : "Salvar nos favoritos"}
+            aria-label="Favoritar armação"
+          >
+            <Heart size={18} className={isWishlist ? "fill-red-400 text-red-400" : ""} />
+          </button>
+        </div>
 
         {/* Botão Terciário: Consultar Lentes no WhatsApp */}
         <a
