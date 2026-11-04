@@ -13,7 +13,7 @@ export function CategoriesSection() {
       description:
         "Design ergonômico em acetato polido à mão e ligas leves para conforto diário prolongado e ajuste milimétrico à sua prescrição.",
       badge: "Mais Procurado",
-      href: "#armacoes",
+      href: "/armacoes?categoria=grau",
       cta: "Ver modelos",
       solar: false,
       amber: false,
@@ -26,7 +26,7 @@ export function CategoriesSection() {
       description:
         "Silhuetas marcantes com lentes solares de alto contraste que protegem sua saúde visual com presença e sofisticação.",
       badge: "Coleção Solar",
-      href: "#armacoes",
+      href: "/armacoes?categoria=solar",
       cta: "Explorar solares",
       solar: true,
       amber: false,
@@ -39,7 +39,7 @@ export function CategoriesSection() {
       description:
         "Peças selecionadas a dedo com proporções contemporâneas, dobradiças reforçadas e acabamento de alta relojoaria.",
       badge: "Destaque",
-      href: "#armacoes",
+      href: "/armacoes?categoria=destaques",
       cta: "Ver seleção autoral",
       solar: false,
       amber: true,

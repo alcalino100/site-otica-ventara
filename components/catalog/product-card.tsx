@@ -12,6 +12,7 @@ interface ProductCardProps {
   onSelect: (product: Product) => void;
   onAddToCart: (product: Product) => void;
   isInCart?: boolean;
+  hrefPrefix?: string;
 }
 
 export function ProductCard({
@@ -19,6 +20,7 @@ export function ProductCard({
   onSelect,
   onAddToCart,
   isInCart = false,
+  hrefPrefix = "/produto",
 }: ProductCardProps) {
   const [justAdded, setJustAdded] = useState(false);
 
@@ -81,10 +83,10 @@ export function ProductCard({
   const whatsappUrl = `https://wa.me/5518996155748?text=${whatsappMessage}`;
 
   return (
-    <article className="product group relative rounded-3xl overflow-hidden border border-slate-200/80 hover:border-amber-400/70 shadow-sm hover:shadow-2xl transition-all duration-300 flex flex-col justify-end bg-[#040d1a] aspect-[3/4.2] sm:aspect-[3/4.2] min-h-[350px] sm:min-h-[460px]">
+    <div className="product group relative rounded-3xl overflow-hidden border border-slate-200/80 hover:border-amber-400/70 shadow-sm hover:shadow-2xl transition-all duration-300 flex flex-col justify-end bg-[#040d1a] aspect-[3/4.2] sm:aspect-[3/4.2] min-h-[350px] sm:min-h-[460px]">
       {/* 1. Camada da Foto Sendo o Bloco Inteiro */}
       <Link
-        href={`/produto/${product.slug}`}
+        href={`${hrefPrefix}/${product.slug}`}
         className="absolute inset-0 z-0 block overflow-hidden"
         aria-label={`Ver detalhes da armação ${product.name}`}
       >
@@ -152,7 +154,7 @@ export function ProductCard({
         {/* Nome da Armação e Detalhes */}
         <div>
           <Link
-            href={`/produto/${product.slug}`}
+            href={`${hrefPrefix}/${product.slug}`}
             className="hover:text-amber-300 transition-colors block"
           >
             <h3 className="text-base sm:text-xl font-bold text-white tracking-tight leading-snug line-clamp-1 drop-shadow-sm">
@@ -201,7 +203,7 @@ export function ProductCard({
         {/* Ações Rápidas: Ver Detalhes e WhatsApp */}
         <div className="grid grid-cols-2 gap-1.5 sm:gap-2 pt-0.5">
           <Link
-            href={`/produto/${product.slug}`}
+            href={`${hrefPrefix}/${product.slug}`}
             className="text-center py-1.5 sm:py-2 px-2 sm:px-2.5 rounded-lg sm:rounded-xl bg-white/10 hover:bg-white/20 text-white text-[10px] sm:text-[11px] font-semibold transition-colors truncate border border-white/15 backdrop-blur-xs"
           >
             Ver detalhes
@@ -219,6 +221,6 @@ export function ProductCard({
           </a>
         </div>
       </div>
-    </article>
+    </div>
   );
 }

@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useState, useTransition, useEffect, useMemo, useRef } from "react";
+import Link from "next/link";
 import {
   SlidersHorizontal,
   Search,
@@ -13,6 +14,7 @@ import {
   RotateCcw,
   ChevronLeft,
   ChevronRight,
+  ArrowRight,
 } from "lucide-react";
 import { Product } from "@/types/ecommerce";
 import { ProductCard } from "./product-card";
@@ -683,6 +685,17 @@ export function CatalogSection({
             </div>
           </div>
         )}
+
+        {/* Botão de Acesso ao Catálogo Completo de Armações */}
+        <div className="mt-12 text-center">
+          <Link
+            href="/armacoes"
+            className="inline-flex items-center gap-2.5 px-8 py-3.5 rounded-full bg-[#06111f] hover:bg-amber-400 hover:text-slate-950 text-white font-bold text-xs uppercase tracking-widest border border-white/10 hover:border-amber-400 transition-all duration-200 shadow-md group"
+          >
+            <span>Ver Catálogo Completo de Armações com Filtros</span>
+            <ArrowRight size={15} className="group-hover:translate-x-1 transition-transform" />
+          </Link>
+        </div>
       </div>
     </section>
   );

@@ -60,12 +60,12 @@ export function Footer({ onOpenLegal }: FooterProps) {
                 </a>
               </li>
               <li>
-                <a href="#armacoes" className="hover:text-amber-300 transition-colors">
+                <a href="/armacoes" className="hover:text-amber-300 transition-colors">
                   Armações
                 </a>
               </li>
               <li>
-                <a href="#solar" className="hover:text-amber-300 transition-colors">
+                <a href="/armacoes?categoria=solar" className="hover:text-amber-300 transition-colors">
                   Óculos de sol
                 </a>
               </li>
