@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
+import { usePathname } from "next/navigation";
 import { Search, ShoppingBag, Menu, X, Sparkles, Package, ShieldCheck } from "lucide-react";
 import { motion, AnimatePresence } from "motion/react";
 import { BrandLogo } from "../ui/brand-logo";
@@ -23,9 +24,35 @@ export function Header({
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [isScrolled, setIsScrolled] = useState(false);
   const [activeSection, setActiveSection] = useState("inicio");
+  const pathname = usePathname();
   const isLight = theme === "light";
 
   useEffect(() => {
+    // Se estiver em rota dedicada, destacar item correspondente
+    if (pathname === "/armacoes" || pathname?.startsWith("/armacoes/")) {
+      setActiveSection("armacoes");
+      const handleScrollOnly = () => setIsScrolled(window.scrollY > 20);
+      handleScrollOnly();
+      window.addEventListener("scroll", handleScrollOnly, { passive: true });
+      return () => window.removeEventListener("scroll", handleScrollOnly);
+    }
+
+    if (pathname === "/entregas" || pathname?.startsWith("/entregas/")) {
+      setActiveSection("entregas");
+      const handleScrollOnly = () => setIsScrolled(window.scrollY > 20);
+      handleScrollOnly();
+      window.addEventListener("scroll", handleScrollOnly, { passive: true });
+      return () => window.removeEventListener("scroll", handleScrollOnly);
+    }
+
+    if (pathname === "/lentes" || pathname?.startsWith("/lentes/")) {
+      setActiveSection("lentes");
+      const handleScrollOnly = () => setIsScrolled(window.scrollY > 20);
+      handleScrollOnly();
+      window.addEventListener("scroll", handleScrollOnly, { passive: true });
+      return () => window.removeEventListener("scroll", handleScrollOnly);
+    }
+
     const handleScroll = () => {
       const scrollY = window.scrollY;
       setIsScrolled(scrollY > 20);
@@ -74,7 +101,7 @@ export function Header({
 
   const navItems = [
     { title: "Início", href: "/#inicio", id: "inicio" },
-    { title: "Armações", href: "/#armacoes", id: "armacoes" },
+    { title: "Armações", href: "/armacoes", id: "armacoes" },
     { title: "Sobre nós", href: "/#sobre-nos", id: "sobre-nos" },
     { title: "Laboratório", href: "/#laboratorio", id: "laboratorio" },
     { title: "Lentes", href: "/lentes", id: "lentes" },
@@ -166,7 +193,12 @@ export function Header({
             className={`action-btn ${isSearchOpen ? "active" : ""}`}
             onClick={() => {
               onToggleSearch();
-              document.getElementById("armacoes")?.scrollIntoView({ behavior: "smooth" });
+              const el = document.getElementById("armacoes");
+              if (el) {
+                el.scrollIntoView({ behavior: "smooth" });
+              } else if (pathname !== "/armacoes") {
+                window.location.href = "/armacoes";
+              }
             }}
             title="Buscar no catálogo"
           >

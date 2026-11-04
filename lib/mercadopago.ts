@@ -141,6 +141,7 @@ export interface CreatePixInput {
   };
   notificationUrl?: string;
   expiresInMinutes?: number;
+  accessTokenOverride?: string;
 }
 
 export interface PixPaymentResult {
@@ -163,7 +164,11 @@ export async function createMercadoPagoPixPayment(
   input: CreatePixInput
 ): Promise<PixPaymentResult> {
   const creds = await getMercadoPagoCredentials();
-  const token = creds.accessToken;
+  const rawToken = input.accessTokenOverride || creds.accessToken;
+  const token = rawToken
+    ? rawToken.trim().replace(/^Bearer\s+/i, "").replace(/["']/g, "")
+    : null;
+
   const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://www.oticasventara.com.br";
   const notificationUrl =
     input.notificationUrl || `${siteUrl}/api/webhooks/payment`;
@@ -192,100 +197,111 @@ export async function createMercadoPagoPixPayment(
     };
   }
 
-  if (token) {
-    try {
-      const idempotencyKey = crypto.randomUUID();
-      const payload = {
-        transaction_amount: amountNumber,
-        description: `Pedido ${input.referenceCode} - Óticas Ventara`,
-        payment_method_id: "pix",
-        payer: payerPayload,
-        notification_url: notificationUrl,
-        external_reference: input.referenceCode,
-        date_of_expiration: expiresAt,
+  // Validação prévia de credencial
+  if (!token || token.length < 15) {
+    return {
+      paymentId: `MP-ERR-CREDS-${Date.now()}`,
+      status: "rejected",
+      statusDetail: "unauthorized",
+      qrCode: generateMockPixString(input.referenceCode, amountNumber),
+      qrCodeBase64: null,
+      ticketUrl: undefined,
+      expiresAt,
+      isMock: true,
+      errorMessage:
+        "Access Token do Mercado Pago não informado ou incompleto. Configure seu Access Token (iniciado por APP_USR- ou TEST-) no painel para gerar cobranças reais.",
+      environment: creds.environment,
+    };
+  }
+
+  try {
+    const idempotencyKey = crypto.randomUUID();
+    const payload = {
+      transaction_amount: amountNumber,
+      description: `Pedido ${input.referenceCode} - Óticas Ventara`,
+      payment_method_id: "pix",
+      payer: payerPayload,
+      notification_url: notificationUrl,
+      external_reference: input.referenceCode,
+      date_of_expiration: expiresAt,
+    };
+
+    const res = await fetch("https://api.mercadopago.com/v1/payments", {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${token}`,
+        "X-Idempotency-Key": idempotencyKey,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(payload),
+    });
+
+    const data = await res.json();
+
+    if (res.ok && data.id) {
+      const qrCode =
+        data.point_of_interaction?.transaction_data?.qr_code ||
+        data.transaction_details?.transaction_id;
+      const qrCodeBase64 =
+        data.point_of_interaction?.transaction_data?.qr_code_base64 || null;
+      const ticketUrl =
+        data.point_of_interaction?.transaction_data?.ticket_url || null;
+
+      return {
+        paymentId: String(data.id),
+        status: data.status || "pending",
+        statusDetail: data.status_detail,
+        qrCode: qrCode || generateMockPixString(input.referenceCode, amountNumber),
+        qrCodeBase64: qrCodeBase64,
+        ticketUrl: ticketUrl,
+        expiresAt: data.date_of_expiration || expiresAt,
+        isMock: false,
+        environment: creds.environment,
       };
+    } else {
+      let friendlyError =
+        data.message ||
+        (data.cause && data.cause[0]?.description) ||
+        `Recusado pelo Mercado Pago (HTTP ${res.status})`;
 
-      const res = await fetch("https://api.mercadopago.com/v1/payments", {
-        method: "POST",
-        headers: {
-          Authorization: `Bearer ${token.trim()}`,
-          "X-Idempotency-Key": idempotencyKey,
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(payload),
-      });
-
-      const data = await res.json();
-
-      if (res.ok && data.id) {
-        const qrCode =
-          data.point_of_interaction?.transaction_data?.qr_code ||
-          data.transaction_details?.transaction_id;
-        const qrCodeBase64 =
-          data.point_of_interaction?.transaction_data?.qr_code_base64 || null;
-        const ticketUrl =
-          data.point_of_interaction?.transaction_data?.ticket_url || null;
-
-        return {
-          paymentId: String(data.id),
-          status: data.status || "pending",
-          statusDetail: data.status_detail,
-          qrCode: qrCode || generateMockPixString(input.referenceCode, amountNumber),
-          qrCodeBase64: qrCodeBase64,
-          ticketUrl: ticketUrl,
-          expiresAt: data.date_of_expiration || expiresAt,
-          isMock: false,
-          environment: creds.environment,
-        };
-      } else {
-        const errMsg =
-          data.message ||
-          (data.cause && data.cause[0]?.description) ||
-          "Recusado pela API do Mercado Pago";
-        console.warn("Mercado Pago Pix recusou com payload:", data);
-        return {
-          paymentId: `MP-ERR-${Date.now()}`,
-          status: "rejected",
-          statusDetail: errMsg,
-          qrCode: generateMockPixString(input.referenceCode, amountNumber),
-          qrCodeBase64: null,
-          ticketUrl: undefined,
-          expiresAt,
-          isMock: true,
-          errorMessage: errMsg,
-          environment: creds.environment,
-        };
+      if (
+        data.message === "authorization value not present" ||
+        res.status === 401 ||
+        data.error === "unauthorized"
+      ) {
+        friendlyError =
+          "Credencial de Acesso não autorizada (HTTP 401). O Access Token informado não foi reconhecido pelo Mercado Pago. Verifique se copiou a chave correta da aba 'Credenciais de Produção' ou 'Credenciais de Teste' no painel de desenvolvedores do Mercado Pago.";
       }
-    } catch (err: any) {
-      console.error("Erro na chamada Mercado Pago Pix:", err);
+
+      console.warn("Mercado Pago Pix recusou com payload:", data);
       return {
         paymentId: `MP-ERR-${Date.now()}`,
-        status: "error",
-        statusDetail: err.message,
+        status: "rejected",
+        statusDetail: data.status_detail || data.message || "rejected",
         qrCode: generateMockPixString(input.referenceCode, amountNumber),
         qrCodeBase64: null,
         ticketUrl: undefined,
         expiresAt,
         isMock: true,
-        errorMessage: err.message,
+        errorMessage: friendlyError,
         environment: creds.environment,
       };
     }
+  } catch (err: any) {
+    console.error("Erro na chamada Mercado Pago Pix:", err);
+    return {
+      paymentId: `MP-ERR-${Date.now()}`,
+      status: "error",
+      statusDetail: err.message,
+      qrCode: generateMockPixString(input.referenceCode, amountNumber),
+      qrCodeBase64: null,
+      ticketUrl: undefined,
+      expiresAt,
+      isMock: true,
+      errorMessage: err.message || "Falha de rede ao conectar com a API do Mercado Pago.",
+      environment: creds.environment,
+    };
   }
-
-  // Fallback seguro em modo simulação / sem chave configurada
-  const mockPix = generateMockPixString(input.referenceCode, amountNumber);
-  return {
-    paymentId: `MP-SIM-${crypto.randomBytes(4).toString("hex").toUpperCase()}`,
-    status: "pending",
-    statusDetail: "waiting_transfer",
-    qrCode: mockPix,
-    qrCodeBase64: null,
-    ticketUrl: undefined,
-    expiresAt,
-    isMock: true,
-    environment: "sandbox",
-  };
 }
 
 export interface CreatePreferenceInput {
@@ -311,6 +327,8 @@ export interface PreferenceResult {
   initPoint: string;
   sandboxInitPoint?: string;
   isMock: boolean;
+  environment?: "sandbox" | "production";
+  errorMessage?: string;
 }
 
 /**
@@ -339,65 +357,90 @@ export async function createMercadoPagoPreference(
     currency_id: "BRL",
   }));
 
-  if (token) {
-    try {
-      const payload = {
-        items: mpItems,
-        payer: {
-          name: firstName,
-          surname: lastName,
-          email: input.customer.email.trim().toLowerCase(),
-          phone: {
-            area_code: cleanPhone.slice(0, 2) || "18",
-            number: cleanPhone.slice(2) || "996155748",
-          },
-          identification: {
-            type: "CPF",
-            number: cleanDoc.length === 11 ? cleanDoc : "00000000000",
-          },
-        },
-        back_urls: {
-          success: `${siteUrl}/rastreio?ref=${input.referenceCode}&status=success`,
-          pending: `${siteUrl}/rastreio?ref=${input.referenceCode}&status=pending`,
-          failure: `${siteUrl}/rastreio?ref=${input.referenceCode}&status=failure`,
-        },
-        auto_return: "approved",
-        notification_url: notificationUrl,
-        external_reference: input.referenceCode,
-        payment_methods: {
-          installments: 10,
-        },
-      };
-
-      const res = await fetch("https://api.mercadopago.com/checkout/preferences", {
-        method: "POST",
-        headers: {
-          Authorization: `Bearer ${token.trim()}`,
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(payload),
-      });
-
-      const data = await res.json();
-      if (res.ok && data.id) {
-        return {
-          preferenceId: data.id,
-          initPoint: creds.environment === "sandbox" ? data.sandbox_init_point || data.init_point : data.init_point,
-          sandboxInitPoint: data.sandbox_init_point,
-          isMock: false,
-        };
-      }
-    } catch (err) {
-      console.error("Erro ao criar preferência Mercado Pago:", err);
-    }
+  if (!token || token.length < 15) {
+    return {
+      preferenceId: `PREF-SIM-${crypto.randomBytes(4).toString("hex").toUpperCase()}`,
+      initPoint: `${siteUrl}/rastreio?ref=${input.referenceCode}&simulated=true`,
+      isMock: true,
+      environment: creds.environment,
+      errorMessage: "Access Token não configurado para processamento de cartões.",
+    };
   }
 
-  // Fallback simulado caso credenciais não configuradas
-  return {
-    preferenceId: `PREF-SIM-${crypto.randomBytes(4).toString("hex").toUpperCase()}`,
-    initPoint: `${siteUrl}/rastreio?ref=${input.referenceCode}&simulated=true`,
-    isMock: true,
-  };
+  try {
+    const payload = {
+      items: mpItems,
+      payer: {
+        name: firstName,
+        surname: lastName,
+        email: input.customer.email.trim().toLowerCase(),
+        phone: {
+          area_code: cleanPhone.slice(0, 2) || "18",
+          number: cleanPhone.slice(2) || "996155748",
+        },
+        identification: {
+          type: "CPF",
+          number: cleanDoc.length === 11 ? cleanDoc : "00000000000",
+        },
+      },
+      back_urls: {
+        success: `${siteUrl}/rastreio?ref=${input.referenceCode}&status=success`,
+        pending: `${siteUrl}/rastreio?ref=${input.referenceCode}&status=pending`,
+        failure: `${siteUrl}/rastreio?ref=${input.referenceCode}&status=failure`,
+      },
+      auto_return: "approved",
+      notification_url: notificationUrl,
+      external_reference: input.referenceCode,
+      payment_methods: {
+        installments: 10,
+      },
+    };
+
+    const res = await fetch("https://api.mercadopago.com/checkout/preferences", {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${token.trim()}`,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(payload),
+    });
+
+    const data = await res.json();
+    if (res.ok && data.id) {
+      return {
+        preferenceId: data.id,
+        initPoint:
+          creds.environment === "sandbox"
+            ? data.sandbox_init_point || data.init_point
+            : data.init_point,
+        sandboxInitPoint: data.sandbox_init_point,
+        isMock: false,
+        environment: creds.environment,
+      };
+    } else {
+      const errMsg =
+        data.message ||
+        (data.cause && data.cause[0]?.description) ||
+        `Recusado pelo Mercado Pago (HTTP ${res.status})`;
+
+      return {
+        preferenceId: `PREF-ERR-${Date.now()}`,
+        initPoint: `${siteUrl}/rastreio?ref=${input.referenceCode}&error=rejected`,
+        isMock: true,
+        environment: creds.environment,
+        errorMessage: errMsg,
+      };
+    }
+  } catch (err: any) {
+    console.error("Erro ao criar preferência Mercado Pago:", err);
+    return {
+      preferenceId: `PREF-ERR-${Date.now()}`,
+      initPoint: `${siteUrl}/rastreio?ref=${input.referenceCode}&error=network`,
+      isMock: true,
+      environment: creds.environment,
+      errorMessage: err.message || "Erro de rede ao conectar com Mercado Pago.",
+    };
+  }
 }
 
 /**

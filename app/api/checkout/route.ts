@@ -7,6 +7,7 @@ import {
   createMercadoPagoPixPayment,
   createMercadoPagoPreference,
 } from "@/lib/mercadopago";
+import { recordPaymentTransaction } from "@/lib/payment-audit";
 import crypto from "crypto";
 
 interface CheckoutItemInput {
@@ -367,6 +368,30 @@ export async function POST(req: NextRequest) {
           .eq("id", orderId);
       }
 
+      // Registro de Auditoria da Tentativa Pix
+      await recordPaymentTransaction({
+        order_id: hasLiveDb ? orderId : null,
+        reference_code: referenceCode,
+        customer_name: body.customer_name,
+        customer_email: body.customer_email,
+        customer_document: body.customer_document,
+        customer_phone: body.customer_phone,
+        payment_method: "pix",
+        amount_in_cents: totalInCents,
+        environment: pixResult.environment || "production",
+        status: pixResult.errorMessage ? "failed" : "pending",
+        status_detail:
+          pixResult.statusDetail ||
+          (pixResult.errorMessage ? "rejected" : "pending_waiting_transfer"),
+        gateway_payment_id: pixResult.paymentId,
+        error_message: pixResult.errorMessage || null,
+        request_payload: {
+          items_count: resolvedItems.length,
+          subtotal: subtotalInCents,
+          shipping: shippingFeeInCents,
+        },
+      });
+
       paymentPayload = {
         ...paymentPayload,
         payment_id: pixResult.paymentId,
@@ -404,6 +429,28 @@ export async function POST(req: NextRequest) {
           })
           .eq("id", orderId);
       }
+
+      // Registro de Auditoria da Tentativa Cartão de Crédito
+      await recordPaymentTransaction({
+        order_id: hasLiveDb ? orderId : null,
+        reference_code: referenceCode,
+        customer_name: body.customer_name,
+        customer_email: body.customer_email,
+        customer_document: body.customer_document,
+        customer_phone: body.customer_phone,
+        payment_method: "credit_card",
+        amount_in_cents: totalInCents,
+        environment: prefResult.environment || "production",
+        status: prefResult.errorMessage ? "failed" : "pending",
+        status_detail: prefResult.errorMessage ? "rejected" : "pending_waiting_payment",
+        gateway_payment_id: prefResult.preferenceId,
+        error_message: prefResult.errorMessage || null,
+        request_payload: {
+          items_count: resolvedItems.length,
+          subtotal: subtotalInCents,
+          shipping: shippingFeeInCents,
+        },
+      });
 
       paymentPayload = {
         ...paymentPayload,

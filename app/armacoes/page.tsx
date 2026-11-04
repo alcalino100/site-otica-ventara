@@ -1,7 +1,5 @@
-import React from "react";
+import React, { Suspense } from "react";
 import { Metadata } from "next";
-import { Header } from "@/components/layout/header";
-import { Footer } from "@/components/layout/footer";
 import { ArmacoesView } from "./armacoes-view";
 import { DEFAULT_CATALOG } from "@/lib/catalog-data";
 import { Product } from "@/types/ecommerce";
@@ -62,33 +60,14 @@ export default async function ArmacoesPage() {
   const products = await getProducts();
 
   return (
-    <div className="min-h-screen flex flex-col bg-[#040914] text-white selection:bg-amber-400 selection:text-slate-950 font-sans">
-      <Header theme="dark" />
-
-      <main className="flex-1 pt-24 pb-20">
-        {/* HERO SECTION */}
-        <section className="px-4 sm:px-6 lg:px-8 pt-10 pb-12 border-b border-white/10">
-          <div className="max-w-6xl mx-auto space-y-4">
-            <span className="text-xs font-bold text-amber-400 uppercase tracking-widest block">
-              COLEÇÃO VENTARA EYEWEAR
-            </span>
-            <h1 className="text-3xl sm:text-4xl lg:text-5xl font-light text-white tracking-tight">
-              Catálogo de <span className="font-semibold text-white">Armações &amp; Óculos</span>
-            </h1>
-            <p className="text-xs sm:text-sm text-slate-300 max-w-2xl leading-relaxed">
-              Armações desenvolvidas para alta precisão dióptrica, conforto contínuo e leveza.
-              Escolha seu modelo e personalize com as lentes digitais OPTiSYNC HD do nosso laboratório.
-            </p>
-          </div>
-        </section>
-
-        {/* CATALOG VIEW COM FILTROS */}
-        <section className="px-4 sm:px-6 lg:px-8 py-10 max-w-6xl mx-auto">
-          <ArmacoesView initialProducts={products} />
-        </section>
-      </main>
-
-      <Footer />
-    </div>
+    <Suspense
+      fallback={
+        <div className="min-h-screen bg-[#040914] flex items-center justify-center text-amber-400 text-xs font-semibold">
+          Carregando catálogo Ventara Eyewear...
+        </div>
+      }
+    >
+      <ArmacoesView initialProducts={products} />
+    </Suspense>
   );
 }
