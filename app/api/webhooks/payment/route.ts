@@ -5,6 +5,7 @@ import {
   getMercadoPagoPayment,
   verifyMercadoPagoWebhookSignature,
 } from "@/lib/mercadopago";
+import { updatePaymentTransactionStatus } from "@/lib/payment-audit";
 import crypto from "crypto";
 
 export const dynamic = "force-dynamic";
@@ -98,6 +99,22 @@ export async function POST(req: NextRequest) {
         } else {
           resolvedStatus = "pending";
         }
+
+        // Atualização de Auditoria da Transação em Tempo Real
+        const auditStatus =
+          resolvedStatus === "paid"
+            ? "approved"
+            : resolvedStatus === "cancelled"
+            ? "rejected"
+            : "pending";
+
+        await updatePaymentTransactionStatus({
+          gatewayPaymentId: paymentId,
+          referenceCode: orderReference,
+          status: auditStatus,
+          statusDetail: mpPayment.status_detail,
+          responsePayload: mpPayment,
+        });
       }
     }
 

@@ -19,10 +19,12 @@ import {
   Sparkles,
   Layers,
   Save,
+  Activity,
 } from "lucide-react";
 import Image from "next/image";
 import { FooterPaymentSettings } from "@/types/shipping";
 import { DEFAULT_FOOTER_PAYMENT_SETTINGS } from "@/lib/shipping-constants";
+import { PaymentAuditPanel } from "@/components/admin/payment-audit-panel";
 
 export default function AdminPaymentsPage() {
   const [loading, setLoading] = useState(true);
@@ -39,6 +41,9 @@ export default function AdminPaymentsPage() {
   const [hasExistingToken, setHasExistingToken] = useState(false);
   const [maskedToken, setMaskedToken] = useState<string | null>(null);
   const [webhookUrl, setWebhookUrl] = useState("https://www.oticasventara.com.br/api/webhooks/payment");
+
+  // Tab de Navegação Ativa
+  const [activeTab, setActiveTab] = useState<"config" | "audit">("config");
 
   // Feedback states
   const [testResult, setTestResult] = useState<{
@@ -60,23 +65,59 @@ export default function AdminPaymentsPage() {
   const [copiedPix, setCopiedPix] = useState(false);
 
   const handleGenerateTestPix = async () => {
+    // 1. Validação preventiva de credencial
+    const tokenToUse = accessToken.trim() || (hasExistingToken ? "saved" : "");
+    if (!tokenToUse) {
+      setTestPixResult({
+        success: false,
+        pix: {
+          errorMessage:
+            "Nenhum Access Token configurado. Preencha o seu Access Token (iniciado por APP_USR-... ou TEST-...) no campo de credenciais acima e salve antes de gerar o Pix de teste.",
+        },
+        environment,
+        isSandbox: environment === "sandbox",
+        warning: null,
+      });
+      return;
+    }
+
+    // 2. Alerta preventivo se o usuário colar chave pública no campo de chave privada
+    if (accessToken && accessToken.length < 30) {
+      setTestPixResult({
+        success: false,
+        pix: {
+          errorMessage:
+            "A chave digitada parece ser uma Chave Pública ou está incompleta. O Access Token é uma chave privada longa obtida no Painel de Desenvolvedores do Mercado Pago (aba Credenciais de Produção ou Teste).",
+        },
+        environment,
+        isSandbox: environment === "sandbox",
+        warning: null,
+      });
+      return;
+    }
+
     setGeneratingPix(true);
     setTestPixResult(null);
     try {
       const res = await fetch("/api/admin/payments", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ action: "generate_test_pix" }),
+        body: JSON.stringify({
+          action: "generate_test_pix",
+          access_token: accessToken.trim() || undefined,
+        }),
       });
       const data = await res.json();
       setTestPixResult(data);
     } catch (err: any) {
       setTestPixResult({
         success: false,
-        pix: null,
+        pix: {
+          errorMessage: err.message || "Erro de rede ao conectar com o servidor.",
+        },
         environment,
         isSandbox: environment === "sandbox",
-        warning: err.message || "Erro de rede ao gerar Pix de teste.",
+        warning: null,
       });
     } finally {
       setGeneratingPix(false);
@@ -295,6 +336,40 @@ export default function AdminPaymentsPage() {
           )}
         </div>
       </div>
+
+      {/* Abas de Navegação Superiores */}
+      <div className="flex items-center gap-2 border-b border-white/10 pb-3">
+        <button
+          type="button"
+          onClick={() => setActiveTab("config")}
+          className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs font-semibold transition-all cursor-pointer ${
+            activeTab === "config"
+              ? "bg-amber-400 text-slate-950 font-bold shadow-md shadow-amber-400/10"
+              : "text-slate-400 hover:text-white hover:bg-white/5"
+          }`}
+        >
+          <CreditCard size={15} />
+          <span>Configuração & Chaves da API</span>
+        </button>
+
+        <button
+          type="button"
+          onClick={() => setActiveTab("audit")}
+          className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs font-semibold transition-all cursor-pointer ${
+            activeTab === "audit"
+              ? "bg-amber-400 text-slate-950 font-bold shadow-md shadow-amber-400/10"
+              : "text-slate-400 hover:text-white hover:bg-white/5"
+          }`}
+        >
+          <Activity size={15} />
+          <span>Auditoria & Histórico de Transações</span>
+        </button>
+      </div>
+
+      {activeTab === "audit" ? (
+        <PaymentAuditPanel />
+      ) : (
+        <>
 
       {/* Alerta de Sandbox ou Credencial Ausente */}
       {environment === "sandbox" && (
@@ -555,7 +630,7 @@ export default function AdminPaymentsPage() {
 
         {testPixResult && (
           <div className="space-y-4">
-            {testPixResult.warning && (
+            {testPixResult.success && testPixResult.warning && (
               <div className="p-4 rounded-xl bg-amber-500/10 border border-amber-500/30 flex items-start gap-3 text-amber-200 text-xs">
                 <AlertCircle className="w-5 h-5 text-amber-400 shrink-0 mt-0.5" />
                 <p className="leading-relaxed">{testPixResult.warning}</p>
@@ -877,6 +952,8 @@ export default function AdminPaymentsPage() {
           </button>
         </div>
       </form>
+      </>
+      )}
     </div>
   );
 }

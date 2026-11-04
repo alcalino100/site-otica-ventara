@@ -5,6 +5,7 @@ import {
   testMercadoPagoConnection,
   createMercadoPagoPixPayment,
 } from "@/lib/mercadopago";
+import { recordPaymentTransaction } from "@/lib/payment-audit";
 
 export const dynamic = "force-dynamic";
 
@@ -51,9 +52,12 @@ export async function POST(req: NextRequest) {
     // 2. Ação especial: Gerar PIX de Teste com QR Code
     if (body.action === "generate_test_pix") {
       const creds = await getMercadoPagoCredentials();
+      const tokenToUse = body.access_token || creds.accessToken;
+      const refCode = `TESTE-${Date.now().toString(36).toUpperCase()}`;
+
       const pix = await createMercadoPagoPixPayment({
         orderId: `test-${Date.now()}`,
-        referenceCode: `TESTE-${Date.now().toString(36).toUpperCase()}`,
+        referenceCode: refCode,
         amountInCents: 100, // R$ 1,00
         customer: {
           name: "Teste Administrador",
@@ -61,16 +65,40 @@ export async function POST(req: NextRequest) {
           document: "12345678909",
         },
         expiresInMinutes: 15,
+        accessTokenOverride: body.access_token ? String(body.access_token).trim() : undefined,
       });
 
-      const isSandboxOrMock = creds.environment === "sandbox" || pix.isMock;
+      // Gravação na trilha de auditoria para diagnóstico em tempo real
+      await recordPaymentTransaction({
+        reference_code: refCode,
+        customer_name: "Teste Administrador (Diagnóstico)",
+        customer_email: "admin@oticasventara.com.br",
+        customer_document: "12345678909",
+        payment_method: "pix",
+        amount_in_cents: 100,
+        environment: creds.environment,
+        status: pix.errorMessage ? "failed" : "pending",
+        status_detail: pix.statusDetail || (pix.errorMessage ? "unauthorized" : "pending_waiting_transfer"),
+        gateway_payment_id: pix.paymentId,
+        error_message: pix.errorMessage || null,
+        metadata: {
+          diagnostic: true,
+          token_source: body.access_token ? "form_input" : "database_or_env",
+          has_token: Boolean(tokenToUse),
+        },
+      });
+
+      const isRealError = Boolean(pix.errorMessage);
+      const isSandboxOrMock = creds.environment === "sandbox" || (pix.isMock && !isRealError);
 
       return NextResponse.json({
-        success: !pix.errorMessage,
+        success: !isRealError,
         pix,
         environment: creds.environment,
         isSandbox: isSandboxOrMock,
-        warning: isSandboxOrMock
+        warning: isRealError
+          ? null
+          : isSandboxOrMock
           ? "Atenção: Este QR Code foi gerado em modo SANDBOX/SIMULAÇÃO. Ele NÃO será reconhecido por aplicativos de bancos reais (Itaú, Nubank, etc). Para receber pagamentos reais, configure credenciais de PRODUÇÃO no painel."
           : null,
       });
