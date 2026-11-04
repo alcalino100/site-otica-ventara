@@ -50,7 +50,9 @@ export async function POST(req: NextRequest) {
     const buffer = Buffer.from(bytes);
 
     const fileExt = file.name.split(".").pop()?.toLowerCase() || "jpg";
-    const fileName = `shipping-${Date.now()}-${Math.random().toString(36).substring(2, 8)}.${fileExt}`;
+    const cleanExt = fileExt.replace(/[^a-z0-9]/g, "").slice(0, 4) || "jpg";
+    const shortRandom = Math.random().toString(36).substring(2, 8);
+    const fileName = `ship-${Date.now().toString(36)}-${shortRandom}.${cleanExt}`;
     const filePath = `shipping-images/${fileName}`;
 
     const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;

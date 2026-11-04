@@ -490,12 +490,12 @@ export function ShippingCmsAdmin({
                     Título da Página (Tag &lt;title&gt;)
                   </label>
                   <span className="text-[10px] font-mono text-slate-500">
-                    {doc.seo.title.length}/70
+                    {doc.seo.title.length}/120
                   </span>
                 </div>
                 <input
                   type="text"
-                  maxLength={70}
+                  maxLength={120}
                   value={doc.seo.title}
                   onChange={(e) =>
                     setDoc({ ...doc, seo: { ...doc.seo, title: e.target.value } })
@@ -524,12 +524,12 @@ export function ShippingCmsAdmin({
                     Meta Descrição (Google e Compartilhamento)
                   </label>
                   <span className="text-[10px] font-mono text-slate-500">
-                    {doc.seo.description.length}/160
+                    {doc.seo.description.length}/300
                   </span>
                 </div>
                 <textarea
                   rows={2}
-                  maxLength={160}
+                  maxLength={300}
                   value={doc.seo.description}
                   onChange={(e) =>
                     setDoc({ ...doc, seo: { ...doc.seo, description: e.target.value } })

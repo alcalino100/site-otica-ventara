@@ -158,6 +158,7 @@ export function CmsTopBar({
           {/* Publicar no Ar */}
           <button
             type="button"
+            id="btn-open-publish-modal"
             onClick={onOpenPublishModal}
             disabled={isPublishing}
             className="inline-flex items-center gap-1.5 px-4 py-1.5 rounded-xl bg-amber-400 hover:bg-amber-300 text-slate-950 text-xs font-extrabold shadow-md shadow-amber-400/20 active:scale-98 transition-all disabled:opacity-50 cursor-pointer"

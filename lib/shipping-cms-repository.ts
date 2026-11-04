@@ -98,9 +98,12 @@ export async function saveDraftShippingCms(
 
     const parsed = ShippingCmsDocumentSchema.safeParse(docToValidate);
     if (!parsed.success) {
+      const details = parsed.error.issues
+        .map((i) => (i.path.length > 0 ? `[${i.path.join(" > ")}] ${i.message}` : i.message))
+        .join("; ");
       return {
         success: false,
-        error: `Dados inválidos: ${parsed.error.issues.map((i) => i.message).join(", ")}`,
+        error: `Dados inválidos no rascunho: ${details}`,
       };
     }
 
@@ -162,22 +165,28 @@ export async function publishShippingCms(
       };
     }
 
-    // 2. Validação de Schema
+    // 2. Validação e Normalização de Schema
+    const safeVersionLabel = (versionLabel || "Versão publicada").trim().slice(0, 120);
+    const safeChangeSummary = (changeSummary || "Atualização direta via painel administrativo").trim().slice(0, 500);
+
     const docToValidate: ShippingCmsDocument = {
       ...document,
       status: "published",
       audit: {
         updated_at: new Date().toISOString(),
         updated_by: userId,
-        version_label: versionLabel,
+        version_label: safeVersionLabel,
       },
     };
 
     const parsed = ShippingCmsDocumentSchema.safeParse(docToValidate);
     if (!parsed.success) {
+      const details = parsed.error.issues
+        .map((i) => (i.path.length > 0 ? `[${i.path.join(" > ")}] ${i.message}` : i.message))
+        .join("; ");
       return {
         success: false,
-        error: `Dados inválidos para publicação: ${parsed.error.issues.map((i) => i.message).join(", ")}`,
+        error: `Dados inválidos para publicação: ${details}`,
       };
     }
 

@@ -45,10 +45,10 @@ export const ShippingCmsThemeSchema = z.object({
 });
 
 export const ShippingCmsSeoSchema = z.object({
-  title: cleanTextSchema(70).min(5, "Título de SEO deve ter pelo menos 5 caracteres."),
-  description: cleanTextSchema(160).min(10, "Descrição deve ter pelo menos 10 caracteres."),
+  title: cleanTextSchema(120).min(5, "Título de SEO deve ter entre 5 e 120 caracteres."),
+  description: cleanTextSchema(300).min(10, "Descrição de SEO deve ter entre 10 e 300 caracteres."),
   og_image_url: z.string().min(1, "Imagem Open Graph é obrigatória."),
-  og_image_alt: cleanTextSchema(100).min(3, "Texto alternativo da imagem é obrigatório."),
+  og_image_alt: cleanTextSchema(150).min(3, "Texto alternativo da imagem é obrigatório."),
   slug: z
     .string()
     .regex(/^[a-z0-9-]+$/, "Slug deve conter apenas letras minúsculas, números e hífens.")
@@ -57,83 +57,83 @@ export const ShippingCmsSeoSchema = z.object({
 });
 
 export const SectionHeroSchema = z.object({
-  badge_text: cleanTextSchema(60),
-  title_line1: cleanTextSchema(60),
-  title_line2: cleanTextSchema(60),
-  subtitle: cleanTextSchema(200),
-  cta_text: cleanTextSchema(40),
+  badge_text: cleanTextSchema(100),
+  title_line1: cleanTextSchema(100),
+  title_line2: cleanTextSchema(100),
+  subtitle: cleanTextSchema(400),
+  cta_text: cleanTextSchema(80),
   cta_url: safeUrlSchema,
-  secondary_cta_text: cleanTextSchema(40),
+  secondary_cta_text: cleanTextSchema(80),
   secondary_cta_url: safeUrlSchema,
   image_url: z.string().min(1, "Foto do Hero é obrigatória."),
-  image_alt: cleanTextSchema(120).min(3, "Texto alternativo da foto do Hero é obrigatório."),
+  image_alt: cleanTextSchema(150).min(3, "Texto alternativo da foto do Hero é obrigatório."),
   image_mobile_url: z.string().optional(),
   focal_point: z.string().optional(),
 });
 
 export const SectionHighlightCardsSchema = z.object({
-  card1_title: cleanTextSchema(50),
-  card1_subtitle: cleanTextSchema(100),
-  card1_badge: cleanTextSchema(10),
-  card2_title: cleanTextSchema(50),
-  card2_subtitle: cleanTextSchema(100),
-  card2_badge: cleanTextSchema(10),
-  card3_title: cleanTextSchema(50),
-  card3_subtitle: cleanTextSchema(100),
-  card3_badge: cleanTextSchema(10),
+  card1_title: cleanTextSchema(80),
+  card1_subtitle: cleanTextSchema(160),
+  card1_badge: cleanTextSchema(30),
+  card2_title: cleanTextSchema(80),
+  card2_subtitle: cleanTextSchema(160),
+  card2_badge: cleanTextSchema(30),
+  card3_title: cleanTextSchema(80),
+  card3_subtitle: cleanTextSchema(160),
+  card3_badge: cleanTextSchema(30),
   show_cargo_insurance: z.boolean().default(false),
-  insurance_title: cleanTextSchema(50),
-  insurance_subtitle: cleanTextSchema(100),
+  insurance_title: cleanTextSchema(80),
+  insurance_subtitle: cleanTextSchema(160),
 });
 
 export const SectionRegionalDeliverySchema = z.object({
-  badge_text: cleanTextSchema(60),
-  title_part1: cleanTextSchema(50),
-  title_part2: cleanTextSchema(50),
-  description: cleanTextSchema(400),
-  cities_heading: cleanTextSchema(60),
+  badge_text: cleanTextSchema(100),
+  title_part1: cleanTextSchema(80),
+  title_part2: cleanTextSchema(80),
+  description: cleanTextSchema(600),
+  cities_heading: cleanTextSchema(100),
   cities: z.array(
     z.object({
       id: z.string(),
-      name: cleanTextSchema(50),
+      name: cleanTextSchema(80),
       sort_order: z.number().int(),
     })
   ),
   image_url: z.string().min(1, "Foto da Van de Entrega é obrigatória."),
-  image_alt: cleanTextSchema(120).min(3, "Texto alternativo é obrigatório."),
+  image_alt: cleanTextSchema(150).min(3, "Texto alternativo é obrigatório."),
   image_mobile_url: z.string().optional(),
   focal_point: z.string().default("center right"),
   gradient_intensity: z.enum(["strong", "medium", "subtle"]).default("strong"),
   show_timeframe: z.boolean().default(false),
-  timeframe: cleanTextSchema(150).optional(),
+  timeframe: cleanTextSchema(250).optional(),
   show_conditions: z.boolean().default(false),
-  conditions: cleanTextSchema(150).optional(),
+  conditions: cleanTextSchema(250).optional(),
 });
 
 export const SectionEstimatedTimeframeSchema = z.object({
-  title: cleanTextSchema(50),
-  text: cleanTextSchema(200),
+  title: cleanTextSchema(80),
+  text: cleanTextSchema(300),
   href: safeUrlSchema.default("/catalogo"),
 });
 
 export const SectionNationalDeliverySchema = z.object({
-  badge_text: cleanTextSchema(60),
-  title: cleanTextSchema(60),
-  subtitle: cleanTextSchema(200),
-  tracking_note: cleanTextSchema(200),
+  badge_text: cleanTextSchema(100),
+  title: cleanTextSchema(100),
+  subtitle: cleanTextSchema(400),
+  tracking_note: cleanTextSchema(300),
   cards: z.array(
     z.object({
       id: z.string(),
-      title: cleanTextSchema(60),
-      description: cleanTextSchema(250),
-      delivery_time: cleanTextSchema(80),
-      badge: cleanTextSchema(30).optional(),
+      title: cleanTextSchema(100),
+      description: cleanTextSchema(400),
+      delivery_time: cleanTextSchema(120),
+      badge: cleanTextSchema(50).optional(),
       icon_name: z.enum(["mail", "truck", "plane"]),
       image_url: z.string().optional(),
-      image_alt: cleanTextSchema(120).optional(),
+      image_alt: cleanTextSchema(150).optional(),
       image_position: z.enum(["center", "top", "bottom", "left", "right"]).optional(),
       image_overlay: z.enum(["subtle", "medium", "strong"]).optional(),
-      image_caption: cleanTextSchema(50).optional(),
+      image_caption: cleanTextSchema(80).optional(),
       show_image: z.boolean().optional(),
       is_active: z.boolean().default(true),
     })
@@ -141,17 +141,17 @@ export const SectionNationalDeliverySchema = z.object({
 });
 
 export const SectionCarriersGridSchema = z.object({
-  badge_text: cleanTextSchema(60),
-  title: cleanTextSchema(60),
-  subtitle: cleanTextSchema(200),
-  disclaimer: cleanTextSchema(400),
+  badge_text: cleanTextSchema(100),
+  title: cleanTextSchema(100),
+  subtitle: cleanTextSchema(400),
+  disclaimer: cleanTextSchema(600),
   carriers: z.array(
     z.object({
       id: z.string(),
-      name: cleanTextSchema(60),
+      name: cleanTextSchema(100),
       slug: z.string(),
-      description: cleanTextSchema(200),
-      delivery_time: cleanTextSchema(80),
+      description: cleanTextSchema(300),
+      delivery_time: cleanTextSchema(120),
       logo_url: z.string(),
       is_active: z.boolean(),
       sort_order: z.number().int(),
@@ -160,29 +160,29 @@ export const SectionCarriersGridSchema = z.object({
 });
 
 export const SectionHowItWorksSchema = z.object({
-  badge_text: cleanTextSchema(60),
-  title: cleanTextSchema(60),
-  subtitle: cleanTextSchema(200),
+  badge_text: cleanTextSchema(100),
+  title: cleanTextSchema(100),
+  subtitle: cleanTextSchema(400),
   steps: z.array(
     z.object({
       step_number: z.number().int(),
-      title: cleanTextSchema(60),
-      short_description: cleanTextSchema(100),
-      detail: cleanTextSchema(300),
+      title: cleanTextSchema(100),
+      short_description: cleanTextSchema(160),
+      detail: cleanTextSchema(500),
       icon_name: z.string().optional(),
     })
   ),
 });
 
 export const SectionFaqSchema = z.object({
-  badge_text: cleanTextSchema(60),
-  title: cleanTextSchema(60),
-  subtitle: cleanTextSchema(200),
+  badge_text: cleanTextSchema(100),
+  title: cleanTextSchema(100),
+  subtitle: cleanTextSchema(400),
   faqs: z.array(
     z.object({
       id: z.string(),
-      question: cleanTextSchema(150),
-      answer: cleanTextSchema(600),
+      question: cleanTextSchema(250),
+      answer: cleanTextSchema(1200),
       category: z.string().optional(),
       is_active: z.boolean(),
       sort_order: z.number().int(),
@@ -191,12 +191,12 @@ export const SectionFaqSchema = z.object({
 });
 
 export const SectionWhatsAppCtaSchema = z.object({
-  badge_text: cleanTextSchema(60),
-  title: cleanTextSchema(80),
-  subtitle: cleanTextSchema(200),
-  button_text: cleanTextSchema(40),
-  response_time_text: cleanTextSchema(60),
-  working_hours_text: cleanTextSchema(60),
+  badge_text: cleanTextSchema(100),
+  title: cleanTextSchema(120),
+  subtitle: cleanTextSchema(400),
+  button_text: cleanTextSchema(80),
+  response_time_text: cleanTextSchema(100),
+  working_hours_text: cleanTextSchema(100),
 });
 
 export const ShippingCmsSectionSchema = z.object({
@@ -230,7 +230,7 @@ export const ShippingCmsDocumentSchema = z.object({
     .object({
       updated_at: z.string(),
       updated_by: z.string(),
-      version_label: z.string().optional(),
+      version_label: cleanTextSchema(120).optional(),
     })
     .optional(),
 });
