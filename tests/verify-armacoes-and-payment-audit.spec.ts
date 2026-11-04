@@ -61,10 +61,10 @@ test.describe("E-commerce de Armações e Auditoria de Pagamentos", () => {
     await filtersBtn.click();
 
     // Verifica seletores de filtros
-    await expect(page.getByText("Formato do Aro")).toBeVisible();
-    await expect(page.getByText("Material")).toBeVisible();
-    await expect(page.getByText("Cor Predominante")).toBeVisible();
-    await expect(page.getByText("Faixa de Preço")).toBeVisible();
+    await expect(page.getByText("Formato do Aro").first()).toBeVisible();
+    await expect(page.getByText("Material").first()).toBeVisible();
+    await expect(page.getByText("Cor Predominante").first()).toBeVisible();
+    await expect(page.getByText("Faixa de Preço").first()).toBeVisible();
   });
 
   test("3. Endpoint de Auditoria de Pagamentos deve retornar métricas e lista de transações", async ({ request }) => {
@@ -116,5 +116,61 @@ test.describe("E-commerce de Armações e Auditoria de Pagamentos", () => {
 
     // Botão de Exportar CSV
     await expect(page.locator('button:has-text("Exportar")')).toBeVisible();
+  });
+
+  test("6. Endpoints dedicados v3 do Mercado Pago devem responder corretamente", async ({ request }) => {
+    // A. /api/admin/payments/config (GET)
+    const configRes = await request.get("/api/admin/payments/config");
+    expect(configRes.status()).toBe(200);
+    const configData = await configRes.json();
+    expect(configData).toHaveProperty("environment");
+    expect(configData).toHaveProperty("gateway", "mercadopago");
+    expect(configData).toHaveProperty("pix_enabled", true);
+
+    // B. /api/admin/payments/test-connection (POST)
+    const connRes = await request.post("/api/admin/payments/test-connection", {
+      data: { access_token: "invalid_test_token" },
+    });
+    expect(connRes.status()).toBe(200);
+    const connData = await connRes.json();
+    expect(connData.success).toBe(false);
+
+    // C. /api/admin/payments/test-pix (POST)
+    const pixRes = await request.post("/api/admin/payments/test-pix", {
+      data: { access_token: "short_key" },
+    });
+    expect(pixRes.status()).toBe(200);
+    const pixData = await pixRes.json();
+    expect(pixData.success).toBe(false);
+    expect(pixData.pix.errorMessage).toContain("Access Token");
+
+    // D. /api/admin/payments/transactions (GET)
+    const txRes = await request.get("/api/admin/payments/transactions");
+    expect(txRes.status()).toBe(200);
+    const txData = await txRes.json();
+    expect(txData).toHaveProperty("transactions");
+    expect(txData).toHaveProperty("metrics");
+  });
+
+  test("7. Página de detalhe da armação deve exibir estrelas, em estoque, economia e botão de favoritos", async ({
+    page,
+  }) => {
+    await page.goto("/armacoes/ventara-safari");
+    await page.waitForLoadState("domcontentloaded");
+
+    // Estrelas de avaliação
+    await expect(page.getByText("5.0")).toBeVisible();
+    await expect(page.getByText("234 avaliações")).toBeVisible();
+
+    // Em estoque
+    await expect(page.getByText("Em Estoque")).toBeVisible();
+
+    // Botão de Favoritar
+    const heartBtn = page.locator("button[aria-label='Favoritar armação']");
+    await expect(heartBtn).toBeVisible();
+    await heartBtn.click();
+
+    // Botão Comprar Agora
+    await expect(page.getByRole("button", { name: /COMPRAR AGORA/i })).toBeVisible();
   });
 });

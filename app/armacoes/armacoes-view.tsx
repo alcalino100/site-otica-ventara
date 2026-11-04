@@ -8,22 +8,19 @@ import {
   SlidersHorizontal,
   X,
   Sparkles,
-  ShoppingBag,
-  Check,
   CheckCircle2,
   Glasses,
   Sun,
   ShieldCheck,
   Tag,
-  ArrowRight,
   Filter,
   RotateCcw,
-  ChevronDown,
   Layers,
   Award,
 } from "lucide-react";
 import { Product } from "@/types/ecommerce";
-import { ProductCard } from "@/components/catalog/product-card";
+import { ArmacaoCard } from "@/components/armacoes/armacao-card";
+import { ArmacaoFilters } from "@/components/armacoes/armacao-filters";
 import { Header } from "@/components/layout/header";
 import { Footer } from "@/components/layout/footer";
 import { CartModal } from "@/components/cart/cart-modal";
@@ -304,7 +301,6 @@ export function ArmacoesView({ initialProducts }: ArmacoesViewProps) {
       <main className="flex-1 pt-24 pb-20">
         {/* HERO SECTION DE LUXO */}
         <section className="px-4 sm:px-6 lg:px-8 pt-10 pb-12 border-b border-white/10 relative overflow-hidden bg-gradient-to-b from-[#06111f] via-[#040a14] to-[#040914]">
-          {/* Brilho de iluminação radial */}
           <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[800px] h-[350px] bg-amber-400/10 blur-[130px] pointer-events-none rounded-full" />
 
           <div className="max-w-[1400px] mx-auto space-y-4 relative z-10">
@@ -320,13 +316,13 @@ export function ArmacoesView({ initialProducts }: ArmacoesViewProps) {
             <div className="flex flex-col lg:flex-row lg:items-end justify-between gap-6">
               <div className="max-w-3xl space-y-3">
                 <span className="text-xs font-bold text-amber-400 uppercase tracking-widest flex items-center gap-1.5">
-                  <Sparkles size={14} /> CURADORIA AUTORAL VENTARA EYEWEAR
+                  <Sparkles size={14} /> COLEÇÃO VENTARA EYEWEAR
                 </span>
                 <h1 className="text-3xl sm:text-5xl font-light text-white tracking-tight leading-tight">
                   Catálogo de <span className="font-semibold text-white">Armações &amp; Óculos</span>
                 </h1>
                 <p className="text-xs sm:text-sm text-slate-300 leading-relaxed max-w-2xl">
-                  Armações usinadas em acetato polido à mão e ligas nobres de titânio. Desenvolvidas para encaixe anatômico perfeito, leveza e alta precisão para as lentes digitais OPTiSYNC HD do nosso laboratório.
+                  Armações desenvolvidas para alta precisão dióptrica, conforto contínuo e leveza. Escolha seu modelo e personalize com as lentes digitais OPTiSYNC HD do nosso laboratório.
                 </p>
               </div>
 
@@ -350,7 +346,7 @@ export function ArmacoesView({ initialProducts }: ArmacoesViewProps) {
         </section>
 
         {/* BARRA DE CATEGORIAS E-COMMERCE (PILL TABS) */}
-        <section className="px-4 sm:px-6 lg:px-8 py-6 border-b border-white/10 sticky top-16 z-30 bg-[#040914]/95 backdrop-blur-md">
+        <section className="px-4 sm:px-6 lg:px-8 py-5 border-b border-white/10 sticky top-16 z-30 bg-[#040914]/95 backdrop-blur-md">
           <div className="max-w-[1400px] mx-auto flex items-center gap-2 overflow-x-auto pb-1 no-scrollbar">
             {[
               { id: "all", label: "Todas as Armações", count: categoryCounts.all, icon: Layers },
@@ -391,9 +387,9 @@ export function ArmacoesView({ initialProducts }: ArmacoesViewProps) {
           </div>
         </section>
 
-        {/* CONTAINER DO CATÁLOGO: CONTROLES & FILTROS */}
+        {/* CONTAINER DO CATÁLOGO: LAYOUT PRINCIPAL COM SIDEBAR + GRID */}
         <section className="px-4 sm:px-6 lg:px-8 py-8 max-w-[1400px] mx-auto space-y-6">
-          {/* BARRA DE CONTROLE: BUSCA, FILTRO DRAWER & ORDENAÇÃO */}
+          {/* BARRA SUPERIOR DE CONTROLE: BUSCA + ORDENAÇÃO + BOTÃO FILTROS */}
           <div className="bg-[#06111f] border border-white/10 rounded-2xl p-4 sm:p-5 flex flex-col md:flex-row gap-4 items-stretch md:items-center justify-between">
             {/* Campo de Busca Rápida */}
             <div className="relative flex-1">
@@ -405,14 +401,14 @@ export function ArmacoesView({ initialProducts }: ArmacoesViewProps) {
                 type="text"
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                placeholder="Buscar por modelo, cor, aro (ex: Safari, Gatinho, Onça, Preto)..."
+                placeholder="Buscar por modelo, cor ou formato (ex: Safari, Gatinho, Onça)..."
                 className="w-full bg-[#040a14] border border-white/10 rounded-xl pl-11 pr-9 py-2.5 text-xs sm:text-sm text-white placeholder-slate-500 focus:outline-none focus:border-amber-400 transition-colors"
               />
               {searchQuery && (
                 <button
                   type="button"
                   onClick={() => setSearchQuery("")}
-                  className="absolute right-3.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-white"
+                  className="absolute right-3.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-white cursor-pointer"
                 >
                   <X size={15} />
                 </button>
@@ -421,12 +417,12 @@ export function ArmacoesView({ initialProducts }: ArmacoesViewProps) {
 
             {/* Ações: Botão Filtros + Ordenação */}
             <div className="flex items-center gap-3 self-end md:self-auto shrink-0">
-              {/* Botão de Toggle de Filtros */}
+              {/* Botão de Toggle de Filtros Avançados */}
               <button
                 type="button"
                 onClick={() => setIsFilterDrawerOpen(!isFilterDrawerOpen)}
                 className={`inline-flex items-center gap-2 px-4 py-2.5 rounded-xl border text-xs font-semibold transition-all cursor-pointer ${
-                  activeFiltersCount > 0
+                  activeFiltersCount > 0 || isFilterDrawerOpen
                     ? "bg-amber-400/20 border-amber-400/40 text-amber-300"
                     : "bg-[#040a14] border-white/10 text-white hover:bg-white/5"
                 }`}
@@ -458,7 +454,7 @@ export function ArmacoesView({ initialProducts }: ArmacoesViewProps) {
             </div>
           </div>
 
-          {/* PAINEL EXPANSÍVEL DE FILTROS AVANÇADOS */}
+          {/* PAINEL EXPANSÍVEL DE FILTROS AVANÇADOS (DROPDOWNS RÁPIDOS) */}
           {isFilterDrawerOpen && (
             <div className="bg-[#06111f] border border-white/10 rounded-2xl p-5 sm:p-6 space-y-5 animate-in fade-in duration-200">
               <div className="flex items-center justify-between pb-3 border-b border-white/5">
@@ -472,7 +468,7 @@ export function ArmacoesView({ initialProducts }: ArmacoesViewProps) {
                   <button
                     type="button"
                     onClick={resetFilters}
-                    className="text-xs text-amber-400 hover:text-amber-300 font-semibold flex items-center gap-1"
+                    className="text-xs text-amber-400 hover:text-amber-300 font-semibold flex items-center gap-1 cursor-pointer"
                   >
                     <RotateCcw size={13} />
                     <span>Limpar todos os filtros</span>
@@ -489,7 +485,7 @@ export function ArmacoesView({ initialProducts }: ArmacoesViewProps) {
                   <select
                     value={selectedShape}
                     onChange={(e) => setSelectedShape(e.target.value)}
-                    className="w-full bg-[#040a14] border border-white/10 text-white rounded-xl px-3 py-2.5 focus:outline-none focus:border-amber-400"
+                    className="w-full bg-[#040a14] border border-white/10 text-white rounded-xl px-3 py-2.5 focus:outline-none focus:border-amber-400 cursor-pointer"
                   >
                     <option value="all">Todos os Formatos</option>
                     {shapes.map((s) => (
@@ -508,7 +504,7 @@ export function ArmacoesView({ initialProducts }: ArmacoesViewProps) {
                   <select
                     value={selectedMaterial}
                     onChange={(e) => setSelectedMaterial(e.target.value)}
-                    className="w-full bg-[#040a14] border border-white/10 text-white rounded-xl px-3 py-2.5 focus:outline-none focus:border-amber-400"
+                    className="w-full bg-[#040a14] border border-white/10 text-white rounded-xl px-3 py-2.5 focus:outline-none focus:border-amber-400 cursor-pointer"
                   >
                     <option value="all">Todos os Materiais</option>
                     {materials.map((m) => (
@@ -527,7 +523,7 @@ export function ArmacoesView({ initialProducts }: ArmacoesViewProps) {
                   <select
                     value={selectedColor}
                     onChange={(e) => setSelectedColor(e.target.value)}
-                    className="w-full bg-[#040a14] border border-white/10 text-white rounded-xl px-3 py-2.5 focus:outline-none focus:border-amber-400"
+                    className="w-full bg-[#040a14] border border-white/10 text-white rounded-xl px-3 py-2.5 focus:outline-none focus:border-amber-400 cursor-pointer"
                   >
                     <option value="all">Todas as Cores</option>
                     {colors.map((c) => (
@@ -546,7 +542,7 @@ export function ArmacoesView({ initialProducts }: ArmacoesViewProps) {
                   <select
                     value={selectedPriceRange}
                     onChange={(e) => setSelectedPriceRange(e.target.value)}
-                    className="w-full bg-[#040a14] border border-white/10 text-white rounded-xl px-3 py-2.5 focus:outline-none focus:border-amber-400"
+                    className="w-full bg-[#040a14] border border-white/10 text-white rounded-xl px-3 py-2.5 focus:outline-none focus:border-amber-400 cursor-pointer"
                   >
                     <option value="all">Qualquer Preço</option>
                     <option value="under-350">Até R$ 350</option>
@@ -556,7 +552,7 @@ export function ArmacoesView({ initialProducts }: ArmacoesViewProps) {
                 </div>
               </div>
 
-              {/* Linha Inferior: Estoque Checkbox */}
+              {/* Estoque Checkbox */}
               <div className="pt-2 border-t border-white/5 flex items-center justify-between">
                 <label className="flex items-center gap-2 cursor-pointer text-slate-300 hover:text-white select-none">
                   <input
@@ -571,73 +567,107 @@ export function ArmacoesView({ initialProducts }: ArmacoesViewProps) {
             </div>
           )}
 
-          {/* STATUS DE RESULTADOS & TAGS ATIVAS */}
-          <div className="flex flex-wrap items-center justify-between gap-3 text-xs text-slate-400 pt-1">
-            <div className="flex items-center gap-2">
-              <span>
-                Mostrando <strong className="text-white">{filteredProducts.length}</strong> de{" "}
-                {initialProducts.length} armações
-              </span>
-              {activeCategory !== "all" && (
-                <span className="text-amber-400 font-medium">
-                  em{" "}
-                  {activeCategory === "grau-feminino"
-                    ? "Grau Feminino"
-                    : activeCategory === "grau-masculino"
-                    ? "Grau Masculino"
-                    : activeCategory === "solar"
-                    ? "Óculos de Sol"
-                    : activeCategory === "infantil"
-                    ? "Infantil / Kids"
-                    : "Destaques"}
-                </span>
+          {/* LAYOUT PRINCIPAL: SIDEBAR NA ESQUERDA (DESKTOP) + GRID NA DIREITA */}
+          <div className="flex flex-col lg:flex-row gap-8 items-start">
+            {/* SIDEBAR COM FILTROS (DESKTOP) */}
+            <div className="hidden lg:block">
+              <ArmacaoFilters
+                filters={{
+                  category: activeCategory,
+                  shape: selectedShape,
+                  material: selectedMaterial,
+                  color: selectedColor,
+                  priceRange: selectedPriceRange,
+                  onlyInStock,
+                  search: searchQuery,
+                }}
+                onChange={(updates) => {
+                  if (updates.category !== undefined) setActiveCategory(updates.category as CategoryFilterKey);
+                  if (updates.shape !== undefined) setSelectedShape(updates.shape);
+                  if (updates.material !== undefined) setSelectedMaterial(updates.material);
+                  if (updates.color !== undefined) setSelectedColor(updates.color);
+                  if (updates.priceRange !== undefined) setSelectedPriceRange(updates.priceRange);
+                  if (updates.onlyInStock !== undefined) setOnlyInStock(updates.onlyInStock);
+                }}
+                onReset={resetFilters}
+                availableShapes={shapes}
+                availableMaterials={materials}
+                availableColors={colors}
+                activeCount={activeFiltersCount}
+                totalProductsCount={initialProducts.length}
+              />
+            </div>
+
+            {/* COLUNA DIREITA: RESULTADOS & GRID DE ARMAÇÕES */}
+            <div className="flex-1 w-full space-y-6">
+              {/* STATUS DE RESULTADOS & TAGS ATIVAS */}
+              <div className="flex flex-wrap items-center justify-between gap-3 text-xs text-slate-400">
+                <div className="flex items-center gap-2 flex-wrap">
+                  <span>
+                    Mostrando <strong className="text-white">{filteredProducts.length}</strong> de{" "}
+                    {initialProducts.length} armações
+                  </span>
+                  {activeCategory !== "all" && (
+                    <span className="text-amber-400 font-medium">
+                      em{" "}
+                      {activeCategory === "grau-feminino"
+                        ? "Grau Feminino"
+                        : activeCategory === "grau-masculino"
+                        ? "Grau Masculino"
+                        : activeCategory === "solar"
+                        ? "Óculos de Sol"
+                        : activeCategory === "infantil"
+                        ? "Infantil / Kids"
+                        : "Destaques"}
+                    </span>
+                  )}
+                </div>
+
+                {activeFiltersCount > 0 && (
+                  <button
+                    type="button"
+                    onClick={resetFilters}
+                    className="text-amber-400 hover:text-amber-300 font-semibold flex items-center gap-1 cursor-pointer"
+                  >
+                    <X size={14} />
+                    <span>Limpar filtros ({activeFiltersCount})</span>
+                  </button>
+                )}
+              </div>
+
+              {/* GRID RESPONSIVO (2 COLUNAS MOBILE, 3-4 COLUNAS DESKTOP) */}
+              {filteredProducts.length === 0 ? (
+                <div className="text-center py-20 bg-[#06111f] rounded-3xl border border-white/10 space-y-4">
+                  <Glasses size={40} className="mx-auto text-slate-600" />
+                  <h3 className="text-base font-semibold text-white">
+                    Nenhuma armação encontrada com os filtros selecionados
+                  </h3>
+                  <p className="text-xs text-slate-400 max-w-sm mx-auto">
+                    Tente desmarcar alguns filtros ou buscar por outros modelos e formatos.
+                  </p>
+                  <button
+                    type="button"
+                    onClick={resetFilters}
+                    className="px-6 py-2.5 rounded-full bg-amber-400 hover:bg-amber-300 text-slate-950 font-bold text-xs uppercase tracking-wider transition-all cursor-pointer"
+                  >
+                    Ver Todas as Armações
+                  </button>
+                </div>
+              ) : (
+                <div className="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-3 sm:gap-5">
+                  {filteredProducts.map((product) => (
+                    <ArmacaoCard
+                      key={product.id}
+                      product={product}
+                      hrefPrefix="/armacoes"
+                      onAddToCart={handleAddToCart}
+                      isInCart={cartIds.includes(product.id)}
+                    />
+                  ))}
+                </div>
               )}
             </div>
-
-            {activeFiltersCount > 0 && (
-              <button
-                type="button"
-                onClick={resetFilters}
-                className="text-amber-400 hover:text-amber-300 font-semibold flex items-center gap-1"
-              >
-                <X size={14} />
-                <span>Limpar todos os filtros</span>
-              </button>
-            )}
           </div>
-
-          {/* GRID RESPONSIVO EDITORIAL (REAPROVEITANDO PRODUCTCARD) */}
-          {filteredProducts.length === 0 ? (
-            <div className="text-center py-20 bg-[#06111f] rounded-3xl border border-white/10 space-y-4">
-              <Glasses size={40} className="mx-auto text-slate-600" />
-              <h3 className="text-base font-semibold text-white">
-                Nenhuma armação encontrada com os filtros selecionados
-              </h3>
-              <p className="text-xs text-slate-400 max-w-sm mx-auto">
-                Tente desmarcar alguns filtros ou buscar por outros modelos e formatos.
-              </p>
-              <button
-                type="button"
-                onClick={resetFilters}
-                className="px-6 py-2.5 rounded-full bg-amber-400 hover:bg-amber-300 text-slate-950 font-bold text-xs uppercase tracking-wider transition-all"
-              >
-                Ver Todas as Armações
-              </button>
-            </div>
-          ) : (
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 sm:gap-7">
-              {filteredProducts.map((product) => (
-                <ProductCard
-                  key={product.id}
-                  product={product}
-                  hrefPrefix="/armacoes"
-                  onSelect={(p) => router.push(`/armacoes/${p.slug || p.id}`)}
-                  onAddToCart={handleAddToCart}
-                  isInCart={cartIds.includes(product.id)}
-                />
-              ))}
-            </div>
-          )}
         </section>
       </main>
 

@@ -99,7 +99,7 @@ export default function AdminPaymentsPage() {
     setGeneratingPix(true);
     setTestPixResult(null);
     try {
-      const res = await fetch("/api/admin/payments", {
+      const res = await fetch("/api/admin/payments/test-pix", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -191,7 +191,7 @@ export default function AdminPaymentsPage() {
   const fetchPaymentSettings = async () => {
     try {
       setLoading(true);
-      const res = await fetch("/api/admin/payments");
+      const res = await fetch("/api/admin/payments/config");
       if (res.ok) {
         const data = await res.json();
         setEnvironment(data.environment || "production");
@@ -219,7 +219,7 @@ export default function AdminPaymentsPage() {
     setTesting(true);
     setTestResult(null);
     try {
-      const res = await fetch("/api/admin/payments", {
+      const res = await fetch("/api/admin/payments/test-connection", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -270,7 +270,7 @@ export default function AdminPaymentsPage() {
         payload.mercadopago_webhook_secret = webhookSecret.trim();
       }
 
-      const res = await fetch("/api/admin/payments", {
+      const res = await fetch("/api/admin/payments/config", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(payload),
