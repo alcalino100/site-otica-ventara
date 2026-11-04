@@ -41,6 +41,8 @@ import {
   PartnerLogoItem,
 } from "@/types/ecommerce";
 import { LensOpticalGraphic } from "@/components/ui/lens-optical-graphic";
+import { ConfirmDialog } from "@/components/ui/confirm-dialog";
+import { Toast } from "@/components/ui/toast";
 import {
   parsePriceToNumber,
   hasValidDiscount,
@@ -66,6 +68,14 @@ export default function AdminLensesPage() {
   const [feedback, setFeedback] = useState<string | null>(null);
   const [isUploading, setIsUploading] = useState(false);
   const [priceError, setPriceError] = useState<string | null>(null);
+  const [deleteConfirm, setDeleteConfirm] = useState<{ isOpen: boolean; id: string; name: string }>({
+    isOpen: false,
+    id: "",
+    name: "",
+  });
+  const [toastMessage, setToastMessage] = useState<{ message: string; type: "success" | "warning" | "info" } | null>(
+    null
+  );
 
   const validatePrices = (currentVal: string, originalVal?: string): string | null => {
     if (!originalVal || !originalVal.trim()) return null;
@@ -498,7 +508,7 @@ export default function AdminLensesPage() {
     }
   };
 
-  const handleUpdateLens = (itemToSave: AdminLensItem) => {
+  const handleUpdateLens = async (itemToSave: AdminLensItem) => {
     const err = validatePrices(itemToSave.startingPrice, itemToSave.originalPrice);
     if (err) {
       setPriceError(err);
@@ -515,15 +525,32 @@ export default function AdminLensesPage() {
     setLenses(newList);
     setSelectedLens(null);
     setIsNewLens(false);
-    handleSaveAll(newList);
+    await handleSaveAll(newList);
+    setToastMessage({
+      message: isNewLens
+        ? `Lente "${itemToSave.name}" adicionada ao catálogo!`
+        : `Lente "${itemToSave.name}" atualizada com sucesso!`,
+      type: "success",
+    });
+    setTimeout(() => setToastMessage(null), 3500);
   };
 
   const handleDeleteLens = (id: string, name: string) => {
-    if (confirm(`Tem certeza que deseja remover a lente "${name}" do catálogo?`)) {
-      const updated = lenses.filter((l) => l.id !== id);
-      setLenses(updated);
-      handleSaveAll(updated);
-    }
+    setDeleteConfirm({ isOpen: true, id, name });
+  };
+
+  const handleConfirmDelete = async () => {
+    if (!deleteConfirm.id) return;
+    const deletedName = deleteConfirm.name;
+    const updated = lenses.filter((l) => l.id !== deleteConfirm.id);
+    setLenses(updated);
+    setDeleteConfirm({ isOpen: false, id: "", name: "" });
+    await handleSaveAll(updated);
+    setToastMessage({
+      message: `Lente "${deletedName}" removida do catálogo com sucesso.`,
+      type: "success",
+    });
+    setTimeout(() => setToastMessage(null), 3500);
   };
 
   const handleOpenNewModal = () => {
@@ -2174,6 +2201,28 @@ export default function AdminLensesPage() {
             </form>
           </div>
         </div>
+      )}
+
+      {/* Diálogo de Confirmação para Remoção de Lente */}
+      <ConfirmDialog
+        isOpen={deleteConfirm.isOpen}
+        title="Remover Lente do Catálogo"
+        message={`Tem certeza que deseja excluir "${deleteConfirm.name}"? Esta ação removerá o produto do catálogo da loja.`}
+        confirmText="Sim, Remover Lente"
+        cancelText="Voltar"
+        variant="danger"
+        isLoading={isSaving}
+        onConfirm={handleConfirmDelete}
+        onCancel={() => setDeleteConfirm({ isOpen: false, id: "", name: "" })}
+      />
+
+      {/* Notificação Toast */}
+      {toastMessage && (
+        <Toast
+          message={toastMessage.message}
+          type={toastMessage.type}
+          onClose={() => setToastMessage(null)}
+        />
       )}
     </div>
   );

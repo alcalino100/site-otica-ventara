@@ -173,7 +173,7 @@ export default async function EntregasPage({ searchParams }: PageProps) {
         />
       )}
 
-      <Header theme={isDarkPreset ? "dark" : "light"} />
+      <Header theme="dark" />
 
       <main className="flex-1">
         {activeSections.map((section) => {

@@ -48,6 +48,49 @@ export default function AdminPaymentsPage() {
   } | null>(null);
   const [saveMessage, setSaveMessage] = useState<{ type: "success" | "error"; text: string } | null>(null);
 
+  // Test PIX State
+  const [generatingPix, setGeneratingPix] = useState(false);
+  const [testPixResult, setTestPixResult] = useState<{
+    success: boolean;
+    pix: any;
+    environment: string;
+    isSandbox: boolean;
+    warning: string | null;
+  } | null>(null);
+  const [copiedPix, setCopiedPix] = useState(false);
+
+  const handleGenerateTestPix = async () => {
+    setGeneratingPix(true);
+    setTestPixResult(null);
+    try {
+      const res = await fetch("/api/admin/payments", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ action: "generate_test_pix" }),
+      });
+      const data = await res.json();
+      setTestPixResult(data);
+    } catch (err: any) {
+      setTestPixResult({
+        success: false,
+        pix: null,
+        environment,
+        isSandbox: environment === "sandbox",
+        warning: err.message || "Erro de rede ao gerar Pix de teste.",
+      });
+    } finally {
+      setGeneratingPix(false);
+    }
+  };
+
+  const handleCopyPix = () => {
+    if (testPixResult?.pix?.qrCode) {
+      navigator.clipboard.writeText(testPixResult.pix.qrCode);
+      setCopiedPix(true);
+      setTimeout(() => setCopiedPix(false), 2000);
+    }
+  };
+
   // Footer Payment Methods State
   const [footerPayments, setFooterPayments] = useState<FooterPaymentSettings>(DEFAULT_FOOTER_PAYMENT_SETTINGS);
   const [savingFooter, setSavingFooter] = useState(false);
@@ -234,17 +277,37 @@ export default function AdminPaymentsPage() {
 
         <div className="flex items-center gap-2">
           <span className="text-xs text-slate-400">Ambiente Ativo:</span>
-          <span
-            className={`px-3 py-1 rounded-full border text-[11px] font-semibold uppercase tracking-wider ${
-              environment === "production"
-                ? "bg-emerald-400/15 border-emerald-400/30 text-emerald-300"
-                : "bg-amber-400/15 border-amber-400/30 text-amber-300"
-            }`}
-          >
-            {environment === "production" ? "Produção (Oficial)" : "Sandbox (Testes)"}
-          </span>
+          {!hasExistingToken && !accessToken ? (
+            <span className="px-3 py-1 rounded-full border text-[11px] font-semibold uppercase tracking-wider bg-red-400/15 border-red-400/30 text-red-300 flex items-center gap-1.5">
+              <AlertCircle size={13} />
+              Não Configurado
+            </span>
+          ) : environment === "production" ? (
+            <span className="px-3 py-1 rounded-full border text-[11px] font-semibold uppercase tracking-wider bg-emerald-400/15 border-emerald-400/30 text-emerald-300 flex items-center gap-1.5">
+              <CheckCircle2 size={13} />
+              Produção (Oficial)
+            </span>
+          ) : (
+            <span className="px-3 py-1 rounded-full border text-[11px] font-semibold uppercase tracking-wider bg-amber-400/15 border-amber-400/30 text-amber-300 flex items-center gap-1.5">
+              <AlertCircle size={13} />
+              Sandbox (Testes)
+            </span>
+          )}
         </div>
       </div>
+
+      {/* Alerta de Sandbox ou Credencial Ausente */}
+      {environment === "sandbox" && (
+        <div className="p-4 rounded-2xl bg-amber-500/10 border border-amber-500/30 flex items-start gap-3.5 text-amber-200 text-xs">
+          <AlertCircle className="w-5 h-5 text-amber-400 shrink-0 mt-0.5" />
+          <div className="space-y-1">
+            <p className="font-semibold text-amber-300 text-sm">Atenção: Modo Sandbox (Testes) Ativo</p>
+            <p className="text-amber-200/90 leading-relaxed">
+              QR Codes Pix gerados em <strong>Sandbox não são reconhecidos por aplicativos de bancos reais</strong> (Nubank, Itaú, Bradesco, Banco do Brasil, etc.) — o banco informará erro de código inválido. Para testar em Sandbox, utilize o app de testes do Mercado Pago. Para receber pagamentos reais de clientes, alterne para <strong>Produção</strong> com credenciais <code>APP_USR-...</code>.
+            </p>
+          </div>
+        </div>
+      )}
 
       {/* Banner de Status Ativo do Mercado Pago */}
       <div className="relative overflow-hidden rounded-2xl bg-gradient-to-r from-[#009ee3]/20 via-[#071626] to-[#0a2540] border border-[#009ee3]/30 p-6">
@@ -465,6 +528,179 @@ export default function AdminPaymentsPage() {
           </button>
         </div>
       </form>
+
+      {/* Seção de Diagnóstico e Teste de Pagamento Pix */}
+      <div className="bg-[#06111f] border border-white/10 rounded-2xl p-6 sm:p-8 space-y-6">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-white/10">
+          <div>
+            <h3 className="text-base font-semibold text-white flex items-center gap-2">
+              <QrCode size={18} className="text-amber-400" />
+              Diagnóstico de Pix em Tempo Real
+            </h3>
+            <p className="text-xs text-slate-400 mt-0.5">
+              Gere um Pix de teste de R$ 1,00 para validar se o QR Code e o código Copia e Cola são aceitos pelos bancos.
+            </p>
+          </div>
+
+          <button
+            type="button"
+            onClick={handleGenerateTestPix}
+            disabled={generatingPix}
+            className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-amber-400 hover:bg-amber-300 text-slate-950 font-bold text-xs uppercase tracking-wider transition-all active:scale-95 disabled:opacity-50 cursor-pointer"
+          >
+            <RefreshCw size={14} className={generatingPix ? "animate-spin" : ""} />
+            <span>{generatingPix ? "Gerando Pix de Teste..." : "Gerar Pix de Teste (R$ 1,00)"}</span>
+          </button>
+        </div>
+
+        {testPixResult && (
+          <div className="space-y-4">
+            {testPixResult.warning && (
+              <div className="p-4 rounded-xl bg-amber-500/10 border border-amber-500/30 flex items-start gap-3 text-amber-200 text-xs">
+                <AlertCircle className="w-5 h-5 text-amber-400 shrink-0 mt-0.5" />
+                <p className="leading-relaxed">{testPixResult.warning}</p>
+              </div>
+            )}
+
+            {testPixResult.success && testPixResult.pix ? (
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-6 bg-[#040c16] border border-white/10 rounded-xl p-5">
+                {/* QR Code Container */}
+                <div className="flex flex-col items-center justify-center p-4 bg-white rounded-xl shadow-inner">
+                  {testPixResult.pix.qrCodeBase64 ? (
+                    /* eslint-disable-next-line @next/next/no-img-element */
+                    <img
+                      src={`data:image/png;base64,${testPixResult.pix.qrCodeBase64}`}
+                      alt="QR Code Pix"
+                      className="w-48 h-48 object-contain"
+                    />
+                  ) : (
+                    /* eslint-disable-next-line @next/next/no-img-element */
+                    <img
+                      src={`https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${encodeURIComponent(
+                        testPixResult.pix.qrCode || ""
+                      )}`}
+                      alt="QR Code Pix"
+                      className="w-48 h-48 object-contain"
+                    />
+                  )}
+                  <span className="text-[10px] font-semibold text-slate-600 mt-2 uppercase tracking-wider text-center">
+                    Escaneie com o app do banco
+                  </span>
+                </div>
+
+                {/* Copia e Cola & Detalhes */}
+                <div className="md:col-span-2 space-y-4 flex flex-col justify-between">
+                  <div className="space-y-2">
+                    <div className="flex items-center justify-between">
+                      <span className="text-xs font-semibold text-white">Código Pix Copia e Cola (EMVCo)</span>
+                      <span
+                        className={`text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded ${
+                          testPixResult.isSandbox
+                            ? "bg-amber-400/20 text-amber-300 border border-amber-400/30"
+                            : "bg-emerald-400/20 text-emerald-300 border border-emerald-400/30"
+                        }`}
+                      >
+                        {testPixResult.isSandbox ? "Ambiente Sandbox" : "Ambiente Produção"}
+                      </span>
+                    </div>
+
+                    <div className="relative">
+                      <textarea
+                        readOnly
+                        value={testPixResult.pix.qrCode || ""}
+                        rows={3}
+                        className="w-full bg-[#06111f] border border-white/10 rounded-xl p-3 text-[11px] text-amber-300 font-mono resize-none focus:outline-none"
+                      />
+                    </div>
+
+                    <button
+                      type="button"
+                      onClick={handleCopyPix}
+                      className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-white/10 hover:bg-white/20 text-white text-xs font-semibold border border-white/10 transition-colors cursor-pointer"
+                    >
+                      {copiedPix ? (
+                        <>
+                          <Check size={14} className="text-emerald-400" />
+                          <span>Código Copiado!</span>
+                        </>
+                      ) : (
+                        <>
+                          <Copy size={14} />
+                          <span>Copiar Código Copia e Cola</span>
+                        </>
+                      )}
+                    </button>
+                  </div>
+
+                  <div className="grid grid-cols-2 sm:grid-cols-3 gap-2 pt-3 border-t border-white/10 text-xs">
+                    <div>
+                      <span className="text-slate-500 block text-[10px] uppercase">ID Transação</span>
+                      <span className="text-slate-300 font-mono text-[11px] truncate block">
+                        {testPixResult.pix.paymentId || "N/A"}
+                      </span>
+                    </div>
+                    <div>
+                      <span className="text-slate-500 block text-[10px] uppercase">Valor</span>
+                      <span className="text-emerald-400 font-semibold">R$ 1,00</span>
+                    </div>
+                    <div>
+                      <span className="text-slate-500 block text-[10px] uppercase">Origem</span>
+                      <span className="text-slate-300">{testPixResult.pix.isMock ? "Mock local" : "API Mercado Pago"}</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            ) : (
+              <div className="p-4 rounded-xl bg-red-950/40 border border-red-500/30 text-red-200 text-xs flex items-start gap-3">
+                <AlertCircle size={18} className="text-red-400 shrink-0 mt-0.5" />
+                <div>
+                  <p className="font-semibold">Erro ao gerar Pix de teste</p>
+                  <p className="mt-0.5 text-red-200/90">{testPixResult.pix?.errorMessage || "Verifique se as credenciais cadastradas estão válidas e ativas no Mercado Pago."}</p>
+                </div>
+              </div>
+            )}
+          </div>
+        )}
+      </div>
+
+      {/* Guia Passo a Passo para o Lojista */}
+      <div className="bg-[#06111f] border border-white/10 rounded-2xl p-6 sm:p-8 space-y-4">
+        <h3 className="text-sm font-semibold text-white flex items-center gap-2">
+          <Sparkles size={18} className="text-amber-400" />
+          Guia Passo a Passo: Configuração Oficial Mercado Pago
+        </h3>
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-xs text-slate-300 leading-relaxed">
+          <div className="p-4 rounded-xl bg-white/[0.02] border border-white/5 space-y-2">
+            <div className="w-6 h-6 rounded-full bg-amber-400/20 text-amber-300 font-bold flex items-center justify-center text-xs">
+              1
+            </div>
+            <div className="font-semibold text-white">Chaves de Produção</div>
+            <p className="text-slate-400">
+              Acesse o <strong>Painel de Desenvolvedores</strong> no Mercado Pago, selecione sua aplicação e copie as credenciais da aba <strong>Credenciais de Produção</strong>. As chaves devem começar com <code>APP_USR-</code>.
+            </p>
+          </div>
+
+          <div className="p-4 rounded-xl bg-white/[0.02] border border-white/5 space-y-2">
+            <div className="w-6 h-6 rounded-full bg-amber-400/20 text-amber-300 font-bold flex items-center justify-center text-xs">
+              2
+            </div>
+            <div className="font-semibold text-white">Configurar Webhook</div>
+            <p className="text-slate-400">
+              Copie a URL de webhook abaixo e cadastre na aba <strong>Notificações Webhook</strong> do Mercado Pago. Selecione o evento <code>Pagamentos (payment)</code> para confirmação automática dos pedidos.
+            </p>
+          </div>
+
+          <div className="p-4 rounded-xl bg-white/[0.02] border border-white/5 space-y-2">
+            <div className="w-6 h-6 rounded-full bg-amber-400/20 text-amber-300 font-bold flex items-center justify-center text-xs">
+              3
+            </div>
+            <div className="font-semibold text-white">Validação de CPF</div>
+            <p className="text-slate-400">
+              O Banco Central e o Mercado Pago exigem CPF de 11 dígitos válido no Pix. CPFs com zeros (<code>00000000000</code>) são rejeitados pelo gateway. A loja agora valida isso preventivamente.
+            </p>
+          </div>
+        </div>
+      </div>
 
       {/* Webhook Endpoint Box */}
       <div className="bg-[#06111f] border border-white/10 rounded-2xl p-6 sm:p-8 space-y-4">

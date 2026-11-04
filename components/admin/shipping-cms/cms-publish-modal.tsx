@@ -39,7 +39,12 @@ export function CmsPublishModal({
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-xs animate-in fade-in duration-200">
+    <div
+      role="dialog"
+      aria-modal="true"
+      aria-label="Modal de Publicação de Alterações"
+      className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-xs animate-in fade-in duration-200"
+    >
       <div className="relative w-full max-w-lg rounded-3xl bg-slate-900 border border-slate-800 p-6 shadow-2xl space-y-5">
         {/* Cabeçalho */}
         <div className="flex items-center justify-between pb-3 border-b border-slate-800">
@@ -94,11 +99,21 @@ export function CmsPublishModal({
         {/* Formulário de Identificação da Versão */}
         <form onSubmit={handlePublish} className="space-y-4">
           <div>
-            <label className="text-xs font-semibold text-slate-300 block mb-1">
-              Rótulo da Versão (Nome Curto)
-            </label>
+            <div className="flex items-center justify-between mb-1">
+              <label className="text-xs font-semibold text-slate-300">
+                Rótulo da Versão (Nome Curto)
+              </label>
+              <span
+                className={`text-[10px] font-mono ${
+                  versionLabel.length > 100 ? "text-amber-400 font-bold" : "text-slate-500"
+                }`}
+              >
+                {versionLabel.length}/120
+              </span>
+            </div>
             <input
               type="text"
+              maxLength={120}
               value={versionLabel}
               onChange={(e) => setVersionLabel(e.target.value)}
               placeholder="Ex: Atualização de fotos e rotas de Araçatuba"
@@ -107,16 +122,31 @@ export function CmsPublishModal({
           </div>
 
           <div>
-            <label className="text-xs font-semibold text-slate-300 block mb-1">
-              Resumo das Modificações (Changelog)
-            </label>
+            <div className="flex items-center justify-between mb-1">
+              <label className="text-xs font-semibold text-slate-300">
+                Resumo das Modificações (Changelog)
+              </label>
+              <span
+                className={`text-[10px] font-mono ${
+                  changeSummary.length > 450 ? "text-amber-400 font-bold" : "text-slate-500"
+                }`}
+              >
+                {changeSummary.length}/500
+              </span>
+            </div>
             <textarea
               rows={3}
+              maxLength={500}
               value={changeSummary}
               onChange={(e) => setChangeSummary(e.target.value)}
               placeholder="Ex: Inserida foto da van no cartão Correios, ajustada paleta para off-white quente..."
               className="w-full px-3 py-2 rounded-xl bg-slate-950 border border-slate-800 text-xs text-slate-200 focus:outline-hidden focus:border-amber-400"
             />
+            {changeSummary.length > 450 && (
+              <p className="text-[10px] text-amber-400 mt-1">
+                Atenção: aproximando-se do limite de 500 caracteres para o resumo.
+              </p>
+            )}
           </div>
 
           {/* Botões de Ação */}

@@ -3,6 +3,7 @@ import { createAdminClient } from "@/lib/supabase/admin";
 import {
   getMercadoPagoCredentials,
   testMercadoPagoConnection,
+  createMercadoPagoPixPayment,
 } from "@/lib/mercadopago";
 
 export const dynamic = "force-dynamic";
@@ -45,6 +46,34 @@ export async function POST(req: NextRequest) {
     if (body.action === "test_connection") {
       const testResult = await testMercadoPagoConnection(body.access_token);
       return NextResponse.json(testResult);
+    }
+
+    // 2. Ação especial: Gerar PIX de Teste com QR Code
+    if (body.action === "generate_test_pix") {
+      const creds = await getMercadoPagoCredentials();
+      const pix = await createMercadoPagoPixPayment({
+        orderId: `test-${Date.now()}`,
+        referenceCode: `TESTE-${Date.now().toString(36).toUpperCase()}`,
+        amountInCents: 100, // R$ 1,00
+        customer: {
+          name: "Teste Administrador",
+          email: "admin@oticasventara.com.br",
+          document: "12345678909",
+        },
+        expiresInMinutes: 15,
+      });
+
+      const isSandboxOrMock = creds.environment === "sandbox" || pix.isMock;
+
+      return NextResponse.json({
+        success: !pix.errorMessage,
+        pix,
+        environment: creds.environment,
+        isSandbox: isSandboxOrMock,
+        warning: isSandboxOrMock
+          ? "Atenção: Este QR Code foi gerado em modo SANDBOX/SIMULAÇÃO. Ele NÃO será reconhecido por aplicativos de bancos reais (Itaú, Nubank, etc). Para receber pagamentos reais, configure credenciais de PRODUÇÃO no painel."
+          : null,
+      });
     }
 
     // 2. Ação padrão: Salvar configurações

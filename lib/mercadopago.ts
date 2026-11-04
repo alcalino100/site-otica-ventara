@@ -152,6 +152,8 @@ export interface PixPaymentResult {
   ticketUrl?: string;
   expiresAt: string;
   isMock: boolean;
+  environment?: "sandbox" | "production";
+  errorMessage?: string;
 }
 
 /**
@@ -175,9 +177,20 @@ export async function createMercadoPagoPixPayment(
   const firstName = nameParts[0] || "Cliente";
   const lastName = nameParts.slice(1).join(" ") || "Ventara";
 
-  // Limpeza de CPF
+  // Limpeza de CPF - só anexa se tiver 11 dígitos para evitar rejeição com zeros
   const cleanDoc = (input.customer.document || "").replace(/\D/g, "");
-  const cpfNumber = cleanDoc.length === 11 ? cleanDoc : "00000000000";
+  const payerPayload: any = {
+    email: input.customer.email.trim().toLowerCase(),
+    first_name: firstName,
+    last_name: lastName,
+  };
+
+  if (cleanDoc.length === 11) {
+    payerPayload.identification = {
+      type: "CPF",
+      number: cleanDoc,
+    };
+  }
 
   if (token) {
     try {
@@ -186,15 +199,7 @@ export async function createMercadoPagoPixPayment(
         transaction_amount: amountNumber,
         description: `Pedido ${input.referenceCode} - Óticas Ventara`,
         payment_method_id: "pix",
-        payer: {
-          email: input.customer.email.trim().toLowerCase(),
-          first_name: firstName,
-          last_name: lastName,
-          identification: {
-            type: "CPF",
-            number: cpfNumber,
-          },
-        },
+        payer: payerPayload,
         notification_url: notificationUrl,
         external_reference: input.referenceCode,
         date_of_expiration: expiresAt,
@@ -230,12 +235,41 @@ export async function createMercadoPagoPixPayment(
           ticketUrl: ticketUrl,
           expiresAt: data.date_of_expiration || expiresAt,
           isMock: false,
+          environment: creds.environment,
         };
       } else {
+        const errMsg =
+          data.message ||
+          (data.cause && data.cause[0]?.description) ||
+          "Recusado pela API do Mercado Pago";
         console.warn("Mercado Pago Pix recusou com payload:", data);
+        return {
+          paymentId: `MP-ERR-${Date.now()}`,
+          status: "rejected",
+          statusDetail: errMsg,
+          qrCode: generateMockPixString(input.referenceCode, amountNumber),
+          qrCodeBase64: null,
+          ticketUrl: undefined,
+          expiresAt,
+          isMock: true,
+          errorMessage: errMsg,
+          environment: creds.environment,
+        };
       }
-    } catch (err) {
+    } catch (err: any) {
       console.error("Erro na chamada Mercado Pago Pix:", err);
+      return {
+        paymentId: `MP-ERR-${Date.now()}`,
+        status: "error",
+        statusDetail: err.message,
+        qrCode: generateMockPixString(input.referenceCode, amountNumber),
+        qrCodeBase64: null,
+        ticketUrl: undefined,
+        expiresAt,
+        isMock: true,
+        errorMessage: err.message,
+        environment: creds.environment,
+      };
     }
   }
 
@@ -250,6 +284,7 @@ export async function createMercadoPagoPixPayment(
     ticketUrl: undefined,
     expiresAt,
     isMock: true,
+    environment: "sandbox",
   };
 }
 
