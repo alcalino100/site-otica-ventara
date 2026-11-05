@@ -14,6 +14,7 @@ import {
   DEFAULT_LIVE_BROADCAST,
   DEFAULT_FOOTER_PAYMENT_SETTINGS,
   DEFAULT_ARMACOES_PAGE_SETTINGS,
+  DEFAULT_OPTISYNC_SETTINGS,
 } from "@/lib/site-settings-constants";
 import {
   SiteIdentitySettings,
@@ -29,6 +30,7 @@ import {
   LiveBroadcastSettings,
   FooterPaymentSettings,
   ArmacoesPageSettings,
+  OptiSyncPageSettings,
 } from "@/types/ecommerce";
 
 export const dynamic = "force-dynamic";
@@ -54,6 +56,7 @@ export async function GET() {
         "live_broadcast",
         "payment_methods",
         "armacoes_page_settings",
+        "optisync_page_settings",
       ]);
 
     if (error || !data) {
@@ -71,6 +74,7 @@ export async function GET() {
         live_broadcast: DEFAULT_LIVE_BROADCAST,
         payment_methods: DEFAULT_FOOTER_PAYMENT_SETTINGS,
         armacoes_page_settings: DEFAULT_ARMACOES_PAGE_SETTINGS,
+        optisync_page_settings: DEFAULT_OPTISYNC_SETTINGS,
       });
     }
 
@@ -87,6 +91,7 @@ export async function GET() {
     const liveBroadcastRow = data.find((s) => s.key === "live_broadcast");
     const paymentMethodsRow = data.find((s) => s.key === "payment_methods");
     const armacoesSettingsRow = data.find((s) => s.key === "armacoes_page_settings");
+    const optisyncSettingsRow = data.find((s) => s.key === "optisync_page_settings");
 
     return NextResponse.json({
       identity: identityRow?.value ? { ...DEFAULT_IDENTITY, ...(identityRow.value as SiteIdentitySettings) } : DEFAULT_IDENTITY,
@@ -104,6 +109,9 @@ export async function GET() {
       armacoes_page_settings: armacoesSettingsRow?.value
         ? { ...DEFAULT_ARMACOES_PAGE_SETTINGS, ...(armacoesSettingsRow.value as ArmacoesPageSettings) }
         : DEFAULT_ARMACOES_PAGE_SETTINGS,
+      optisync_page_settings: optisyncSettingsRow?.value
+        ? { ...DEFAULT_OPTISYNC_SETTINGS, ...(optisyncSettingsRow.value as OptiSyncPageSettings) }
+        : DEFAULT_OPTISYNC_SETTINGS,
     });
   } catch {
     return NextResponse.json({
@@ -120,6 +128,7 @@ export async function GET() {
       live_broadcast: DEFAULT_LIVE_BROADCAST,
       payment_methods: DEFAULT_FOOTER_PAYMENT_SETTINGS,
       armacoes_page_settings: DEFAULT_ARMACOES_PAGE_SETTINGS,
+      optisync_page_settings: DEFAULT_OPTISYNC_SETTINGS,
     });
   }
 }

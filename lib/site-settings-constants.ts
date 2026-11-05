@@ -14,6 +14,7 @@ import {
   InteractiveShowcaseSettings,
   LiveBroadcastSettings,
   ArmacoesPageSettings,
+  OptiSyncPageSettings,
 } from "@/types/ecommerce";
 
 export const DEFAULT_IDENTITY: SiteIdentitySettings = {
@@ -635,6 +636,211 @@ export const DEFAULT_ARMACOES_PAGE_SETTINGS: ArmacoesPageSettings = {
   badge_1_text: "10x Sem Juros",
   badge_2_text: "Laboratório Próprio",
   badge_3_text: "Envio Seguro",
+};
+
+export const DEFAULT_OPTISYNC_SETTINGS: OptiSyncPageSettings = {
+  bgMode: "code",
+  customBgDesktopUrl: "",
+  customBgMobileUrl: "",
+  bgOverlayOpacity: 70,
+  bgFocalPoint: "center",
+  gradientBaseFrom: "#040B2B",
+  gradientBaseTo: "#0A1A6B",
+  beamColorBlue: "#1E4BFF",
+  beamColorPurple: "#7A2CFF",
+  beamsIntensity: 85,
+  glowIntensity: 80,
+  enableAnimation: true,
+  enableFloorReflection: true,
+
+  heroBadge: "ENGENHARIA ÓPTICA DIGITAL",
+  heroTitle: "Lentes Digitais",
+  heroTitleHighlight: "OPTiSYNC HD",
+  heroDescription:
+    "Surfaçagem digital computadorizada ponto a ponto com ampliação de campo visual útil, tratamento antirreflexo multicamadas hidrorrepelente e montagem computadorizada em laboratório próprio.",
+  productBoxImage: "/images/lenses/optisync-box.jpg",
+  productAltText: "Caixa das Lentes Digitais OPTiSYNC HD",
+  heroFeatures: [
+    "Filtro de Luz Azul",
+    "Antirreflexo Multicamadas",
+    "Garantia de 12 Meses",
+    "Montagem no Laboratório Ventara",
+  ],
+
+  showHero: true,
+  showBenefits: true,
+  showComparison: true,
+  showLabHighlight: true,
+  showModels: true,
+  showSpecs: true,
+  showFaq: true,
+  showColorsCta: true,
+  showWhatsappCta: true,
+
+  benefitsTitle: "Por que escolher a tecnologia OPTiSYNC HD?",
+  benefitsSubtitle:
+    "Projetada para proporcionar nitidez contínua e conforto óptico com tratamentos certificados.",
+  benefitsList: [
+    {
+      id: "benefit-surf",
+      icon: "Cpu",
+      title: "Surfaçagem Ponto a Ponto",
+      description:
+        "Lentes talhadas com precisão micrométrica, reduzindo aberrações ópticas e alargando o corredor de foco.",
+    },
+    {
+      id: "benefit-ar",
+      icon: "Layers",
+      title: "Antirreflexo Multicamadas",
+      description:
+        "Tratamento nanotecnológico com propriedades hidrorrepelentes e oleofóbicas que facilitam a limpeza diária.",
+    },
+    {
+      id: "benefit-blue",
+      icon: "ShieldCheck",
+      title: "Filtro de Luz Azul & UV400",
+      description:
+        "Atenuação equilibrada da luz azul de telas digitais e proteção solar UV integrada na massa da lente.",
+    },
+    {
+      id: "benefit-warranty",
+      icon: "Award",
+      title: "Garantia Técnica 12 Meses",
+      description:
+        "Cobertura total contra defeitos de tratamento ou estrias, com garantia de suporte óptico presencial e online.",
+    },
+  ],
+
+  modelsTitle: "Linha de Modelos OPTiSYNC HD",
+  modelsSubtitle: "Configurações desenvolvidas para cada perfil e rotina de uso.",
+  modelsList: [
+    {
+      id: "visao-simples",
+      name: "OPTiSYNC HD Monofocal",
+      subtitle: "Miopia, Hipermetropia e Astigmatismo",
+      description:
+        "Otimizada para distância única. Elimina distorções nas bordas das armações e garante foco imediato para leitura ou direção.",
+      features: ["Surfaçagem Ponto a Ponto", "Antirreflexo Premium", "Proteção UV400"],
+      image: "/images/lenses/optisync-box.jpg",
+    },
+    {
+      id: "blue-shield",
+      name: "OPTiSYNC HD Blue Shield",
+      subtitle: "Proteção Digital para Computador e Telas",
+      description:
+        "Filtra a luz azul emitida por dispositivos eletrônicos, mantendo transparência cosmética natural e conforto diário.",
+      features: ["Filtro de Luz Azul sem amarelo excessivo", "Menos reflexos parasitas", "Camada oleofóbica anti-marcas"],
+      image: "/images/lenses/optisync-hd.jpg",
+    },
+    {
+      id: "fotossensivel",
+      name: "OPTiSYNC Fotossensível",
+      subtitle: "Adaptação Rápida à Claridade Solar",
+      description:
+        "Clareia em ambientes fechados e escurece com suavidade ao ar livre conforme a intensidade luminosa ambiente.",
+      features: ["Ativação por raios UV", "Transição suave", "Conforto em qualquer luminosidade"],
+      image: "/images/lenses/optisync-fotossensivel-box.jpg",
+    },
+    {
+      id: "solar-grau",
+      name: "OPTiSYNC Solar com Grau",
+      subtitle: "Grau Personalizado em Tonalidades Solares",
+      description:
+        "Tonalidades solares com corte de luz e proteção UVA/UVB total, confeccionadas sob medida para a sua armação preferida.",
+      features: ["Cores sólidas ou degradê", "Proteção UVA/UVB total", "Tratamento antirreflexo na face interna"],
+      image: "/images/lenses/optisync-colorida-box.jpg",
+    },
+  ],
+
+  comparisonTitle: "Comparação Direta de Tecnologia",
+  comparisonSubtitle: "Entenda os diferenciais construtivos entre processos convencionais e o padrão digital OPTiSYNC.",
+  comparisonRows: [
+    {
+      feature: "Processo de Gravação",
+      traditional: "Moldagem padrão por matriz física pré-fabricada",
+      optisync: "Surfaçagem digital 3D ponto a ponto computadorizada",
+    },
+    {
+      feature: "Campo de Visão Útil",
+      traditional: "Restrito ao centro da lente com dispersões periféricas",
+      optisync: "Amplitude visual estendida de borda a borda",
+    },
+    {
+      feature: "Tratamento Antirreflexo",
+      traditional: "Camada básica suscetível a marcas e atrito",
+      optisync: "Multicamadas nanotecnológicas com selamento hidrorrepelente",
+    },
+    {
+      feature: "Filtro de Luz Azul",
+      traditional: "Opcional com reflexo amarelado pronunciado",
+      optisync: "Filtro integrado na massa com transparência equilibrada",
+    },
+    {
+      feature: "Garantia Técnica",
+      traditional: "30 a 90 dias com restrições operacionais",
+      optisync: "12 meses de garantia de adaptação e suporte direto",
+    },
+  ],
+
+  labBadge: "LABORATÓRIO ÓPTICO PRÓPRIO EM ARAÇATUBA",
+  labTitle: "Do cálculo computorizado à montagem milimétrica",
+  labTitleHighlight: "em nossa sede própria",
+  labDescription:
+    "Com usinagem e lensometria computadorizada na Rua Princesa Isabel, 221 em Araçatuba/SP, suas lentes OPTiSYNC HD são confeccionadas e inspecionadas por profissionais técnicos em óptica, com montagem expressa e rastreabilidade total.",
+  labOrigin: "Araçatuba · SP",
+
+  techSpecs: [
+    {
+      label: "Índice de Refração",
+      value: "1.56 / 1.60 / 1.67 / 1.74",
+      detail: "Opções para graus leves, médios e altos",
+    },
+    {
+      label: "Tratamento Antirreflexo",
+      value: "Multicamadas Nanotecnológico",
+      detail: "Resistência a riscos e repelência a água e óleo",
+    },
+    {
+      label: "Proteção Ultravioleta",
+      value: "UV400 Integral",
+      detail: "Bloqueio de raios UVA e UVB",
+    },
+    {
+      label: "Montagem em Laboratório",
+      value: "Até 1 Hora Útil",
+      detail: "Biseladora computadorizada de alta precisão",
+    },
+  ],
+
+  faqsList: [
+    {
+      q: "O que é a surfaçagem digital ponto a ponto da OPTiSYNC HD?",
+      a: "É um método computadorizado de lapidação em que a curva óptica é talhada milímetro a milímetro diretamente no bloco da lente, eliminando distorções de borda e garantindo nitidez proporcional ao formato da armação.",
+    },
+    {
+      q: "Como funciona a garantia de 12 meses?",
+      a: "Todas as lentes OPTiSYNC contam com 12 meses de garantia integral de fábrica cobrindo o tratamento antirreflexo e defeitos técnicos de fabricação, além do suporte para adaptação da graduação médica.",
+    },
+    {
+      q: "Posso instalar lentes OPTiSYNC na minha própria armação?",
+      a: "Sim. Nosso laboratório em Araçatuba recebe a sua armação e realiza a medição de centros ópticos e corte computadorizado com ajuste perfeito.",
+    },
+    {
+      q: "Como enviar a receita médica pelo site?",
+      a: "Basta fotografar a prescrição emitida pelo seu oftalmologista e clicar em 'Enviar Receita no WhatsApp'. Nosso técnico óptico analisa os eixos, cilindros e dioptrias para indicar o modelo ideal.",
+    },
+  ],
+
+  ctaBadge: "SUPORTE ESPECIALIZADO",
+  ctaTitle: "Pronto para enxergar com definição",
+  ctaTitleHighlight: "OPTiSYNC HD?",
+  ctaSubtitle:
+    "Envie sua receita oftálmica diretamente aos nossos ópticos em Araçatuba para uma conferência técnica completa e orçamento sob medida.",
+  ctaButtonText: "Consultar Óptico no WhatsApp",
+  ctaWhatsappMessage:
+    "Olá! Gostaria de consultar um técnico óptico sobre as lentes digitais OPTiSYNC HD da Ventara e enviar minha receita médica.",
+  ctaBusinessHours:
+    "Atendimento de segunda a sexta das 09h às 18h e aos sábados das 09h às 13h.",
 };
 
 export {

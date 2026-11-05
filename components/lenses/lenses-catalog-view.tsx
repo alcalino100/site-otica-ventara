@@ -14,16 +14,18 @@ import {
   Clock,
   MessageCircle,
   ArrowRight,
+  ArrowDown,
   CheckCircle2,
 } from "lucide-react";
-import { AdminLensItem, DEFAULT_LENSES } from "@/lib/lenses-data";
+import { AdminLensItem, DEFAULT_LENSES, isLensInGeneralCatalog } from "@/lib/lenses-data";
 import { DEFAULT_HOMOLOGATED_BRANDS, DEFAULT_PARTNER_LOGOS } from "@/lib/site-settings-constants";
 import { HomologatedBrand, PartnerLogoItem, LensesSectionSettings } from "@/types/ecommerce";
 import { useSiteSettings } from "@/components/providers/site-settings-provider";
 import { PartnerLogosRibbon } from "@/components/sections/partner-logos-ribbon";
 import { PricePromo } from "@/components/ui/price-promo";
+import { ColoredLensesShowcase } from "@/components/sections/colored-lenses-showcase";
 
-type LensCategory = "all" | "visao-simples" | "multifocal" | "tratamentos" | "coloridas" | "marcas";
+type LensCategory = "all" | "visao-simples" | "multifocal" | "tratamentos" | "marcas";
 
 const BANNER_STRIP_PARTNERS = [
   { name: "ORGALENS LENS", logo: "/logos/orgaline.svg" },
@@ -74,7 +76,10 @@ export function LensesCatalogView() {
     loadData();
   }, []);
 
-  const filteredLenses = lenses.filter((l) => {
+  // Lentes coloridas ficam FORA do catálogo geral (listagem, filtros, contadores e busca da listagem geral)
+  const catalogLenses = lenses.filter(isLensInGeneralCatalog);
+
+  const filteredLenses = catalogLenses.filter((l) => {
     if (activeCategory === "all") return true;
     return l.category === activeCategory;
   });
@@ -139,6 +144,15 @@ export function LensesCatalogView() {
               <Eye size={16} className="text-slate-900" />
               <span>Medição DNP por Foto</span>
             </Link>
+
+            <a
+              href="#secao-cores"
+              className="inline-flex items-center gap-2 px-5 py-3.5 rounded-full bg-slate-100 hover:bg-slate-200 text-slate-800 font-semibold text-xs sm:text-sm border border-slate-300 transition-all active:scale-95 cursor-pointer shadow-2xs"
+            >
+              <Palette size={16} className="text-amber-500" />
+              <span>Ver Lentes Coloridas &amp; Solares</span>
+              <ArrowDown size={14} className="text-slate-400" />
+            </a>
           </div>
         </div>
       </section>
@@ -228,7 +242,7 @@ export function LensesCatalogView() {
                 : "bg-slate-100 text-slate-700 border-slate-200/80 hover:bg-slate-200/80"
             }`}
           >
-            <span>Todas as Lentes ({lenses.length})</span>
+            <span>Todas as Lentes ({catalogLenses.length})</span>
           </button>
 
           <button
@@ -272,19 +286,6 @@ export function LensesCatalogView() {
 
           <button
             type="button"
-            onClick={() => setActiveCategory("coloridas")}
-            className={`flex items-center gap-2 px-5 py-2.5 rounded-full text-xs font-semibold whitespace-nowrap transition-all cursor-pointer border ${
-              activeCategory === "coloridas"
-                ? "bg-amber-400 text-slate-950 border-amber-400 font-bold shadow-sm"
-                : "bg-slate-100 text-slate-700 border-slate-200/80 hover:bg-slate-200/80"
-            }`}
-          >
-            <Palette size={14} className={activeCategory === "coloridas" ? "text-slate-950" : "text-slate-600"} />
-            <span>Lentes Coloridas (8 Cores)</span>
-          </button>
-
-          <button
-            type="button"
             onClick={() => setActiveCategory("marcas")}
             className={`flex items-center gap-2 px-5 py-2.5 rounded-full text-xs font-semibold whitespace-nowrap transition-all cursor-pointer border ${
               activeCategory === "marcas"
@@ -303,6 +304,7 @@ export function LensesCatalogView() {
             {filteredLenses.map((lens) => (
               <article
                 key={lens.id}
+                data-testid="lens-catalog-card"
                 className="group bg-white rounded-3xl p-3 sm:p-5 border border-slate-200/90 hover:border-amber-400 hover:shadow-xl shadow-xs transition-all duration-300 flex flex-col justify-between"
               >
                 <div>
@@ -433,7 +435,12 @@ export function LensesCatalogView() {
         )}
       </section>
 
-      {/* 5. CARD DE CONSULTORIA TÉCNICA E ENVIO DE RECEITA */}
+      {/* 5. SEÇÃO DE LENTES COLORIDAS & SOLARES (NA PARTE INFERIOR CONFORME ESPECIFICAÇÃO DO CLIENTE) */}
+      <section id="secao-cores" className="scroll-mt-24">
+        <ColoredLensesShowcase />
+      </section>
+
+      {/* 6. CARD DE CONSULTORIA TÉCNICA E ENVIO DE RECEITA */}
       <section className="max-w-[1400px] mx-auto px-4 sm:px-8 lg:px-10">
         <div className="relative rounded-3xl bg-gradient-to-r from-amber-50/80 via-white to-sky-50/60 border border-amber-300/80 p-6 sm:p-12 overflow-hidden shadow-sm flex flex-col md:flex-row md:items-center justify-between gap-6">
           <div className="max-w-2xl space-y-2">

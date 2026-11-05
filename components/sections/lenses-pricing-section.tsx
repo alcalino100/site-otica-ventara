@@ -17,14 +17,14 @@ import {
   ChevronDown,
   ChevronUp,
 } from "lucide-react";
-import { AdminLensItem, DEFAULT_LENSES } from "@/lib/lenses-data";
+import { AdminLensItem, DEFAULT_LENSES, isLensInGeneralCatalog } from "@/lib/lenses-data";
 import { DEFAULT_HOMOLOGATED_BRANDS, DEFAULT_PARTNER_LOGOS } from "@/lib/site-settings-constants";
 import { HomologatedBrand, LensesSectionSettings } from "@/types/ecommerce";
 import { useSiteSettings } from "@/components/providers/site-settings-provider";
 import { PartnerLogosRibbon } from "./partner-logos-ribbon";
 import { PricePromo } from "@/components/ui/price-promo";
 
-type LensCategory = "all" | "visao-simples" | "multifocal" | "tratamentos" | "coloridas" | "marcas";
+type LensCategory = "all" | "visao-simples" | "multifocal" | "tratamentos" | "marcas";
 
 const BANNER_STRIP_PARTNERS = [
   { name: "ORGALENS LENS", logo: "/logos/orgaline.svg" },
@@ -78,7 +78,10 @@ export function LensesPricingSection() {
     loadData();
   }, []);
 
-  const filteredLenses = lenses.filter((l) => {
+  // Lentes coloridas ficam FORA do catálogo geral (listagem, filtros e contadores)
+  const catalogLenses = lenses.filter(isLensInGeneralCatalog);
+
+  const filteredLenses = catalogLenses.filter((l) => {
     if (activeCategory === "all") return true;
     return l.category === activeCategory;
   });
@@ -248,7 +251,7 @@ export function LensesPricingSection() {
                     : "bg-slate-100 text-slate-700 border-slate-200/80 hover:bg-slate-200/80"
                 }`}
               >
-                <span>Todas as Lentes ({lenses.length})</span>
+                <span>Todas as Lentes ({catalogLenses.length})</span>
               </button>
 
               <button
@@ -288,19 +291,6 @@ export function LensesPricingSection() {
               >
                 <ShieldCheck size={14} className={activeCategory === "tratamentos" ? "text-slate-950" : "text-slate-600"} />
                 <span>Filtro Azul &amp; Especiais</span>
-              </button>
-
-              <button
-                type="button"
-                onClick={() => handleCategoryChange("coloridas")}
-                className={`flex items-center gap-2 px-4 sm:px-5 py-2.5 rounded-full text-xs font-semibold whitespace-nowrap transition-all cursor-pointer border ${
-                  activeCategory === "coloridas"
-                    ? "bg-amber-400 text-slate-950 border-amber-400 font-bold shadow-sm"
-                    : "bg-slate-100 text-slate-700 border-slate-200/80 hover:bg-slate-200/80"
-                }`}
-              >
-                <Palette size={14} className={activeCategory === "coloridas" ? "text-slate-950" : "text-slate-600"} />
-                <span>Lentes Coloridas (8 Cores)</span>
               </button>
 
               <button

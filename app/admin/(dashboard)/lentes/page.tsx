@@ -28,17 +28,24 @@ import {
   Gauge,
   SlidersHorizontal,
 } from "lucide-react";
-import { AdminLensItem, DEFAULT_LENSES } from "@/lib/lenses-data";
+import {
+  AdminLensItem,
+  DEFAULT_LENSES,
+  isLensInColorSection,
+  isLensInGeneralCatalog,
+} from "@/lib/lenses-data";
 import {
   DEFAULT_LAB_SHOWCASE,
   DEFAULT_HOMOLOGATED_BRANDS,
   DEFAULT_LENSES_SECTION_SETTINGS,
+  DEFAULT_OPTISYNC_SETTINGS,
 } from "@/lib/site-settings-constants";
 import {
   LabShowcaseSettings,
   HomologatedBrand,
   LensesSectionSettings,
   PartnerLogoItem,
+  OptiSyncPageSettings,
 } from "@/types/ecommerce";
 import { LensOpticalGraphic } from "@/components/ui/lens-optical-graphic";
 import { ConfirmDialog } from "@/components/ui/confirm-dialog";
@@ -54,6 +61,12 @@ export default function AdminLensesPage() {
   const [labShowcase, setLabShowcase] = useState<LabShowcaseSettings>(DEFAULT_LAB_SHOWCASE);
   const [homologatedBrands, setHomologatedBrands] = useState<HomologatedBrand[]>(DEFAULT_HOMOLOGATED_BRANDS);
   const [lensesSection, setLensesSection] = useState<LensesSectionSettings>(DEFAULT_LENSES_SECTION_SETTINGS);
+  const [optisyncSettings, setOptisyncSettings] = useState<OptiSyncPageSettings>(DEFAULT_OPTISYNC_SETTINGS);
+  const [isSavingOptisync, setIsSavingOptisync] = useState(false);
+  const [isUploadingOptisyncDesktopBg, setIsUploadingOptisyncDesktopBg] = useState(false);
+  const [isUploadingOptisyncMobileBg, setIsUploadingOptisyncMobileBg] = useState(false);
+  const [isUploadingOptisyncProduct, setIsUploadingOptisyncProduct] = useState(false);
+  const [hexErrors, setHexErrors] = useState<Record<string, string>>({});
   const [isLoading, setIsLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
   const [isSavingLab, setIsSavingLab] = useState(false);
@@ -96,6 +109,21 @@ export default function AdminLensesPage() {
     }
     return null;
   };
+
+  const validateHexColor = (key: string, val: string): boolean => {
+    const isValid = /^#(?:[0-9a-fA-F]{3}|[0-9a-fA-F]{6})$/.test(val);
+    setHexErrors((prev) => {
+      const copy = { ...prev };
+      if (isValid) {
+        delete copy[key];
+      } else {
+        copy[key] = "Hexadecimal inválido (use o formato #RRGGBB).";
+      }
+      return copy;
+    });
+    return isValid;
+  };
+
   const [categoryFilter, setCategoryFilter] = useState<
     | "all"
     | "destaque-lab"
@@ -105,6 +133,8 @@ export default function AdminLensesPage() {
     | "multifocal"
     | "tratamentos"
     | "coloridas"
+    | "secao-cores"
+    | "optisync-cms"
   >("all");
 
   const handleLensImageUpload = async (
@@ -531,6 +561,125 @@ export default function AdminLensesPage() {
     }
   };
 
+  const handleSaveOptisyncSettings = async (e?: React.FormEvent) => {
+    if (e) e.preventDefault();
+    if (Object.keys(hexErrors).length > 0) {
+      alert("Por favor corrija as cores hexadecimais inválidas antes de salvar.");
+      return;
+    }
+    setIsSavingOptisync(true);
+    setFeedback(null);
+    try {
+      const res = await fetch("/api/admin/settings", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ optisync_page_settings: optisyncSettings }),
+      });
+      const data = await res.json();
+      if (!res.ok || data.error) {
+        throw new Error(data.error || "Erro ao salvar configurações da página OPTiSYNC.");
+      }
+      setFeedback("Configurações visuais e textos da página OPTiSYNC publicados com sucesso!");
+      setTimeout(() => setFeedback(null), 4000);
+    } catch (err: any) {
+      console.error(err);
+      alert(err.message || "Erro inesperado ao salvar página OPTiSYNC.");
+    } finally {
+      setIsSavingOptisync(false);
+    }
+  };
+
+  const handleOptisyncImageUpload = async (
+    target: "desktopBg" | "mobileBg" | "productImage",
+    e: React.ChangeEvent<HTMLInputElement>
+  ) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    if (target === "desktopBg") setIsUploadingOptisyncDesktopBg(true);
+    if (target === "mobileBg") setIsUploadingOptisyncMobileBg(true);
+    if (target === "productImage") setIsUploadingOptisyncProduct(true);
+
+    try {
+      const formData = new FormData();
+      formData.append("file", file);
+
+      const res = await fetch("/api/admin/upload", {
+        method: "POST",
+        body: formData,
+      });
+
+      const data = await res.json();
+      if (!res.ok || data.error) {
+        throw new Error(data.error || "Erro ao fazer upload da imagem.");
+      }
+
+      if (data.url) {
+        setOptisyncSettings((prev) => {
+          if (target === "desktopBg") {
+            return {
+              ...prev,
+              bgMode: "custom_image",
+              customBgDesktopUrl: data.url,
+            };
+          }
+          if (target === "mobileBg") {
+            return {
+              ...prev,
+              customBgMobileUrl: data.url,
+            };
+          }
+          return {
+            ...prev,
+            productBoxImage: data.url,
+          };
+        });
+        setFeedback("Imagem enviada com sucesso! Clique em 'Salvar Configurações OPTiSYNC' para publicar.");
+        setTimeout(() => setFeedback(null), 4000);
+      }
+    } catch (err: any) {
+      alert(err.message || "Falha no envio da imagem.");
+    } finally {
+      setIsUploadingOptisyncDesktopBg(false);
+      setIsUploadingOptisyncMobileBg(false);
+      setIsUploadingOptisyncProduct(false);
+    }
+  };
+
+  const handleResetOptisyncDefaults = () => {
+    if (confirm("Deseja restaurar as configurações padrão de fábrica (efeitos em código, gradientes e cores) da página OPTiSYNC?")) {
+      setOptisyncSettings(DEFAULT_OPTISYNC_SETTINGS);
+      setHexErrors({});
+    }
+  };
+
+  const colorSectionLenses = lenses
+    .filter(isLensInColorSection)
+    .sort((a, b) => (a.colorSectionOrder ?? 0) - (b.colorSectionOrder ?? 0));
+
+  const handleMoveColorLens = async (index: number, direction: "up" | "down") => {
+    const targetIndex = direction === "up" ? index - 1 : index + 1;
+    if (targetIndex < 0 || targetIndex >= colorSectionLenses.length) return;
+
+    const sourceItem = colorSectionLenses[index];
+    const targetItem = colorSectionLenses[targetIndex];
+
+    const updatedLenses = lenses.map((l) => {
+      if (l.id === sourceItem.id) {
+        return { ...l, colorSectionOrder: targetIndex };
+      }
+      if (l.id === targetItem.id) {
+        return { ...l, colorSectionOrder: index };
+      }
+      return l;
+    });
+
+    setLenses(updatedLenses);
+    try {
+      await handleSaveAll(updatedLenses);
+    } catch {}
+  };
+
   const loadLenses = async () => {
     try {
       const res = await fetch(`/api/admin/lenses?t=${Date.now()}`, {
@@ -564,6 +713,9 @@ export default function AdminLensesPage() {
         }
         if (data.lenses_section) {
           setLensesSection((prev) => ({ ...prev, ...data.lenses_section }));
+        }
+        if (data.optisync_page_settings) {
+          setOptisyncSettings((prev) => ({ ...prev, ...data.optisync_page_settings }));
         }
       }
     } catch (err) {}
@@ -663,17 +815,16 @@ export default function AdminLensesPage() {
   };
 
   const handleOpenNewModal = () => {
-    const isColoridas = categoryFilter === "coloridas";
+    const isColoridas = categoryFilter === "coloridas" || categoryFilter === "secao-cores";
     const newItem: AdminLensItem = {
       id: `lente-${Date.now()}`,
       name: isColoridas ? "Nova Lente Solar Colorida" : "",
       category:
         isColoridas
           ? "coloridas"
-          : categoryFilter !== "all" &&
-            categoryFilter !== "destaque-lab" &&
-            categoryFilter !== "marcas-homologadas" &&
-            categoryFilter !== "imagens-secao"
+          : categoryFilter === "visao-simples" ||
+            categoryFilter === "multifocal" ||
+            categoryFilter === "tratamentos"
           ? categoryFilter
           : "visao-simples",
       brandName: isColoridas ? "OPTiSYNC Solar HD" : "Novo Laboratório Homologado",
@@ -700,6 +851,9 @@ export default function AdminLensesPage() {
             "Montagem de alta precisão em facetadora digital",
           ],
       isActive: true,
+      showInGeneralCatalog: !isColoridas,
+      showInColorSection: isColoridas,
+      colorSectionOrder: isColoridas ? colorSectionLenses.length : undefined,
       colorHex: isColoridas ? "#166534" : "#1e40af",
       colorName: isColoridas ? "Verde G-15 Polarizado" : undefined,
       categoryTag: isColoridas ? "Uso Diário & Alta Claridade" : undefined,
@@ -821,6 +975,18 @@ export default function AdminLensesPage() {
         </button>
         <button
           type="button"
+          onClick={() => setCategoryFilter("secao-cores")}
+          className={`flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl text-xs font-semibold whitespace-nowrap transition-all ${
+            categoryFilter === "secao-cores"
+              ? "bg-amber-400 text-slate-950 shadow-sm font-bold"
+              : "text-amber-400 hover:bg-amber-400/10 border border-amber-400/30"
+          }`}
+        >
+          <Palette size={13} />
+          <span>Seção de Cores &amp; Mostruário ({colorSectionLenses.length})</span>
+        </button>
+        <button
+          type="button"
           onClick={() => setCategoryFilter("destaque-lab")}
           className={`flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl text-xs font-semibold whitespace-nowrap transition-all ${
             categoryFilter === "destaque-lab"
@@ -854,6 +1020,18 @@ export default function AdminLensesPage() {
         >
           <SlidersHorizontal size={13} />
           <span>Carrossel de Parceiros (Logos &amp; Velocidade)</span>
+        </button>
+        <button
+          type="button"
+          onClick={() => setCategoryFilter("optisync-cms")}
+          className={`flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl text-xs font-semibold whitespace-nowrap transition-all ${
+            categoryFilter === "optisync-cms"
+              ? "bg-amber-400 text-slate-950 shadow-sm font-bold"
+              : "text-amber-400 hover:bg-amber-400/10 border border-amber-400/30"
+          }`}
+        >
+          <Sparkles size={13} />
+          <span>Página OPTiSYNC (CMS &amp; Efeitos)</span>
         </button>
       </div>
 
@@ -1796,10 +1974,952 @@ export default function AdminLensesPage() {
         </form>
       )}
 
+      {/* SEÇÃO: MOSTRUÁRIO DE CORES & SEÇÃO DE CORES (RODAPÉ) */}
+      {categoryFilter === "secao-cores" && (
+        <div className="bg-[#06111f] border border-amber-400/30 rounded-2xl p-6 sm:p-8 space-y-6 shadow-xl">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-white/10 pb-4">
+            <div>
+              <span className="text-[10px] font-bold uppercase tracking-widest text-amber-400 bg-amber-400/10 px-2.5 py-0.5 rounded-full border border-amber-400/20">
+                SEÇÃO EXCLUSIVA DE CORES &amp; MOSTRUÁRIO
+              </span>
+              <h2 className="text-xl font-bold text-white mt-1 flex items-center gap-2">
+                <Palette className="text-amber-400" size={20} />
+                <span>Gestão da Seção de Cores ({colorSectionLenses.length} Amostras Ativas)</span>
+              </h2>
+              <p className="text-xs text-slate-400 mt-0.5 max-w-2xl">
+                Estas lentes aparecem <strong>exclusivamente na seção de cores</strong>, no rodapé da página de lentes e na página inicial. Elas não entram na listagem do catálogo geral superior. Reordene a exibição, altere a cor hexadecimal, foto do disco ou edite detalhes.
+              </p>
+            </div>
+
+            <div className="flex items-center gap-2 flex-wrap">
+              <button
+                type="button"
+                onClick={() => {
+                  handleOpenNewModal();
+                  setTimeout(() => {
+                    setSelectedLens((prev) =>
+                      prev
+                        ? {
+                            ...prev,
+                            category: "coloridas",
+                            showInGeneralCatalog: false,
+                            showInColorSection: true,
+                            colorSectionOrder: colorSectionLenses.length,
+                          }
+                        : null
+                    );
+                  }, 10);
+                }}
+                className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-white/10 hover:bg-white/20 text-white font-semibold text-xs transition-colors cursor-pointer"
+              >
+                <Plus size={14} />
+                <span>Nova Cor / Amostra</span>
+              </button>
+
+              <button
+                type="button"
+                disabled={isSaving}
+                onClick={() => handleSaveAll(lenses)}
+                className="inline-flex items-center gap-2 px-6 py-2.5 rounded-xl bg-amber-400 hover:bg-amber-300 disabled:opacity-50 text-slate-950 font-bold text-xs uppercase tracking-wider transition-all shadow-md shadow-amber-400/20 cursor-pointer"
+              >
+                <Save size={15} />
+                <span>{isSaving ? "Salvando..." : "Salvar Amostras"}</span>
+              </button>
+            </div>
+          </div>
+
+          {/* Dica / Alerta sobre visibilidade */}
+          <div className="p-3.5 bg-blue-500/10 border border-blue-500/30 rounded-xl text-blue-300 text-xs flex items-center gap-2.5">
+            <ShieldCheck size={16} className="shrink-0 text-blue-400" />
+            <span>
+              <strong>Regra de exibição:</strong> Se todas as cores forem desativadas ou removidas da seção de cores, o mostruário é automaticamente ocultado na loja para não deixar espaço em branco.
+            </span>
+          </div>
+
+          {colorSectionLenses.length === 0 ? (
+            <div className="text-center py-12 border border-dashed border-white/10 rounded-2xl bg-[#030914] p-8">
+              <Palette size={36} className="mx-auto text-slate-600 mb-3" />
+              <h3 className="text-sm font-bold text-white mb-1">Nenhuma cor ativa na Seção de Cores</h3>
+              <p className="text-xs text-slate-400 max-w-md mx-auto mb-4">
+                No momento, nenhuma lente solar está marcada com &quot;Exibir na Seção de Cores&quot;. A seção está oculta no site público.
+              </p>
+              <button
+                type="button"
+                onClick={handleOpenNewModal}
+                className="px-4 py-2 bg-amber-400 text-slate-950 font-bold text-xs rounded-xl hover:bg-amber-300 transition-colors"
+              >
+                Adicionar Primeira Amostra
+              </button>
+            </div>
+          ) : (
+            <div className="space-y-3">
+              <div className="flex items-center justify-between text-xs font-semibold text-slate-400 px-1">
+                <span>Ordem de exibição no mostruário (Use as setas para reposicionar):</span>
+                <span className="text-[11px] text-amber-400">{colorSectionLenses.length} amostras configuradas</span>
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                {colorSectionLenses.map((lens, idx) => (
+                  <div
+                    key={lens.id}
+                    className="p-4 rounded-2xl bg-[#081527] border border-white/10 flex flex-col justify-between space-y-3 relative hover:border-amber-400/40 transition-colors"
+                  >
+                    {/* Header do Card com Ordem e Ações Rápidas */}
+                    <div className="flex items-center justify-between border-b border-white/5 pb-2.5">
+                      <div className="flex items-center gap-2">
+                        <span className="text-[10px] font-bold uppercase tracking-wider text-amber-400 bg-amber-400/10 px-2 py-0.5 rounded border border-amber-400/20">
+                          Posição #{idx + 1}
+                        </span>
+                        <span className="text-xs font-bold text-white truncate max-w-[140px]">
+                          {lens.colorName || lens.name}
+                        </span>
+                      </div>
+
+                      <div className="flex items-center gap-1">
+                        <button
+                          type="button"
+                          onClick={() => handleMoveColorLens(idx, "up")}
+                          disabled={idx === 0}
+                          title="Mover para cima (exibir antes no mostruário)"
+                          className="w-7 h-7 rounded-lg bg-white/5 hover:bg-white/10 disabled:opacity-20 border border-white/10 flex items-center justify-center text-slate-300 hover:text-white transition-colors cursor-pointer"
+                        >
+                          <ArrowUp size={13} />
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => handleMoveColorLens(idx, "down")}
+                          disabled={idx === colorSectionLenses.length - 1}
+                          title="Mover para baixo (exibir depois no mostruário)"
+                          className="w-7 h-7 rounded-lg bg-white/5 hover:bg-white/10 disabled:opacity-20 border border-white/10 flex items-center justify-center text-slate-300 hover:text-white transition-colors cursor-pointer"
+                        >
+                          <ArrowDown size={13} />
+                        </button>
+                      </div>
+                    </div>
+
+                    {/* Linha Principal: Amostra, Disco e Campos Rápidos */}
+                    <div className="grid grid-cols-12 gap-3 items-center">
+                      {/* Amostra Visual & Disco */}
+                      <div className="col-span-4 flex items-center gap-2 bg-[#040e1c] p-2 rounded-xl border border-white/5">
+                        <div
+                          className="w-9 h-9 rounded-full shrink-0 border-2 border-white/30 shadow-md relative overflow-hidden"
+                          style={{ backgroundColor: lens.colorHex || "#166534" }}
+                        >
+                          {lens.discImage && (
+                            <img
+                              src={lens.discImage}
+                              alt={lens.name}
+                              className="w-full h-full object-cover"
+                            />
+                          )}
+                        </div>
+
+                        <div className="flex flex-col gap-1 min-w-0">
+                          <input
+                            type="color"
+                            value={lens.colorHex || "#166534"}
+                            onChange={(e) => {
+                              const val = e.target.value;
+                              validateHexColor(`lens-${lens.id}`, val);
+                              setLenses((prev) =>
+                                prev.map((l) => (l.id === lens.id ? { ...l, colorHex: val } : l))
+                              );
+                            }}
+                            className="w-7 h-5 p-0 bg-transparent border-0 cursor-pointer"
+                            title="Escolher cor da amostra"
+                          />
+                          <input
+                            type="text"
+                            value={lens.colorHex || "#166534"}
+                            onChange={(e) => {
+                              const val = e.target.value;
+                              validateHexColor(`lens-${lens.id}`, val);
+                              setLenses((prev) =>
+                                prev.map((l) => (l.id === lens.id ? { ...l, colorHex: val } : l))
+                              );
+                            }}
+                            className="w-16 bg-black/40 border border-white/10 rounded px-1 text-[10px] font-mono text-white"
+                          />
+                        </div>
+                      </div>
+
+                      {/* Campos Textuais Rápidos */}
+                      <div className="col-span-8 space-y-1.5 text-xs">
+                        <input
+                          type="text"
+                          value={lens.colorName || lens.name}
+                          placeholder="Nome da Tonalidade (ex: Verde G-15 Polarizado)"
+                          onChange={(e) => {
+                            const val = e.target.value;
+                            setLenses((prev) =>
+                              prev.map((l) =>
+                                l.id === lens.id ? { ...l, colorName: val, name: val } : l
+                              )
+                            );
+                          }}
+                          className="w-full bg-[#040e1c] border border-white/10 rounded-lg px-2.5 py-1.5 text-xs text-white focus:outline-none focus:border-amber-400"
+                        />
+
+                        <div className="flex items-center gap-2">
+                          <input
+                            type="text"
+                            value={lens.categoryTag || ""}
+                            placeholder="Texto Curto / Indicação"
+                            onChange={(e) => {
+                              const val = e.target.value;
+                              setLenses((prev) =>
+                                prev.map((l) =>
+                                  l.id === lens.id ? { ...l, categoryTag: val } : l
+                                )
+                              );
+                            }}
+                            className="flex-1 bg-[#040e1c] border border-white/10 rounded-lg px-2 py-1 text-[11px] text-slate-300 focus:outline-none focus:border-amber-400"
+                          />
+
+                          <input
+                            type="text"
+                            value={lens.startingPrice}
+                            placeholder="Preço (ex: R$ 199,90)"
+                            onChange={(e) => {
+                              const val = e.target.value;
+                              setLenses((prev) =>
+                                prev.map((l) =>
+                                  l.id === lens.id ? { ...l, startingPrice: val } : l
+                                )
+                              );
+                            }}
+                            className="w-24 bg-[#040e1c] border border-white/10 rounded-lg px-2 py-1 text-[11px] text-amber-300 font-mono focus:outline-none focus:border-amber-400"
+                          />
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Rodapé do Card com Status e Botão Editar Detalhes */}
+                    <div className="flex items-center justify-between border-t border-white/5 pt-2.5 text-[11px]">
+                      <div className="flex items-center gap-3">
+                        <label className="flex items-center gap-1.5 cursor-pointer text-slate-300">
+                          <input
+                            type="checkbox"
+                            checked={lens.isActive}
+                            onChange={(e) => {
+                              const val = e.target.checked;
+                              setLenses((prev) =>
+                                prev.map((l) => (l.id === lens.id ? { ...l, isActive: val } : l))
+                              );
+                            }}
+                            className="rounded text-amber-400 bg-slate-900 border-slate-700"
+                          />
+                          <span>Ativa no site</span>
+                        </label>
+
+                        <label className="flex items-center gap-1.5 cursor-pointer text-slate-400 hover:text-white" title="Se marcado, esta cor também entra na grade superior de /lentes">
+                          <input
+                            type="checkbox"
+                            checked={lens.showInGeneralCatalog ?? false}
+                            onChange={(e) => {
+                              const val = e.target.checked;
+                              setLenses((prev) =>
+                                prev.map((l) =>
+                                  l.id === lens.id ? { ...l, showInGeneralCatalog: val } : l
+                                )
+                              );
+                            }}
+                            className="rounded text-blue-400 bg-slate-900 border-slate-700"
+                          />
+                          <span>Também no Catálogo Geral</span>
+                        </label>
+                      </div>
+
+                      <div className="flex items-center gap-2">
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setSelectedLens(lens);
+                            setIsNewLens(false);
+                          }}
+                          className="text-amber-400 hover:text-amber-300 font-semibold inline-flex items-center gap-1 cursor-pointer"
+                        >
+                          <Edit3 size={12} />
+                          <span>Editar</span>
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => handleDeleteLens(lens.id, lens.name)}
+                          className="text-red-400/80 hover:text-red-400 cursor-pointer ml-1"
+                          title="Remover cor"
+                        >
+                          <Trash2 size={12} />
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
+          <div className="pt-4 border-t border-white/10 flex justify-end">
+            <button
+              type="button"
+              disabled={isSaving}
+              onClick={() => handleSaveAll(lenses)}
+              className="inline-flex items-center gap-2 px-6 py-3 rounded-xl bg-amber-400 hover:bg-amber-300 disabled:opacity-50 text-slate-950 font-bold text-xs uppercase tracking-wider transition-all shadow-md shadow-amber-400/20 cursor-pointer"
+            >
+              <Save size={15} />
+              <span>{isSaving ? "Salvando..." : "Salvar Alterações da Seção de Cores"}</span>
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* SEÇÃO: CMS VISUAL & EFEITOS DA PÁGINA OPTISYNC */}
+      {categoryFilter === "optisync-cms" && (
+        <form
+          onSubmit={handleSaveOptisyncSettings}
+          className="bg-[#06111f] border border-amber-400/30 rounded-2xl p-6 sm:p-8 space-y-6 shadow-xl"
+        >
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-white/10 pb-4">
+            <div>
+              <span className="text-[10px] font-bold uppercase tracking-widest text-amber-400 bg-amber-400/10 px-2.5 py-0.5 rounded-full border border-amber-400/20">
+                PÁGINA EXCLUSIVA /OPTISYNC · CMS TOTAL
+              </span>
+              <h2 className="text-xl font-bold text-white mt-1 flex items-center gap-2">
+                <Sparkles className="text-amber-400" size={20} />
+                <span>Personalização Visual da Página OPTiSYNC HD</span>
+              </h2>
+              <p className="text-xs text-slate-400 mt-0.5 max-w-2xl">
+                Altere a arte de fundo personalizada (desktop e mobile), as cores dos gradientes, a intensidade dos feixes elétricos de luz, o reflexo espelhado no piso e todos os blocos de conteúdo da página sem novo deploy.
+              </p>
+            </div>
+
+            <div className="flex items-center gap-2.5 flex-wrap">
+              <button
+                type="button"
+                onClick={handleResetOptisyncDefaults}
+                className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-white/5 hover:bg-white/10 border border-white/10 text-slate-300 text-xs font-semibold tracking-wider transition-all cursor-pointer"
+              >
+                <RotateCcw size={13} />
+                <span>Restaurar Padrão</span>
+              </button>
+
+              <Link
+                href="/optisync"
+                target="_blank"
+                className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-blue-500/10 hover:bg-blue-500/20 border border-blue-500/30 text-blue-300 text-xs font-semibold tracking-wider transition-all"
+              >
+                <span>Ver /optisync ao Vivo</span>
+                <ExternalLink size={13} className="text-blue-400" />
+              </Link>
+
+              <button
+                type="submit"
+                disabled={isSavingOptisync}
+                className="inline-flex items-center gap-2 px-6 py-2.5 rounded-xl bg-amber-400 hover:bg-amber-300 disabled:opacity-50 text-slate-950 font-bold text-xs uppercase tracking-wider transition-all shadow-md shadow-amber-400/20 cursor-pointer"
+              >
+                <Save size={15} />
+                <span>{isSavingOptisync ? "Salvando..." : "Salvar Configurações"}</span>
+              </button>
+            </div>
+          </div>
+
+          {/* CARD 1: FUNDO, FEIXES E ATMOSFERA VISUAL */}
+          <div className="bg-[#0a1526] border border-white/10 rounded-2xl p-6 space-y-5">
+            <div className="flex items-center justify-between flex-wrap gap-2">
+              <div>
+                <h3 className="text-base font-bold text-white flex items-center gap-2">
+                  <Zap size={16} className="text-amber-400" />
+                  <span>Fundo Tecnológico, Feixes de Luz &amp; Reflexo no Piso</span>
+                </h3>
+                <p className="text-xs text-slate-400 mt-0.5">
+                  Escolha se deseja o clima recriado por código leve (CSS/SVG) ou a arte gráfica própria do cliente.
+                </p>
+              </div>
+
+              {/* Seletor de Modo */}
+              <div className="flex items-center bg-[#040e1c] p-1 rounded-xl border border-white/10">
+                <button
+                  type="button"
+                  onClick={() =>
+                    setOptisyncSettings((prev) => ({ ...prev, bgMode: "code" }))
+                  }
+                  className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-all ${
+                    optisyncSettings.bgMode === "code"
+                      ? "bg-amber-400 text-slate-950 shadow-sm"
+                      : "text-slate-400 hover:text-white"
+                  }`}
+                >
+                  Efeitos em Código (CSS/SVG)
+                </button>
+                <button
+                  type="button"
+                  onClick={() =>
+                    setOptisyncSettings((prev) => ({ ...prev, bgMode: "custom_image" }))
+                  }
+                  className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-all ${
+                    optisyncSettings.bgMode === "custom_image"
+                      ? "bg-amber-400 text-slate-950 shadow-sm"
+                      : "text-slate-400 hover:text-white"
+                  }`}
+                >
+                  Arte Gráfica Própria (Upload)
+                </button>
+              </div>
+            </div>
+
+            {/* Upload de Arte Gráfica Própria (quando em custom_image) */}
+            {optisyncSettings.bgMode === "custom_image" && (
+              <div className="p-4 rounded-xl bg-amber-500/5 border border-amber-500/20 space-y-4">
+                <span className="text-xs font-bold text-amber-300 block uppercase tracking-wider">
+                  Arte de Fundo do Cliente (Desktop &amp; Mobile)
+                </span>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-xs">
+                  {/* Arte Desktop */}
+                  <div className="space-y-2">
+                    <label className="text-slate-300 font-semibold block">
+                      Arte de Fundo Desktop (1920x1080 recomendado)
+                    </label>
+                    <div className="flex items-center gap-2">
+                      <input
+                        type="text"
+                        value={optisyncSettings.customBgDesktopUrl || ""}
+                        placeholder="URL da arte desktop..."
+                        onChange={(e) =>
+                          setOptisyncSettings((prev) => ({
+                            ...prev,
+                            customBgDesktopUrl: e.target.value,
+                          }))
+                        }
+                        className="flex-1 bg-[#040e1c] border border-white/10 rounded-xl px-3 py-2 text-white"
+                      />
+                      <label className="inline-flex items-center gap-1.5 px-3 py-2 rounded-xl bg-amber-400 hover:bg-amber-300 text-slate-950 font-bold text-xs cursor-pointer shrink-0">
+                        <Upload size={14} />
+                        <span>{isUploadingOptisyncDesktopBg ? "Enviando..." : "Upload Desktop"}</span>
+                        <input
+                          type="file"
+                          accept="image/*"
+                          onChange={(e) => handleOptisyncImageUpload("desktopBg", e)}
+                          disabled={isUploadingOptisyncDesktopBg}
+                          className="hidden"
+                        />
+                      </label>
+                    </div>
+                  </div>
+
+                  {/* Arte Mobile */}
+                  <div className="space-y-2">
+                    <label className="text-slate-300 font-semibold block">
+                      Arte de Fundo Mobile (Opcional - ex: vertical)
+                    </label>
+                    <div className="flex items-center gap-2">
+                      <input
+                        type="text"
+                        value={optisyncSettings.customBgMobileUrl || ""}
+                        placeholder="URL da arte mobile..."
+                        onChange={(e) =>
+                          setOptisyncSettings((prev) => ({
+                            ...prev,
+                            customBgMobileUrl: e.target.value,
+                          }))
+                        }
+                        className="flex-1 bg-[#040e1c] border border-white/10 rounded-xl px-3 py-2 text-white"
+                      />
+                      <label className="inline-flex items-center gap-1.5 px-3 py-2 rounded-xl bg-amber-400 hover:bg-amber-300 text-slate-950 font-bold text-xs cursor-pointer shrink-0">
+                        <Upload size={14} />
+                        <span>{isUploadingOptisyncMobileBg ? "Enviando..." : "Upload Mobile"}</span>
+                        <input
+                          type="file"
+                          accept="image/*"
+                          onChange={(e) => handleOptisyncImageUpload("mobileBg", e)}
+                          disabled={isUploadingOptisyncMobileBg}
+                          className="hidden"
+                        />
+                      </label>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-2">
+                  <div>
+                    <label className="text-slate-300 text-xs font-semibold block mb-1">
+                      Ponto Focal da Imagem
+                    </label>
+                    <select
+                      value={optisyncSettings.bgFocalPoint || "center"}
+                      onChange={(e) =>
+                        setOptisyncSettings((prev) => ({
+                          ...prev,
+                          bgFocalPoint: e.target.value as any,
+                        }))
+                      }
+                      className="w-full bg-[#040e1c] border border-white/10 rounded-xl px-3 py-2 text-xs text-white"
+                    >
+                      <option value="center">Centralizado (Center)</option>
+                      <option value="top">Topo (Top)</option>
+                      <option value="bottom">Base (Bottom)</option>
+                      <option value="left">Esquerda (Left)</option>
+                      <option value="right">Direita (Right)</option>
+                    </select>
+                  </div>
+
+                  <div>
+                    <div className="flex items-center justify-between mb-1">
+                      <label className="text-slate-300 text-xs font-semibold">
+                        Overlay de Escurecimento / Legibilidade
+                      </label>
+                      <span className="text-xs text-amber-400 font-mono">
+                        {optisyncSettings.bgOverlayOpacity ?? 50}%
+                      </span>
+                    </div>
+                    <input
+                      type="range"
+                      min={0}
+                      max={100}
+                      value={optisyncSettings.bgOverlayOpacity ?? 50}
+                      onChange={(e) =>
+                        setOptisyncSettings((prev) => ({
+                          ...prev,
+                          bgOverlayOpacity: Number(e.target.value),
+                        }))
+                      }
+                      className="w-full accent-amber-400 cursor-pointer"
+                    />
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* Controles de Cores, Feixes e Intensidade */}
+            <div className="space-y-4 pt-2">
+              <span className="text-xs font-bold text-slate-300 uppercase tracking-wider block">
+                Paleta Cromática &amp; Efeitos Tecnológicos
+              </span>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 text-xs">
+                {/* Gradiente Base From */}
+                <div className="space-y-1">
+                  <label className="text-slate-400 block">Gradiente Início (Índigo Profundo)</label>
+                  <div className="flex items-center gap-2">
+                    <input
+                      type="color"
+                      value={optisyncSettings.gradientBaseFrom || "#040B2B"}
+                      onChange={(e) => {
+                        const val = e.target.value;
+                        validateHexColor("gradFrom", val);
+                        setOptisyncSettings((prev) => ({ ...prev, gradientBaseFrom: val }));
+                      }}
+                      className="w-8 h-8 p-0 rounded bg-transparent border border-white/10 cursor-pointer"
+                    />
+                    <input
+                      type="text"
+                      value={optisyncSettings.gradientBaseFrom || "#040B2B"}
+                      onChange={(e) => {
+                        const val = e.target.value;
+                        validateHexColor("gradFrom", val);
+                        setOptisyncSettings((prev) => ({ ...prev, gradientBaseFrom: val }));
+                      }}
+                      className="w-full bg-[#040e1c] border border-white/10 rounded-lg px-2.5 py-1.5 font-mono text-white text-xs"
+                    />
+                  </div>
+                  {hexErrors["gradFrom"] && (
+                    <span className="text-[10px] text-rose-400 block">{hexErrors["gradFrom"]}</span>
+                  )}
+                </div>
+
+                {/* Gradiente Base To */}
+                <div className="space-y-1">
+                  <label className="text-slate-400 block">Gradiente Fim (Azul Noturno)</label>
+                  <div className="flex items-center gap-2">
+                    <input
+                      type="color"
+                      value={optisyncSettings.gradientBaseTo || "#0A1A6B"}
+                      onChange={(e) => {
+                        const val = e.target.value;
+                        validateHexColor("gradTo", val);
+                        setOptisyncSettings((prev) => ({ ...prev, gradientBaseTo: val }));
+                      }}
+                      className="w-8 h-8 p-0 rounded bg-transparent border border-white/10 cursor-pointer"
+                    />
+                    <input
+                      type="text"
+                      value={optisyncSettings.gradientBaseTo || "#0A1A6B"}
+                      onChange={(e) => {
+                        const val = e.target.value;
+                        validateHexColor("gradTo", val);
+                        setOptisyncSettings((prev) => ({ ...prev, gradientBaseTo: val }));
+                      }}
+                      className="w-full bg-[#040e1c] border border-white/10 rounded-lg px-2.5 py-1.5 font-mono text-white text-xs"
+                    />
+                  </div>
+                  {hexErrors["gradTo"] && (
+                    <span className="text-[10px] text-rose-400 block">{hexErrors["gradTo"]}</span>
+                  )}
+                </div>
+
+                {/* Feixe Azul Elétrico */}
+                <div className="space-y-1">
+                  <label className="text-slate-400 block">Feixe de Luz Azul Elétrico</label>
+                  <div className="flex items-center gap-2">
+                    <input
+                      type="color"
+                      value={optisyncSettings.beamColorBlue || "#1E4BFF"}
+                      onChange={(e) => {
+                        const val = e.target.value;
+                        validateHexColor("beamBlue", val);
+                        setOptisyncSettings((prev) => ({ ...prev, beamColorBlue: val }));
+                      }}
+                      className="w-8 h-8 p-0 rounded bg-transparent border border-white/10 cursor-pointer"
+                    />
+                    <input
+                      type="text"
+                      value={optisyncSettings.beamColorBlue || "#1E4BFF"}
+                      onChange={(e) => {
+                        const val = e.target.value;
+                        validateHexColor("beamBlue", val);
+                        setOptisyncSettings((prev) => ({ ...prev, beamColorBlue: val }));
+                      }}
+                      className="w-full bg-[#040e1c] border border-white/10 rounded-lg px-2.5 py-1.5 font-mono text-white text-xs"
+                    />
+                  </div>
+                  {hexErrors["beamBlue"] && (
+                    <span className="text-[10px] text-rose-400 block">{hexErrors["beamBlue"]}</span>
+                  )}
+                </div>
+
+                {/* Feixe Roxo Elétrico */}
+                <div className="space-y-1">
+                  <label className="text-slate-400 block">Feixe de Luz Roxo Elétrico</label>
+                  <div className="flex items-center gap-2">
+                    <input
+                      type="color"
+                      value={optisyncSettings.beamColorPurple || "#7A2CFF"}
+                      onChange={(e) => {
+                        const val = e.target.value;
+                        validateHexColor("beamPurple", val);
+                        setOptisyncSettings((prev) => ({ ...prev, beamColorPurple: val }));
+                      }}
+                      className="w-8 h-8 p-0 rounded bg-transparent border border-white/10 cursor-pointer"
+                    />
+                    <input
+                      type="text"
+                      value={optisyncSettings.beamColorPurple || "#7A2CFF"}
+                      onChange={(e) => {
+                        const val = e.target.value;
+                        validateHexColor("beamPurple", val);
+                        setOptisyncSettings((prev) => ({ ...prev, beamColorPurple: val }));
+                      }}
+                      className="w-full bg-[#040e1c] border border-white/10 rounded-lg px-2.5 py-1.5 font-mono text-white text-xs"
+                    />
+                  </div>
+                  {hexErrors["beamPurple"] && (
+                    <span className="text-[10px] text-rose-400 block">{hexErrors["beamPurple"]}</span>
+                  )}
+                </div>
+              </div>
+
+              {/* Sliders de Intensidade e Toggles */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 pt-2 text-xs">
+                <div>
+                  <div className="flex items-center justify-between mb-1">
+                    <span className="text-slate-400">Intensidade dos Feixes</span>
+                    <span className="text-amber-400 font-mono">{optisyncSettings.beamsIntensity ?? 70}%</span>
+                  </div>
+                  <input
+                    type="range"
+                    min={0}
+                    max={100}
+                    value={optisyncSettings.beamsIntensity ?? 70}
+                    onChange={(e) =>
+                      setOptisyncSettings((prev) => ({
+                        ...prev,
+                        beamsIntensity: Number(e.target.value),
+                      }))
+                    }
+                    className="w-full accent-amber-400 cursor-pointer"
+                  />
+                </div>
+
+                <div>
+                  <div className="flex items-center justify-between mb-1">
+                    <span className="text-slate-400">Brilho Radial do Produto</span>
+                    <span className="text-amber-400 font-mono">{optisyncSettings.glowIntensity ?? 60}%</span>
+                  </div>
+                  <input
+                    type="range"
+                    min={0}
+                    max={100}
+                    value={optisyncSettings.glowIntensity ?? 60}
+                    onChange={(e) =>
+                      setOptisyncSettings((prev) => ({
+                        ...prev,
+                        glowIntensity: Number(e.target.value),
+                      }))
+                    }
+                    className="w-full accent-amber-400 cursor-pointer"
+                  />
+                </div>
+
+                <div className="flex items-center justify-between p-2.5 bg-[#040e1c] rounded-xl border border-white/5">
+                  <span className="text-slate-300 font-medium">Animação dos Feixes</span>
+                  <label className="relative inline-flex items-center cursor-pointer">
+                    <input
+                      type="checkbox"
+                      checked={optisyncSettings.enableAnimation ?? true}
+                      onChange={(e) =>
+                        setOptisyncSettings((prev) => ({
+                          ...prev,
+                          enableAnimation: e.target.checked,
+                        }))
+                      }
+                      className="sr-only peer"
+                    />
+                    <div className="w-9 h-5 bg-slate-700 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-amber-500"></div>
+                  </label>
+                </div>
+
+                <div className="flex items-center justify-between p-2.5 bg-[#040e1c] rounded-xl border border-white/5">
+                  <span className="text-slate-300 font-medium">Reflexo Espelhado no Piso</span>
+                  <label className="relative inline-flex items-center cursor-pointer">
+                    <input
+                      type="checkbox"
+                      checked={optisyncSettings.enableFloorReflection ?? true}
+                      onChange={(e) =>
+                        setOptisyncSettings((prev) => ({
+                          ...prev,
+                          enableFloorReflection: e.target.checked,
+                        }))
+                      }
+                      className="sr-only peer"
+                    />
+                    <div className="w-9 h-5 bg-slate-700 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-amber-500"></div>
+                  </label>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* CARD 2: PRODUTO EM PRIMEIRO PLANO & TEXTOS DO HERO */}
+          <div className="bg-[#0a1526] border border-white/10 rounded-2xl p-6 space-y-4">
+            <h3 className="text-base font-bold text-white flex items-center gap-2">
+              <Eye size={16} className="text-amber-400" />
+              <span>Produto em Primeiro Plano (Hero) &amp; Textos</span>
+            </h3>
+
+            <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
+              {/* Foto do Produto */}
+              <div className="lg:col-span-5 space-y-3">
+                <label className="text-xs font-semibold text-slate-300 block">
+                  Foto do Produto em Destaque (Caixa / Lente)
+                </label>
+                <div className="p-4 bg-[#040e1c] border border-white/10 rounded-2xl flex flex-col items-center justify-center">
+                  <div className="w-full max-w-[220px] aspect-square bg-[#030914] rounded-xl p-3 flex items-center justify-center shadow-lg border border-amber-400/20 overflow-hidden mb-3">
+                    <img
+                      src={optisyncSettings.productBoxImage || "/images/lenses/optisync-box.jpg"}
+                      alt="Preview Produto"
+                      className="max-h-full max-w-full object-contain"
+                    />
+                  </div>
+
+                  <div className="w-full space-y-2">
+                    <label className="w-full py-2 px-3 rounded-xl bg-amber-400 hover:bg-amber-300 text-slate-950 font-bold text-xs uppercase tracking-wider flex items-center justify-center gap-2 transition-all cursor-pointer">
+                      <Upload size={14} />
+                      <span>{isUploadingOptisyncProduct ? "Enviando..." : "Trocar Foto do Produto"}</span>
+                      <input
+                        type="file"
+                        accept="image/*"
+                        onChange={(e) => handleOptisyncImageUpload("productImage", e)}
+                        disabled={isUploadingOptisyncProduct}
+                        className="hidden"
+                      />
+                    </label>
+
+                    <input
+                      type="text"
+                      value={optisyncSettings.productBoxImage || ""}
+                      onChange={(e) =>
+                        setOptisyncSettings((prev) => ({
+                          ...prev,
+                          productBoxImage: e.target.value,
+                        }))
+                      }
+                      placeholder="/images/lenses/optisync-box.jpg"
+                      className="w-full bg-[#040e1c] border border-white/10 rounded-lg px-2.5 py-1.5 text-xs text-white"
+                    />
+                  </div>
+                </div>
+              </div>
+
+              {/* Textos do Hero */}
+              <div className="lg:col-span-7 space-y-3 text-xs">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  <div>
+                    <label className="text-slate-300 font-semibold block mb-1">Badge Superior</label>
+                    <input
+                      type="text"
+                      value={optisyncSettings.heroBadge || ""}
+                      onChange={(e) =>
+                        setOptisyncSettings((prev) => ({ ...prev, heroBadge: e.target.value }))
+                      }
+                      className="w-full bg-[#040e1c] border border-white/10 rounded-xl px-3 py-2 text-white"
+                    />
+                  </div>
+                  <div>
+                    <label className="text-slate-300 font-semibold block mb-1">Título Hero</label>
+                    <input
+                      type="text"
+                      value={optisyncSettings.heroTitle || ""}
+                      onChange={(e) =>
+                        setOptisyncSettings((prev) => ({ ...prev, heroTitle: e.target.value }))
+                      }
+                      className="w-full bg-[#040e1c] border border-white/10 rounded-xl px-3 py-2 text-white font-bold"
+                    />
+                  </div>
+                </div>
+
+                <div>
+                  <label className="text-slate-300 font-semibold block mb-1">Destaque do Título (Dourado)</label>
+                  <input
+                    type="text"
+                    value={optisyncSettings.heroTitleHighlight || ""}
+                    onChange={(e) =>
+                      setOptisyncSettings((prev) => ({ ...prev, heroTitleHighlight: e.target.value }))
+                    }
+                    className="w-full bg-[#040e1c] border border-white/10 rounded-xl px-3 py-2 text-white"
+                  />
+                </div>
+
+                <div>
+                  <label className="text-slate-300 font-semibold block mb-1">Texto Lead / Descrição</label>
+                  <textarea
+                    rows={3}
+                    value={optisyncSettings.heroDescription || ""}
+                    onChange={(e) =>
+                      setOptisyncSettings((prev) => ({ ...prev, heroDescription: e.target.value }))
+                    }
+                    className="w-full bg-[#040e1c] border border-white/10 rounded-xl px-3 py-2 text-white leading-relaxed resize-none"
+                  />
+                </div>
+
+                {/* Selos de Características */}
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 pt-1">
+                  <div>
+                    <label className="text-[11px] text-slate-400 block mb-0.5">Selo 1 (ex: Filtro Azul)</label>
+                    <input
+                      type="text"
+                      value={optisyncSettings.heroFeatures?.[0] || ""}
+                      onChange={(e) => {
+                        const val = e.target.value;
+                        setOptisyncSettings((prev) => {
+                          const f = [...(prev.heroFeatures || ["Filtro azul", "Antirreflexo", "Montagem rápida"])];
+                          f[0] = val;
+                          return { ...prev, heroFeatures: f };
+                        });
+                      }}
+                      className="w-full bg-[#040e1c] border border-white/10 rounded-lg px-2.5 py-1.5 text-white"
+                    />
+                  </div>
+                  <div>
+                    <label className="text-[11px] text-slate-400 block mb-0.5">Selo 2 (ex: Antirreflexo)</label>
+                    <input
+                      type="text"
+                      value={optisyncSettings.heroFeatures?.[1] || ""}
+                      onChange={(e) => {
+                        const val = e.target.value;
+                        setOptisyncSettings((prev) => {
+                          const f = [...(prev.heroFeatures || ["Filtro azul", "Antirreflexo", "Montagem rápida"])];
+                          f[1] = val;
+                          return { ...prev, heroFeatures: f };
+                        });
+                      }}
+                      className="w-full bg-[#040e1c] border border-white/10 rounded-lg px-2.5 py-1.5 text-white"
+                    />
+                  </div>
+                  <div>
+                    <label className="text-[11px] text-slate-400 block mb-0.5">Selo 3 (ex: Montagem 1h)</label>
+                    <input
+                      type="text"
+                      value={optisyncSettings.heroFeatures?.[2] || ""}
+                      onChange={(e) => {
+                        const val = e.target.value;
+                        setOptisyncSettings((prev) => {
+                          const f = [...(prev.heroFeatures || ["Filtro azul", "Antirreflexo", "Montagem rápida"])];
+                          f[2] = val;
+                          return { ...prev, heroFeatures: f };
+                        });
+                      }}
+                      className="w-full bg-[#040e1c] border border-white/10 rounded-lg px-2.5 py-1.5 text-white"
+                    />
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* CARD 3: VISIBILIDADE DAS SEÇÕES DA PÁGINA */}
+          <div className="bg-[#0a1526] border border-white/10 rounded-2xl p-6 space-y-4">
+            <h3 className="text-base font-bold text-white flex items-center gap-2">
+              <Layers size={16} className="text-amber-400" />
+              <span>Visibilidade das Seções da Página /optisync</span>
+            </h3>
+            <p className="text-xs text-slate-400">
+              Ative ou desative cada bloco de conteúdo individualmente de acordo com a estratégia comercial.
+            </p>
+
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 text-xs">
+              {[
+                { key: "showHero", label: "Hero Principal" },
+                { key: "showBenefits", label: "Bloco de Benefícios" },
+                { key: "showModels", label: "Modelos da Linha" },
+                { key: "showComparison", label: "Tabela Comparativa" },
+                { key: "showSpecs", label: "Especificações Técnicas" },
+                { key: "showFaq", label: "Perguntas Frequentes (FAQ)" },
+                { key: "showWhatsappCta", label: "CTA Especialista WhatsApp" },
+                { key: "showColorsCta", label: "Link p/ Seção de Cores" },
+              ].map((sec) => (
+                <div
+                  key={sec.key}
+                  className="flex items-center justify-between p-3 bg-[#040e1c] rounded-xl border border-white/5"
+                >
+                  <span className="text-slate-300 font-medium">{sec.label}</span>
+                  <label className="relative inline-flex items-center cursor-pointer">
+                    <input
+                      type="checkbox"
+                      checked={(optisyncSettings as any)[sec.key] ?? true}
+                      onChange={(e) =>
+                        setOptisyncSettings((prev) => ({
+                          ...prev,
+                          [sec.key]: e.target.checked,
+                        }))
+                      }
+                      className="sr-only peer"
+                    />
+                    <div className="w-8 h-4.5 bg-slate-700 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-3.5 after:w-3.5 after:transition-all peer-checked:bg-amber-500"></div>
+                  </label>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          {/* Botão de Salvar no Rodapé */}
+          <div className="pt-4 border-t border-white/10 flex justify-end">
+            <button
+              type="submit"
+              disabled={isSavingOptisync}
+              className="inline-flex items-center gap-2 px-6 py-3 rounded-xl bg-amber-400 hover:bg-amber-300 disabled:opacity-50 text-slate-950 font-bold text-xs uppercase tracking-wider transition-all shadow-md shadow-amber-400/20 cursor-pointer"
+            >
+              <Save size={15} />
+              <span>{isSavingOptisync ? "Salvando..." : "Salvar Todas as Configurações OPTiSYNC"}</span>
+            </button>
+          </div>
+        </form>
+      )}
+
       {/* Grade de Lentes */}
       {categoryFilter !== "destaque-lab" &&
         categoryFilter !== "marcas-homologadas" &&
-        categoryFilter !== "imagens-secao" && (
+        categoryFilter !== "imagens-secao" &&
+        categoryFilter !== "secao-cores" &&
+        categoryFilter !== "optisync-cms" && (
         <div className="space-y-4">
           {/* Card Resumo do Destaque Lab */}
           <div className="bg-[#06111f] border border-amber-400/20 rounded-2xl p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
@@ -2042,6 +3162,55 @@ export default function AdminLensesPage() {
                     className="w-full bg-[#040e17] border border-slate-700 rounded-lg px-3 py-2 text-white focus:outline-none focus:border-amber-400"
                     placeholder="Ex: OPTiSYNC HD, Perego, Hoya, Varilux..."
                   />
+                </div>
+              </div>
+
+              {/* Visibilidade no Site: Catálogo Geral vs Seção de Cores */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 p-3.5 rounded-2xl bg-slate-900/70 border border-slate-700/80">
+                <div className="flex items-center justify-between gap-3">
+                  <div>
+                    <span className="text-slate-200 font-semibold block text-xs">Exibir no Catálogo Geral</span>
+                    <span className="text-[10px] text-slate-400 block leading-tight">
+                      Grade superior de /lentes, filtros e contagens
+                    </span>
+                  </div>
+                  <label className="relative inline-flex items-center cursor-pointer shrink-0">
+                    <input
+                      type="checkbox"
+                      checked={selectedLens.showInGeneralCatalog ?? selectedLens.category !== "coloridas"}
+                      onChange={(e) =>
+                        setSelectedLens({
+                          ...selectedLens,
+                          showInGeneralCatalog: e.target.checked,
+                        })
+                      }
+                      className="sr-only peer"
+                    />
+                    <div className="w-10 h-5.5 bg-slate-700 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-4.5 after:w-4.5 after:transition-all peer-checked:bg-amber-500"></div>
+                  </label>
+                </div>
+
+                <div className="flex items-center justify-between gap-3 sm:border-l sm:border-white/10 sm:pl-3">
+                  <div>
+                    <span className="text-slate-200 font-semibold block text-xs">Exibir na Seção de Cores</span>
+                    <span className="text-[10px] text-slate-400 block leading-tight">
+                      Mostruário de amostras coloridas no rodapé
+                    </span>
+                  </div>
+                  <label className="relative inline-flex items-center cursor-pointer shrink-0">
+                    <input
+                      type="checkbox"
+                      checked={selectedLens.showInColorSection ?? selectedLens.category === "coloridas"}
+                      onChange={(e) =>
+                        setSelectedLens({
+                          ...selectedLens,
+                          showInColorSection: e.target.checked,
+                        })
+                      }
+                      className="sr-only peer"
+                    />
+                    <div className="w-10 h-5.5 bg-slate-700 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-4.5 after:w-4.5 after:transition-all peer-checked:bg-amber-500"></div>
+                  </label>
                 </div>
               </div>
 

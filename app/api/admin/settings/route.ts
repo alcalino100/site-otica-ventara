@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
+import { revalidatePath } from "next/cache";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { isSupabaseConfigured } from "@/lib/supabase/server";
 import {
@@ -12,6 +13,7 @@ import {
   HeroBannerSettings,
   LiveBroadcastSettings,
   ArmacoesPageSettings,
+  OptiSyncPageSettings,
 } from "@/types/ecommerce";
 import {
   DEFAULT_IDENTITY,
@@ -25,6 +27,7 @@ import {
   DEFAULT_LIVE_BROADCAST,
   DEFAULT_FOOTER_PAYMENT_SETTINGS,
   DEFAULT_ARMACOES_PAGE_SETTINGS,
+  DEFAULT_OPTISYNC_SETTINGS,
 } from "@/lib/site-settings-constants";
 
 let inMemorySettings: Record<string, any> = {};
@@ -52,6 +55,7 @@ export async function GET() {
           "live_broadcast",
           "payment_methods",
           "armacoes_page_settings",
+          "optisync_page_settings",
         ]);
       data = res.data;
     }
@@ -72,6 +76,7 @@ export async function GET() {
     const liveBroadcastVal = getVal("live_broadcast");
     const paymentMethodsVal = getVal("payment_methods");
     const armacoesSettingsVal = getVal("armacoes_page_settings");
+    const optisyncSettingsVal = getVal("optisync_page_settings");
 
     return NextResponse.json(
       {
@@ -91,6 +96,9 @@ export async function GET() {
         armacoes_page_settings: armacoesSettingsVal
           ? { ...DEFAULT_ARMACOES_PAGE_SETTINGS, ...(armacoesSettingsVal as ArmacoesPageSettings) }
           : DEFAULT_ARMACOES_PAGE_SETTINGS,
+        optisync_page_settings: optisyncSettingsVal
+          ? { ...DEFAULT_OPTISYNC_SETTINGS, ...(optisyncSettingsVal as OptiSyncPageSettings) }
+          : DEFAULT_OPTISYNC_SETTINGS,
       },
       {
         headers: {
@@ -213,6 +221,19 @@ export async function POST(req: NextRequest) {
     if (body.armacoes_page_settings) {
       await saveSetting("armacoes_page_settings", "Hero Fotográfico e Textos da Página de Armações (/armacoes)", body.armacoes_page_settings);
     }
+
+    if (body.optisync_page_settings) {
+      await saveSetting("optisync_page_settings", "Configurações de Fundo, Efeitos e Conteúdo da Página OPTiSYNC HD (/optisync)", body.optisync_page_settings);
+    }
+
+    try {
+      revalidatePath("/");
+      revalidatePath("/lentes");
+      revalidatePath("/lentes-coloridas");
+      revalidatePath("/armacoes");
+      revalidatePath("/optisync");
+      revalidatePath("/admin/lentes");
+    } catch {}
 
     return NextResponse.json(
       {
