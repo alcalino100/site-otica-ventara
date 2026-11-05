@@ -309,9 +309,9 @@ export async function POST(req: NextRequest) {
         if (orderErr.code === "PGRST205") {
           console.warn("Tabela 'orders' ainda não criada no Supabase. Emitindo pedido com fallback.");
         } else {
-          console.error("Erro ao registrar pedido:", orderErr);
+          console.error("Erro ao registrar pedido:", JSON.stringify(orderErr, null, 2));
           return NextResponse.json(
-            { error: "Falha ao gravar pedido no banco de dados." },
+            { error: `Falha ao gravar pedido no banco de dados. [${orderErr.code || "SEM-CODIGO"}] ${orderErr.message}` },
             { status: 500 }
           );
         }
