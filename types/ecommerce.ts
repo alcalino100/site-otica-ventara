@@ -435,6 +435,18 @@ export interface LiveBroadcastSettings {
   call_to_action?: string;
 }
 
+export interface ArmacoesPageSettings {
+  hero_bg_image: string;
+  hero_badge_tag: string;
+  hero_title: string;
+  hero_title_highlight: string;
+  hero_description: string;
+  hero_overlay_opacity: number;
+  badge_1_text: string;
+  badge_2_text: string;
+  badge_3_text: string;
+}
+
 export type {
   ShippingCarrier,
   ShippingFaqItem,

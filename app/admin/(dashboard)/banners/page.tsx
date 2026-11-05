@@ -17,6 +17,7 @@ import {
   Glasses,
   ShieldCheck,
   Tag,
+  Award,
 } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
 import {
@@ -27,20 +28,25 @@ import {
   HeroBannerSettings,
   InteractiveShowcaseSettings,
   ShowcaseVariationItem,
+  ArmacoesPageSettings,
 } from "@/types/ecommerce";
 import {
   DEFAULT_SHOWCASE_MEDIA,
   DEFAULT_PROMOTIONAL_SHOWCASE,
   DEFAULT_HERO_BANNER,
   DEFAULT_INTERACTIVE_SHOWCASE,
+  DEFAULT_ARMACOES_PAGE_SETTINGS,
 } from "@/lib/site-settings-constants";
 import { HeroSlidesManager } from "@/components/admin/hero-slides-manager";
 
 export default function AdminBannersPage() {
   const supabase = createClient();
-  const [activeTab, setActiveTab] = useState<"hero" | "banners" | "vitrines" | "promocoes">("hero");
+  const [activeTab, setActiveTab] = useState<"hero" | "armacoes" | "banners" | "vitrines" | "promocoes">("hero");
   const [banners, setBanners] = useState<HomepageBanner[]>([]);
   const [heroBanner, setHeroBanner] = useState<HeroBannerSettings>(DEFAULT_HERO_BANNER);
+  const [armacoesHero, setArmacoesHero] = useState<ArmacoesPageSettings>(DEFAULT_ARMACOES_PAGE_SETTINGS);
+  const [isSavingArmacoesHero, setIsSavingArmacoesHero] = useState(false);
+  const [isUploadingArmacoesHero, setIsUploadingArmacoesHero] = useState(false);
   const [showcaseMedia, setShowcaseMedia] = useState<ShowcaseMediaSettings>(DEFAULT_SHOWCASE_MEDIA);
   const [promotionalShowcase, setPromotionalShowcase] =
     useState<PromotionalShowcaseSettings>(DEFAULT_PROMOTIONAL_SHOWCASE);
@@ -109,9 +115,68 @@ export default function AdminBannersPage() {
         if (data.interactive_showcase) {
           setInteractiveShowcase((prev) => ({ ...prev, ...data.interactive_showcase }));
         }
+        if (data.armacoes_page_settings) {
+          setArmacoesHero((prev) => ({ ...prev, ...data.armacoes_page_settings }));
+        }
       }
     } catch (err) {
       console.warn("Erro ao carregar mídias das vitrines:", err);
+    }
+  };
+
+  const handleSaveArmacoesHero = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setIsSavingArmacoesHero(true);
+    setFeedback(null);
+    try {
+      const res = await fetch("/api/admin/settings", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ armacoes_page_settings: armacoesHero }),
+      });
+
+      const data = await res.json();
+      if (!res.ok || data.error) {
+        throw new Error(data.error || "Erro ao salvar Hero da página de armações.");
+      }
+
+      setFeedback("Hero da página /armacoes salvo e publicado com sucesso!");
+      setTimeout(() => setFeedback(null), 4000);
+    } catch (err: any) {
+      alert(err.message || "Erro inesperado ao salvar hero de armações.");
+    } finally {
+      setIsSavingArmacoesHero(false);
+    }
+  };
+
+  const handleArmacoesHeroImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    setIsUploadingArmacoesHero(true);
+    try {
+      const formData = new FormData();
+      formData.append("file", file);
+
+      const res = await fetch("/api/admin/upload", {
+        method: "POST",
+        body: formData,
+      });
+
+      const data = await res.json();
+      if (!res.ok || data.error) {
+        throw new Error(data.error || "Falha no envio da imagem.");
+      }
+
+      if (data.url) {
+        setArmacoesHero((prev) => ({ ...prev, hero_bg_image: data.url }));
+        setFeedback("Foto de fundo do Hero enviada! Clique em 'Salvar Hero de Armações' para publicar.");
+        setTimeout(() => setFeedback(null), 4000);
+      }
+    } catch (err: any) {
+      alert(err.message || "Falha ao enviar foto do hero de armações.");
+    } finally {
+      setIsUploadingArmacoesHero(false);
     }
   };
 
@@ -642,6 +707,19 @@ export default function AdminBannersPage() {
 
         <button
           type="button"
+          onClick={() => setActiveTab("armacoes")}
+          className={`flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-semibold whitespace-nowrap transition-all ${
+            activeTab === "armacoes"
+              ? "bg-amber-400 text-slate-950 font-bold shadow-md"
+              : "text-amber-400 hover:bg-amber-400/10 border border-amber-400/30"
+          }`}
+        >
+          <Glasses size={14} />
+          <span>Hero de Armações (/armacoes)</span>
+        </button>
+
+        <button
+          type="button"
           onClick={() => setActiveTab("banners")}
           className={`flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-semibold whitespace-nowrap transition-all ${
             activeTab === "banners"
@@ -682,6 +760,282 @@ export default function AdminBannersPage() {
 
       {/* ABA 0: HERO / BANNER FULL-BLEED (CARROSSEL & SLIDES GERENCIÁVEIS) */}
       {activeTab === "hero" && <HeroSlidesManager />}
+
+      {/* ABA NOVO: HERO CINEMATOGRÁFICO DE ARMAÇÕES (/armacoes) */}
+      {activeTab === "armacoes" && (
+        <div className="space-y-6">
+          <form onSubmit={handleSaveArmacoesHero} className="space-y-6">
+            <div className="bg-[#06111f] border border-amber-400/30 rounded-2xl p-6 sm:p-8 space-y-6 shadow-xl">
+              {/* Header do Card */}
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-white/10 pb-5">
+                <div>
+                  <span className="text-[10px] font-bold uppercase tracking-widest text-amber-400 bg-amber-400/10 px-2.5 py-0.5 rounded-full border border-amber-400/20">
+                    Página /armacoes
+                  </span>
+                  <h2 className="text-xl font-bold text-white tracking-tight mt-1 flex items-center gap-2">
+                    <Glasses size={20} className="text-amber-400" />
+                    <span>Hero Fotográfico com Degradê Editorial</span>
+                  </h2>
+                  <p className="text-xs text-slate-400 mt-0.5">
+                    Troque a foto de fundo, ajuste a opacidade do degradê e personalize os textos e selos de confiança.
+                  </p>
+                </div>
+
+                <button
+                  type="submit"
+                  disabled={isSavingArmacoesHero}
+                  className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-amber-400 hover:bg-amber-300 text-slate-950 font-bold text-xs uppercase tracking-wider transition-all disabled:opacity-50 cursor-pointer shadow-lg shadow-amber-400/10"
+                >
+                  <Save size={15} />
+                  <span>{isSavingArmacoesHero ? "Salvando..." : "Salvar Hero de Armações"}</span>
+                </button>
+              </div>
+
+              {/* Pré-visualização em Tempo Real (Live Preview) */}
+              <div className="space-y-2">
+                <div className="flex items-center justify-between">
+                  <span className="text-xs font-semibold text-slate-300 uppercase tracking-wider flex items-center gap-1.5">
+                    <Eye size={14} className="text-amber-400" />
+                    <span>Pré-visualização do Banner no Site</span>
+                  </span>
+                  <span className="text-[11px] text-slate-400">
+                    Opacidade do Degradê: {armacoesHero.hero_overlay_opacity}%
+                  </span>
+                </div>
+
+                <div className="relative rounded-2xl overflow-hidden min-h-[260px] sm:min-h-[300px] flex items-center p-6 sm:p-8 border border-white/10 shadow-2xl bg-[#02070D]">
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img
+                    src={armacoesHero.hero_bg_image || "/images/catalog-hero.jpg"}
+                    alt="Preview"
+                    className="absolute inset-0 w-full h-full object-cover object-center pointer-events-none"
+                  />
+                  <div
+                    className="absolute inset-0 pointer-events-none"
+                    style={{
+                      background:
+                        "linear-gradient(to right, rgba(2, 7, 13, 0.94) 0%, rgba(2, 7, 13, 0.78) 50%, rgba(2, 7, 13, 0.40) 100%)",
+                      opacity: (armacoesHero.hero_overlay_opacity ?? 75) / 100,
+                    }}
+                  />
+                  <div className="absolute top-1/4 right-[10%] w-[300px] h-[300px] rounded-full bg-amber-400/[0.08] blur-[100px] pointer-events-none" />
+
+                  <div className="relative z-10 max-w-xl space-y-3">
+                    <span className="text-[10px] font-bold text-amber-400 uppercase tracking-widest flex items-center gap-1">
+                      <Sparkles size={12} /> {armacoesHero.hero_badge_tag || "COLEÇÃO VENTARA EYEWEAR"}
+                    </span>
+                    <h3 className="text-2xl sm:text-3xl font-light text-white tracking-tight leading-tight">
+                      {armacoesHero.hero_title || "Catálogo de"}{" "}
+                      <span className="font-semibold text-white">
+                        {armacoesHero.hero_title_highlight || "Armações & Óculos"}
+                      </span>
+                    </h3>
+                    <p className="text-xs text-slate-200 line-clamp-2 leading-relaxed">
+                      {armacoesHero.hero_description}
+                    </p>
+                    <div className="flex flex-wrap gap-2 pt-1 text-[10px]">
+                      <span className="px-2.5 py-1 rounded-lg bg-white/10 backdrop-blur-md border border-white/15 text-white flex items-center gap-1.5">
+                        <CheckCircle2 size={12} className="text-amber-400" />
+                        {armacoesHero.badge_1_text || "10x Sem Juros"}
+                      </span>
+                      <span className="px-2.5 py-1 rounded-lg bg-white/10 backdrop-blur-md border border-white/15 text-white flex items-center gap-1.5">
+                        <ShieldCheck size={12} className="text-emerald-400" />
+                        {armacoesHero.badge_2_text || "Laboratório Próprio"}
+                      </span>
+                      <span className="px-2.5 py-1 rounded-lg bg-white/10 backdrop-blur-md border border-white/15 text-white flex items-center gap-1.5">
+                        <Award size={12} className="text-amber-400" />
+                        {armacoesHero.badge_3_text || "Envio Seguro"}
+                      </span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* 1. Foto de Fundo & Upload */}
+              <div className="space-y-3 pt-2">
+                <label className="block text-xs font-semibold text-slate-300 uppercase tracking-wider">
+                  Foto de Fundo do Hero (Full-Bleed) *
+                </label>
+                <div className="flex items-center gap-3">
+                  <input
+                    type="text"
+                    required
+                    value={armacoesHero.hero_bg_image}
+                    onChange={(e) => setArmacoesHero({ ...armacoesHero, hero_bg_image: e.target.value })}
+                    placeholder="URL da foto de fundo ou faça upload →"
+                    className="flex-1 bg-[#040a14] border border-white/10 rounded-xl px-4 py-2.5 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-amber-400"
+                  />
+                  <label className="inline-flex items-center gap-1.5 px-4 py-2.5 rounded-xl bg-amber-400 hover:bg-amber-300 text-slate-950 font-bold text-xs cursor-pointer transition-colors shrink-0">
+                    <Upload size={14} />
+                    <span>{isUploadingArmacoesHero ? "Enviando..." : "Enviar Foto"}</span>
+                    <input
+                      type="file"
+                      accept="image/*"
+                      className="hidden"
+                      onChange={handleArmacoesHeroImageUpload}
+                      disabled={isUploadingArmacoesHero}
+                    />
+                  </label>
+                </div>
+
+                {/* Modelos rápidos de fotos para o Hero */}
+                <div className="flex items-center gap-2 overflow-x-auto no-scrollbar pt-1">
+                  <span className="text-[10px] text-slate-400 shrink-0">Fotos rápidas:</span>
+                  {[
+                    { label: "Catálogo Ótica (Padrão)", path: "/images/catalog-hero.jpg" },
+                    { label: "Banner Eyewear Desktop", path: "/images/banners/hero-banner-desktop.jpg" },
+                    { label: "Vitrine Lifestyle Solar", path: "/images/lifestyle/male-solar.jpg" },
+                    { label: "Vitrine Grau Feminino", path: "/images/lifestyle/female-grau.jpg" },
+                  ].map((preset) => (
+                    <button
+                      key={preset.path}
+                      type="button"
+                      onClick={() => setArmacoesHero({ ...armacoesHero, hero_bg_image: preset.path })}
+                      className="text-[10px] px-2.5 py-1 rounded-lg bg-white/5 hover:bg-white/10 text-slate-300 whitespace-nowrap border border-white/10 cursor-pointer"
+                    >
+                      {preset.label}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              {/* 2. Opacidade do Degradê */}
+              <div className="space-y-2 p-4 rounded-xl bg-white/[0.02] border border-white/5">
+                <div className="flex items-center justify-between">
+                  <label className="text-xs font-semibold text-slate-300">
+                    Opacidade do Degradê Cinematográfico
+                  </label>
+                  <span className="text-xs font-mono font-bold text-amber-400">
+                    {armacoesHero.hero_overlay_opacity}%
+                  </span>
+                </div>
+                <input
+                  type="range"
+                  min="30"
+                  max="95"
+                  step="5"
+                  value={armacoesHero.hero_overlay_opacity}
+                  onChange={(e) =>
+                    setArmacoesHero({ ...armacoesHero, hero_overlay_opacity: Number(e.target.value) })
+                  }
+                  className="w-full accent-amber-400 cursor-pointer"
+                />
+                <p className="text-[11px] text-slate-400">
+                  Controla a intensidade do véu escuro sobre a foto para garantir contraste e legibilidade das letras brancas e douradas.
+                </p>
+              </div>
+
+              {/* 3. Textos do Hero */}
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4 pt-2">
+                <div>
+                  <label className="block text-xs font-semibold text-slate-300 mb-1">
+                    Tag / Selo do Topo
+                  </label>
+                  <input
+                    type="text"
+                    value={armacoesHero.hero_badge_tag}
+                    onChange={(e) => setArmacoesHero({ ...armacoesHero, hero_badge_tag: e.target.value })}
+                    className="w-full bg-[#040a14] border border-white/10 rounded-xl px-3 py-2 text-xs text-white focus:outline-none focus:border-amber-400"
+                    placeholder="Ex: COLEÇÃO VENTARA EYEWEAR"
+                  />
+                </div>
+                <div>
+                  <label className="block text-xs font-semibold text-slate-300 mb-1">
+                    Título Principal
+                  </label>
+                  <input
+                    type="text"
+                    value={armacoesHero.hero_title}
+                    onChange={(e) => setArmacoesHero({ ...armacoesHero, hero_title: e.target.value })}
+                    className="w-full bg-[#040a14] border border-white/10 rounded-xl px-3 py-2 text-xs text-white focus:outline-none focus:border-amber-400"
+                    placeholder="Ex: Catálogo de"
+                  />
+                </div>
+                <div>
+                  <label className="block text-xs font-semibold text-slate-300 mb-1">
+                    Destaque do Título
+                  </label>
+                  <input
+                    type="text"
+                    value={armacoesHero.hero_title_highlight}
+                    onChange={(e) =>
+                      setArmacoesHero({ ...armacoesHero, hero_title_highlight: e.target.value })
+                    }
+                    className="w-full bg-[#040a14] border border-white/10 rounded-xl px-3 py-2 text-xs text-white focus:outline-none focus:border-amber-400"
+                    placeholder="Ex: Armações & Óculos"
+                  />
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-xs font-semibold text-slate-300 mb-1">
+                  Descrição Editorial do Catálogo
+                </label>
+                <textarea
+                  rows={3}
+                  value={armacoesHero.hero_description}
+                  onChange={(e) =>
+                    setArmacoesHero({ ...armacoesHero, hero_description: e.target.value })
+                  }
+                  className="w-full bg-[#040a14] border border-white/10 rounded-xl px-3 py-2 text-xs text-white focus:outline-none focus:border-amber-400 leading-relaxed"
+                />
+              </div>
+
+              {/* 4. Três Selos de Confiança */}
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 pt-2">
+                <div>
+                  <label className="block text-xs font-semibold text-slate-300 mb-1">
+                    Selo de Confiança 1
+                  </label>
+                  <input
+                    type="text"
+                    value={armacoesHero.badge_1_text}
+                    onChange={(e) => setArmacoesHero({ ...armacoesHero, badge_1_text: e.target.value })}
+                    className="w-full bg-[#040a14] border border-white/10 rounded-xl px-3 py-2 text-xs text-white focus:outline-none focus:border-amber-400"
+                    placeholder="Ex: 10x Sem Juros"
+                  />
+                </div>
+                <div>
+                  <label className="block text-xs font-semibold text-slate-300 mb-1">
+                    Selo de Confiança 2
+                  </label>
+                  <input
+                    type="text"
+                    value={armacoesHero.badge_2_text}
+                    onChange={(e) => setArmacoesHero({ ...armacoesHero, badge_2_text: e.target.value })}
+                    className="w-full bg-[#040a14] border border-white/10 rounded-xl px-3 py-2 text-xs text-white focus:outline-none focus:border-amber-400"
+                    placeholder="Ex: Laboratório Próprio"
+                  />
+                </div>
+                <div>
+                  <label className="block text-xs font-semibold text-slate-300 mb-1">
+                    Selo de Confiança 3
+                  </label>
+                  <input
+                    type="text"
+                    value={armacoesHero.badge_3_text}
+                    onChange={(e) => setArmacoesHero({ ...armacoesHero, badge_3_text: e.target.value })}
+                    className="w-full bg-[#040a14] border border-white/10 rounded-xl px-3 py-2 text-xs text-white focus:outline-none focus:border-amber-400"
+                    placeholder="Ex: Envio Seguro"
+                  />
+                </div>
+              </div>
+
+              {/* Rodapé do Form */}
+              <div className="flex items-center justify-end gap-3 pt-4 border-t border-white/10">
+                <button
+                  type="submit"
+                  disabled={isSavingArmacoesHero}
+                  className="inline-flex items-center gap-2 px-6 py-2.5 rounded-xl bg-amber-400 hover:bg-amber-300 text-slate-950 font-bold text-xs uppercase tracking-wider transition-all disabled:opacity-50 cursor-pointer shadow-lg shadow-amber-400/10"
+                >
+                  <Save size={15} />
+                  <span>{isSavingArmacoesHero ? "Salvando..." : "Salvar e Publicar no Site"}</span>
+                </button>
+              </div>
+            </div>
+          </form>
+        </div>
+      )}
 
       {activeTab === "vitrines" && (
         <div className="space-y-8">

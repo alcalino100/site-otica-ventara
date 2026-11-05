@@ -4,6 +4,7 @@ import { ArmacoesView } from "./armacoes-view";
 import { DEFAULT_CATALOG } from "@/lib/catalog-data";
 import { Product } from "@/types/ecommerce";
 import { createStaticSupabaseClient, isSupabaseConfigured } from "@/lib/supabase/server";
+import { getArmacoesPageSettings } from "@/lib/armacoes-settings";
 
 export const metadata: Metadata = {
   title: "Catálogo de Armações e Óculos de Grau e Sol | Óticas Ventara",
@@ -57,17 +58,20 @@ async function getProducts(): Promise<Product[]> {
 }
 
 export default async function ArmacoesPage() {
-  const products = await getProducts();
+  const [products, heroSettings] = await Promise.all([
+    getProducts(),
+    getArmacoesPageSettings(),
+  ]);
 
   return (
     <Suspense
       fallback={
-        <div className="min-h-screen bg-[#040914] flex items-center justify-center text-amber-400 text-xs font-semibold">
+        <div className="min-h-screen bg-[#f8fafc] flex items-center justify-center text-slate-800 text-xs font-semibold">
           Carregando catálogo Ventara Eyewear...
         </div>
       }
     >
-      <ArmacoesView initialProducts={products} />
+      <ArmacoesView initialProducts={products} heroSettings={heroSettings} />
     </Suspense>
   );
 }
