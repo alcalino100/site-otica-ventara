@@ -307,6 +307,107 @@ export interface LensesSectionSettings {
   ribbonSpeedSeconds?: number;
 }
 
+export interface OptiSyncBenefitItem {
+  id: string;
+  icon: string;
+  title: string;
+  description: string;
+}
+
+export interface OptiSyncModelItem {
+  id: string;
+  name: string;
+  subtitle: string;
+  description: string;
+  features: string[];
+  image: string;
+}
+
+export interface OptiSyncComparisonRow {
+  feature: string;
+  traditional: string;
+  optisync: string;
+}
+
+export interface OptiSyncTechSpecItem {
+  label: string;
+  value: string;
+  detail?: string;
+}
+
+export interface OptiSyncFaqItem {
+  q: string;
+  a: string;
+}
+
+export interface OptiSyncPageSettings {
+  // Fundo e Efeitos
+  bgMode: "code" | "custom_image";
+  customBgDesktopUrl?: string;
+  customBgMobileUrl?: string;
+  bgOverlayOpacity: number; // 0 to 100
+  bgFocalPoint: "center" | "top" | "bottom" | "left" | "right";
+  gradientBaseFrom: string; // #040B2B
+  gradientBaseTo: string;   // #0A1A6B
+  beamColorBlue: string;    // #1E4BFF
+  beamColorPurple: string;  // #7A2CFF
+  beamsIntensity: number;   // 0 to 100
+  glowIntensity: number;    // 0 to 100
+  enableAnimation: boolean;
+  enableFloorReflection: boolean;
+
+  // Hero Content
+  heroBadge: string;
+  heroTitle: string;
+  heroTitleHighlight: string;
+  heroDescription: string;
+  productBoxImage: string;
+  productAltText: string;
+  heroFeatures: string[];
+
+  // Visibilidade de Seções
+  showHero: boolean;
+  showBenefits: boolean;
+  showComparison: boolean;
+  showLabHighlight: boolean;
+  showModels: boolean;
+  showSpecs: boolean;
+  showFaq: boolean;
+  showColorsCta: boolean;
+  showWhatsappCta: boolean;
+
+  // Seções de Conteúdo
+  benefitsTitle: string;
+  benefitsSubtitle: string;
+  benefitsList: OptiSyncBenefitItem[];
+
+  modelsTitle: string;
+  modelsSubtitle: string;
+  modelsList: OptiSyncModelItem[];
+
+  comparisonTitle: string;
+  comparisonSubtitle: string;
+  comparisonRows: OptiSyncComparisonRow[];
+
+  labBadge: string;
+  labTitle: string;
+  labTitleHighlight: string;
+  labDescription: string;
+  labOrigin: string;
+
+  techSpecs?: OptiSyncTechSpecItem[];
+
+  faqsList: OptiSyncFaqItem[];
+
+  ctaBadge: string;
+  ctaTitle: string;
+  ctaTitleHighlight: string;
+  ctaSubtitle: string;
+  ctaButtonText: string;
+  ctaWhatsappMessage: string;
+  ctaBusinessHours: string;
+}
+
 export interface HeroBannerSettings {
   mode: "fixed_banner" | "carousel_3d";
   bannerImageUrl: string;

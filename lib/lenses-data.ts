@@ -25,6 +25,9 @@ export interface AdminLensItem {
   gradientFrom?: string;
   gradientVia?: string;
   gradientTo?: string;
+  showInGeneralCatalog?: boolean;
+  showInColorSection?: boolean;
+  colorSectionOrder?: number;
 }
 
 export interface ColoredLensPreset {
@@ -45,6 +48,9 @@ export interface ColoredLensPreset {
   gradientFrom?: string;
   gradientVia?: string;
   gradientTo?: string;
+  showInGeneralCatalog?: boolean;
+  showInColorSection?: boolean;
+  colorSectionOrder?: number;
 }
 
 export const COLORED_LENSES_LIST: ColoredLensPreset[] = [
@@ -608,6 +614,9 @@ export const DEFAULT_LENSES: AdminLensItem[] = [
       "A escolha clássica para qualquer armação",
     ],
     isActive: true,
+    showInGeneralCatalog: false,
+    showInColorSection: true,
+    colorSectionOrder: 0,
   },
   {
     id: "lente-cor-marrom",
@@ -641,6 +650,9 @@ export const DEFAULT_LENSES: AdminLensItem[] = [
       "Montagem personalizada em qualquer armação",
     ],
     isActive: true,
+    showInGeneralCatalog: false,
+    showInColorSection: true,
+    colorSectionOrder: 1,
   },
   {
     id: "lente-cor-verde",
@@ -672,6 +684,9 @@ export const DEFAULT_LENSES: AdminLensItem[] = [
       "Montagem expressa no laboratório digital próprio",
     ],
     isActive: true,
+    showInGeneralCatalog: false,
+    showInColorSection: true,
+    colorSectionOrder: 2,
   },
   {
     id: "lente-cor-amarelo",
@@ -703,6 +718,9 @@ export const DEFAULT_LENSES: AdminLensItem[] = [
       "Montagem com ou sem graduação médica",
     ],
     isActive: true,
+    showInGeneralCatalog: false,
+    showInColorSection: true,
+    colorSectionOrder: 3,
   },
   {
     id: "lente-cor-azul",
@@ -734,6 +752,9 @@ export const DEFAULT_LENSES: AdminLensItem[] = [
       "Montagem expressa no laboratório próprio",
     ],
     isActive: true,
+    showInGeneralCatalog: false,
+    showInColorSection: true,
+    colorSectionOrder: 4,
   },
   {
     id: "lente-cor-vermelho",
@@ -765,6 +786,9 @@ export const DEFAULT_LENSES: AdminLensItem[] = [
       "Compatível com armações solares esportivas",
     ],
     isActive: true,
+    showInGeneralCatalog: false,
+    showInColorSection: true,
+    colorSectionOrder: 5,
   },
   {
     id: "lente-cor-degrade",
@@ -798,6 +822,9 @@ export const DEFAULT_LENSES: AdminLensItem[] = [
       "Disponível com ou sem grau para qualquer armação",
     ],
     isActive: true,
+    showInGeneralCatalog: false,
+    showInColorSection: true,
+    colorSectionOrder: 6,
   },
   {
     id: "lente-cor-rosa",
@@ -831,6 +858,9 @@ export const DEFAULT_LENSES: AdminLensItem[] = [
       "Montagem expressa no laboratório Ventara",
     ],
     isActive: true,
+    showInGeneralCatalog: false,
+    showInColorSection: true,
+    colorSectionOrder: 7,
   },
   {
     id: "lente-cor-roxo",
@@ -862,6 +892,9 @@ export const DEFAULT_LENSES: AdminLensItem[] = [
       "Compatível com lentes solares graduadas",
     ],
     isActive: true,
+    showInGeneralCatalog: false,
+    showInColorSection: true,
+    colorSectionOrder: 8,
   },
 ];
 
@@ -894,5 +927,34 @@ export function adminLensToColoredPreset(lens: AdminLensItem): ColoredLensPreset
     gradientFrom: lens.gradientFrom || lens.colorHex || "#475569",
     gradientVia: lens.gradientVia || lens.colorHex || "#475569",
     gradientTo: lens.gradientTo || "#0f172a",
+    showInGeneralCatalog: lens.showInGeneralCatalog,
+    showInColorSection: lens.showInColorSection,
+    colorSectionOrder: lens.colorSectionOrder,
   };
+}
+
+/**
+ * Determina se a lente deve ser exibida no Catálogo Geral (listagem, filtros e contadores)
+ * Regra: se o campo showInGeneralCatalog estiver definido, respeita o valor booleano.
+ * Se não estiver definido, lentes da categoria 'coloridas' ficam FORA por padrão,
+ * e lentes das demais categorias ficam DENTRO por padrão.
+ */
+export function isLensInGeneralCatalog(lens: AdminLensItem): boolean {
+  if (typeof lens.showInGeneralCatalog === "boolean") {
+    return lens.showInGeneralCatalog;
+  }
+  return lens.category !== "coloridas";
+}
+
+/**
+ * Determina se a lente deve ser exibida na Seção de Cores
+ * Regra: se o campo showInColorSection estiver definido, respeita o valor booleano.
+ * Se não estiver definido, lentes da categoria 'coloridas' ficam DENTRO por padrão,
+ * e lentes das demais categorias ficam FORA por padrão.
+ */
+export function isLensInColorSection(lens: AdminLensItem): boolean {
+  if (typeof lens.showInColorSection === "boolean") {
+    return lens.showInColorSection;
+  }
+  return lens.category === "coloridas";
 }

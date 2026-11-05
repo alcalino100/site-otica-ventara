@@ -84,6 +84,129 @@
   box-shadow: 0 16px 36px rgba(0, 0, 0, 0.5);
 }
 
+/* ==========================================================================
+   TEMA TECNOLÓGICO & FUTURISTA (Lentes de Grau & OPTiSYNC HD)
+   Design Tokens escopados para rotas e componentes de alta precisão
+   ========================================================================== */
+.theme-futuristic-lenses {
+  color-scheme: dark;
+
+  /* Cores Base e Espaciais */
+  --lens-space-base: #040b2b;
+  --lens-space-deep: #020716;
+  --lens-space-indigo: #0a1a6b;
+  --lens-space-midnight: #061138;
+
+  /* Luz e Eletricidade */
+  --lens-electric-blue: #1e4bff;
+  --lens-electric-purple: #7a2cff;
+  --lens-neon-cyan: #38bdf8;
+  --lens-brand-yellow: #ffd62e;
+  --lens-amber-warm: #f59e0b;
+
+  /* Superfícies de Vidro Tecnológico */
+  --lens-glass-bg: rgba(6, 17, 43, 0.65);
+  --lens-glass-bg-hover: rgba(10, 26, 68, 0.85);
+  --lens-glass-border: rgba(30, 75, 255, 0.22);
+  --lens-glass-border-hover: rgba(56, 189, 248, 0.55);
+  --lens-glass-shadow: 0 10px 36px -4px rgba(0, 0, 0, 0.6), inset 0 1px 0 rgba(255, 255, 255, 0.08);
+
+  /* Grade HUD e Linhas de Luz */
+  --lens-hud-line: rgba(30, 75, 255, 0.1);
+  --lens-hud-cross: rgba(56, 189, 248, 0.25);
+  --lens-divider-glow: linear-gradient(90deg, transparent, rgba(30, 75, 255, 0.6), rgba(122, 44, 255, 0.6), transparent);
+
+  /* Tipografia com Alto Contraste (WCAG AA/AAA) */
+  --lens-text-primary: #f8fafc;
+  --lens-text-secondary: #cbd5e1;
+  --lens-text-muted: #94a3b8;
+}
+
+/* Efeito de Grade HUD Sutil em SVG */
+.lens-hud-grid {
+  background-image: 
+    linear-gradient(to right, var(--lens-hud-line) 1px, transparent 1px),
+    linear-gradient(to bottom, var(--lens-hud-line) 1px, transparent 1px);
+  background-size: 40px 40px;
+}
+
+/* Borda com Gradiente Elétrico 1px */
+.lens-gradient-border {
+  position: relative;
+  border-radius: 1.5rem;
+  background: var(--lens-glass-bg);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+}
+
+.lens-gradient-border::before {
+  content: "";
+  position: absolute;
+  inset: -1px;
+  border-radius: inherit;
+  padding: 1px;
+  background: linear-gradient(135deg, rgba(30, 75, 255, 0.5), rgba(122, 44, 255, 0.4), rgba(56, 189, 248, 0.2));
+  -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+  -webkit-mask-composite: xor;
+  mask-composite: exclude;
+  pointer-events: none;
+}
+
+/* Reflexo Especular de Piso para Produto em Destaque */
+.lens-floor-reflection {
+  transform: scaleY(-1);
+  mask-image: linear-gradient(to bottom, rgba(255, 255, 255, 0.35) 0%, transparent 65%);
+  -webkit-mask-image: linear-gradient(to bottom, rgba(255, 255, 255, 0.35) 0%, transparent 65%);
+  filter: blur(1px);
+  opacity: 0.6;
+  pointer-events: none;
+}
+
+/* Flutuação Suave Óptica */
+@keyframes lensFloat {
+  0%, 100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-8px);
+  }
+}
+
+.animate-lens-float {
+  animation: lensFloat 6s ease-in-out infinite;
+}
+
+/* Pulsação do Brilho Radial */
+@keyframes lensGlowPulse {
+  0%, 100% {
+    opacity: 0.55;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 0.75;
+    transform: scale(1.05);
+  }
+}
+
+.animate-lens-glow {
+  animation: lensGlowPulse 8s ease-in-out infinite;
+}
+
+/* Respeito Absoluto a Prefers Reduced Motion */
+@media (prefers-reduced-motion: reduce) {
+  .animate-lens-float,
+  .animate-lens-glow {
+    animation: none !important;
+  }
+  .theme-futuristic-lenses *,
+  .theme-futuristic-lenses *::before,
+  .theme-futuristic-lenses *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+  }
+}
+
 @layer base {
   * {
     box-sizing: border-box;

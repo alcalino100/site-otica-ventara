@@ -10,7 +10,12 @@ import {
   Sun,
   Eye,
 } from "lucide-react";
-import { COLORED_LENSES_LIST, ColoredLensPreset, AdminLensItem } from "@/lib/lenses-data";
+import {
+  COLORED_LENSES_LIST,
+  ColoredLensPreset,
+  AdminLensItem,
+  isLensInColorSection,
+} from "@/lib/lenses-data";
 
 interface ColoredLensesShowcaseProps {
   initialLenses?: AdminLensItem[];
@@ -31,9 +36,9 @@ export function ColoredLensesShowcase({ initialLenses }: ColoredLensesShowcasePr
         if (res.ok) {
           const data = await res.json();
           if (data.lenses && Array.isArray(data.lenses)) {
-            const adminColoridas = data.lenses.filter(
-              (l: AdminLensItem) => l.category === "coloridas" && l.isActive !== false
-            );
+            const adminColoridas = data.lenses
+              .filter((l: AdminLensItem) => isLensInColorSection(l) && l.isActive !== false)
+              .sort((a: AdminLensItem, b: AdminLensItem) => (a.colorSectionOrder ?? 0) - (b.colorSectionOrder ?? 0));
             if (adminColoridas.length > 0) {
               const dynamicPresets: ColoredLensPreset[] = adminColoridas.map((a: AdminLensItem) => {
                 const foundPreset = COLORED_LENSES_LIST.find(
@@ -57,9 +62,14 @@ export function ColoredLensesShowcase({ initialLenses }: ColoredLensesShowcasePr
                   gradientFrom: a.gradientFrom || (foundPreset ? foundPreset.gradientFrom : undefined),
                   gradientVia: a.gradientVia || (foundPreset ? foundPreset.gradientVia : undefined),
                   gradientTo: a.gradientTo || (foundPreset ? foundPreset.gradientTo : undefined),
+                  showInGeneralCatalog: a.showInGeneralCatalog,
+                  showInColorSection: a.showInColorSection,
+                  colorSectionOrder: a.colorSectionOrder,
                 };
               });
               setLensList(dynamicPresets);
+            } else {
+              setLensList([]);
             }
           }
         }
@@ -69,6 +79,10 @@ export function ColoredLensesShowcase({ initialLenses }: ColoredLensesShowcasePr
     }
     fetchLenses();
   }, []);
+
+  if (isMounted && lensList.length === 0) {
+    return null;
+  }
 
   const activeLens =
     lensList.find((l) => l.id === selectedId) || lensList[0] || COLORED_LENSES_LIST[0];
@@ -141,7 +155,7 @@ export function ColoredLensesShowcase({ initialLenses }: ColoredLensesShowcasePr
 
   return (
     <section
-      className="pt-8 sm:pt-12 pb-16 sm:pb-24 bg-[#02070D] text-white relative overflow-hidden border-b border-white/10 scroll-mt-16"
+      className="pt-8 sm:pt-12 pb-16 sm:pb-24 bg-[#02070D] text-white relative overflow-hidden border-b border-white/10 scroll-mt-24"
       id="lentes-coloridas"
       data-hydrated={isMounted ? "true" : "false"}
     >
