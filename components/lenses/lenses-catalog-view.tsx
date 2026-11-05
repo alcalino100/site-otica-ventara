@@ -47,13 +47,13 @@ export function LensesCatalogView() {
     async function loadData() {
       try {
         const [lensesRes, settingsRes] = await Promise.all([
-          fetch("/api/admin/lenses"),
-          fetch("/api/settings"),
+          fetch(`/api/admin/lenses?t=${Date.now()}`, { cache: "no-store" }),
+          fetch(`/api/settings?t=${Date.now()}`, { cache: "no-store" }),
         ]);
 
         if (lensesRes.ok) {
           const lensesData = await lensesRes.json();
-          if (lensesData.lenses && Array.isArray(lensesData.lenses) && lensesData.lenses.length > 0) {
+          if (lensesData.lenses && Array.isArray(lensesData.lenses)) {
             setLenses(lensesData.lenses.filter((l: AdminLensItem) => l.isActive));
           }
         }

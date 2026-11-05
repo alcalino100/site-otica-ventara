@@ -23,11 +23,12 @@ test.describe("Troca e Upload de Fotos dos Operadores Logísticos (/admin/entreg
     page,
   }) => {
     await page.goto("/admin/entrega", { waitUntil: "domcontentloaded" });
+    await page.waitForLoadState("networkidle");
 
     // Expande a seção de Operadores Cadastrados
     const carriersSection = page.getByTestId("cms-accordion-carriers_grid");
     await carriersSection.scrollIntoViewIfNeeded();
-    await carriersSection.locator("button[id^='section-header']").click();
+    await carriersSection.getByRole("button", { name: /Expandir seção/i }).click();
 
     // Valida que o cabeçalho e botão de adicionar estão presentes
     await expect(page.getByText(/Operadores Cadastrados/i)).toBeVisible();

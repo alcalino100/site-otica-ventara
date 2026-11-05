@@ -74,6 +74,15 @@ export default function AdminLensesPage() {
     id: "",
     name: "",
   });
+  const [deleteBrandConfirm, setDeleteBrandConfirm] = useState<{
+    isOpen: boolean;
+    id: string;
+    name: string;
+  }>({
+    isOpen: false,
+    id: "",
+    name: "",
+  });
   const [toastMessage, setToastMessage] = useState<{ message: string; type: "success" | "warning" | "info" } | null>(
     null
   );
@@ -365,43 +374,71 @@ export default function AdminLensesPage() {
     }));
   };
 
-  const handleRemovePartnerLogo = (id: string) => {
-    setLensesSection((prev) => ({
-      ...prev,
-      partnerLogos: prev.partnerLogos.filter((p) => p.id !== id),
-    }));
+  const handleRemovePartnerLogo = async (id: string, name?: string) => {
+    if (confirm(`Deseja realmente remover a logo parceira "${name || "selecionada"}"?`)) {
+      const updatedLogos = lensesSection.partnerLogos.filter((p) => p.id !== id);
+      const updatedSection = { ...lensesSection, partnerLogos: updatedLogos };
+      setLensesSection(updatedSection);
+      try {
+        await fetch("/api/admin/settings", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ lenses_section: updatedSection }),
+        });
+        setToastMessage({
+          message: "Logo parceira removida e atualizada no site!",
+          type: "success",
+        });
+        setTimeout(() => setToastMessage(null), 3000);
+      } catch (err: any) {
+        console.error("Erro ao salvar remoção da logo:", err);
+      }
+    }
   };
 
   // Reordenação de logos do carrossel (mover para esquerda / direita)
-  const handleMovePartnerLogo = (index: number, direction: "left" | "right") => {
+  const handleMovePartnerLogo = async (index: number, direction: "left" | "right") => {
     const targetIndex = direction === "left" ? index - 1 : index + 1;
     if (targetIndex < 0 || targetIndex >= lensesSection.partnerLogos.length) return;
 
-    setLensesSection((prev) => {
-      const updated = [...prev.partnerLogos];
-      const temp = updated[index];
-      updated[index] = updated[targetIndex];
-      updated[targetIndex] = temp;
-      return { ...prev, partnerLogos: updated };
-    });
+    const updated = [...lensesSection.partnerLogos];
+    const temp = updated[index];
+    updated[index] = updated[targetIndex];
+    updated[targetIndex] = temp;
+
+    const updatedSection = { ...lensesSection, partnerLogos: updated };
+    setLensesSection(updatedSection);
+    try {
+      await fetch("/api/admin/settings", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ lenses_section: updatedSection }),
+      });
+    } catch {}
   };
 
   // Reordenação de marcas homologadas (mover para cima / baixo)
-  const handleMoveBrand = (index: number, direction: "up" | "down") => {
+  const handleMoveBrand = async (index: number, direction: "up" | "down") => {
     const targetIndex = direction === "up" ? index - 1 : index + 1;
     if (targetIndex < 0 || targetIndex >= homologatedBrands.length) return;
 
-    setHomologatedBrands((prev) => {
-      const updated = [...prev];
-      const temp = updated[index];
-      updated[index] = updated[targetIndex];
-      updated[targetIndex] = temp;
-      return updated;
-    });
+    const updated = [...homologatedBrands];
+    const temp = updated[index];
+    updated[index] = updated[targetIndex];
+    updated[targetIndex] = temp;
+
+    setHomologatedBrands(updated);
+    try {
+      await fetch("/api/admin/settings", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ homologated_brands: updated }),
+      });
+    } catch {}
   };
 
-  // Adicionar nova marca homologada
-  const handleAddHomologatedBrand = () => {
+  // Adicionar nova marca homologada com persistência imediata
+  const handleAddHomologatedBrand = async () => {
     const newBrand: HomologatedBrand = {
       id: `brand-${Date.now()}`,
       name: "Novo Laboratório Homologado",
@@ -410,17 +447,61 @@ export default function AdminLensesPage() {
       badge: "Garantia Homologada",
       desc: "Lentes de alta precisão com tratamentos multicamadas certificados e montagem expressa em laboratório próprio.",
     };
-    setHomologatedBrands((prev) => [...prev, newBrand]);
+    const updated = [...homologatedBrands, newBrand];
+    setHomologatedBrands(updated);
+    try {
+      await fetch("/api/admin/settings", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ homologated_brands: updated }),
+      });
+      setToastMessage({
+        message: "Novo laboratório homologado adicionado e salvo com sucesso!",
+        type: "success",
+      });
+      setTimeout(() => setToastMessage(null), 3000);
+    } catch {}
   };
 
-  // Remover marca homologada
-  const handleRemoveHomologatedBrand = (id: string) => {
+  // Remover marca homologada / fornecedor com diálogo e persistência imediata
+  const handleRemoveHomologatedBrand = (id: string, name: string) => {
     if (homologatedBrands.length <= 1) {
-      alert("É necessário manter pelo menos uma marca homologada.");
+      alert("É necessário manter pelo menos um laboratório ou fornecedor homologado.");
       return;
     }
-    if (confirm("Deseja realmente remover esta marca homologada?")) {
-      setHomologatedBrands((prev) => prev.filter((b) => b.id !== id));
+    setDeleteBrandConfirm({ isOpen: true, id, name });
+  };
+
+  const handleConfirmDeleteBrand = async () => {
+    if (!deleteBrandConfirm.id) return;
+    const brandId = deleteBrandConfirm.id;
+    const brandName = deleteBrandConfirm.name;
+    const updated = homologatedBrands.filter((b) => b.id !== brandId);
+    setHomologatedBrands(updated);
+    setDeleteBrandConfirm({ isOpen: false, id: "", name: "" });
+    setIsSavingBrands(true);
+
+    try {
+      const res = await fetch("/api/admin/settings", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ homologated_brands: updated }),
+      });
+      const data = await res.json();
+      if (!res.ok || data.error) {
+        throw new Error(data.error || "Erro ao salvar exclusão da marca no banco de dados.");
+      }
+      setToastMessage({
+        message: `Fornecedor/Laboratório "${brandName}" removido com sucesso!`,
+        type: "success",
+      });
+      setTimeout(() => setToastMessage(null), 3500);
+    } catch (err: any) {
+      console.error("Erro ao excluir fornecedor:", err);
+      alert(err.message || "Erro inesperado ao excluir fornecedor no banco de dados.");
+      loadLabSettings();
+    } finally {
+      setIsSavingBrands(false);
     }
   };
 
@@ -450,41 +531,45 @@ export default function AdminLensesPage() {
     }
   };
 
-  useEffect(() => {
-    async function loadLenses() {
-      try {
-        const res = await fetch("/api/admin/lenses");
-        if (res.ok) {
-          const data = await res.json();
-          if (data.lenses && Array.isArray(data.lenses) && data.lenses.length > 0) {
-            setLenses(data.lenses);
-          }
+  const loadLenses = async () => {
+    try {
+      const res = await fetch(`/api/admin/lenses?t=${Date.now()}`, {
+        cache: "no-store",
+      });
+      if (res.ok) {
+        const data = await res.json();
+        if (data.lenses && Array.isArray(data.lenses)) {
+          setLenses(data.lenses);
         }
-      } catch (err) {
-        console.warn("Utilizando lentes padrão:", err);
-      } finally {
-        setIsLoading(false);
       }
+    } catch (err) {
+      console.warn("Utilizando lentes padrão:", err);
+    } finally {
+      setIsLoading(false);
     }
+  };
 
-    async function loadLabSettings() {
-      try {
-        const res = await fetch("/api/admin/settings");
-        if (res.ok) {
-          const data = await res.json();
-          if (data.lab_showcase) {
-            setLabShowcase((prev) => ({ ...prev, ...data.lab_showcase }));
-          }
-          if (data.homologated_brands && Array.isArray(data.homologated_brands) && data.homologated_brands.length > 0) {
-            setHomologatedBrands(data.homologated_brands);
-          }
-          if (data.lenses_section) {
-            setLensesSection((prev) => ({ ...prev, ...data.lenses_section }));
-          }
+  const loadLabSettings = async () => {
+    try {
+      const res = await fetch(`/api/admin/settings?t=${Date.now()}`, {
+        cache: "no-store",
+      });
+      if (res.ok) {
+        const data = await res.json();
+        if (data.lab_showcase) {
+          setLabShowcase((prev) => ({ ...prev, ...data.lab_showcase }));
         }
-      } catch (err) {}
-    }
+        if (data.homologated_brands && Array.isArray(data.homologated_brands)) {
+          setHomologatedBrands(data.homologated_brands);
+        }
+        if (data.lenses_section) {
+          setLensesSection((prev) => ({ ...prev, ...data.lenses_section }));
+        }
+      }
+    } catch (err) {}
+  };
 
+  useEffect(() => {
     loadLenses();
     loadLabSettings();
   }, []);
@@ -501,15 +586,17 @@ export default function AdminLensesPage() {
 
       const data = await res.json();
       if (!res.ok || data.error) {
-        throw new Error(data.error || "Erro ao salvar alterações.");
+        throw new Error(data.error || "Erro ao salvar alterações no catálogo de lentes.");
       }
 
       setLenses(updatedList);
       setFeedback("Catálogo de lentes, preços e especificações atualizado com sucesso!");
       setTimeout(() => setFeedback(null), 3500);
+      return data;
     } catch (err: any) {
-      console.error(err);
+      console.error("Erro ao salvar catálogo de lentes:", err);
       setFeedback(err.message || "Erro inesperado ao salvar.");
+      throw err;
     } finally {
       setIsSaving(false);
     }
@@ -532,14 +619,19 @@ export default function AdminLensesPage() {
     setLenses(newList);
     setSelectedLens(null);
     setIsNewLens(false);
-    await handleSaveAll(newList);
-    setToastMessage({
-      message: isNewLens
-        ? `Lente "${itemToSave.name}" adicionada ao catálogo!`
-        : `Lente "${itemToSave.name}" atualizada com sucesso!`,
-      type: "success",
-    });
-    setTimeout(() => setToastMessage(null), 3500);
+    try {
+      await handleSaveAll(newList);
+      setToastMessage({
+        message: isNewLens
+          ? `Lente "${itemToSave.name}" adicionada ao catálogo!`
+          : `Lente "${itemToSave.name}" atualizada com sucesso!`,
+        type: "success",
+      });
+      setTimeout(() => setToastMessage(null), 3500);
+    } catch (saveErr: any) {
+      alert(saveErr.message || "Erro ao salvar lente.");
+      loadLenses();
+    }
   };
 
   const handleDeleteLens = (id: string, name: string) => {
@@ -548,16 +640,26 @@ export default function AdminLensesPage() {
 
   const handleConfirmDelete = async () => {
     if (!deleteConfirm.id) return;
+    const deletedId = deleteConfirm.id;
     const deletedName = deleteConfirm.name;
-    const updated = lenses.filter((l) => l.id !== deleteConfirm.id);
+    const updated = lenses.filter((l) => l.id !== deletedId);
     setLenses(updated);
     setDeleteConfirm({ isOpen: false, id: "", name: "" });
-    await handleSaveAll(updated);
-    setToastMessage({
-      message: `Lente "${deletedName}" removida do catálogo com sucesso.`,
-      type: "success",
-    });
-    setTimeout(() => setToastMessage(null), 3500);
+
+    try {
+      await handleSaveAll(updated);
+      setToastMessage({
+        message: `Lente "${deletedName}" removida do catálogo com sucesso.`,
+        type: "success",
+      });
+      setTimeout(() => setToastMessage(null), 3500);
+    } catch (err: any) {
+      setToastMessage({
+        message: `Erro ao excluir lente: ${err.message}`,
+        type: "warning",
+      });
+      loadLenses();
+    }
   };
 
   const handleOpenNewModal = () => {
@@ -1080,7 +1182,7 @@ export default function AdminLensesPage() {
                       {homologatedBrands.length > 1 && (
                         <button
                           type="button"
-                          onClick={() => handleRemoveHomologatedBrand(brand.id)}
+                          onClick={() => handleRemoveHomologatedBrand(brand.id, brand.name)}
                           title="Remover marca"
                           className="w-7 h-7 rounded-lg bg-rose-500/10 hover:bg-rose-500/20 border border-rose-500/30 flex items-center justify-center text-rose-300 transition-colors cursor-pointer ml-1"
                         >
@@ -2430,6 +2532,19 @@ export default function AdminLensesPage() {
         isLoading={isSaving}
         onConfirm={handleConfirmDelete}
         onCancel={() => setDeleteConfirm({ isOpen: false, id: "", name: "" })}
+      />
+
+      {/* Diálogo de Confirmação para Remoção de Fornecedor / Marca Homologada */}
+      <ConfirmDialog
+        isOpen={deleteBrandConfirm.isOpen}
+        title="Remover Laboratório / Fornecedor"
+        message={`Tem certeza que deseja remover o fornecedor "${deleteBrandConfirm.name}"? Esta ação removerá a marca e as fotos das caixas do catálogo.`}
+        confirmText="Sim, Remover Fornecedor"
+        cancelText="Voltar"
+        variant="danger"
+        isLoading={isSavingBrands}
+        onConfirm={handleConfirmDeleteBrand}
+        onCancel={() => setDeleteBrandConfirm({ isOpen: false, id: "", name: "" })}
       />
 
       {/* Notificação Toast */}

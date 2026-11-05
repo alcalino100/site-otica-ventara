@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createAdminClient } from "@/lib/supabase/admin";
+import { isSupabaseConfigured } from "@/lib/supabase/server";
 import { revalidatePath } from "next/cache";
 import { DEFAULT_LENSES, AdminLensItem } from "@/lib/lenses-data";
 
@@ -8,29 +9,104 @@ export const dynamic = "force-dynamic";
 let inMemoryLensesCatalog: AdminLensItem[] = [...DEFAULT_LENSES];
 
 /**
+ * Salva com segurança o catálogo de lentes na tabela site_settings,
+ * verificando existência do registro por ID para evitar falhas silenciosas de upsert.
+ */
+async function saveLensesCatalog(adminSupabase: ReturnType<typeof createAdminClient>, lenses: AdminLensItem[]) {
+  inMemoryLensesCatalog = lenses;
+
+  if (!isSupabaseConfigured()) {
+    return;
+  }
+
+  const now = new Date().toISOString();
+  const { data: existing, error: selectError } = await adminSupabase
+    .from("site_settings")
+    .select("id")
+    .eq("key", "lenses_catalog")
+    .maybeSingle();
+
+  if (selectError) {
+    console.warn("Aviso ao consultar lenses_catalog em site_settings:", selectError.message);
+  }
+
+  if (existing?.id) {
+    const { error } = await adminSupabase
+      .from("site_settings")
+      .update({
+        value: lenses,
+        description: "Catálogo completo de lentes, preços e especificações",
+        updated_at: now,
+      })
+      .eq("id", existing.id);
+
+    if (error) {
+      console.error("Erro ao atualizar lenses_catalog no Supabase:", error);
+      throw error;
+    }
+  } else {
+    const { error } = await adminSupabase
+      .from("site_settings")
+      .insert({
+        key: "lenses_catalog",
+        description: "Catálogo completo de lentes, preços e especificações",
+        value: lenses,
+        updated_at: now,
+      });
+
+    if (error) {
+      console.error("Erro ao inserir lenses_catalog no Supabase:", error);
+      throw error;
+    }
+  }
+}
+
+/**
  * GET /api/admin/lenses
  * Retorna o catálogo de lentes oficial gravado no Supabase (site_settings.lenses_catalog)
  * sem reinjetar itens que foram intencionalmente excluídos pelo administrador.
  */
 export async function GET() {
   try {
-    const adminSupabase = createAdminClient();
-    const { data, error } = await adminSupabase
-      .from("site_settings")
-      .select("value")
-      .eq("key", "lenses_catalog")
-      .maybeSingle();
+    if (isSupabaseConfigured()) {
+      const adminSupabase = createAdminClient();
+      const { data, error } = await adminSupabase
+        .from("site_settings")
+        .select("value")
+        .eq("key", "lenses_catalog")
+        .maybeSingle();
 
-    if (!error && data?.value && Array.isArray(data.value)) {
-      inMemoryLensesCatalog = data.value as AdminLensItem[];
-      return NextResponse.json({ success: true, lenses: inMemoryLensesCatalog });
+      if (!error && data?.value && Array.isArray(data.value)) {
+        inMemoryLensesCatalog = data.value as AdminLensItem[];
+        return NextResponse.json(
+          { success: true, lenses: inMemoryLensesCatalog },
+          {
+            headers: {
+              "Cache-Control": "no-store, no-cache, must-revalidate, proxy-revalidate",
+            },
+          }
+        );
+      }
     }
 
-    // Se o banco ainda não possuir o registro lenses_catalog, inicializa com DEFAULT_LENSES
-    return NextResponse.json({ success: true, lenses: inMemoryLensesCatalog });
+    return NextResponse.json(
+      { success: true, lenses: inMemoryLensesCatalog },
+      {
+        headers: {
+          "Cache-Control": "no-store, no-cache, must-revalidate, proxy-revalidate",
+        },
+      }
+    );
   } catch (err: any) {
     console.warn("Fallback local de lentes:", err.message);
-    return NextResponse.json({ success: true, lenses: inMemoryLensesCatalog });
+    return NextResponse.json(
+      { success: true, lenses: inMemoryLensesCatalog },
+      {
+        headers: {
+          "Cache-Control": "no-store, no-cache, must-revalidate, proxy-revalidate",
+        },
+      }
+    );
   }
 }
 
@@ -48,33 +124,28 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    inMemoryLensesCatalog = body.lenses;
-
     const adminSupabase = createAdminClient();
-    const { error } = await adminSupabase.from("site_settings").upsert(
-      {
-        key: "lenses_catalog",
-        value: body.lenses,
-        updated_at: new Date().toISOString(),
-      },
-      { onConflict: "key" }
-    );
-
-    if (error) {
-      console.warn("Aviso ao persistir no Supabase, mantendo em memória:", error.message);
-    }
+    await saveLensesCatalog(adminSupabase, body.lenses);
 
     try {
       revalidatePath("/");
       revalidatePath("/lentes");
       revalidatePath("/lentes-coloridas");
+      revalidatePath("/admin/lentes");
     } catch {}
 
-    return NextResponse.json({
-      success: true,
-      message: "Catálogo de lentes e valores atualizado com sucesso!",
-      lenses: inMemoryLensesCatalog,
-    });
+    return NextResponse.json(
+      {
+        success: true,
+        message: "Catálogo de lentes e valores atualizado com sucesso!",
+        lenses: inMemoryLensesCatalog,
+      },
+      {
+        headers: {
+          "Cache-Control": "no-store, no-cache, must-revalidate, proxy-revalidate",
+        },
+      }
+    );
   } catch (err: any) {
     console.error("Erro ao salvar lentes:", err);
     return NextResponse.json(
@@ -105,45 +176,44 @@ export async function DELETE(req: NextRequest) {
       );
     }
 
-    const adminSupabase = createAdminClient();
-    const { data } = await adminSupabase
-      .from("site_settings")
-      .select("value")
-      .eq("key", "lenses_catalog")
-      .maybeSingle();
+    let currentList = inMemoryLensesCatalog;
 
-    const currentList: AdminLensItem[] =
-      data?.value && Array.isArray(data.value)
-        ? (data.value as AdminLensItem[])
-        : inMemoryLensesCatalog;
+    if (isSupabaseConfigured()) {
+      const adminSupabase = createAdminClient();
+      const { data } = await adminSupabase
+        .from("site_settings")
+        .select("value")
+        .eq("key", "lenses_catalog")
+        .maybeSingle();
+
+      if (data?.value && Array.isArray(data.value)) {
+        currentList = data.value as AdminLensItem[];
+      }
+    }
 
     const updated = currentList.filter((item) => item.id !== lensId);
-    inMemoryLensesCatalog = updated;
-
-    const { error } = await adminSupabase.from("site_settings").upsert(
-      {
-        key: "lenses_catalog",
-        value: updated,
-        updated_at: new Date().toISOString(),
-      },
-      { onConflict: "key" }
-    );
-
-    if (error) {
-      console.warn("Aviso ao salvar exclusão no Supabase:", error.message);
-    }
+    const adminSupabase = createAdminClient();
+    await saveLensesCatalog(adminSupabase, updated);
 
     try {
       revalidatePath("/");
       revalidatePath("/lentes");
       revalidatePath("/lentes-coloridas");
+      revalidatePath("/admin/lentes");
     } catch {}
 
-    return NextResponse.json({
-      success: true,
-      message: "Lente removida do catálogo com sucesso!",
-      lenses: updated,
-    });
+    return NextResponse.json(
+      {
+        success: true,
+        message: "Lente removida do catálogo com sucesso!",
+        lenses: updated,
+      },
+      {
+        headers: {
+          "Cache-Control": "no-store, no-cache, must-revalidate, proxy-revalidate",
+        },
+      }
+    );
   } catch (err: any) {
     console.error("Erro ao excluir lente:", err);
     return NextResponse.json(

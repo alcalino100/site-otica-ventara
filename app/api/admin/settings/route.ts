@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createAdminClient } from "@/lib/supabase/admin";
+import { isSupabaseConfigured } from "@/lib/supabase/server";
 import {
   SiteIdentitySettings,
   SiteAppearanceSettings,
@@ -26,77 +27,77 @@ import {
   DEFAULT_ARMACOES_PAGE_SETTINGS,
 } from "@/lib/site-settings-constants";
 
+let inMemorySettings: Record<string, any> = {};
+
 export async function GET() {
   try {
-    const adminSupabase = createAdminClient();
-    const { data, error } = await adminSupabase
-      .from("site_settings")
-      .select("key, value")
-      .in("key", [
-        "identity",
-        "appearance",
-        "shipping",
-        "lab_showcase",
-        "showcase_media",
-        "homologated_brands",
-        "promotional_showcase",
-        "lenses_section",
-        "hero_banner",
-        "interactive_showcase",
-        "company_settings",
-        "live_broadcast",
-        "payment_methods",
-        "armacoes_page_settings",
-      ]);
-
-    if (error) {
-      console.warn("Aviso ao buscar configurações:", error.message);
-      return NextResponse.json({
-        identity: DEFAULT_IDENTITY,
-        appearance: DEFAULT_APPEARANCE,
-        lab_showcase: DEFAULT_LAB_SHOWCASE,
-        showcase_media: DEFAULT_SHOWCASE_MEDIA,
-        homologated_brands: DEFAULT_HOMOLOGATED_BRANDS,
-        promotional_showcase: DEFAULT_PROMOTIONAL_SHOWCASE,
-        lenses_section: DEFAULT_LENSES_SECTION_SETTINGS,
-        hero_banner: DEFAULT_HERO_BANNER,
-        company_settings: null,
-      });
+    let data: any[] | null = null;
+    if (isSupabaseConfigured()) {
+      const adminSupabase = createAdminClient();
+      const res = await adminSupabase
+        .from("site_settings")
+        .select("key, value")
+        .in("key", [
+          "identity",
+          "appearance",
+          "shipping",
+          "lab_showcase",
+          "showcase_media",
+          "homologated_brands",
+          "promotional_showcase",
+          "lenses_section",
+          "hero_banner",
+          "interactive_showcase",
+          "company_settings",
+          "live_broadcast",
+          "payment_methods",
+          "armacoes_page_settings",
+        ]);
+      data = res.data;
     }
 
-    const identityRow = data?.find((s) => s.key === "identity");
-    const appearanceRow = data?.find((s) => s.key === "appearance");
-    const shippingRow = data?.find((s) => s.key === "shipping");
-    const labRow = data?.find((s) => s.key === "lab_showcase");
-    const showcaseRow = data?.find((s) => s.key === "showcase_media");
-    const brandsRow = data?.find((s) => s.key === "homologated_brands");
-    const promoRow = data?.find((s) => s.key === "promotional_showcase");
-    const lensesSectionRow = data?.find((s) => s.key === "lenses_section");
-    const heroBannerRow = data?.find((s) => s.key === "hero_banner");
-    const interactiveShowcaseRow = data?.find((s) => s.key === "interactive_showcase");
-    const companySettingsRow = data?.find((s) => s.key === "company_settings");
-    const liveBroadcastRow = data?.find((s) => s.key === "live_broadcast");
-    const paymentMethodsRow = data?.find((s) => s.key === "payment_methods");
-    const armacoesSettingsRow = data?.find((s) => s.key === "armacoes_page_settings");
+    const getVal = (key: string) => data?.find((s) => s.key === key)?.value ?? inMemorySettings[key];
 
-    return NextResponse.json({
-      identity: identityRow?.value ? { ...DEFAULT_IDENTITY, ...(identityRow.value as SiteIdentitySettings) } : DEFAULT_IDENTITY,
-      appearance: appearanceRow?.value ? { ...DEFAULT_APPEARANCE, ...(appearanceRow.value as SiteAppearanceSettings) } : DEFAULT_APPEARANCE,
-      shipping: shippingRow?.value || null,
-      lab_showcase: labRow?.value ? { ...DEFAULT_LAB_SHOWCASE, ...(labRow.value as LabShowcaseSettings) } : DEFAULT_LAB_SHOWCASE,
-      showcase_media: showcaseRow?.value ? { ...DEFAULT_SHOWCASE_MEDIA, ...(showcaseRow.value as ShowcaseMediaSettings) } : DEFAULT_SHOWCASE_MEDIA,
-      homologated_brands: brandsRow?.value ? (brandsRow.value as HomologatedBrand[]) : DEFAULT_HOMOLOGATED_BRANDS,
-      promotional_showcase: promoRow?.value ? { ...DEFAULT_PROMOTIONAL_SHOWCASE, ...(promoRow.value as PromotionalShowcaseSettings) } : DEFAULT_PROMOTIONAL_SHOWCASE,
-      lenses_section: lensesSectionRow?.value ? { ...DEFAULT_LENSES_SECTION_SETTINGS, ...(lensesSectionRow.value as LensesSectionSettings) } : DEFAULT_LENSES_SECTION_SETTINGS,
-      hero_banner: heroBannerRow?.value ? { ...DEFAULT_HERO_BANNER, ...(heroBannerRow.value as HeroBannerSettings) } : DEFAULT_HERO_BANNER,
-      interactive_showcase: interactiveShowcaseRow?.value || null,
-      company_settings: companySettingsRow?.value || null,
-      live_broadcast: liveBroadcastRow?.value ? { ...DEFAULT_LIVE_BROADCAST, ...(liveBroadcastRow.value as LiveBroadcastSettings) } : DEFAULT_LIVE_BROADCAST,
-      payment_methods: paymentMethodsRow?.value ? { ...DEFAULT_FOOTER_PAYMENT_SETTINGS, ...paymentMethodsRow.value } : DEFAULT_FOOTER_PAYMENT_SETTINGS,
-      armacoes_page_settings: armacoesSettingsRow?.value
-        ? { ...DEFAULT_ARMACOES_PAGE_SETTINGS, ...(armacoesSettingsRow.value as ArmacoesPageSettings) }
-        : DEFAULT_ARMACOES_PAGE_SETTINGS,
-    });
+    const identityVal = getVal("identity");
+    const appearanceVal = getVal("appearance");
+    const shippingVal = getVal("shipping");
+    const labVal = getVal("lab_showcase");
+    const showcaseVal = getVal("showcase_media");
+    const brandsVal = getVal("homologated_brands");
+    const promoVal = getVal("promotional_showcase");
+    const lensesSectionVal = getVal("lenses_section");
+    const heroBannerVal = getVal("hero_banner");
+    const interactiveShowcaseVal = getVal("interactive_showcase");
+    const companySettingsVal = getVal("company_settings");
+    const liveBroadcastVal = getVal("live_broadcast");
+    const paymentMethodsVal = getVal("payment_methods");
+    const armacoesSettingsVal = getVal("armacoes_page_settings");
+
+    return NextResponse.json(
+      {
+        identity: identityVal ? { ...DEFAULT_IDENTITY, ...(identityVal as SiteIdentitySettings) } : DEFAULT_IDENTITY,
+        appearance: appearanceVal ? { ...DEFAULT_APPEARANCE, ...(appearanceVal as SiteAppearanceSettings) } : DEFAULT_APPEARANCE,
+        shipping: shippingVal || null,
+        lab_showcase: labVal ? { ...DEFAULT_LAB_SHOWCASE, ...(labVal as LabShowcaseSettings) } : DEFAULT_LAB_SHOWCASE,
+        showcase_media: showcaseVal ? { ...DEFAULT_SHOWCASE_MEDIA, ...(showcaseVal as ShowcaseMediaSettings) } : DEFAULT_SHOWCASE_MEDIA,
+        homologated_brands: brandsVal ? (brandsVal as HomologatedBrand[]) : DEFAULT_HOMOLOGATED_BRANDS,
+        promotional_showcase: promoVal ? { ...DEFAULT_PROMOTIONAL_SHOWCASE, ...(promoVal as PromotionalShowcaseSettings) } : DEFAULT_PROMOTIONAL_SHOWCASE,
+        lenses_section: lensesSectionVal ? { ...DEFAULT_LENSES_SECTION_SETTINGS, ...(lensesSectionVal as LensesSectionSettings) } : DEFAULT_LENSES_SECTION_SETTINGS,
+        hero_banner: heroBannerVal ? { ...DEFAULT_HERO_BANNER, ...(heroBannerVal as HeroBannerSettings) } : DEFAULT_HERO_BANNER,
+        interactive_showcase: interactiveShowcaseVal || null,
+        company_settings: companySettingsVal || null,
+        live_broadcast: liveBroadcastVal ? { ...DEFAULT_LIVE_BROADCAST, ...(liveBroadcastVal as LiveBroadcastSettings) } : DEFAULT_LIVE_BROADCAST,
+        payment_methods: paymentMethodsVal ? { ...DEFAULT_FOOTER_PAYMENT_SETTINGS, ...paymentMethodsVal } : DEFAULT_FOOTER_PAYMENT_SETTINGS,
+        armacoes_page_settings: armacoesSettingsVal
+          ? { ...DEFAULT_ARMACOES_PAGE_SETTINGS, ...(armacoesSettingsVal as ArmacoesPageSettings) }
+          : DEFAULT_ARMACOES_PAGE_SETTINGS,
+      },
+      {
+        headers: {
+          "Cache-Control": "no-store, no-cache, must-revalidate, proxy-revalidate",
+        },
+      }
+    );
   } catch (err: any) {
     console.error("Erro interno ao buscar configurações:", err);
     return NextResponse.json({
@@ -104,13 +105,13 @@ export async function GET() {
       appearance: DEFAULT_APPEARANCE,
       lab_showcase: DEFAULT_LAB_SHOWCASE,
       showcase_media: DEFAULT_SHOWCASE_MEDIA,
-      homologated_brands: DEFAULT_HOMOLOGATED_BRANDS,
+      homologated_brands: inMemorySettings["homologated_brands"] || DEFAULT_HOMOLOGATED_BRANDS,
       promotional_showcase: DEFAULT_PROMOTIONAL_SHOWCASE,
-      lenses_section: DEFAULT_LENSES_SECTION_SETTINGS,
+      lenses_section: inMemorySettings["lenses_section"] || DEFAULT_LENSES_SECTION_SETTINGS,
       hero_banner: DEFAULT_HERO_BANNER,
       live_broadcast: DEFAULT_LIVE_BROADCAST,
       payment_methods: DEFAULT_FOOTER_PAYMENT_SETTINGS,
-      armacoes_page_settings: DEFAULT_ARMACOES_PAGE_SETTINGS,
+      armacoes_page_settings: inMemorySettings["armacoes_page_settings"] || DEFAULT_ARMACOES_PAGE_SETTINGS,
     });
   }
 }
@@ -122,6 +123,12 @@ export async function POST(req: NextRequest) {
     const now = new Date().toISOString();
 
     async function saveSetting(key: string, description: string, value: any) {
+      inMemorySettings[key] = value;
+
+      if (!isSupabaseConfigured()) {
+        return;
+      }
+
       const { data: existing } = await adminSupabase
         .from("site_settings")
         .select("id")
@@ -207,10 +214,17 @@ export async function POST(req: NextRequest) {
       await saveSetting("armacoes_page_settings", "Hero Fotográfico e Textos da Página de Armações (/armacoes)", body.armacoes_page_settings);
     }
 
-    return NextResponse.json({
-      success: true,
-      message: "Configurações salvas e aplicadas com sucesso no site.",
-    });
+    return NextResponse.json(
+      {
+        success: true,
+        message: "Configurações salvas e aplicadas com sucesso no site.",
+      },
+      {
+        headers: {
+          "Cache-Control": "no-store, no-cache, must-revalidate, proxy-revalidate",
+        },
+      }
+    );
   } catch (err: any) {
     console.error("Erro ao salvar configurações:", err);
     return NextResponse.json(

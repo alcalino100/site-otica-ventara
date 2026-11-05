@@ -21,7 +21,7 @@ export async function getStoredLensesCatalog(): Promise<AdminLensItem[]> {
         .eq("key", "lenses_catalog")
         .maybeSingle();
 
-      if (!error && data?.value && Array.isArray(data.value) && data.value.length > 0) {
+      if (!error && data?.value && Array.isArray(data.value)) {
         return data.value as AdminLensItem[];
       }
     } catch (err) {
