@@ -13,6 +13,7 @@ import {
   HeroCarouselSettings,
   InteractiveShowcaseSettings,
   LiveBroadcastSettings,
+  ArmacoesPageSettings,
 } from "@/types/ecommerce";
 
 export const DEFAULT_IDENTITY: SiteIdentitySettings = {
@@ -621,6 +622,19 @@ export const DEFAULT_LIVE_BROADCAST: LiveBroadcastSettings = {
   live_url: "https://www.instagram.com/oticaventara/",
   label: "LIVE",
   call_to_action: "Clique para assistir",
+};
+
+export const DEFAULT_ARMACOES_PAGE_SETTINGS: ArmacoesPageSettings = {
+  hero_bg_image: "/images/catalog-hero.jpg",
+  hero_badge_tag: "Coleção Ventara Eyewear",
+  hero_title: "Catálogo de",
+  hero_title_highlight: "Armações & Óculos",
+  hero_description:
+    "Armações desenvolvidas para alta precisão dióptrica, conforto contínuo e leveza. Escolha seu modelo e personalize com as lentes digitais OPTiSYNC HD do nosso laboratório.",
+  hero_overlay_opacity: 75,
+  badge_1_text: "10x Sem Juros",
+  badge_2_text: "Laboratório Próprio",
+  badge_3_text: "Envio Seguro",
 };
 
 export {

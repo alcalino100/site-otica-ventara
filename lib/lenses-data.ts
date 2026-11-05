@@ -16,7 +16,15 @@ export interface AdminLensItem {
   features: string[];
   isActive?: boolean;
   colorHex?: string;
+  colorName?: string;
   lensColorId?: string;
+  discImage?: string;
+  heroImage?: string;
+  categoryTag?: string;
+  bestFor?: string;
+  gradientFrom?: string;
+  gradientVia?: string;
+  gradientTo?: string;
 }
 
 export interface ColoredLensPreset {
@@ -582,7 +590,15 @@ export const DEFAULT_LENSES: AdminLensItem[] = [
     installment: "10x de R$ 13,99 sem juros",
     leadTime: "Pronto em até 1 hora",
     colorHex: "#475569",
+    colorName: "Cinza Fumê",
     lensColorId: "cinza",
+    discImage: "/images/lenses/solar/organic-cinza-fume.png",
+    heroImage: "/images/lenses/solar/hero-lens-cinza-fume.png",
+    categoryTag: "NEUTRALIDADE ABSOLUTA • SOL INTENSO",
+    bestFor: "Uso diário ao ar livre, praia e sol intenso",
+    gradientFrom: "#64748b",
+    gradientVia: "#475569",
+    gradientTo: "#1e293b",
     description:
       "A cor mais neutra e recomendada mundialmente por oftalmologistas. Reduz a intensidade luminosa mantendo as cores 100% fiéis à realidade.",
     features: [
@@ -607,7 +623,15 @@ export const DEFAULT_LENSES: AdminLensItem[] = [
     installment: "10x de R$ 14,99 sem juros",
     leadTime: "Pronto em até 1 hora",
     colorHex: "#78350f",
+    colorName: "Marrom",
     lensColorId: "marrom",
+    discImage: "/images/lenses/solar/organic-marrom.png",
+    heroImage: "/images/lenses/solar/hero-lens-marrom.png",
+    categoryTag: "PROFUNDIDADE • ALTO CONTRASTE DIURNO",
+    bestFor: "Direção diurna, viagens e esportes ao ar livre",
+    gradientFrom: "#92400e",
+    gradientVia: "#78350f",
+    gradientTo: "#451a03",
     description:
       "Aumenta a percepção de profundidade e o contraste entre as cores verde e vermelha. Recomendada para motoristas em dias ensolarados.",
     features: [
@@ -630,7 +654,15 @@ export const DEFAULT_LENSES: AdminLensItem[] = [
     installment: "10x de R$ 13,99 sem juros",
     leadTime: "Pronto em até 1 hora",
     colorHex: "#15803d",
+    colorName: "Verde",
     lensColorId: "verde",
+    discImage: "/images/lenses/solar/organic-verde.png",
+    heroImage: "/images/lenses/solar/hero-lens-verde.png",
+    categoryTag: "FÓRMULA G-15 • CONFORTO LENDÁRIO",
+    bestFor: "Pilotos, passeios, praia e elegância atemporal",
+    gradientFrom: "#16a34a",
+    gradientVia: "#15803d",
+    gradientTo: "#14532d",
     description:
       "A consagrada tonalidade militar G-15 que transmite 15% da luz visível, bloqueando o brilho prejudicial e acalmando a retina instantaneamente.",
     features: [
@@ -653,7 +685,15 @@ export const DEFAULT_LENSES: AdminLensItem[] = [
     installment: "10x de R$ 13,99 sem juros",
     leadTime: "Pronto em até 1 hora",
     colorHex: "#eab308",
+    colorName: "Amarelo",
     lensColorId: "amarelo",
+    discImage: "/images/lenses/solar/organic-amarelo.png",
+    heroImage: "/images/lenses/solar/hero-lens-amarelo.png",
+    categoryTag: "SEGURANÇA NOTURNA • ANTI-OFUSCAMENTO LED",
+    bestFor: "Motoristas de estrada, chuva, neblina e estilo",
+    gradientFrom: "#fde047",
+    gradientVia: "#eab308",
+    gradientTo: "#a16207",
     description:
       "Lente amarela fototécnica que neutraliza o brilho cegante dos faróis de LED brancos e postes modernos, ampliando a nitidez na chuva e neblina.",
     features: [
@@ -676,7 +716,15 @@ export const DEFAULT_LENSES: AdminLensItem[] = [
     installment: "10x de R$ 15,99 sem juros",
     leadTime: "Pronto em até 1 hora",
     colorHex: "#0284c7",
+    colorName: "Azul Espelhado",
     lensColorId: "azul",
+    discImage: "/images/lenses/solar/organic-azul-espelhado.png",
+    heroImage: "/images/lenses/solar/hero-lens-azul-espelhado.png",
+    categoryTag: "ESTILO ESPORTIVO • REFLEXOS AQUÁTICOS",
+    bestFor: "Esportes náuticos, praia, piscina e dias claros",
+    gradientFrom: "#38bdf8",
+    gradientVia: "#0284c7",
+    gradientTo: "#0369a1",
     description:
       "Tonalidade azul safira com corte de luz branca e reflexos em superfícies molhadas. Estilo vibrante e conforto para o dia a dia.",
     features: [
@@ -699,7 +747,15 @@ export const DEFAULT_LENSES: AdminLensItem[] = [
     installment: "10x de R$ 15,99 sem juros",
     leadTime: "Pronto em até 1 hora",
     colorHex: "#ea580c",
+    colorName: "Vermelho Espelhado",
     lensColorId: "vermelho",
+    discImage: "/images/lenses/solar/organic-vermelho-espelhado.png",
+    heroImage: "/images/lenses/solar/hero-lens-vermelho-espelhado.png",
+    categoryTag: "CONTRASTE AGUDO • VELOCIDADE & TRILHA",
+    bestFor: "Ciclismo, corrida, kart, trilha e dias ensolarados",
+    gradientFrom: "#f97316",
+    gradientVia: "#ea580c",
+    gradientTo: "#c2410c",
     description:
       "Filtra o espectro luminoso para oferecer um contraste agudo de terrenos, copas de árvores e pistas de asfalto em velocidade.",
     features: [
@@ -724,7 +780,15 @@ export const DEFAULT_LENSES: AdminLensItem[] = [
     installment: "10x de R$ 14,99 sem juros",
     leadTime: "Pronto em até 1 hora",
     colorHex: "#64748b",
+    colorName: "Degradê",
     lensColorId: "degrade",
+    discImage: "/images/lenses/solar/organic-degrade.png",
+    heroImage: "/images/lenses/solar/hero-lens-degrade.png",
+    categoryTag: "TRANSIÇÃO GRADIENTE • CONFORTO TOTAL",
+    bestFor: "Uso diário cosmético, leitura ao ar livre e eventos",
+    gradientFrom: "#475569",
+    gradientVia: "#64748b",
+    gradientTo: "#d97706",
     description:
       "Transição suave de cinza escuro no topo para âmbar translúcido embaixo. Protege contra o sol superior e facilita a visão de perto e painéis.",
     features: [
@@ -749,7 +813,15 @@ export const DEFAULT_LENSES: AdminLensItem[] = [
     installment: "10x de R$ 14,99 sem juros",
     leadTime: "Pronto em até 1 hora",
     colorHex: "#be185d",
+    colorName: "Rosa",
     lensColorId: "rosa",
+    discImage: "/images/lenses/solar/organic-rosa.png",
+    heroImage: "/images/lenses/solar/hero-lens-degrade.png",
+    categoryTag: "CONFORTO VISUAL • ESTILO E LEVEZA",
+    bestFor: "Finais de tarde, eventos ao ar livre e uso cosmético premium",
+    gradientFrom: "#f472b6",
+    gradientVia: "#db2777",
+    gradientTo: "#831843",
     description:
       "Tonalidade rosada cosmética que acalma a musculatura ciliar e equilibra a iluminação artificial fluorescente e telas digitais.",
     features: [
@@ -772,7 +844,15 @@ export const DEFAULT_LENSES: AdminLensItem[] = [
     installment: "10x de R$ 15,99 sem juros",
     leadTime: "Pronto em até 1 hora",
     colorHex: "#581c87",
+    colorName: "Roxo",
     lensColorId: "roxo",
+    discImage: "/images/lenses/solar/organic-roxo.png",
+    heroImage: "/images/lenses/solar/hero-lens-degrade.png",
+    categoryTag: "ELEGÂNCIA NOBRE • CONTRASTE SELETIVO",
+    bestFor: "Eventos sociais, passeios urbanos e dias ensolarados",
+    gradientFrom: "#7e22ce",
+    gradientVia: "#581c87",
+    gradientTo: "#2e1065",
     description:
       "Equilíbrio óptico entre comprimentos de onda azuis e vermelhos. Destaca elementos naturais e confere presença única à armação.",
     features: [
@@ -784,3 +864,35 @@ export const DEFAULT_LENSES: AdminLensItem[] = [
     isActive: true,
   },
 ];
+
+/**
+ * Converte um item de lente do admin em um preset de lente colorida
+ */
+export function adminLensToColoredPreset(lens: AdminLensItem): ColoredLensPreset {
+  return {
+    id: lens.id,
+    name: lens.name,
+    colorName: lens.colorName || lens.name.replace(/^(Lente|Lentes)\s*/i, "").split(" ")[0] || "Colorida",
+    colorHex: lens.colorHex || "#475569",
+    discImage: lens.discImage || lens.boxImage || "/images/lenses/solar/organic-cinza-fume.png",
+    heroImage: lens.heroImage || "/images/lenses/solar/hero-lens-cinza-fume.png",
+    badge: lens.badge || "Ventara Solar",
+    categoryTag: lens.categoryTag || "SOLAR & ESTÉTICA • PROTEÇÃO UV400",
+    description: lens.description,
+    benefits:
+      lens.features && lens.features.length > 0
+        ? lens.features
+        : [
+            "Proteção UV400 completa UVA/UVB",
+            "Filtro antirreflexo traseiro de alta nitidez",
+            "Montagem expressa no laboratório digital próprio",
+          ],
+    bestFor: lens.bestFor || "Uso diário ao ar livre, praia e sol intenso",
+    priceFormatted: lens.startingPrice,
+    installmentFormatted: lens.installment,
+    leadTime: lens.leadTime,
+    gradientFrom: lens.gradientFrom || lens.colorHex || "#475569",
+    gradientVia: lens.gradientVia || lens.colorHex || "#475569",
+    gradientTo: lens.gradientTo || "#0f172a",
+  };
+}

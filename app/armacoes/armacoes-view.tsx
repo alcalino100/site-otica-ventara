@@ -18,7 +18,8 @@ import {
   Layers,
   Award,
 } from "lucide-react";
-import { Product } from "@/types/ecommerce";
+import { Product, ArmacoesPageSettings } from "@/types/ecommerce";
+import { DEFAULT_ARMACOES_PAGE_SETTINGS } from "@/lib/site-settings-constants";
 import { ArmacaoCard } from "@/components/armacoes/armacao-card";
 import { ArmacaoFilters } from "@/components/armacoes/armacao-filters";
 import { Header } from "@/components/layout/header";
@@ -29,6 +30,7 @@ import { Toast } from "@/components/ui/toast";
 
 interface ArmacoesViewProps {
   initialProducts: Product[];
+  heroSettings?: ArmacoesPageSettings;
 }
 
 export type CategoryFilterKey =
@@ -39,7 +41,10 @@ export type CategoryFilterKey =
   | "infantil"
   | "destaques";
 
-export function ArmacoesView({ initialProducts }: ArmacoesViewProps) {
+export function ArmacoesView({
+  initialProducts,
+  heroSettings = DEFAULT_ARMACOES_PAGE_SETTINGS,
+}: ArmacoesViewProps) {
   const router = useRouter();
   const searchParams = useSearchParams();
 
@@ -291,62 +296,94 @@ export function ArmacoesView({ initialProducts }: ArmacoesViewProps) {
     (searchQuery.trim() !== "" ? 1 : 0);
 
   return (
-    <div className="min-h-screen flex flex-col bg-[#040914] text-white selection:bg-amber-400 selection:text-slate-950 font-sans">
+    <div className="min-h-screen flex flex-col bg-[#fafafa] text-slate-900 selection:bg-amber-400 selection:text-slate-950 font-sans">
       <Header
         cartCount={cartItems.length}
         onOpenCart={() => setIsCartOpen(true)}
-        theme="dark"
+        theme="light"
       />
 
-      <main className="flex-1 pt-24 pb-20">
-        {/* HERO SECTION DE LUXO */}
-        <section className="px-4 sm:px-6 lg:px-8 pt-10 pb-12 border-b border-white/10 relative overflow-hidden bg-gradient-to-b from-[#06111f] via-[#040a14] to-[#040914]">
-          <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[800px] h-[350px] bg-amber-400/10 blur-[130px] pointer-events-none rounded-full" />
+      <main className="flex-1 pt-20 sm:pt-24 pb-20">
+        {/* HERO SECTION CINEMATOGRÁFICO COM FOTO DE FUNDO E DEGRADÊ */}
+        <section className="relative overflow-hidden bg-[#02070D] min-h-[380px] sm:min-h-[430px] flex items-center justify-between select-none border-b border-slate-200">
+          {/* 1. Foto de Fundo Full-Bleed */}
+          <div className="absolute inset-0 z-0 overflow-hidden pointer-events-none">
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img
+              src={heroSettings.hero_bg_image || "/images/catalog-hero.jpg"}
+              alt={heroSettings.hero_title || "Armações Ventara Eyewear"}
+              className="w-full h-full object-cover object-center transition-all duration-700"
+            />
 
-          <div className="max-w-[1400px] mx-auto space-y-4 relative z-10">
+            {/* Overlay Gradiente Cinematográfico Ventara com opacidade configurável */}
+            <div
+              className="absolute inset-0 pointer-events-none z-1"
+              style={{
+                background:
+                  "linear-gradient(to right, rgba(2, 7, 13, 0.94) 0%, rgba(2, 7, 13, 0.78) 50%, rgba(2, 7, 13, 0.40) 100%)",
+                opacity: (heroSettings.hero_overlay_opacity ?? 75) / 100,
+              }}
+            />
+
+            {/* Glows Estúdio Apple-Style */}
+            <div className="absolute top-1/4 right-[10%] w-[480px] h-[480px] rounded-full bg-amber-400/[0.06] blur-[140px] pointer-events-none" />
+            <div className="absolute top-8 left-1/4 w-[420px] h-[320px] rounded-full bg-sky-500/[0.04] blur-[120px] pointer-events-none" />
+          </div>
+
+          <div className="max-w-[1400px] mx-auto px-4 sm:px-6 lg:px-8 py-14 sm:py-16 relative z-10 w-full space-y-5">
             {/* Breadcrumb Editorial */}
-            <div className="flex items-center gap-2 text-[11px] text-slate-400 font-medium">
+            <div className="flex items-center gap-2 text-[11px] text-slate-300 font-medium">
               <Link href="/" className="hover:text-amber-400 transition-colors">
                 Início
               </Link>
-              <span>/</span>
+              <span className="text-slate-500">/</span>
               <span className="text-amber-400 font-semibold">Catálogo de Armações</span>
             </div>
 
-            <div className="flex flex-col lg:flex-row lg:items-end justify-between gap-6">
-              <div className="max-w-3xl space-y-3">
+            <div className="flex flex-col lg:flex-row lg:items-end justify-between gap-8">
+              <div className="max-w-2xl space-y-3">
                 <span className="text-xs font-bold text-amber-400 uppercase tracking-widest flex items-center gap-1.5">
-                  <Sparkles size={14} /> COLEÇÃO VENTARA EYEWEAR
+                  <Sparkles size={14} /> {heroSettings.hero_badge_tag || "COLEÇÃO VENTARA EYEWEAR"}
                 </span>
                 <h1 className="text-3xl sm:text-5xl font-light text-white tracking-tight leading-tight">
-                  Catálogo de <span className="font-semibold text-white">Armações &amp; Óculos</span>
+                  {heroSettings.hero_title || "Catálogo de"}{" "}
+                  <span className="font-semibold text-white">
+                    {heroSettings.hero_title_highlight || "Armações & Óculos"}
+                  </span>
                 </h1>
-                <p className="text-xs sm:text-sm text-slate-300 leading-relaxed max-w-2xl">
-                  Armações desenvolvidas para alta precisão dióptrica, conforto contínuo e leveza. Escolha seu modelo e personalize com as lentes digitais OPTiSYNC HD do nosso laboratório.
+                <p className="text-xs sm:text-sm text-slate-200 leading-relaxed max-w-2xl">
+                  {heroSettings.hero_description ||
+                    "Armações desenvolvidas para alta precisão dióptrica, conforto contínuo e leveza. Escolha seu modelo e personalize com as lentes digitais OPTiSYNC HD do nosso laboratório."}
                 </p>
               </div>
 
-              {/* Badges de Vantagens E-commerce */}
+              {/* Badges de Confiança */}
               <div className="grid grid-cols-2 sm:grid-cols-3 gap-2.5 shrink-0 text-xs">
-                <div className="p-3 rounded-2xl bg-white/[0.03] border border-white/10 flex items-center gap-2">
+                <div className="p-3.5 rounded-2xl bg-white/[0.08] backdrop-blur-md border border-white/15 flex items-center gap-2.5 shadow-lg">
                   <CheckCircle2 size={16} className="text-amber-400 shrink-0" />
-                  <span className="text-slate-300 font-medium">10x Sem Juros</span>
+                  <span className="text-white font-medium">
+                    {heroSettings.badge_1_text || "10x Sem Juros"}
+                  </span>
                 </div>
-                <div className="p-3 rounded-2xl bg-white/[0.03] border border-white/10 flex items-center gap-2">
+                <div className="p-3.5 rounded-2xl bg-white/[0.08] backdrop-blur-md border border-white/15 flex items-center gap-2.5 shadow-lg">
                   <ShieldCheck size={16} className="text-emerald-400 shrink-0" />
-                  <span className="text-slate-300 font-medium">Laboratório Próprio</span>
+                  <span className="text-white font-medium">
+                    {heroSettings.badge_2_text || "Laboratório Próprio"}
+                  </span>
                 </div>
-                <div className="col-span-2 sm:col-span-1 p-3 rounded-2xl bg-white/[0.03] border border-white/10 flex items-center gap-2">
+                <div className="col-span-2 sm:col-span-1 p-3.5 rounded-2xl bg-white/[0.08] backdrop-blur-md border border-white/15 flex items-center gap-2.5 shadow-lg">
                   <Award size={16} className="text-amber-400 shrink-0" />
-                  <span className="text-slate-300 font-medium">Envio Seguro</span>
+                  <span className="text-white font-medium">
+                    {heroSettings.badge_3_text || "Envio Seguro"}
+                  </span>
                 </div>
               </div>
             </div>
           </div>
         </section>
 
-        {/* BARRA DE CATEGORIAS E-COMMERCE (PILL TABS) */}
-        <section className="px-4 sm:px-6 lg:px-8 py-5 border-b border-white/10 sticky top-16 z-30 bg-[#040914]/95 backdrop-blur-md">
+        {/* BARRA DE CATEGORIAS E-COMMERCE (PILL TABS) - TEMA BRANCO */}
+        <section className="px-4 sm:px-6 lg:px-8 py-4 border-b border-slate-200 sticky top-16 z-30 bg-white/95 backdrop-blur-md shadow-xs">
           <div className="max-w-[1400px] mx-auto flex items-center gap-2 overflow-x-auto pb-1 no-scrollbar">
             {[
               { id: "all", label: "Todas as Armações", count: categoryCounts.all, icon: Layers },
@@ -366,17 +403,17 @@ export function ArmacoesView({ initialProducts }: ArmacoesViewProps) {
                   onClick={() => setActiveCategory(cat.id as CategoryFilterKey)}
                   className={`inline-flex items-center gap-2 px-4 py-2.5 rounded-full text-xs font-semibold whitespace-nowrap transition-all duration-200 cursor-pointer ${
                     isActive
-                      ? "bg-amber-400 text-slate-950 font-bold shadow-lg shadow-amber-400/20 scale-102"
-                      : "bg-[#06111f] text-slate-300 hover:text-white hover:bg-white/10 border border-white/10"
+                      ? "bg-slate-900 text-white font-bold shadow-xs scale-102"
+                      : "bg-white text-slate-700 hover:text-slate-900 hover:bg-slate-50 border border-slate-200"
                   }`}
                 >
-                  <Icon size={14} className={isActive ? "text-slate-950" : "text-amber-400"} />
+                  <Icon size={14} className={isActive ? "text-amber-400" : "text-amber-500"} />
                   <span>{cat.label}</span>
                   <span
                     className={`text-[10px] px-2 py-0.2 rounded-full font-mono ${
                       isActive
-                        ? "bg-slate-950/20 text-slate-950"
-                        : "bg-white/10 text-slate-400"
+                        ? "bg-white/20 text-white"
+                        : "bg-slate-100 text-slate-600"
                     }`}
                   >
                     {cat.count}
@@ -390,25 +427,25 @@ export function ArmacoesView({ initialProducts }: ArmacoesViewProps) {
         {/* CONTAINER DO CATÁLOGO: LAYOUT PRINCIPAL COM SIDEBAR + GRID */}
         <section className="px-4 sm:px-6 lg:px-8 py-8 max-w-[1400px] mx-auto space-y-6">
           {/* BARRA SUPERIOR DE CONTROLE: BUSCA + ORDENAÇÃO + BOTÃO FILTROS */}
-          <div className="bg-[#06111f] border border-white/10 rounded-2xl p-4 sm:p-5 flex flex-col md:flex-row gap-4 items-stretch md:items-center justify-between">
+          <div className="bg-white border border-slate-200/90 rounded-2xl p-4 sm:p-5 flex flex-col md:flex-row gap-4 items-stretch md:items-center justify-between shadow-xs">
             {/* Campo de Busca Rápida */}
             <div className="relative flex-1">
               <Search
                 size={17}
-                className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-500"
+                className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400"
               />
               <input
                 type="text"
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 placeholder="Buscar por modelo, cor ou formato (ex: Safari, Gatinho, Onça)..."
-                className="w-full bg-[#040a14] border border-white/10 rounded-xl pl-11 pr-9 py-2.5 text-xs sm:text-sm text-white placeholder-slate-500 focus:outline-none focus:border-amber-400 transition-colors"
+                className="w-full bg-[#f8fafc] border border-slate-200 rounded-xl pl-11 pr-9 py-2.5 text-xs sm:text-sm text-slate-900 placeholder-slate-400 focus:outline-none focus:border-amber-500 focus:bg-white transition-colors"
               />
               {searchQuery && (
                 <button
                   type="button"
                   onClick={() => setSearchQuery("")}
-                  className="absolute right-3.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-white cursor-pointer"
+                  className="absolute right-3.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-700 cursor-pointer"
                 >
                   <X size={15} />
                 </button>
@@ -423,11 +460,11 @@ export function ArmacoesView({ initialProducts }: ArmacoesViewProps) {
                 onClick={() => setIsFilterDrawerOpen(!isFilterDrawerOpen)}
                 className={`inline-flex items-center gap-2 px-4 py-2.5 rounded-xl border text-xs font-semibold transition-all cursor-pointer ${
                   activeFiltersCount > 0 || isFilterDrawerOpen
-                    ? "bg-amber-400/20 border-amber-400/40 text-amber-300"
-                    : "bg-[#040a14] border-white/10 text-white hover:bg-white/5"
+                    ? "bg-amber-50 border-amber-400 text-amber-950 font-bold"
+                    : "bg-[#f8fafc] border-slate-200 text-slate-700 hover:bg-slate-100"
                 }`}
               >
-                <SlidersHorizontal size={14} className="text-amber-400" />
+                <SlidersHorizontal size={14} className="text-amber-500" />
                 <span>Filtros</span>
                 {activeFiltersCount > 0 && (
                   <span className="w-5 h-5 rounded-full bg-amber-400 text-slate-950 font-bold text-[10px] flex items-center justify-center">
@@ -438,11 +475,11 @@ export function ArmacoesView({ initialProducts }: ArmacoesViewProps) {
 
               {/* Dropdown de Ordenação */}
               <div className="flex items-center gap-2">
-                <span className="text-xs text-slate-400 hidden sm:inline">Ordenar:</span>
+                <span className="text-xs text-slate-500 hidden sm:inline">Ordenar:</span>
                 <select
                   value={sortBy}
                   onChange={(e: any) => setSortBy(e.target.value)}
-                  className="bg-[#040a14] border border-white/10 text-xs text-white rounded-xl px-3 py-2.5 focus:outline-none focus:border-amber-400 cursor-pointer"
+                  className="bg-[#f8fafc] border border-slate-200 text-xs text-slate-800 rounded-xl px-3 py-2.5 focus:outline-none focus:border-amber-500 cursor-pointer"
                 >
                   <option value="featured">Destaques Ventara</option>
                   <option value="discount">Maior Desconto (%)</option>
@@ -456,11 +493,11 @@ export function ArmacoesView({ initialProducts }: ArmacoesViewProps) {
 
           {/* PAINEL EXPANSÍVEL DE FILTROS AVANÇADOS (DROPDOWNS RÁPIDOS) */}
           {isFilterDrawerOpen && (
-            <div className="bg-[#06111f] border border-white/10 rounded-2xl p-5 sm:p-6 space-y-5 animate-in fade-in duration-200">
-              <div className="flex items-center justify-between pb-3 border-b border-white/5">
+            <div className="bg-white border border-slate-200/90 rounded-2xl p-5 sm:p-6 space-y-5 animate-in fade-in duration-200 shadow-xs">
+              <div className="flex items-center justify-between pb-3 border-b border-slate-100">
                 <div className="flex items-center gap-2">
-                  <Filter size={16} className="text-amber-400" />
-                  <h3 className="text-xs font-bold uppercase tracking-wider text-white">
+                  <Filter size={16} className="text-amber-500" />
+                  <h3 className="text-xs font-bold uppercase tracking-wider text-slate-900">
                     Filtros Avançados de Catálogo
                   </h3>
                 </div>
@@ -468,7 +505,7 @@ export function ArmacoesView({ initialProducts }: ArmacoesViewProps) {
                   <button
                     type="button"
                     onClick={resetFilters}
-                    className="text-xs text-amber-400 hover:text-amber-300 font-semibold flex items-center gap-1 cursor-pointer"
+                    className="text-xs text-amber-600 hover:text-amber-700 font-semibold flex items-center gap-1 cursor-pointer"
                   >
                     <RotateCcw size={13} />
                     <span>Limpar todos os filtros</span>
@@ -479,13 +516,13 @@ export function ArmacoesView({ initialProducts }: ArmacoesViewProps) {
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 text-xs">
                 {/* 1. Formato do Aro */}
                 <div className="space-y-1.5">
-                  <label className="text-slate-400 font-semibold uppercase text-[10px] tracking-wider block">
+                  <label className="text-slate-500 font-semibold uppercase text-[10px] tracking-wider block">
                     Formato do Aro
                   </label>
                   <select
                     value={selectedShape}
                     onChange={(e) => setSelectedShape(e.target.value)}
-                    className="w-full bg-[#040a14] border border-white/10 text-white rounded-xl px-3 py-2.5 focus:outline-none focus:border-amber-400 cursor-pointer"
+                    className="w-full bg-[#f8fafc] border border-slate-200 text-slate-800 rounded-xl px-3 py-2.5 focus:outline-none focus:border-amber-500 cursor-pointer"
                   >
                     <option value="all">Todos os Formatos</option>
                     {shapes.map((s) => (
@@ -498,13 +535,13 @@ export function ArmacoesView({ initialProducts }: ArmacoesViewProps) {
 
                 {/* 2. Material */}
                 <div className="space-y-1.5">
-                  <label className="text-slate-400 font-semibold uppercase text-[10px] tracking-wider block">
+                  <label className="text-slate-500 font-semibold uppercase text-[10px] tracking-wider block">
                     Material
                   </label>
                   <select
                     value={selectedMaterial}
                     onChange={(e) => setSelectedMaterial(e.target.value)}
-                    className="w-full bg-[#040a14] border border-white/10 text-white rounded-xl px-3 py-2.5 focus:outline-none focus:border-amber-400 cursor-pointer"
+                    className="w-full bg-[#f8fafc] border border-slate-200 text-slate-800 rounded-xl px-3 py-2.5 focus:outline-none focus:border-amber-500 cursor-pointer"
                   >
                     <option value="all">Todos os Materiais</option>
                     {materials.map((m) => (
@@ -517,13 +554,13 @@ export function ArmacoesView({ initialProducts }: ArmacoesViewProps) {
 
                 {/* 3. Cor Predominante */}
                 <div className="space-y-1.5">
-                  <label className="text-slate-400 font-semibold uppercase text-[10px] tracking-wider block">
+                  <label className="text-slate-500 font-semibold uppercase text-[10px] tracking-wider block">
                     Cor Predominante
                   </label>
                   <select
                     value={selectedColor}
                     onChange={(e) => setSelectedColor(e.target.value)}
-                    className="w-full bg-[#040a14] border border-white/10 text-white rounded-xl px-3 py-2.5 focus:outline-none focus:border-amber-400 cursor-pointer"
+                    className="w-full bg-[#f8fafc] border border-slate-200 text-slate-800 rounded-xl px-3 py-2.5 focus:outline-none focus:border-amber-500 cursor-pointer"
                   >
                     <option value="all">Todas as Cores</option>
                     {colors.map((c) => (
@@ -536,13 +573,13 @@ export function ArmacoesView({ initialProducts }: ArmacoesViewProps) {
 
                 {/* 4. Faixa de Preço */}
                 <div className="space-y-1.5">
-                  <label className="text-slate-400 font-semibold uppercase text-[10px] tracking-wider block">
+                  <label className="text-slate-500 font-semibold uppercase text-[10px] tracking-wider block">
                     Faixa de Preço
                   </label>
                   <select
                     value={selectedPriceRange}
                     onChange={(e) => setSelectedPriceRange(e.target.value)}
-                    className="w-full bg-[#040a14] border border-white/10 text-white rounded-xl px-3 py-2.5 focus:outline-none focus:border-amber-400 cursor-pointer"
+                    className="w-full bg-[#f8fafc] border border-slate-200 text-slate-800 rounded-xl px-3 py-2.5 focus:outline-none focus:border-amber-500 cursor-pointer"
                   >
                     <option value="all">Qualquer Preço</option>
                     <option value="under-350">Até R$ 350</option>
@@ -553,13 +590,13 @@ export function ArmacoesView({ initialProducts }: ArmacoesViewProps) {
               </div>
 
               {/* Estoque Checkbox */}
-              <div className="pt-2 border-t border-white/5 flex items-center justify-between">
-                <label className="flex items-center gap-2 cursor-pointer text-slate-300 hover:text-white select-none">
+              <div className="pt-3 border-t border-slate-100 flex items-center justify-between">
+                <label className="flex items-center gap-2 cursor-pointer text-slate-700 hover:text-slate-900 select-none">
                   <input
                     type="checkbox"
                     checked={onlyInStock}
                     onChange={(e) => setOnlyInStock(e.target.checked)}
-                    className="w-4 h-4 accent-amber-400 rounded cursor-pointer"
+                    className="w-4 h-4 accent-amber-500 rounded cursor-pointer"
                   />
                   <span className="text-xs">Exibir apenas modelos disponíveis em estoque imediato</span>
                 </label>
@@ -601,14 +638,14 @@ export function ArmacoesView({ initialProducts }: ArmacoesViewProps) {
             {/* COLUNA DIREITA: RESULTADOS & GRID DE ARMAÇÕES */}
             <div className="flex-1 w-full space-y-6">
               {/* STATUS DE RESULTADOS & TAGS ATIVAS */}
-              <div className="flex flex-wrap items-center justify-between gap-3 text-xs text-slate-400">
+              <div className="flex flex-wrap items-center justify-between gap-3 text-xs text-slate-500">
                 <div className="flex items-center gap-2 flex-wrap">
                   <span>
-                    Mostrando <strong className="text-white">{filteredProducts.length}</strong> de{" "}
+                    Mostrando <strong className="text-slate-900">{filteredProducts.length}</strong> de{" "}
                     {initialProducts.length} armações
                   </span>
                   {activeCategory !== "all" && (
-                    <span className="text-amber-400 font-medium">
+                    <span className="text-amber-700 font-semibold">
                       em{" "}
                       {activeCategory === "grau-feminino"
                         ? "Grau Feminino"
@@ -627,7 +664,7 @@ export function ArmacoesView({ initialProducts }: ArmacoesViewProps) {
                   <button
                     type="button"
                     onClick={resetFilters}
-                    className="text-amber-400 hover:text-amber-300 font-semibold flex items-center gap-1 cursor-pointer"
+                    className="text-amber-600 hover:text-amber-700 font-semibold flex items-center gap-1 cursor-pointer"
                   >
                     <X size={14} />
                     <span>Limpar filtros ({activeFiltersCount})</span>
@@ -637,18 +674,18 @@ export function ArmacoesView({ initialProducts }: ArmacoesViewProps) {
 
               {/* GRID RESPONSIVO (2 COLUNAS MOBILE, 3-4 COLUNAS DESKTOP) */}
               {filteredProducts.length === 0 ? (
-                <div className="text-center py-20 bg-[#06111f] rounded-3xl border border-white/10 space-y-4">
-                  <Glasses size={40} className="mx-auto text-slate-600" />
-                  <h3 className="text-base font-semibold text-white">
+                <div className="text-center py-20 bg-white rounded-3xl border border-slate-200 space-y-4 shadow-xs">
+                  <Glasses size={40} className="mx-auto text-slate-400" />
+                  <h3 className="text-base font-semibold text-slate-800">
                     Nenhuma armação encontrada com os filtros selecionados
                   </h3>
-                  <p className="text-xs text-slate-400 max-w-sm mx-auto">
+                  <p className="text-xs text-slate-500 max-w-sm mx-auto">
                     Tente desmarcar alguns filtros ou buscar por outros modelos e formatos.
                   </p>
                   <button
                     type="button"
                     onClick={resetFilters}
-                    className="px-6 py-2.5 rounded-full bg-amber-400 hover:bg-amber-300 text-slate-950 font-bold text-xs uppercase tracking-wider transition-all cursor-pointer"
+                    className="px-6 py-2.5 rounded-full bg-amber-400 hover:bg-amber-300 text-slate-950 font-bold text-xs uppercase tracking-wider transition-all cursor-pointer shadow-xs"
                   >
                     Ver Todas as Armações
                   </button>

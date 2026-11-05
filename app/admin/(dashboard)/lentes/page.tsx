@@ -67,6 +67,7 @@ export default function AdminLensesPage() {
   const [isNewLens, setIsNewLens] = useState(false);
   const [feedback, setFeedback] = useState<string | null>(null);
   const [isUploading, setIsUploading] = useState(false);
+  const [uploadingLensField, setUploadingLensField] = useState<string | null>(null);
   const [priceError, setPriceError] = useState<string | null>(null);
   const [deleteConfirm, setDeleteConfirm] = useState<{ isOpen: boolean; id: string; name: string }>({
     isOpen: false,
@@ -97,11 +98,14 @@ export default function AdminLensesPage() {
     | "coloridas"
   >("all");
 
-  const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleLensImageUpload = async (
+    field: "boxImage" | "discImage" | "heroImage",
+    e: React.ChangeEvent<HTMLInputElement>
+  ) => {
     const file = e.target.files?.[0];
     if (!file || !selectedLens) return;
 
-    setIsUploading(true);
+    setUploadingLensField(field);
     try {
       const formData = new FormData();
       formData.append("file", file);
@@ -117,14 +121,17 @@ export default function AdminLensesPage() {
       }
 
       if (data.url) {
-        setSelectedLens({ ...selectedLens, boxImage: data.url });
+        setSelectedLens({ ...selectedLens, [field]: data.url });
       }
     } catch (err: any) {
       alert(err.message || "Falha no envio da imagem.");
     } finally {
-      setIsUploading(false);
+      setUploadingLensField(null);
     }
   };
+
+  const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) =>
+    handleLensImageUpload("boxImage", e);
 
   const handleLabImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -554,31 +561,50 @@ export default function AdminLensesPage() {
   };
 
   const handleOpenNewModal = () => {
+    const isColoridas = categoryFilter === "coloridas";
     const newItem: AdminLensItem = {
       id: `lente-${Date.now()}`,
-      name: "",
+      name: isColoridas ? "Nova Lente Solar Colorida" : "",
       category:
-        categoryFilter !== "all" &&
-        categoryFilter !== "destaque-lab" &&
-        categoryFilter !== "marcas-homologadas" &&
-        categoryFilter !== "imagens-secao"
+        isColoridas
+          ? "coloridas"
+          : categoryFilter !== "all" &&
+            categoryFilter !== "destaque-lab" &&
+            categoryFilter !== "marcas-homologadas" &&
+            categoryFilter !== "imagens-secao"
           ? categoryFilter
           : "visao-simples",
-      brandName: "Novo Laboratório Homologado",
+      brandName: isColoridas ? "OPTiSYNC Solar HD" : "Novo Laboratório Homologado",
       brandLogo: "/logos/optisync.svg",
-      treatment: "Antirreflexo Multicamadas + Proteção UV400",
-      badge: "Novo Parceiro",
-      startingPrice: "R$ 149,90",
-      installment: "10x de R$ 14,99 sem juros",
+      treatment: isColoridas
+        ? "Proteção UV400 + Polarizado HD"
+        : "Antirreflexo Multicamadas + Proteção UV400",
+      badge: isColoridas ? "Solar Premium" : "Novo Parceiro",
+      startingPrice: isColoridas ? "R$ 199,90" : "R$ 149,90",
+      installment: isColoridas ? "10x de R$ 19,99 sem juros" : "10x de R$ 14,99 sem juros",
       leadTime: "Pronto em até 1 hora",
-      description: "Lente óptica de alta precisão com certificado de garantia de laboratório.",
-      features: [
-        "Antirreflexo multicamadas antirrisco",
-        "Proteção integral contra radiação UV400",
-        "Montagem de alta precisão em facetadora digital",
-      ],
+      description: isColoridas
+        ? "Lente solar polarizada de alta fidelidade cromática com 100% de absorção UV400 e nitidez aprimorada."
+        : "Lente óptica de alta precisão com certificado de garantia de laboratório.",
+      features: isColoridas
+        ? [
+            "Filtro polarizado para bloqueio de reflexos intensos",
+            "Proteção 100% UVA/UVB com camada UV400",
+            "Facetagem digital no laboratório em até 1 hora",
+          ]
+        : [
+            "Antirreflexo multicamadas antirrisco",
+            "Proteção integral contra radiação UV400",
+            "Montagem de alta precisão em facetadora digital",
+          ],
       isActive: true,
-      colorHex: "#1e40af",
+      colorHex: isColoridas ? "#166534" : "#1e40af",
+      colorName: isColoridas ? "Verde G-15 Polarizado" : undefined,
+      categoryTag: isColoridas ? "Uso Diário & Alta Claridade" : undefined,
+      bestFor: isColoridas ? "Dias ensolarados, direção e esportes ao ar livre" : undefined,
+      boxImage: "/images/lenses/optisync-colorida-box.jpg",
+      discImage: isColoridas ? "/images/lenses/solar/disc-verde.png" : undefined,
+      heroImage: isColoridas ? "/images/lenses/solar/hero-lens-verde.png" : undefined,
     };
     setSelectedLens(newItem);
     setIsNewLens(true);
@@ -2052,33 +2078,223 @@ export default function AdminLensesPage() {
               </div>
 
               {selectedLens.category === "coloridas" && (
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                  <div>
-                    <label className="block text-slate-300 mb-1 font-medium">Cor Hexadecimal</label>
-                    <div className="flex items-center gap-2">
-                      <input
-                        type="color"
-                        value={selectedLens.colorHex || "#1e40af"}
-                        onChange={(e) => setSelectedLens({ ...selectedLens, colorHex: e.target.value })}
-                        className="w-10 h-9 p-0.5 rounded bg-transparent border border-slate-700 cursor-pointer"
-                      />
+                <div className="space-y-4 p-4 rounded-2xl bg-amber-500/5 border border-amber-500/20">
+                  <div className="flex items-center gap-2 pb-2 border-b border-white/10">
+                    <Palette size={16} className="text-amber-400" />
+                    <span className="text-xs font-bold text-amber-300 uppercase tracking-wider">
+                      Configurações Específicas de Lente Colorida &amp; Solar
+                    </span>
+                  </div>
+
+                  {/* Nome da Cor e Categoria Solar */}
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div>
+                      <label className="block text-slate-300 mb-1 font-medium">
+                        Nome Comercial da Tonalidade *
+                      </label>
                       <input
                         type="text"
-                        value={selectedLens.colorHex || "#1e40af"}
-                        onChange={(e) => setSelectedLens({ ...selectedLens, colorHex: e.target.value })}
-                        className="w-full bg-[#040e17] border border-slate-700 rounded-lg px-3 py-2 text-white font-mono"
+                        placeholder="Ex: Verde G-15 Polarizado, Âmbar Solar..."
+                        value={selectedLens.colorName || ""}
+                        onChange={(e) =>
+                          setSelectedLens({ ...selectedLens, colorName: e.target.value })
+                        }
+                        className="w-full bg-[#040e17] border border-slate-700 rounded-lg px-3 py-2 text-white focus:outline-none focus:border-amber-400"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-slate-300 mb-1 font-medium">
+                        Tag de Categoria Solar
+                      </label>
+                      <input
+                        type="text"
+                        placeholder="Ex: Uso Diário & Condução, Alta Luminosidade..."
+                        value={selectedLens.categoryTag || ""}
+                        onChange={(e) =>
+                          setSelectedLens({ ...selectedLens, categoryTag: e.target.value })
+                        }
+                        className="w-full bg-[#040e17] border border-slate-700 rounded-lg px-3 py-2 text-white focus:outline-none focus:border-amber-400"
                       />
                     </div>
                   </div>
+
+                  {/* Indicação de Uso */}
                   <div>
-                    <label className="block text-slate-300 mb-1 font-medium">Identificador de Cor</label>
+                    <label className="block text-slate-300 mb-1 font-medium">
+                      Indicação de Uso (Melhor para)
+                    </label>
                     <input
                       type="text"
-                      placeholder="Ex: azul, marrom, amarelo..."
-                      value={selectedLens.lensColorId || ""}
-                      onChange={(e) => setSelectedLens({ ...selectedLens, lensColorId: e.target.value })}
-                      className="w-full bg-[#040e17] border border-slate-700 rounded-lg px-3 py-2 text-white"
+                      placeholder="Ex: Condução diurna, dias muito ensolarados e esportes ao ar livre"
+                      value={selectedLens.bestFor || ""}
+                      onChange={(e) =>
+                        setSelectedLens({ ...selectedLens, bestFor: e.target.value })
+                      }
+                      className="w-full bg-[#040e17] border border-slate-700 rounded-lg px-3 py-2 text-white focus:outline-none focus:border-amber-400"
                     />
+                  </div>
+
+                  {/* Seletor de Cores e Identificador */}
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div>
+                      <label className="block text-slate-300 mb-1 font-medium">Cor Hexadecimal</label>
+                      <div className="flex items-center gap-2">
+                        <input
+                          type="color"
+                          value={selectedLens.colorHex || "#1e40af"}
+                          onChange={(e) =>
+                            setSelectedLens({ ...selectedLens, colorHex: e.target.value })
+                          }
+                          className="w-10 h-9 p-0.5 rounded bg-transparent border border-slate-700 cursor-pointer"
+                        />
+                        <input
+                          type="text"
+                          value={selectedLens.colorHex || "#1e40af"}
+                          onChange={(e) =>
+                            setSelectedLens({ ...selectedLens, colorHex: e.target.value })
+                          }
+                          className="w-full bg-[#040e17] border border-slate-700 rounded-lg px-3 py-2 text-white font-mono"
+                        />
+                      </div>
+                    </div>
+                    <div>
+                      <label className="block text-slate-300 mb-1 font-medium">
+                        Identificador Interno de Cor (Filtro)
+                      </label>
+                      <input
+                        type="text"
+                        placeholder="Ex: verde, ambar, cinza, azul, vermelho..."
+                        value={selectedLens.lensColorId || ""}
+                        onChange={(e) =>
+                          setSelectedLens({ ...selectedLens, lensColorId: e.target.value })
+                        }
+                        className="w-full bg-[#040e17] border border-slate-700 rounded-lg px-3 py-2 text-white"
+                      />
+                    </div>
+                  </div>
+
+                  {/* Foto do Disco Solar (Lente Colorida Redonda) */}
+                  <div>
+                    <label className="block text-slate-300 mb-1 font-medium">
+                      Foto do Disco Solar (Lente Redonda / Mostruário)
+                    </label>
+                    <div className="flex items-center gap-3">
+                      <input
+                        type="text"
+                        value={selectedLens.discImage || ""}
+                        onChange={(e) =>
+                          setSelectedLens({ ...selectedLens, discImage: e.target.value })
+                        }
+                        className="flex-1 bg-[#040e17] border border-slate-700 rounded-lg px-3 py-2 text-white focus:outline-none focus:border-amber-400"
+                        placeholder="URL da foto do disco ou faça upload →"
+                      />
+                      <label className="inline-flex items-center gap-1.5 px-3 py-2 rounded-lg bg-amber-400 hover:bg-amber-300 text-slate-950 font-bold text-xs cursor-pointer transition-colors shrink-0">
+                        <Upload size={14} />
+                        <span>
+                          {uploadingLensField === "discImage" ? "Enviando..." : "Enviar Disco"}
+                        </span>
+                        <input
+                          type="file"
+                          accept="image/*"
+                          className="hidden"
+                          onChange={(e) => handleLensImageUpload("discImage", e)}
+                          disabled={uploadingLensField !== null}
+                        />
+                      </label>
+                      {selectedLens.discImage && (
+                        <div className="w-12 h-12 bg-[#040e17] rounded-lg p-1 flex items-center justify-center shrink-0 border border-slate-600">
+                          {/* eslint-disable-next-line @next/next/no-img-element */}
+                          <img
+                            src={selectedLens.discImage}
+                            alt="Preview Disco"
+                            className="max-h-full max-w-full object-contain"
+                          />
+                        </div>
+                      )}
+                    </div>
+                    <div className="flex items-center gap-1.5 mt-2 overflow-x-auto no-scrollbar">
+                      <span className="text-[10px] text-slate-400 shrink-0">Discos rápidos:</span>
+                      {[
+                        { label: "Verde G-15", path: "/images/lenses/solar/disc-verde.png" },
+                        { label: "Âmbar", path: "/images/lenses/solar/disc-marrom.png" },
+                        { label: "Cinza Fumê", path: "/images/lenses/solar/disc-cinza-fume.png" },
+                        { label: "Azul Safira", path: "/images/lenses/solar/disc-azul-espelhado.png" },
+                        { label: "Vermelho Rubi", path: "/images/lenses/solar/disc-vermelho-espelhado.png" },
+                        { label: "Amarelo Night", path: "/images/lenses/solar/disc-amarelo.png" },
+                        { label: "Degradê", path: "/images/lenses/solar/disc-degrade.png" },
+                      ].map((preset) => (
+                        <button
+                          key={preset.path}
+                          type="button"
+                          onClick={() => setSelectedLens({ ...selectedLens, discImage: preset.path })}
+                          className="text-[10px] px-2 py-0.5 rounded bg-white/5 hover:bg-white/10 text-slate-300 whitespace-nowrap border border-white/5 cursor-pointer"
+                        >
+                          {preset.label}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+
+                  {/* Foto do Modelo / Hero Editorial */}
+                  <div>
+                    <label className="block text-slate-300 mb-1 font-medium">
+                      Foto do Modelo / Editorial com a Lente (Hero)
+                    </label>
+                    <div className="flex items-center gap-3">
+                      <input
+                        type="text"
+                        value={selectedLens.heroImage || ""}
+                        onChange={(e) =>
+                          setSelectedLens({ ...selectedLens, heroImage: e.target.value })
+                        }
+                        className="flex-1 bg-[#040e17] border border-slate-700 rounded-lg px-3 py-2 text-white focus:outline-none focus:border-amber-400"
+                        placeholder="URL da foto do modelo usando a lente solar →"
+                      />
+                      <label className="inline-flex items-center gap-1.5 px-3 py-2 rounded-lg bg-amber-400 hover:bg-amber-300 text-slate-950 font-bold text-xs cursor-pointer transition-colors shrink-0">
+                        <Upload size={14} />
+                        <span>
+                          {uploadingLensField === "heroImage" ? "Enviando..." : "Enviar Modelo"}
+                        </span>
+                        <input
+                          type="file"
+                          accept="image/*"
+                          className="hidden"
+                          onChange={(e) => handleLensImageUpload("heroImage", e)}
+                          disabled={uploadingLensField !== null}
+                        />
+                      </label>
+                      {selectedLens.heroImage && (
+                        <div className="w-12 h-12 bg-[#040e17] rounded-lg p-1 flex items-center justify-center shrink-0 border border-slate-600">
+                          {/* eslint-disable-next-line @next/next/no-img-element */}
+                          <img
+                            src={selectedLens.heroImage}
+                            alt="Preview Modelo"
+                            className="max-h-full max-w-full object-contain"
+                          />
+                        </div>
+                      )}
+                    </div>
+                    <div className="flex items-center gap-1.5 mt-2 overflow-x-auto no-scrollbar">
+                      <span className="text-[10px] text-slate-400 shrink-0">Modelos rápidos:</span>
+                      {[
+                        { label: "Modelo Verde", path: "/images/lenses/solar/hero-lens-verde.png" },
+                        { label: "Modelo Âmbar", path: "/images/lenses/solar/hero-lens-marrom.png" },
+                        { label: "Modelo Cinza", path: "/images/lenses/solar/hero-lens-cinza-fume.png" },
+                        { label: "Modelo Azul", path: "/images/lenses/solar/hero-lens-azul-espelhado.png" },
+                        { label: "Modelo Vermelho", path: "/images/lenses/solar/hero-lens-vermelho-espelhado.png" },
+                        { label: "Modelo Amarelo", path: "/images/lenses/solar/hero-lens-amarelo.png" },
+                        { label: "Modelo Degradê", path: "/images/lenses/solar/hero-lens-degrade.png" },
+                      ].map((preset) => (
+                        <button
+                          key={preset.path}
+                          type="button"
+                          onClick={() => setSelectedLens({ ...selectedLens, heroImage: preset.path })}
+                          className="text-[10px] px-2 py-0.5 rounded bg-white/5 hover:bg-white/10 text-slate-300 whitespace-nowrap border border-white/5 cursor-pointer"
+                        >
+                          {preset.label}
+                        </button>
+                      ))}
+                    </div>
                   </div>
                 </div>
               )}

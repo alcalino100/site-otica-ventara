@@ -35,23 +35,31 @@ export function ColoredLensesShowcase({ initialLenses }: ColoredLensesShowcasePr
               (l: AdminLensItem) => l.category === "coloridas" && l.isActive !== false
             );
             if (adminColoridas.length > 0) {
-              const merged = COLORED_LENSES_LIST.map((preset) => {
-                const found = adminColoridas.find(
-                  (a: AdminLensItem) => a.id === preset.id || a.lensColorId === preset.id
+              const dynamicPresets: ColoredLensPreset[] = adminColoridas.map((a: AdminLensItem) => {
+                const foundPreset = COLORED_LENSES_LIST.find(
+                  (p) => p.id === a.id || p.id === a.lensColorId
                 );
-                if (found) {
-                  return {
-                    ...preset,
-                    name: found.name && !found.name.startsWith("Lente Colorida") ? found.name : preset.name,
-                    priceFormatted: found.startingPrice || preset.priceFormatted,
-                    installmentFormatted: found.installment || preset.installmentFormatted,
-                    description: found.description || preset.description,
-                    badge: found.badge || preset.badge,
-                  };
-                }
-                return preset;
+                return {
+                  id: a.id,
+                  name: a.name,
+                  colorName: a.colorName || (foundPreset ? foundPreset.colorName : a.name.split(" ")[0]),
+                  colorHex: a.colorHex || (foundPreset ? foundPreset.colorHex : "#475569"),
+                  discImage: a.discImage || (foundPreset ? foundPreset.discImage : "/images/lenses/solar/organic-cinza-fume.png"),
+                  heroImage: a.heroImage || (foundPreset ? foundPreset.heroImage : "/images/lenses/solar/hero-lens-cinza-fume.png"),
+                  badge: a.badge || (foundPreset ? foundPreset.badge : "Solar Premium"),
+                  categoryTag: a.categoryTag || (foundPreset ? foundPreset.categoryTag : "SOLAR & ESTÉTICA"),
+                  description: a.description || (foundPreset ? foundPreset.description : ""),
+                  benefits: a.features && a.features.length > 0 ? a.features : (foundPreset ? foundPreset.benefits : []),
+                  bestFor: a.bestFor || (foundPreset ? foundPreset.bestFor : "Uso diário ao ar livre"),
+                  priceFormatted: a.startingPrice || (foundPreset ? foundPreset.priceFormatted : "R$ 139,90"),
+                  installmentFormatted: a.installment || (foundPreset ? foundPreset.installmentFormatted : "10x sem juros"),
+                  leadTime: a.leadTime || (foundPreset ? foundPreset.leadTime : "Pronto em até 1 hora"),
+                  gradientFrom: a.gradientFrom || (foundPreset ? foundPreset.gradientFrom : undefined),
+                  gradientVia: a.gradientVia || (foundPreset ? foundPreset.gradientVia : undefined),
+                  gradientTo: a.gradientTo || (foundPreset ? foundPreset.gradientTo : undefined),
+                };
               });
-              setLensList(merged);
+              setLensList(dynamicPresets);
             }
           }
         }

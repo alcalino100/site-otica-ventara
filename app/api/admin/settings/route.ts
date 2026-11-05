@@ -10,6 +10,7 @@ import {
   LensesSectionSettings,
   HeroBannerSettings,
   LiveBroadcastSettings,
+  ArmacoesPageSettings,
 } from "@/types/ecommerce";
 import {
   DEFAULT_IDENTITY,
@@ -22,6 +23,7 @@ import {
   DEFAULT_HERO_BANNER,
   DEFAULT_LIVE_BROADCAST,
   DEFAULT_FOOTER_PAYMENT_SETTINGS,
+  DEFAULT_ARMACOES_PAGE_SETTINGS,
 } from "@/lib/site-settings-constants";
 
 export async function GET() {
@@ -44,6 +46,7 @@ export async function GET() {
         "company_settings",
         "live_broadcast",
         "payment_methods",
+        "armacoes_page_settings",
       ]);
 
     if (error) {
@@ -74,6 +77,7 @@ export async function GET() {
     const companySettingsRow = data?.find((s) => s.key === "company_settings");
     const liveBroadcastRow = data?.find((s) => s.key === "live_broadcast");
     const paymentMethodsRow = data?.find((s) => s.key === "payment_methods");
+    const armacoesSettingsRow = data?.find((s) => s.key === "armacoes_page_settings");
 
     return NextResponse.json({
       identity: identityRow?.value ? { ...DEFAULT_IDENTITY, ...(identityRow.value as SiteIdentitySettings) } : DEFAULT_IDENTITY,
@@ -89,6 +93,9 @@ export async function GET() {
       company_settings: companySettingsRow?.value || null,
       live_broadcast: liveBroadcastRow?.value ? { ...DEFAULT_LIVE_BROADCAST, ...(liveBroadcastRow.value as LiveBroadcastSettings) } : DEFAULT_LIVE_BROADCAST,
       payment_methods: paymentMethodsRow?.value ? { ...DEFAULT_FOOTER_PAYMENT_SETTINGS, ...paymentMethodsRow.value } : DEFAULT_FOOTER_PAYMENT_SETTINGS,
+      armacoes_page_settings: armacoesSettingsRow?.value
+        ? { ...DEFAULT_ARMACOES_PAGE_SETTINGS, ...(armacoesSettingsRow.value as ArmacoesPageSettings) }
+        : DEFAULT_ARMACOES_PAGE_SETTINGS,
     });
   } catch (err: any) {
     console.error("Erro interno ao buscar configurações:", err);
@@ -103,6 +110,7 @@ export async function GET() {
       hero_banner: DEFAULT_HERO_BANNER,
       live_broadcast: DEFAULT_LIVE_BROADCAST,
       payment_methods: DEFAULT_FOOTER_PAYMENT_SETTINGS,
+      armacoes_page_settings: DEFAULT_ARMACOES_PAGE_SETTINGS,
     });
   }
 }
@@ -193,6 +201,10 @@ export async function POST(req: NextRequest) {
 
     if (body.payment_methods) {
       await saveSetting("payment_methods", "Configurações das formas de pagamento e selos exibidos no rodapé", body.payment_methods);
+    }
+
+    if (body.armacoes_page_settings) {
+      await saveSetting("armacoes_page_settings", "Hero Fotográfico e Textos da Página de Armações (/armacoes)", body.armacoes_page_settings);
     }
 
     return NextResponse.json({

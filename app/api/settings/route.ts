@@ -13,6 +13,7 @@ import {
   DEFAULT_INTERACTIVE_SHOWCASE,
   DEFAULT_LIVE_BROADCAST,
   DEFAULT_FOOTER_PAYMENT_SETTINGS,
+  DEFAULT_ARMACOES_PAGE_SETTINGS,
 } from "@/lib/site-settings-constants";
 import {
   SiteIdentitySettings,
@@ -27,6 +28,7 @@ import {
   InteractiveShowcaseSettings,
   LiveBroadcastSettings,
   FooterPaymentSettings,
+  ArmacoesPageSettings,
 } from "@/types/ecommerce";
 
 export const dynamic = "force-dynamic";
@@ -51,6 +53,7 @@ export async function GET() {
         "interactive_showcase",
         "live_broadcast",
         "payment_methods",
+        "armacoes_page_settings",
       ]);
 
     if (error || !data) {
@@ -67,6 +70,7 @@ export async function GET() {
         interactive_showcase: DEFAULT_INTERACTIVE_SHOWCASE,
         live_broadcast: DEFAULT_LIVE_BROADCAST,
         payment_methods: DEFAULT_FOOTER_PAYMENT_SETTINGS,
+        armacoes_page_settings: DEFAULT_ARMACOES_PAGE_SETTINGS,
       });
     }
 
@@ -82,6 +86,7 @@ export async function GET() {
     const interactiveShowcaseRow = data.find((s) => s.key === "interactive_showcase");
     const liveBroadcastRow = data.find((s) => s.key === "live_broadcast");
     const paymentMethodsRow = data.find((s) => s.key === "payment_methods");
+    const armacoesSettingsRow = data.find((s) => s.key === "armacoes_page_settings");
 
     return NextResponse.json({
       identity: identityRow?.value ? { ...DEFAULT_IDENTITY, ...(identityRow.value as SiteIdentitySettings) } : DEFAULT_IDENTITY,
@@ -96,6 +101,9 @@ export async function GET() {
       interactive_showcase: interactiveShowcaseRow?.value ? { ...DEFAULT_INTERACTIVE_SHOWCASE, ...(interactiveShowcaseRow.value as InteractiveShowcaseSettings) } : DEFAULT_INTERACTIVE_SHOWCASE,
       live_broadcast: liveBroadcastRow?.value ? { ...DEFAULT_LIVE_BROADCAST, ...(liveBroadcastRow.value as LiveBroadcastSettings) } : DEFAULT_LIVE_BROADCAST,
       payment_methods: paymentMethodsRow?.value ? { ...DEFAULT_FOOTER_PAYMENT_SETTINGS, ...(paymentMethodsRow.value as FooterPaymentSettings) } : DEFAULT_FOOTER_PAYMENT_SETTINGS,
+      armacoes_page_settings: armacoesSettingsRow?.value
+        ? { ...DEFAULT_ARMACOES_PAGE_SETTINGS, ...(armacoesSettingsRow.value as ArmacoesPageSettings) }
+        : DEFAULT_ARMACOES_PAGE_SETTINGS,
     });
   } catch {
     return NextResponse.json({
@@ -111,6 +119,7 @@ export async function GET() {
       interactive_showcase: DEFAULT_INTERACTIVE_SHOWCASE,
       live_broadcast: DEFAULT_LIVE_BROADCAST,
       payment_methods: DEFAULT_FOOTER_PAYMENT_SETTINGS,
+      armacoes_page_settings: DEFAULT_ARMACOES_PAGE_SETTINGS,
     });
   }
 }

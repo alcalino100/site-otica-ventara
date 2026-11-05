@@ -4,7 +4,6 @@ import Link from "next/link";
 import Image from "next/image";
 import {
   Sun,
-  Palette,
   ShieldCheck,
   CheckCircle2,
   Clock,
@@ -14,7 +13,9 @@ import {
 } from "lucide-react";
 import { Header } from "@/components/layout/header";
 import { Footer } from "@/components/layout/footer";
-import { COLORED_LENSES_LIST, ColoredLensPreset } from "@/lib/lenses-data";
+import { getStoredColoredLenses } from "@/lib/lenses-server";
+
+export const revalidate = 60;
 
 export const metadata: Metadata = {
   title: "Lentes Coloridas e Solares com Grau | Óticas Ventara",
@@ -39,7 +40,9 @@ export const metadata: Metadata = {
   },
 };
 
-export default function LentesColoridasPage() {
+export default async function LentesColoridasPage() {
+  const coloredLenses = await getStoredColoredLenses();
+
   return (
     <div className="min-h-screen flex flex-col bg-[#040914] text-white selection:bg-amber-400 selection:text-slate-950 font-sans">
       <Header theme="dark" />
@@ -94,12 +97,12 @@ export default function LentesColoridasPage() {
               </h2>
             </div>
             <span className="text-xs text-slate-400">
-              {COLORED_LENSES_LIST.length} cores exclusivas disponíveis
+              {coloredLenses.length} cores exclusivas disponíveis
             </span>
           </div>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 sm:gap-8">
-            {COLORED_LENSES_LIST.map((lens) => (
+            {coloredLenses.map((lens) => (
               <div
                 key={lens.id}
                 className="group relative rounded-3xl bg-[#071322] border border-white/10 hover:border-amber-400/40 p-6 flex flex-col justify-between transition-all duration-300 hover:shadow-2xl hover:shadow-black/60 space-y-6"
@@ -120,7 +123,7 @@ export default function LentesColoridasPage() {
                   {/* Lens Image Container */}
                   <Link
                     href={`/lentes-coloridas/${lens.id}`}
-                    className="relative aspect-square w-full rounded-2xl bg-[#040a14] border border-white/5 flex items-center justify-center p-6 overflow-hidden group-hover:border-amber-400/20 transition-colors"
+                    className="relative aspect-square w-full rounded-2xl bg-[#040a14] border border-white/5 flex items-center justify-center p-6 overflow-hidden group-hover:border-amber-400/20 transition-colors cursor-pointer"
                   >
                     <div className="relative w-full h-full transform group-hover:scale-105 transition-transform duration-300">
                       <Image
@@ -138,9 +141,11 @@ export default function LentesColoridasPage() {
                     <span className="text-[11px] font-mono text-slate-400 uppercase tracking-wide">
                       {lens.colorName}
                     </span>
-                    <h3 className="text-base font-bold text-white group-hover:text-amber-300 transition-colors">
-                      {lens.name}
-                    </h3>
+                    <Link href={`/lentes-coloridas/${lens.id}`}>
+                      <h3 className="text-base font-bold text-white group-hover:text-amber-300 transition-colors">
+                        {lens.name}
+                      </h3>
+                    </Link>
                     <p className="text-xs text-slate-400 mt-1 line-clamp-2 leading-relaxed">
                       {lens.description}
                     </p>
@@ -162,21 +167,22 @@ export default function LentesColoridasPage() {
                   <div className="grid grid-cols-2 gap-2">
                     <Link
                       href={`/lentes-coloridas/${lens.id}`}
-                      className="py-2.5 px-3 rounded-xl bg-white/5 hover:bg-white/10 border border-white/10 text-center text-xs font-semibold text-white transition-colors"
+                      className="inline-flex items-center justify-center gap-1.5 py-2.5 px-3 rounded-xl bg-white/10 hover:bg-white/20 text-xs font-semibold text-white transition-colors border border-white/10"
                     >
-                      Ver Detalhes
+                      <span>Ver detalhes</span>
+                      <ArrowRight size={13} />
                     </Link>
 
                     <a
-                      href={`https://wa.me/5518997970808?text=Olá!%20Gostaria%20de%20pedir%20as%20lentes%20solares%20na%20cor%20${encodeURIComponent(
-                        lens.colorName
-                      )}%20(${encodeURIComponent(lens.name)})%20com%20o%20meu%20grau.`}
+                      href={`https://wa.me/5518996155748?text=${encodeURIComponent(
+                        `Olá! Tenho interesse na lente solar "${lens.name}" (${lens.colorName}). Gostaria de fazer meu orçamento com grau.`
+                      )}`}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="py-2.5 px-3 rounded-xl bg-amber-400 hover:bg-amber-300 text-slate-950 font-bold text-xs uppercase tracking-wider text-center transition-all flex items-center justify-center gap-1.5"
+                      className="inline-flex items-center justify-center gap-1.5 py-2.5 px-3 rounded-xl bg-amber-400 hover:bg-amber-300 text-slate-950 text-xs font-bold transition-all"
                     >
-                      <MessageCircle size={13} />
-                      <span>Pedir</span>
+                      <MessageCircle size={14} />
+                      <span>Pedir no Whats</span>
                     </a>
                   </div>
                 </div>
@@ -185,46 +191,46 @@ export default function LentesColoridasPage() {
           </div>
         </section>
 
-        {/* BENEFÍCIOS TÉCNICOS */}
-        <section className="px-4 sm:px-6 lg:px-8 py-16 bg-[#06111f]/60 border-t border-white/10">
-          <div className="max-w-5xl mx-auto space-y-12">
-            <div className="text-center max-w-xl mx-auto space-y-2">
+        {/* BENEFÍCIOS DO LABORATÓRIO VENTARA */}
+        <section className="px-4 sm:px-6 lg:px-8 py-16 border-t border-white/10 bg-[#06111f]">
+          <div className="max-w-6xl mx-auto space-y-12">
+            <div className="text-center space-y-2 max-w-2xl mx-auto">
               <span className="text-xs font-bold text-amber-400 uppercase tracking-widest">
-                DIFERENCIAL VENTARA
+                LABORATÓRIO PRÓPRIO
               </span>
               <h2 className="text-2xl sm:text-3xl font-light text-white">
-                Como montamos o seu grau em lentes solares?
+                Por que fazer suas lentes solares na Ventara?
               </h2>
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6 text-xs text-slate-300">
-              <div className="p-6 rounded-2xl bg-white/[0.02] border border-white/5 space-y-3">
-                <div className="w-10 h-10 rounded-xl bg-amber-400/15 text-amber-400 flex items-center justify-center">
-                  <Palette size={20} />
-                </div>
-                <h3 className="text-sm font-bold text-white">Pigmentação em Banho Molecular</h3>
-                <p className="text-slate-400 leading-relaxed">
-                  As cores são absorvidas molecularmente no monômero da lente, garantindo que não descasquem e permaneçam com a mesma intensidade por anos.
-                </p>
-              </div>
-
-              <div className="p-6 rounded-2xl bg-white/[0.02] border border-white/5 space-y-3">
-                <div className="w-10 h-10 rounded-xl bg-amber-400/15 text-amber-400 flex items-center justify-center">
-                  <ShieldCheck size={20} />
-                </div>
-                <h3 className="text-sm font-bold text-white">Filtro Polarizado Anti-Ofuscamento</h3>
-                <p className="text-slate-400 leading-relaxed">
-                  Bloqueia 100% da luz refletida em superfícies horizontais como asfalto, capô de carros e espelhos d’água, proporcionando alívio visual imediato.
-                </p>
-              </div>
-
-              <div className="p-6 rounded-2xl bg-white/[0.02] border border-white/5 space-y-3">
-                <div className="w-10 h-10 rounded-xl bg-amber-400/15 text-amber-400 flex items-center justify-center">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+              <div className="p-6 rounded-2xl bg-[#081726] border border-white/10 space-y-3">
+                <div className="w-10 h-10 rounded-xl bg-amber-400/10 border border-amber-400/30 flex items-center justify-center text-amber-400">
                   <Clock size={20} />
                 </div>
-                <h3 className="text-sm font-bold text-white">Montagem Expressa em Araçatuba</h3>
-                <p className="text-slate-400 leading-relaxed">
-                  Nosso laboratório próprio corta e confere as lentes com lensômetro digital. Seu óculos de sol com grau pode ficar pronto em até 1 hora.
+                <h3 className="text-base font-semibold text-white">Montagem em 1 Hora</h3>
+                <p className="text-xs text-slate-400 leading-relaxed">
+                  Sem intermediários. Temos laboratório digital computadorizado em Araçatuba para surfaçagem e coloração expressa.
+                </p>
+              </div>
+
+              <div className="p-6 rounded-2xl bg-[#081726] border border-white/10 space-y-3">
+                <div className="w-10 h-10 rounded-xl bg-amber-400/10 border border-amber-400/30 flex items-center justify-center text-amber-400">
+                  <ShieldCheck size={20} />
+                </div>
+                <h3 className="text-base font-semibold text-white">Fidelidade de Grau</h3>
+                <p className="text-xs text-slate-400 leading-relaxed">
+                  Coloração molecular homogênea com curvas calculadas para não alterar as dioptrias de miopia, hipermetropia ou astigmatismo.
+                </p>
+              </div>
+
+              <div className="p-6 rounded-2xl bg-[#081726] border border-white/10 space-y-3">
+                <div className="w-10 h-10 rounded-xl bg-amber-400/10 border border-amber-400/30 flex items-center justify-center text-amber-400">
+                  <Sparkles size={20} />
+                </div>
+                <h3 className="text-base font-semibold text-white">Qualquer Armação</h3>
+                <p className="text-xs text-slate-400 leading-relaxed">
+                  Fabricamos as lentes solares para armações que você já tem, armações compradas no site ou modelos novos da nossa curadoria.
                 </p>
               </div>
             </div>
