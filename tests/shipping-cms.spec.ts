@@ -68,11 +68,12 @@ test.describe("CMS Dinâmico da Página /entregas", () => {
     page,
   }) => {
     await page.goto("/admin/entrega", { waitUntil: "domcontentloaded" });
+    await page.waitForLoadState("networkidle");
 
     // Expande o acordeão de Envio Seguro para Todo o Brasil
     const nationalSection = page.getByTestId("cms-accordion-national_delivery");
     await nationalSection.scrollIntoViewIfNeeded();
-    await nationalSection.locator("#section-header-sec-national").click();
+    await nationalSection.getByRole("button", { name: /Expandir seção/i }).click();
 
     // Verifica abas dos cartões nacionais
     await expect(page.getByRole("button", { name: /Correios/i })).toBeVisible({ timeout: 10000 });

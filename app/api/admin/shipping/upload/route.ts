@@ -8,7 +8,7 @@ export async function POST(req: NextRequest) {
 
     if (!file) {
       return NextResponse.json(
-        { error: "Nenhum arquivo enviado para upload." },
+        { success: false, error: "Nenhum arquivo enviado para upload." },
         { status: 400 }
       );
     }
@@ -27,6 +27,7 @@ export async function POST(req: NextRequest) {
     if (!isMimeValid && !isExtensionValid) {
       return NextResponse.json(
         {
+          success: false,
           error:
             "Formato inválido. Por favor, envie uma foto nos formatos JPG, PNG ou WebP.",
         },
@@ -40,6 +41,7 @@ export async function POST(req: NextRequest) {
       const sizeMb = (file.size / (1024 * 1024)).toFixed(1);
       return NextResponse.json(
         {
+          success: false,
           error: `Arquivo muito grande (${sizeMb} MB). O tamanho máximo permitido é 5 MB.`,
         },
         { status: 400 }
