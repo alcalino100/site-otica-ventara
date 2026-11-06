@@ -146,7 +146,7 @@ export async function POST(req: NextRequest) {
       primary_button_text: body.primary_button_text || "Catálogo de Lentes",
       primary_button_url: body.primary_button_url || "/lentes",
       secondary_button_text: body.secondary_button_text || "Ver armações",
-      secondary_button_url: body.secondary_button_url || "#armacoes",
+      secondary_button_url: body.secondary_button_url || "/armacoes",
       show_trust_markers: body.show_trust_markers ?? true,
     };
 

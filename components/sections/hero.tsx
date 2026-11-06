@@ -390,13 +390,32 @@ export function Hero({ products }: HeroProps) {
                     />
                   </Link>
 
-                  <a
-                    href={currentSlide.secondary_button_url || "/armacoes"}
-                    className="inline-flex items-center justify-center gap-2.5 px-6 min-h-[48px] rounded-full bg-slate-950/80 hover:bg-slate-900 active:scale-[0.98] text-white font-semibold text-sm border border-white/15 hover:border-amber-400/50 shadow-md backdrop-blur-md transition-all duration-150 ease-out cursor-pointer w-full sm:w-auto"
-                    style={{ touchAction: "manipulation" }}
-                  >
-                    <span>{currentSlide.secondary_button_text || "Ver armações"}</span>
-                  </a>
+                  {(() => {
+                    const secondaryTarget =
+                      !currentSlide.secondary_button_url ||
+                      currentSlide.secondary_button_url === "#armacoes"
+                        ? "/armacoes"
+                        : currentSlide.secondary_button_url;
+                    const isInternal = secondaryTarget.startsWith("/");
+
+                    return isInternal ? (
+                      <Link
+                        href={secondaryTarget}
+                        className="inline-flex items-center justify-center gap-2.5 px-6 min-h-[48px] rounded-full bg-slate-950/80 hover:bg-slate-900 active:scale-[0.98] text-white font-semibold text-sm border border-white/15 hover:border-amber-400/50 shadow-md backdrop-blur-md transition-all duration-150 ease-out cursor-pointer w-full sm:w-auto"
+                        style={{ touchAction: "manipulation" }}
+                      >
+                        <span>{currentSlide.secondary_button_text || "Ver armações"}</span>
+                      </Link>
+                    ) : (
+                      <a
+                        href={secondaryTarget}
+                        className="inline-flex items-center justify-center gap-2.5 px-6 min-h-[48px] rounded-full bg-slate-950/80 hover:bg-slate-900 active:scale-[0.98] text-white font-semibold text-sm border border-white/15 hover:border-amber-400/50 shadow-md backdrop-blur-md transition-all duration-150 ease-out cursor-pointer w-full sm:w-auto"
+                        style={{ touchAction: "manipulation" }}
+                      >
+                        <span>{currentSlide.secondary_button_text || "Ver armações"}</span>
+                      </a>
+                    );
+                  })()}
                 </div>
               )}
 

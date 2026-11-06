@@ -259,7 +259,7 @@ export const DEFAULT_HERO_BANNER: HeroBannerSettings = {
   primaryButtonText: "Catálogo de Lentes",
   primaryButtonLink: "/lentes",
   secondaryButtonText: "Ver armações",
-  secondaryButtonLink: "#armacoes",
+  secondaryButtonLink: "/armacoes",
 };
 
 export const DEFAULT_HERO_SETTINGS: HeroCarouselSettings = {
@@ -319,7 +319,7 @@ export const DEFAULT_HERO_SLIDES: HeroSlide[] = [
     primary_button_text: "Catálogo de Lentes",
     primary_button_url: "/lentes",
     secondary_button_text: "Ver armações",
-    secondary_button_url: "#armacoes",
+    secondary_button_url: "/armacoes",
     show_trust_markers: true,
     show_secure_badge: true,
     secure_badge_text: "Compra segura com Mercado Pago",
