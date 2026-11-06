@@ -97,7 +97,26 @@ export async function GET() {
           ? { ...DEFAULT_ARMACOES_PAGE_SETTINGS, ...(armacoesSettingsVal as ArmacoesPageSettings) }
           : DEFAULT_ARMACOES_PAGE_SETTINGS,
         optisync_page_settings: optisyncSettingsVal
-          ? { ...DEFAULT_OPTISYNC_SETTINGS, ...(optisyncSettingsVal as OptiSyncPageSettings) }
+          ? {
+              ...DEFAULT_OPTISYNC_SETTINGS,
+              ...(optisyncSettingsVal as OptiSyncPageSettings),
+              hdLine: {
+                ...DEFAULT_OPTISYNC_SETTINGS.hdLine,
+                ...((optisyncSettingsVal as any).hdLine || {}),
+              },
+              photochromicLine: {
+                ...DEFAULT_OPTISYNC_SETTINGS.photochromicLine,
+                ...((optisyncSettingsVal as any).photochromicLine || {}),
+              },
+              kidsLine: {
+                ...DEFAULT_OPTISYNC_SETTINGS.kidsLine,
+                ...((optisyncSettingsVal as any).kidsLine || {}),
+              },
+              galleryItems:
+                (optisyncSettingsVal as any).galleryItems && (optisyncSettingsVal as any).galleryItems.length > 0
+                  ? (optisyncSettingsVal as any).galleryItems
+                  : DEFAULT_OPTISYNC_SETTINGS.galleryItems,
+            }
           : DEFAULT_OPTISYNC_SETTINGS,
       },
       {

@@ -1,0 +1,186 @@
+"use client";
+
+import React, { useState, useRef, useCallback } from "react";
+import Image from "next/image";
+import { Sun, Moon, Sparkles } from "lucide-react";
+
+interface PhotochromicSliderProps {
+  clearImageUrl?: string;
+  darkImageUrl?: string;
+  bannerImageUrl?: string;
+  altText?: string;
+  transitionSpeedText?: string;
+}
+
+export function PhotochromicSlider({
+  clearImageUrl = "/images/lenses/optisync-hd.jpg",
+  darkImageUrl = "/images/lenses/optisync-fotossensivel-box.jpg",
+  bannerImageUrl,
+  altText = "Comparação de escurecimento da lente fotossensível OPTiSYNC",
+  transitionSpeedText = "Ativação em até 30 segundos sob radiação UV",
+}: PhotochromicSliderProps) {
+  const [position, setPosition] = useState(50);
+  const [isDragging, setIsDragging] = useState(false);
+  const containerRef = useRef<HTMLDivElement>(null);
+
+  const updatePosition = useCallback((clientX: number) => {
+    if (!containerRef.current) return;
+    const rect = containerRef.current.getBoundingClientRect();
+    const x = clientX - rect.left;
+    const percentage = Math.max(0, Math.min(100, (x / rect.width) * 100));
+    setPosition(Math.round(percentage));
+  }, []);
+
+  const handlePointerDown = (e: React.PointerEvent<HTMLDivElement>) => {
+    setIsDragging(true);
+    updatePosition(e.clientX);
+    e.currentTarget.setPointerCapture(e.pointerId);
+  };
+
+  const handlePointerMove = (e: React.PointerEvent<HTMLDivElement>) => {
+    if (!isDragging) return;
+    updatePosition(e.clientX);
+  };
+
+  const handlePointerUp = (e: React.PointerEvent<HTMLDivElement>) => {
+    setIsDragging(false);
+    try {
+      e.currentTarget.releasePointerCapture(e.pointerId);
+    } catch {
+      // Ignore capture release error
+    }
+  };
+
+  const handleKeyDown = (e: React.KeyboardEvent<HTMLDivElement>) => {
+    let next = position;
+    if (e.key === "ArrowLeft" || e.key === "ArrowDown") {
+      next = Math.max(0, position - 5);
+      e.preventDefault();
+    } else if (e.key === "ArrowRight" || e.key === "ArrowUp") {
+      next = Math.min(100, position + 5);
+      e.preventDefault();
+    } else if (e.key === "Home") {
+      next = 0;
+      e.preventDefault();
+    } else if (e.key === "End") {
+      next = 100;
+      e.preventDefault();
+    }
+    setPosition(next);
+  };
+
+  const hasTwoImages = Boolean(clearImageUrl && darkImageUrl && clearImageUrl !== darkImageUrl);
+
+  // If a single banner image or only 1 image exists, render single view gracefully
+  if (!hasTwoImages && (bannerImageUrl || clearImageUrl || darkImageUrl)) {
+    const singleSrc = bannerImageUrl || darkImageUrl || clearImageUrl || "";
+    return (
+      <div className="relative rounded-2xl overflow-hidden border border-[#0044C9]/40 bg-[#000933]/90 shadow-2xl">
+        <div className="relative aspect-[3/2] w-full">
+          <Image
+            src={singleSrc}
+            alt={altText}
+            fill
+            sizes="(max-width: 768px) 100vw, (max-width: 1200px) 80vw, 1100px"
+            className="object-cover"
+          />
+        </div>
+        <div className="p-4 bg-[#00051E]/80 backdrop-blur-md flex items-center justify-between text-xs text-[#B8C2E6]">
+          <span className="flex items-center gap-1.5 font-medium text-[#FFC21A]">
+            <Sparkles className="w-4 h-4" /> {transitionSpeedText}
+          </span>
+          <span className="text-[#8A96C2]">Proteção 100% UV400 Contínua</span>
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="space-y-3">
+      <div
+        ref={containerRef}
+        role="slider"
+        aria-label="Simulador de escurecimento da lente fotossensível"
+        aria-valuenow={position}
+        aria-valuemin={0}
+        aria-valuemax={100}
+        tabIndex={0}
+        onKeyDown={handleKeyDown}
+        onPointerDown={handlePointerDown}
+        onPointerMove={handlePointerMove}
+        onPointerUp={handlePointerUp}
+        onPointerCancel={handlePointerUp}
+        className="group relative select-none rounded-2xl overflow-hidden border border-[#0044C9]/40 bg-[#000933] shadow-2xl cursor-ew-resize focus:outline-none focus:ring-2 focus:ring-[#0044C9] touch-none"
+      >
+        {/* Camada Base: Lente Escurecida (Sol Pleno) */}
+        <div className="relative aspect-[3/2] w-full">
+          {darkImageUrl && (
+            <Image
+              src={darkImageUrl}
+              alt={`${altText} - Estado Escurecido`}
+              fill
+              sizes="(max-width: 768px) 100vw, (max-width: 1200px) 80vw, 1100px"
+              className="object-cover pointer-events-none"
+              priority
+            />
+          )}
+
+          <div className="absolute top-4 right-4 z-10 px-3 py-1.5 rounded-full bg-[#020716]/85 border border-[#FFC21A]/40 text-[#FFC21A] text-xs font-semibold flex items-center gap-1.5 backdrop-blur-md pointer-events-none shadow-lg">
+            <Sun className="w-3.5 h-3.5 text-[#FFC21A]" />
+            <span>Sol Pleno ({100 - position}%)</span>
+          </div>
+        </div>
+
+        {/* Camada Superior Recortada: Lente Límpida (Ambiente Interno) */}
+        <div
+          className="absolute inset-0 overflow-hidden pointer-events-none"
+          style={{ clipPath: `inset(0 ${100 - position}% 0 0)` }}
+        >
+          <div className="relative w-full h-full">
+            {clearImageUrl && (
+              <Image
+                src={clearImageUrl}
+                alt={`${altText} - Estado Límpido`}
+                fill
+                sizes="(max-width: 768px) 100vw, (max-width: 1200px) 80vw, 1100px"
+                className="object-cover pointer-events-none"
+              />
+            )}
+            <div className="absolute top-4 left-4 z-10 px-3 py-1.5 rounded-full bg-[#000933]/85 border border-[#0044C9]/40 text-[#F4F6FF] text-xs font-semibold flex items-center gap-1.5 backdrop-blur-md pointer-events-none shadow-lg">
+              <Moon className="w-3.5 h-3.5 text-[#38BDF8]" />
+              <span>Ambiente Interno ({position}%)</span>
+            </div>
+          </div>
+        </div>
+
+        {/* Linha Divisora & Pegador com Glow */}
+        <div
+          className="absolute top-0 bottom-0 pointer-events-none z-20 flex items-center justify-center -translate-x-1/2"
+          style={{ left: `${position}%` }}
+        >
+          {/* Barra Vertical de Luz */}
+          <div className="w-[3px] h-full bg-gradient-to-b from-[#7A2CFF] via-[#F4F6FF] to-[#0044C9] shadow-[0_0_12px_#1E5BFF]" />
+
+          {/* Botão Central com Ícone */}
+          <div className="absolute w-10 h-10 rounded-full bg-[#020716] border-2 border-[#F4F6FF] text-[#FFC21A] shadow-[0_0_20px_rgba(30,91,255,0.8)] flex items-center justify-center transition-transform group-hover:scale-110 group-focus:scale-110">
+            <div className="flex items-center gap-0.5 text-[11px] font-bold text-[#F4F6FF]">
+              <span>‹</span>
+              <span className="w-1 h-3 rounded-full bg-[#FFC21A]" />
+              <span>›</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Legenda Informativa Acessível e Instruções de Teclado */}
+      <div className="flex flex-col sm:flex-row items-center justify-between text-xs text-[#B8C2E6] gap-2 px-1">
+        <span className="flex items-center gap-1.5 text-[#FFC21A] font-medium">
+          <Sparkles className="w-3.5 h-3.5" /> {transitionSpeedText}
+        </span>
+        <span className="text-[#8A96C2] text-[11px]">
+          Arraste ou use as setas do teclado (← / →) para simular o escurecimento
+        </span>
+      </div>
+    </div>
+  );
+}

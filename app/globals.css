@@ -91,35 +91,37 @@
 .theme-futuristic-lenses {
   color-scheme: dark;
 
-  /* Cores Base e Espaciais */
-  --lens-space-base: #040b2b;
+  /* Cores Base e Espaciais (Medidas das Artes Oficiais OptiSYNC) */
+  --lens-space-base: #000933;
   --lens-space-deep: #020716;
-  --lens-space-indigo: #0a1a6b;
-  --lens-space-midnight: #061138;
+  --lens-space-indigo: #010a35;
+  --lens-space-midnight: #00051e;
 
-  /* Luz e Eletricidade */
-  --lens-electric-blue: #1e4bff;
+  /* Luz, Feixes e Eletricidade */
+  --lens-violet-left: #4c01ae;
+  --lens-electric-blue: #0044c9;
+  --lens-electric-blue-bright: #1e5bff;
   --lens-electric-purple: #7a2cff;
-  --lens-neon-cyan: #38bdf8;
-  --lens-brand-yellow: #ffd62e;
+  --lens-magenta-spot: #b93daa;
+  --lens-brand-yellow: #ffc21a;
   --lens-amber-warm: #f59e0b;
 
   /* Superfícies de Vidro Tecnológico */
-  --lens-glass-bg: rgba(6, 17, 43, 0.65);
-  --lens-glass-bg-hover: rgba(10, 26, 68, 0.85);
-  --lens-glass-border: rgba(30, 75, 255, 0.22);
-  --lens-glass-border-hover: rgba(56, 189, 248, 0.55);
-  --lens-glass-shadow: 0 10px 36px -4px rgba(0, 0, 0, 0.6), inset 0 1px 0 rgba(255, 255, 255, 0.08);
+  --lens-glass-bg: rgba(0, 9, 51, 0.72);
+  --lens-glass-bg-hover: rgba(1, 10, 53, 0.88);
+  --lens-glass-border: rgba(0, 68, 201, 0.3);
+  --lens-glass-border-hover: rgba(122, 44, 255, 0.55);
+  --lens-glass-shadow: 0 10px 36px -4px rgba(0, 0, 0, 0.7), inset 0 1px 0 rgba(255, 255, 255, 0.1);
 
   /* Grade HUD e Linhas de Luz */
-  --lens-hud-line: rgba(30, 75, 255, 0.1);
-  --lens-hud-cross: rgba(56, 189, 248, 0.25);
-  --lens-divider-glow: linear-gradient(90deg, transparent, rgba(30, 75, 255, 0.6), rgba(122, 44, 255, 0.6), transparent);
+  --lens-hud-line: rgba(0, 68, 201, 0.12);
+  --lens-hud-cross: rgba(122, 44, 255, 0.25);
+  --lens-divider-glow: linear-gradient(90deg, transparent, rgba(76, 1, 174, 0.7), rgba(0, 68, 201, 0.7), rgba(185, 61, 170, 0.5), transparent);
 
   /* Tipografia com Alto Contraste (WCAG AA/AAA) */
-  --lens-text-primary: #f8fafc;
-  --lens-text-secondary: #cbd5e1;
-  --lens-text-muted: #94a3b8;
+  --lens-text-primary: #f4f6ff;
+  --lens-text-secondary: #b8c2e6;
+  --lens-text-muted: #8a96c2;
 }
 
 /* Efeito de Grade HUD Sutil em SVG */

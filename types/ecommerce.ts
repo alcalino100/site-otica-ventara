@@ -340,6 +340,75 @@ export interface OptiSyncFaqItem {
   a: string;
 }
 
+export interface OptiSyncImageSlot {
+  id: string;
+  label: string;
+  aspectRatio: "4:5" | "3:2" | "1:1" | "16:9";
+  imageUrl: string;
+  altText: string;
+  caption?: string;
+  enabled?: boolean;
+}
+
+export interface OptiSyncGalleryItem {
+  id: string;
+  title: string;
+  line: "hd" | "photochromic" | "kids" | "geral";
+  imageUrl: string;
+  altText: string;
+  aspectRatio?: "4:5" | "3:2" | "1:1";
+  caption?: string;
+}
+
+export interface OptiSyncHdLineSettings {
+  enabled: boolean;
+  badge: string;
+  title: string;
+  titleHighlight: string;
+  subtitle: string;
+  description: string;
+  logoUrl?: string;
+  productImageUrl?: string; // Arte 8
+  gamerImageUrl?: string; // Arte 5
+  robotImageUrl?: string; // Arte 6
+  officeImageUrl?: string; // Arte 10
+  features: string[];
+  ctaText?: string;
+  ctaLink?: string;
+}
+
+export interface OptiSyncPhotochromicLineSettings {
+  enabled: boolean;
+  badge: string;
+  title: string;
+  titleHighlight: string;
+  subtitle: string;
+  description: string;
+  logoUrl?: string;
+  halfDarkBannerUrl?: string; // Arte 7
+  threeStatesGridUrl?: string; // Arte 4
+  clearStateImageUrl?: string;
+  darkStateImageUrl?: string;
+  transitionSpeedText?: string;
+  features: string[];
+  ctaText?: string;
+  ctaLink?: string;
+}
+
+export interface OptiSyncKidsLineSettings {
+  enabled: boolean;
+  badge: string;
+  title: string;
+  titleHighlight: string;
+  subtitle: string;
+  description: string;
+  posterBoyUrl?: string; // Arte 1
+  logo3dUrl?: string; // Arte 3
+  features: string[];
+  ctaText?: string;
+  ctaLink?: string;
+}
+
 export interface OptiSyncPageSettings {
   // Fundo e Efeitos
   bgMode: "code" | "custom_image";
@@ -347,9 +416,15 @@ export interface OptiSyncPageSettings {
   customBgMobileUrl?: string;
   bgOverlayOpacity: number; // 0 to 100
   bgFocalPoint: "center" | "top" | "bottom" | "left" | "right";
-  gradientBaseFrom: string; // #040B2B
-  gradientBaseTo: string;   // #0A1A6B
-  beamColorBlue: string;    // #1E4BFF
+  gradientBaseFrom: string; // #000933
+  gradientBaseTo: string;   // #020716
+  colorVioletLeft?: string; // #4C01AE
+  colorVioletGlow?: string; // #7A2CFF
+  colorBlueRight?: string;  // #0044C9
+  colorBlueHighlight?: string; // #1E5BFF
+  colorMagentaSpot?: string;   // #B93DAA
+  colorYellowAccent?: string;  // #FFC21A
+  beamColorBlue: string;    // #0044C9 / #1E4BFF
   beamColorPurple: string;  // #7A2CFF
   beamsIntensity: number;   // 0 to 100
   glowIntensity: number;    // 0 to 100
@@ -361,9 +436,30 @@ export interface OptiSyncPageSettings {
   heroTitle: string;
   heroTitleHighlight: string;
   heroDescription: string;
-  productBoxImage: string;
+  heroLogoUrl?: string;
+  heroPortraitUrl?: string; // Arte 9
+  heroLandscapeUrl?: string;
+  productBoxImage: string; // Arte 8 fallback
   productAltText: string;
   heroFeatures: string[];
+
+  // Linhas de Produto (3 Linhas Estruturadas)
+  showLineSelector?: boolean;
+  hdLine?: OptiSyncHdLineSettings;
+  photochromicLine?: OptiSyncPhotochromicLineSettings;
+  kidsLine?: OptiSyncKidsLineSettings;
+
+  // Galeria de Artes com Lightbox
+  showGallery?: boolean;
+  galleryTitle?: string;
+  gallerySubtitle?: string;
+  galleryItems?: OptiSyncGalleryItem[];
+
+  // Seção de Cores (Banner Arte 2 e Rodapé)
+  colorsBannerUrl?: string; // Arte 2
+  colorsBannerAlt?: string;
+  colorsBannerTitle?: string;
+  colorsBannerSubtitle?: string;
 
   // Visibilidade de Seções
   showHero: boolean;
