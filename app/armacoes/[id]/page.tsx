@@ -135,25 +135,25 @@ export default async function FrameDetailPage({ params }: FrameDetailPageProps) 
   ).slice(0, 4);
 
   return (
-    <div className="min-h-screen flex flex-col bg-[#040914] text-white selection:bg-amber-400 selection:text-slate-950 font-sans">
-      <Header theme="dark" />
+    <div className="min-h-screen flex flex-col bg-white text-slate-900 selection:bg-amber-400 selection:text-slate-950 font-sans">
+      <Header theme="light" />
 
-      <main className="flex-1 pt-24 pb-20">
+      <main className="flex-1 pt-20 sm:pt-24 pb-20">
         <div className="max-w-[1400px] mx-auto px-4 sm:px-8 lg:px-10 py-6">
           {/* Breadcrumb de Navegação */}
           <nav
-            className="text-xs text-slate-400 mb-6 flex items-center gap-2"
+            className="text-xs text-slate-500 mb-6 flex items-center gap-2"
             aria-label="Breadcrumb"
           >
-            <Link href="/" className="hover:text-amber-400 transition-colors">
+            <Link href="/" className="hover:text-amber-600 transition-colors">
               Início
             </Link>
-            <span className="text-slate-600">/</span>
-            <Link href="/armacoes" className="hover:text-amber-400 transition-colors">
+            <span className="text-slate-300">/</span>
+            <Link href="/armacoes" className="hover:text-amber-600 transition-colors">
               Armações
             </Link>
-            <span className="text-slate-600">/</span>
-            <span className="text-white font-semibold">{product.name}</span>
+            <span className="text-slate-300">/</span>
+            <span className="text-slate-900 font-semibold">{product.name}</span>
           </nav>
 
           {/* Grade Principal do Produto */}
@@ -164,33 +164,33 @@ export default async function FrameDetailPage({ params }: FrameDetailPageProps) 
 
               {/* Destaques de Confiança e Procedência */}
               <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 text-xs pt-2">
-                <div className="p-4 rounded-2xl bg-[#06111f] border border-white/10 flex items-center gap-3">
-                  <div className="w-9 h-9 rounded-xl bg-amber-400/15 flex items-center justify-center text-amber-400 shrink-0">
+                <div className="p-4 rounded-2xl bg-slate-50 border border-slate-200/80 shadow-2xs flex items-center gap-3">
+                  <div className="w-9 h-9 rounded-xl bg-amber-500/10 flex items-center justify-center text-amber-600 shrink-0">
                     <ShieldCheck size={18} />
                   </div>
                   <div>
-                    <p className="font-semibold text-white">Garantia Oficial</p>
-                    <p className="text-[11px] text-slate-400">12 meses com nota fiscal</p>
+                    <p className="font-semibold text-slate-900">Garantia Oficial</p>
+                    <p className="text-[11px] text-slate-500">12 meses com nota fiscal</p>
                   </div>
                 </div>
 
-                <div className="p-4 rounded-2xl bg-[#06111f] border border-white/10 flex items-center gap-3">
-                  <div className="w-9 h-9 rounded-xl bg-amber-400/15 flex items-center justify-center text-amber-400 shrink-0">
+                <div className="p-4 rounded-2xl bg-slate-50 border border-slate-200/80 shadow-2xs flex items-center gap-3">
+                  <div className="w-9 h-9 rounded-xl bg-amber-500/10 flex items-center justify-center text-amber-600 shrink-0">
                     <Glasses size={18} />
                   </div>
                   <div>
-                    <p className="font-semibold text-white">Ajuste Gratuito</p>
-                    <p className="text-[11px] text-slate-400">Calibração anatômica</p>
+                    <p className="font-semibold text-slate-900">Ajuste Gratuito</p>
+                    <p className="text-[11px] text-slate-500">Calibração anatômica</p>
                   </div>
                 </div>
 
-                <div className="p-4 rounded-2xl bg-[#06111f] border border-white/10 flex items-center gap-3">
-                  <div className="w-9 h-9 rounded-xl bg-amber-400/15 flex items-center justify-center text-amber-400 shrink-0">
+                <div className="p-4 rounded-2xl bg-slate-50 border border-slate-200/80 shadow-2xs flex items-center gap-3">
+                  <div className="w-9 h-9 rounded-xl bg-amber-500/10 flex items-center justify-center text-amber-600 shrink-0">
                     <Clock size={18} />
                   </div>
                   <div>
-                    <p className="font-semibold text-white">Montagem Ágil</p>
-                    <p className="text-[11px] text-slate-400">Laboratório próprio</p>
+                    <p className="font-semibold text-slate-900">Montagem Ágil</p>
+                    <p className="text-[11px] text-slate-500">Laboratório próprio</p>
                   </div>
                 </div>
               </div>
@@ -200,31 +200,31 @@ export default async function FrameDetailPage({ params }: FrameDetailPageProps) 
             <div className="lg:col-span-5 space-y-6">
               <div className="space-y-3">
                 <div className="flex items-center gap-2 flex-wrap">
-                  <span className="text-xs font-bold tracking-widest uppercase text-amber-400">
+                  <span className="text-xs font-bold tracking-widest uppercase text-amber-600">
                     {product.category?.name || "Ventara Eyewear"}
                   </span>
-                  <span className="text-[10px] text-slate-300 font-medium flex items-center gap-1 bg-white/5 border border-white/10 px-2.5 py-0.5 rounded-full">
-                    <Sparkles size={11} className="text-amber-400" /> Curadoria Autoral
+                  <span className="text-[10px] text-slate-600 font-medium flex items-center gap-1 bg-slate-100 border border-slate-200 px-2.5 py-0.5 rounded-full">
+                    <Sparkles size={11} className="text-amber-500" /> Curadoria Autoral
                   </span>
                   <span className="text-[10px] text-slate-950 font-bold bg-amber-400 px-2 py-0.5 rounded-full uppercase tracking-wider">
                     NOVO
                   </span>
                 </div>
 
-                <h1 className="text-3xl sm:text-4xl font-semibold tracking-tight text-white leading-tight">
+                <h1 className="text-3xl sm:text-4xl font-semibold tracking-tight text-slate-900 leading-tight">
                   {product.name}
                 </h1>
 
                 {/* Avaliações em Estrelas e Código de Referência */}
-                <div className="flex items-center gap-3 text-xs text-slate-400 pt-0.5">
+                <div className="flex items-center gap-3 text-xs text-slate-500 pt-0.5">
                   <div className="flex items-center gap-1 text-amber-400">
                     {[...Array(5)].map((_, i) => (
                       <Star key={i} size={14} className="fill-amber-400 text-amber-400" />
                     ))}
-                    <span className="font-bold text-white ml-1">5.0</span>
+                    <span className="font-bold text-slate-900 ml-1">5.0</span>
                   </div>
                   <span>·</span>
-                  <span className="text-slate-300">234 avaliações</span>
+                  <span className="text-slate-500">234 avaliações</span>
                   <span>·</span>
                   <span className="font-mono text-slate-400 text-[11px]">
                     REF: {product.slug.toUpperCase()}
@@ -244,7 +244,7 @@ export default async function FrameDetailPage({ params }: FrameDetailPageProps) 
                         </span>
                       )}
                       {originalPrice && (
-                        <span className="text-xs text-emerald-400 font-medium">
+                        <span className="text-xs text-emerald-600 font-medium">
                           Economia de {(originalPrice - currentPrice).toLocaleString("pt-BR", {
                             style: "currency",
                             currency: "BRL",
@@ -255,47 +255,47 @@ export default async function FrameDetailPage({ params }: FrameDetailPageProps) 
                   )}
 
                   <div className="flex items-baseline gap-3">
-                    <span className="text-3xl font-bold text-white font-mono tracking-tight">
+                    <span className="text-3xl font-bold text-slate-900 font-mono tracking-tight">
                       {priceFormatted}
                     </span>
-                    <span className="text-xs text-slate-400">
+                    <span className="text-xs text-slate-500">
                       ou 10x de {installmentFormatted} sem juros
                     </span>
                   </div>
                 </div>
 
                 {/* Status de Disponibilidade em Estoque */}
-                <div className="p-3 rounded-xl bg-emerald-950/30 border border-emerald-500/20 flex items-center gap-2.5 text-xs text-emerald-300">
-                  <CheckCircle2 size={16} className="text-emerald-400 shrink-0" />
+                <div className="p-3 rounded-xl bg-emerald-50 border border-emerald-200 flex items-center gap-2.5 text-xs text-emerald-800">
+                  <CheckCircle2 size={16} className="text-emerald-600 shrink-0" />
                   <span>
                     <strong>Em Estoque</strong> — Envio expresso para todo o Brasil ou retirada na loja em Araçatuba.
                   </span>
                 </div>
 
                 {product.description && (
-                  <p className="text-xs sm:text-sm text-slate-300 leading-relaxed font-normal pt-2">
+                  <p className="text-xs sm:text-sm text-slate-600 leading-relaxed font-normal pt-2">
                     {product.description}
                   </p>
                 )}
               </div>
 
               {/* Especificações Geométricas */}
-              <div className="p-4 rounded-2xl bg-[#06111f] border border-white/10 space-y-3">
-                <span className="text-xs font-bold text-white uppercase tracking-wider block">
+              <div className="p-4 rounded-2xl bg-slate-50 border border-slate-200/80 space-y-3">
+                <span className="text-xs font-bold text-slate-800 uppercase tracking-wider block">
                   Dimensões Anatômicas (mm):
                 </span>
                 <div className="grid grid-cols-3 gap-3 text-center text-xs">
-                  <div className="p-2.5 rounded-xl bg-white/[0.02] border border-white/5">
+                  <div className="p-2.5 rounded-xl bg-white border border-slate-200/70 shadow-2xs">
                     <span className="text-slate-400 block text-[10px] uppercase">Lente</span>
-                    <span className="text-white font-bold">{product.dimensions_lens_mm || 53} mm</span>
+                    <span className="text-slate-900 font-bold">{product.dimensions_lens_mm || 53} mm</span>
                   </div>
-                  <div className="p-2.5 rounded-xl bg-white/[0.02] border border-white/5">
+                  <div className="p-2.5 rounded-xl bg-white border border-slate-200/70 shadow-2xs">
                     <span className="text-slate-400 block text-[10px] uppercase">Ponte</span>
-                    <span className="text-white font-bold">{product.dimensions_bridge_mm || 18} mm</span>
+                    <span className="text-slate-900 font-bold">{product.dimensions_bridge_mm || 18} mm</span>
                   </div>
-                  <div className="p-2.5 rounded-xl bg-white/[0.02] border border-white/5">
+                  <div className="p-2.5 rounded-xl bg-white border border-slate-200/70 shadow-2xs">
                     <span className="text-slate-400 block text-[10px] uppercase">Hastes</span>
-                    <span className="text-white font-bold">{product.dimensions_temple_mm || 145} mm</span>
+                    <span className="text-slate-900 font-bold">{product.dimensions_temple_mm || 145} mm</span>
                   </div>
                 </div>
               </div>
@@ -307,12 +307,12 @@ export default async function FrameDetailPage({ params }: FrameDetailPageProps) 
 
           {/* Modelos Relacionados */}
           {relatedProducts.length > 0 && (
-            <div className="mt-16 pt-12 border-t border-white/10 space-y-6">
+            <div className="mt-16 pt-12 border-t border-slate-200 space-y-6">
               <div>
-                <span className="text-xs font-bold text-amber-400 uppercase tracking-widest">
+                <span className="text-xs font-bold text-amber-600 uppercase tracking-widest">
                   VOCÊ TAMBÉM PODE GOSTAR
                 </span>
-                <h2 className="text-xl sm:text-2xl font-light text-white mt-1">
+                <h2 className="text-xl sm:text-2xl font-light text-slate-900 mt-1">
                   Armações Recomendadas
                 </h2>
               </div>
@@ -330,9 +330,9 @@ export default async function FrameDetailPage({ params }: FrameDetailPageProps) 
                     <Link
                       key={rel.id}
                       href={`/armacoes/${rel.slug || rel.id}`}
-                      className="group p-4 rounded-2xl bg-[#06111f] border border-white/10 hover:border-amber-400/40 space-y-3 transition-colors"
+                      className="group p-4 rounded-2xl bg-white border border-slate-200/90 hover:border-amber-400/80 shadow-xs hover:shadow-md space-y-3 transition-all"
                     >
-                      <div className="relative aspect-square w-full rounded-xl bg-[#040a14] p-3 flex items-center justify-center overflow-hidden">
+                      <div className="relative aspect-square w-full rounded-xl bg-slate-50 p-3 flex items-center justify-center overflow-hidden border border-slate-100">
                         {relImg && (
                           <Image
                             src={relImg}
@@ -344,13 +344,13 @@ export default async function FrameDetailPage({ params }: FrameDetailPageProps) 
                         )}
                       </div>
                       <div>
-                        <span className="text-xs text-amber-400 font-medium block">
+                        <span className="text-xs text-amber-600 font-medium block">
                           Ventara Eyewear
                         </span>
-                        <h3 className="text-sm font-bold text-white group-hover:text-amber-300 truncate">
+                        <h3 className="text-sm font-bold text-slate-900 group-hover:text-amber-600 truncate">
                           {rel.name}
                         </h3>
-                        <span className="text-xs text-slate-300 font-bold block mt-1">
+                        <span className="text-xs text-slate-600 font-bold block mt-1">
                           {relPrice}
                         </span>
                       </div>

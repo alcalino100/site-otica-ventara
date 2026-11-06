@@ -144,7 +144,7 @@ export function HeroSlidesManager() {
       primary_button_text: "Catálogo de Lentes",
       primary_button_url: "/lentes",
       secondary_button_text: "Ver armações",
-      secondary_button_url: "#armacoes",
+      secondary_button_url: "/armacoes",
       show_trust_markers: true,
     };
     setEditingSlide(newSlide);
