@@ -136,7 +136,7 @@ export default async function FrameDetailPage({ params }: FrameDetailPageProps) 
 
   return (
     <div className="min-h-screen flex flex-col bg-white text-slate-900 selection:bg-amber-400 selection:text-slate-950 font-sans">
-      <Header theme="light" />
+      <Header theme="dark" />
 
       <main className="flex-1 pt-20 sm:pt-24 pb-20">
         <div className="max-w-[1400px] mx-auto px-4 sm:px-8 lg:px-10 py-6">

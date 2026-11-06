@@ -84,4 +84,23 @@ test.describe("Validação dos Ajustes Urgentes do Cliente (Prints)", () => {
     await expect(visaBadge).toBeVisible();
     await expect(visaBadge).toHaveAttribute("src", /\/visa\.svg/);
   });
+
+  test("5. Catálogo /armacoes: Header escuro oficial da marca e sem gap branco acima do hero", async ({
+    page,
+  }) => {
+    await page.goto("/armacoes");
+    await page.waitForLoadState("domcontentloaded");
+
+    // Header fixo visível
+    const header = page.locator("header.site-header");
+    await expect(header).toBeVisible();
+
+    // Hero section escura começa no topo absoluto (sem gap branco exposto)
+    const heroSection = page.locator("section").first();
+    await expect(heroSection).toBeVisible();
+    await expect(heroSection).toHaveClass(/bg-\[#02070D\]/);
+
+    const heroBox = await heroSection.boundingBox();
+    expect(heroBox?.y).toBe(0);
+  });
 });
