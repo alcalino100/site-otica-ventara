@@ -21,8 +21,16 @@ export async function getStoredLensesCatalog(): Promise<AdminLensItem[]> {
         .eq("key", "lenses_catalog")
         .maybeSingle();
 
-      if (!error && data?.value && Array.isArray(data.value)) {
-        return data.value as AdminLensItem[];
+      if (!error && data?.value) {
+        let list = data.value;
+        if (typeof list === "string") {
+          try {
+            list = JSON.parse(list);
+          } catch {}
+        }
+        if (Array.isArray(list)) {
+          return list as AdminLensItem[];
+        }
       }
     } catch (err) {
       console.warn("Aviso ao buscar lenses_catalog do Supabase, usando fallback padrão:", err);
