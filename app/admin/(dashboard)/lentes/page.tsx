@@ -27,6 +27,9 @@ import {
   ArrowDown,
   Gauge,
   SlidersHorizontal,
+  Sun,
+  Compass,
+  HelpCircle,
 } from "lucide-react";
 import {
   AdminLensItem,
@@ -66,6 +69,7 @@ export default function AdminLensesPage() {
   const [isUploadingOptisyncDesktopBg, setIsUploadingOptisyncDesktopBg] = useState(false);
   const [isUploadingOptisyncMobileBg, setIsUploadingOptisyncMobileBg] = useState(false);
   const [isUploadingOptisyncProduct, setIsUploadingOptisyncProduct] = useState(false);
+  const [uploadingSlotId, setUploadingSlotId] = useState<string | null>(null);
   const [hexErrors, setHexErrors] = useState<Record<string, string>>({});
   const [isLoading, setIsLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
@@ -643,6 +647,37 @@ export default function AdminLensesPage() {
       setIsUploadingOptisyncDesktopBg(false);
       setIsUploadingOptisyncMobileBg(false);
       setIsUploadingOptisyncProduct(false);
+    }
+  };
+
+  const handleUploadToSlot = async (
+    slotId: string,
+    setter: (url: string) => void,
+    e: React.ChangeEvent<HTMLInputElement>
+  ) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    setUploadingSlotId(slotId);
+    try {
+      const formData = new FormData();
+      formData.append("file", file);
+      const res = await fetch("/api/admin/upload", {
+        method: "POST",
+        body: formData,
+      });
+      const data = await res.json();
+      if (!res.ok || data.error) {
+        throw new Error(data.error || "Erro ao fazer upload da imagem.");
+      }
+      if (data.url) {
+        setter(data.url);
+        setFeedback("Imagem enviada com sucesso! Clique em 'Salvar Todas as Configurações OPTiSYNC' para publicar.");
+        setTimeout(() => setFeedback(null), 4000);
+      }
+    } catch (err: any) {
+      alert(err.message || "Falha no envio da imagem.");
+    } finally {
+      setUploadingSlotId(null);
     }
   };
 
@@ -2489,20 +2524,20 @@ export default function AdminLensesPage() {
               </div>
             )}
 
-            {/* Controles de Cores, Feixes e Intensidade */}
+            {/* Controles de Cores, Feixes e Intensidade (Medidas das Artes Oficiais) */}
             <div className="space-y-4 pt-2">
               <span className="text-xs font-bold text-slate-300 uppercase tracking-wider block">
-                Paleta Cromática &amp; Efeitos Tecnológicos
+                Paleta Cromática Medida das Artes Oficiais &amp; Efeitos
               </span>
 
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 text-xs">
-                {/* Gradiente Base From */}
+                {/* Gradiente Base From (#000933) */}
                 <div className="space-y-1">
-                  <label className="text-slate-400 block">Gradiente Início (Índigo Profundo)</label>
+                  <label className="text-slate-400 block">Base Azul-Marinho Profundo</label>
                   <div className="flex items-center gap-2">
                     <input
                       type="color"
-                      value={optisyncSettings.gradientBaseFrom || "#040B2B"}
+                      value={optisyncSettings.gradientBaseFrom || "#000933"}
                       onChange={(e) => {
                         const val = e.target.value;
                         validateHexColor("gradFrom", val);
@@ -2512,7 +2547,7 @@ export default function AdminLensesPage() {
                     />
                     <input
                       type="text"
-                      value={optisyncSettings.gradientBaseFrom || "#040B2B"}
+                      value={optisyncSettings.gradientBaseFrom || "#000933"}
                       onChange={(e) => {
                         const val = e.target.value;
                         validateHexColor("gradFrom", val);
@@ -2526,93 +2561,153 @@ export default function AdminLensesPage() {
                   )}
                 </div>
 
-                {/* Gradiente Base To */}
+                {/* Violeta Esquerdo (#4C01AE) */}
                 <div className="space-y-1">
-                  <label className="text-slate-400 block">Gradiente Fim (Azul Noturno)</label>
+                  <label className="text-slate-400 block">Feixe Violeta Esquerdo (#4C01AE)</label>
                   <div className="flex items-center gap-2">
                     <input
                       type="color"
-                      value={optisyncSettings.gradientBaseTo || "#0A1A6B"}
+                      value={optisyncSettings.colorVioletLeft || "#4C01AE"}
                       onChange={(e) => {
                         const val = e.target.value;
-                        validateHexColor("gradTo", val);
-                        setOptisyncSettings((prev) => ({ ...prev, gradientBaseTo: val }));
+                        validateHexColor("violetLeft", val);
+                        setOptisyncSettings((prev) => ({ ...prev, colorVioletLeft: val }));
                       }}
                       className="w-8 h-8 p-0 rounded bg-transparent border border-white/10 cursor-pointer"
                     />
                     <input
                       type="text"
-                      value={optisyncSettings.gradientBaseTo || "#0A1A6B"}
+                      value={optisyncSettings.colorVioletLeft || "#4C01AE"}
                       onChange={(e) => {
                         const val = e.target.value;
-                        validateHexColor("gradTo", val);
-                        setOptisyncSettings((prev) => ({ ...prev, gradientBaseTo: val }));
+                        validateHexColor("violetLeft", val);
+                        setOptisyncSettings((prev) => ({ ...prev, colorVioletLeft: val }));
                       }}
                       className="w-full bg-[#040e1c] border border-white/10 rounded-lg px-2.5 py-1.5 font-mono text-white text-xs"
                     />
                   </div>
-                  {hexErrors["gradTo"] && (
-                    <span className="text-[10px] text-rose-400 block">{hexErrors["gradTo"]}</span>
+                  {hexErrors["violetLeft"] && (
+                    <span className="text-[10px] text-rose-400 block">{hexErrors["violetLeft"]}</span>
                   )}
                 </div>
 
-                {/* Feixe Azul Elétrico */}
+                {/* Azul Elétrico Direito (#0044C9) */}
                 <div className="space-y-1">
-                  <label className="text-slate-400 block">Feixe de Luz Azul Elétrico</label>
+                  <label className="text-slate-400 block">Feixe Azul Elétrico Direito (#0044C9)</label>
                   <div className="flex items-center gap-2">
                     <input
                       type="color"
-                      value={optisyncSettings.beamColorBlue || "#1E4BFF"}
+                      value={optisyncSettings.colorBlueRight || "#0044C9"}
                       onChange={(e) => {
                         const val = e.target.value;
-                        validateHexColor("beamBlue", val);
-                        setOptisyncSettings((prev) => ({ ...prev, beamColorBlue: val }));
+                        validateHexColor("blueRight", val);
+                        setOptisyncSettings((prev) => ({ ...prev, colorBlueRight: val }));
                       }}
                       className="w-8 h-8 p-0 rounded bg-transparent border border-white/10 cursor-pointer"
                     />
                     <input
                       type="text"
-                      value={optisyncSettings.beamColorBlue || "#1E4BFF"}
+                      value={optisyncSettings.colorBlueRight || "#0044C9"}
                       onChange={(e) => {
                         const val = e.target.value;
-                        validateHexColor("beamBlue", val);
-                        setOptisyncSettings((prev) => ({ ...prev, beamColorBlue: val }));
+                        validateHexColor("blueRight", val);
+                        setOptisyncSettings((prev) => ({ ...prev, colorBlueRight: val }));
                       }}
                       className="w-full bg-[#040e1c] border border-white/10 rounded-lg px-2.5 py-1.5 font-mono text-white text-xs"
                     />
                   </div>
-                  {hexErrors["beamBlue"] && (
-                    <span className="text-[10px] text-rose-400 block">{hexErrors["beamBlue"]}</span>
+                  {hexErrors["blueRight"] && (
+                    <span className="text-[10px] text-rose-400 block">{hexErrors["blueRight"]}</span>
                   )}
                 </div>
 
-                {/* Feixe Roxo Elétrico */}
+                {/* Brilho Magenta Pontual (#B93DAA) */}
                 <div className="space-y-1">
-                  <label className="text-slate-400 block">Feixe de Luz Roxo Elétrico</label>
+                  <label className="text-slate-400 block">Brilho Magenta Pontual (#B93DAA)</label>
                   <div className="flex items-center gap-2">
                     <input
                       type="color"
-                      value={optisyncSettings.beamColorPurple || "#7A2CFF"}
+                      value={optisyncSettings.colorMagentaSpot || "#B93DAA"}
                       onChange={(e) => {
                         const val = e.target.value;
-                        validateHexColor("beamPurple", val);
-                        setOptisyncSettings((prev) => ({ ...prev, beamColorPurple: val }));
+                        validateHexColor("magentaSpot", val);
+                        setOptisyncSettings((prev) => ({ ...prev, colorMagentaSpot: val }));
                       }}
                       className="w-8 h-8 p-0 rounded bg-transparent border border-white/10 cursor-pointer"
                     />
                     <input
                       type="text"
-                      value={optisyncSettings.beamColorPurple || "#7A2CFF"}
+                      value={optisyncSettings.colorMagentaSpot || "#B93DAA"}
                       onChange={(e) => {
                         const val = e.target.value;
-                        validateHexColor("beamPurple", val);
-                        setOptisyncSettings((prev) => ({ ...prev, beamColorPurple: val }));
+                        validateHexColor("magentaSpot", val);
+                        setOptisyncSettings((prev) => ({ ...prev, colorMagentaSpot: val }));
                       }}
                       className="w-full bg-[#040e1c] border border-white/10 rounded-lg px-2.5 py-1.5 font-mono text-white text-xs"
                     />
                   </div>
-                  {hexErrors["beamPurple"] && (
-                    <span className="text-[10px] text-rose-400 block">{hexErrors["beamPurple"]}</span>
+                  {hexErrors["magentaSpot"] && (
+                    <span className="text-[10px] text-rose-400 block">{hexErrors["magentaSpot"]}</span>
+                  )}
+                </div>
+
+                {/* Amarelo da Marca (#FFC21A) */}
+                <div className="space-y-1">
+                  <label className="text-slate-400 block">Acento Amarelo Marca (#FFC21A)</label>
+                  <div className="flex items-center gap-2">
+                    <input
+                      type="color"
+                      value={optisyncSettings.colorYellowAccent || "#FFC21A"}
+                      onChange={(e) => {
+                        const val = e.target.value;
+                        validateHexColor("yellowAccent", val);
+                        setOptisyncSettings((prev) => ({ ...prev, colorYellowAccent: val }));
+                      }}
+                      className="w-8 h-8 p-0 rounded bg-transparent border border-white/10 cursor-pointer"
+                    />
+                    <input
+                      type="text"
+                      value={optisyncSettings.colorYellowAccent || "#FFC21A"}
+                      onChange={(e) => {
+                        const val = e.target.value;
+                        validateHexColor("yellowAccent", val);
+                        setOptisyncSettings((prev) => ({ ...prev, colorYellowAccent: val }));
+                      }}
+                      className="w-full bg-[#040e1c] border border-white/10 rounded-lg px-2.5 py-1.5 font-mono text-white text-xs"
+                    />
+                  </div>
+                  {hexErrors["yellowAccent"] && (
+                    <span className="text-[10px] text-rose-400 block">{hexErrors["yellowAccent"]}</span>
+                  )}
+                </div>
+
+                {/* Violeta de Brilho (#7A2CFF) */}
+                <div className="space-y-1">
+                  <label className="text-slate-400 block">Brilho Violeta (#7A2CFF)</label>
+                  <div className="flex items-center gap-2">
+                    <input
+                      type="color"
+                      value={optisyncSettings.colorVioletGlow || "#7A2CFF"}
+                      onChange={(e) => {
+                        const val = e.target.value;
+                        validateHexColor("violetGlow", val);
+                        setOptisyncSettings((prev) => ({ ...prev, colorVioletGlow: val }));
+                      }}
+                      className="w-8 h-8 p-0 rounded bg-transparent border border-white/10 cursor-pointer"
+                    />
+                    <input
+                      type="text"
+                      value={optisyncSettings.colorVioletGlow || "#7A2CFF"}
+                      onChange={(e) => {
+                        const val = e.target.value;
+                        validateHexColor("violetGlow", val);
+                        setOptisyncSettings((prev) => ({ ...prev, colorVioletGlow: val }));
+                      }}
+                      className="w-full bg-[#040e1c] border border-white/10 rounded-lg px-2.5 py-1.5 font-mono text-white text-xs"
+                    />
+                  </div>
+                  {hexErrors["violetGlow"] && (
+                    <span className="text-[10px] text-rose-400 block">{hexErrors["violetGlow"]}</span>
                   )}
                 </div>
               </div>
@@ -2622,13 +2717,13 @@ export default function AdminLensesPage() {
                 <div>
                   <div className="flex items-center justify-between mb-1">
                     <span className="text-slate-400">Intensidade dos Feixes</span>
-                    <span className="text-amber-400 font-mono">{optisyncSettings.beamsIntensity ?? 70}%</span>
+                    <span className="text-amber-400 font-mono">{optisyncSettings.beamsIntensity ?? 85}%</span>
                   </div>
                   <input
                     type="range"
                     min={0}
                     max={100}
-                    value={optisyncSettings.beamsIntensity ?? 70}
+                    value={optisyncSettings.beamsIntensity ?? 85}
                     onChange={(e) =>
                       setOptisyncSettings((prev) => ({
                         ...prev,
@@ -2642,13 +2737,13 @@ export default function AdminLensesPage() {
                 <div>
                   <div className="flex items-center justify-between mb-1">
                     <span className="text-slate-400">Brilho Radial do Produto</span>
-                    <span className="text-amber-400 font-mono">{optisyncSettings.glowIntensity ?? 60}%</span>
+                    <span className="text-amber-400 font-mono">{optisyncSettings.glowIntensity ?? 80}%</span>
                   </div>
                   <input
                     type="range"
                     min={0}
                     max={100}
-                    value={optisyncSettings.glowIntensity ?? 60}
+                    value={optisyncSettings.glowIntensity ?? 80}
                     onChange={(e) =>
                       setOptisyncSettings((prev) => ({
                         ...prev,
@@ -2698,164 +2793,597 @@ export default function AdminLensesPage() {
             </div>
           </div>
 
-          {/* CARD 2: PRODUTO EM PRIMEIRO PLANO & TEXTOS DO HERO */}
+          {/* ALERTA VISUAL DE IMAGENS DUPLICADAS */}
+          {(() => {
+            const images = [
+              { slot: "Hero Retrato (Arte 9)", url: optisyncSettings.heroPortraitUrl },
+              { slot: "Hero Caixa (Arte 8)", url: optisyncSettings.productBoxImage },
+              { slot: "HD Caixa (Arte 8)", url: optisyncSettings.hdLine?.productImageUrl },
+              { slot: "HD Gamer (Arte 5)", url: optisyncSettings.hdLine?.gamerImageUrl },
+              { slot: "HD Escritório (Arte 10)", url: optisyncSettings.hdLine?.officeImageUrl },
+              { slot: "HD Robô (Arte 6)", url: optisyncSettings.hdLine?.robotImageUrl },
+              { slot: "Fotossensível Banner (Arte 7)", url: optisyncSettings.photochromicLine?.halfDarkBannerUrl },
+              { slot: "Fotossensível 3 Estados (Arte 4)", url: optisyncSettings.photochromicLine?.threeStatesGridUrl },
+              { slot: "Kids Pôster (Arte 1)", url: optisyncSettings.kidsLine?.posterBoyUrl },
+              { slot: "Kids Logo 3D (Arte 3)", url: optisyncSettings.kidsLine?.logo3dUrl },
+              { slot: "Cores Banner (Arte 2)", url: optisyncSettings.colorsBannerUrl },
+            ].filter((i) => Boolean(i.url && i.url.trim().length > 0));
+
+            const urlCounts: Record<string, string[]> = {};
+            images.forEach((item) => {
+              const u = item.url!;
+              if (!urlCounts[u]) urlCounts[u] = [];
+              urlCounts[u].push(item.slot);
+            });
+
+            const duplicates = Object.entries(urlCounts).filter(([_, slots]) => slots.length > 1);
+            if (duplicates.length === 0) return null;
+
+            return (
+              <div className="p-4 rounded-xl bg-amber-500/10 border border-amber-500/30 flex items-start gap-3 text-xs">
+                <AlertCircle className="w-5 h-5 text-amber-400 shrink-0 mt-0.5" />
+                <div className="space-y-1">
+                  <span className="font-bold text-amber-300 block uppercase tracking-wider">
+                    Aviso: Imagens repetidas em múltiplos slots
+                  </span>
+                  <div className="text-slate-300 space-y-1">
+                    {duplicates.map(([url, slots], idx) => (
+                      <p key={idx}>
+                        A imagem <code className="text-amber-300 bg-black/40 px-1 py-0.5 rounded">{url.slice(0, 40)}...</code> está configurada em: <strong>{slots.join(" · ")}</strong>.
+                      </p>
+                    ))}
+                  </div>
+                </div>
+              </div>
+            );
+          })()}
+
+          {/* CARD 2: HERO OFICIAL & SLOTS DE IMAGEM (ARTES 9 E 8) */}
           <div className="bg-[#0a1526] border border-white/10 rounded-2xl p-6 space-y-4">
             <h3 className="text-base font-bold text-white flex items-center gap-2">
               <Eye size={16} className="text-amber-400" />
-              <span>Produto em Primeiro Plano (Hero) &amp; Textos</span>
+              <span>Hero Oficial, Identidade e Slots Principais</span>
             </h3>
 
             <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
-              {/* Foto do Produto */}
-              <div className="lg:col-span-5 space-y-3">
+              {/* Slot Retrato Hero (Arte 9 - 4:5) */}
+              <div className="lg:col-span-6 space-y-2">
                 <label className="text-xs font-semibold text-slate-300 block">
-                  Foto do Produto em Destaque (Caixa / Lente)
+                  Slot Arte 9: Retrato Hero (Homem de Perfil / 4:5)
                 </label>
-                <div className="p-4 bg-[#040e1c] border border-white/10 rounded-2xl flex flex-col items-center justify-center">
-                  <div className="w-full max-w-[220px] aspect-square bg-[#030914] rounded-xl p-3 flex items-center justify-center shadow-lg border border-amber-400/20 overflow-hidden mb-3">
-                    <img
-                      src={optisyncSettings.productBoxImage || "/images/lenses/optisync-box.jpg"}
-                      alt="Preview Produto"
-                      className="max-h-full max-w-full object-contain"
-                    />
+                <div className="p-4 bg-[#040e1c] border border-white/10 rounded-2xl flex flex-col items-center">
+                  <div className="w-full max-w-[200px] aspect-[4/5] bg-[#030914] rounded-xl overflow-hidden mb-3 border border-amber-400/20 relative flex items-center justify-center">
+                    {optisyncSettings.heroPortraitUrl ? (
+                      <img
+                        src={optisyncSettings.heroPortraitUrl}
+                        alt="Hero Retrato"
+                        className="w-full h-full object-cover"
+                      />
+                    ) : (
+                      <span className="text-[11px] text-slate-500">Sem imagem configurada</span>
+                    )}
                   </div>
-
                   <div className="w-full space-y-2">
-                    <label className="w-full py-2 px-3 rounded-xl bg-amber-400 hover:bg-amber-300 text-slate-950 font-bold text-xs uppercase tracking-wider flex items-center justify-center gap-2 transition-all cursor-pointer">
+                    <label className="w-full py-2 px-3 rounded-xl bg-amber-400 hover:bg-amber-300 text-slate-950 font-bold text-xs uppercase tracking-wider flex items-center justify-center gap-2 cursor-pointer">
                       <Upload size={14} />
-                      <span>{isUploadingOptisyncProduct ? "Enviando..." : "Trocar Foto do Produto"}</span>
+                      <span>{uploadingSlotId === "heroPortrait" ? "Enviando..." : "Upload Retrato Hero"}</span>
                       <input
                         type="file"
                         accept="image/*"
-                        onChange={(e) => handleOptisyncImageUpload("productImage", e)}
-                        disabled={isUploadingOptisyncProduct}
+                        onChange={(e) =>
+                          handleUploadToSlot(
+                            "heroPortrait",
+                            (url) => setOptisyncSettings((prev) => ({ ...prev, heroPortraitUrl: url })),
+                            e
+                          )
+                        }
+                        disabled={uploadingSlotId === "heroPortrait"}
                         className="hidden"
                       />
                     </label>
-
                     <input
                       type="text"
-                      value={optisyncSettings.productBoxImage || ""}
+                      value={optisyncSettings.heroPortraitUrl || ""}
                       onChange={(e) =>
-                        setOptisyncSettings((prev) => ({
-                          ...prev,
-                          productBoxImage: e.target.value,
-                        }))
+                        setOptisyncSettings((prev) => ({ ...prev, heroPortraitUrl: e.target.value }))
                       }
-                      placeholder="/images/lenses/optisync-box.jpg"
-                      className="w-full bg-[#040e1c] border border-white/10 rounded-lg px-2.5 py-1.5 text-xs text-white"
+                      placeholder="/images/lenses/optisync/arte-09-hd-hero-retrato.jpg"
+                      className="w-full bg-[#040e1c] border border-white/10 rounded-lg px-2.5 py-1.5 text-xs text-white font-mono"
                     />
                   </div>
                 </div>
               </div>
 
-              {/* Textos do Hero */}
-              <div className="lg:col-span-7 space-y-3 text-xs">
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                  <div>
-                    <label className="text-slate-300 font-semibold block mb-1">Badge Superior</label>
+              {/* Slot Caixa do Produto (Arte 8 - 4:5) */}
+              <div className="lg:col-span-6 space-y-2">
+                <label className="text-xs font-semibold text-slate-300 block">
+                  Slot Arte 8: Caixa e Lente em Destaque (4:5)
+                </label>
+                <div className="p-4 bg-[#040e1c] border border-white/10 rounded-2xl flex flex-col items-center">
+                  <div className="w-full max-w-[200px] aspect-[4/5] bg-[#030914] rounded-xl overflow-hidden mb-3 border border-amber-400/20 relative flex items-center justify-center">
+                    {optisyncSettings.productBoxImage ? (
+                      <img
+                        src={optisyncSettings.productBoxImage}
+                        alt="Caixa Oficial"
+                        className="w-full h-full object-cover"
+                      />
+                    ) : (
+                      <span className="text-[11px] text-slate-500">Sem imagem configurada</span>
+                    )}
+                  </div>
+                  <div className="w-full space-y-2">
+                    <label className="w-full py-2 px-3 rounded-xl bg-amber-400 hover:bg-amber-300 text-slate-950 font-bold text-xs uppercase tracking-wider flex items-center justify-center gap-2 cursor-pointer">
+                      <Upload size={14} />
+                      <span>{uploadingSlotId === "productBox" ? "Enviando..." : "Upload Caixa Oficial"}</span>
+                      <input
+                        type="file"
+                        accept="image/*"
+                        onChange={(e) =>
+                          handleUploadToSlot(
+                            "productBox",
+                            (url) => setOptisyncSettings((prev) => ({ ...prev, productBoxImage: url })),
+                            e
+                          )
+                        }
+                        disabled={uploadingSlotId === "productBox"}
+                        className="hidden"
+                      />
+                    </label>
                     <input
                       type="text"
-                      value={optisyncSettings.heroBadge || ""}
+                      value={optisyncSettings.productBoxImage || ""}
                       onChange={(e) =>
-                        setOptisyncSettings((prev) => ({ ...prev, heroBadge: e.target.value }))
+                        setOptisyncSettings((prev) => ({ ...prev, productBoxImage: e.target.value }))
                       }
-                      className="w-full bg-[#040e1c] border border-white/10 rounded-xl px-3 py-2 text-white"
-                    />
-                  </div>
-                  <div>
-                    <label className="text-slate-300 font-semibold block mb-1">Título Hero</label>
-                    <input
-                      type="text"
-                      value={optisyncSettings.heroTitle || ""}
-                      onChange={(e) =>
-                        setOptisyncSettings((prev) => ({ ...prev, heroTitle: e.target.value }))
-                      }
-                      className="w-full bg-[#040e1c] border border-white/10 rounded-xl px-3 py-2 text-white font-bold"
-                    />
-                  </div>
-                </div>
-
-                <div>
-                  <label className="text-slate-300 font-semibold block mb-1">Destaque do Título (Dourado)</label>
-                  <input
-                    type="text"
-                    value={optisyncSettings.heroTitleHighlight || ""}
-                    onChange={(e) =>
-                      setOptisyncSettings((prev) => ({ ...prev, heroTitleHighlight: e.target.value }))
-                    }
-                    className="w-full bg-[#040e1c] border border-white/10 rounded-xl px-3 py-2 text-white"
-                  />
-                </div>
-
-                <div>
-                  <label className="text-slate-300 font-semibold block mb-1">Texto Lead / Descrição</label>
-                  <textarea
-                    rows={3}
-                    value={optisyncSettings.heroDescription || ""}
-                    onChange={(e) =>
-                      setOptisyncSettings((prev) => ({ ...prev, heroDescription: e.target.value }))
-                    }
-                    className="w-full bg-[#040e1c] border border-white/10 rounded-xl px-3 py-2 text-white leading-relaxed resize-none"
-                  />
-                </div>
-
-                {/* Selos de Características */}
-                <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 pt-1">
-                  <div>
-                    <label className="text-[11px] text-slate-400 block mb-0.5">Selo 1 (ex: Filtro Azul)</label>
-                    <input
-                      type="text"
-                      value={optisyncSettings.heroFeatures?.[0] || ""}
-                      onChange={(e) => {
-                        const val = e.target.value;
-                        setOptisyncSettings((prev) => {
-                          const f = [...(prev.heroFeatures || ["Filtro azul", "Antirreflexo", "Montagem rápida"])];
-                          f[0] = val;
-                          return { ...prev, heroFeatures: f };
-                        });
-                      }}
-                      className="w-full bg-[#040e1c] border border-white/10 rounded-lg px-2.5 py-1.5 text-white"
-                    />
-                  </div>
-                  <div>
-                    <label className="text-[11px] text-slate-400 block mb-0.5">Selo 2 (ex: Antirreflexo)</label>
-                    <input
-                      type="text"
-                      value={optisyncSettings.heroFeatures?.[1] || ""}
-                      onChange={(e) => {
-                        const val = e.target.value;
-                        setOptisyncSettings((prev) => {
-                          const f = [...(prev.heroFeatures || ["Filtro azul", "Antirreflexo", "Montagem rápida"])];
-                          f[1] = val;
-                          return { ...prev, heroFeatures: f };
-                        });
-                      }}
-                      className="w-full bg-[#040e1c] border border-white/10 rounded-lg px-2.5 py-1.5 text-white"
-                    />
-                  </div>
-                  <div>
-                    <label className="text-[11px] text-slate-400 block mb-0.5">Selo 3 (ex: Montagem 1h)</label>
-                    <input
-                      type="text"
-                      value={optisyncSettings.heroFeatures?.[2] || ""}
-                      onChange={(e) => {
-                        const val = e.target.value;
-                        setOptisyncSettings((prev) => {
-                          const f = [...(prev.heroFeatures || ["Filtro azul", "Antirreflexo", "Montagem rápida"])];
-                          f[2] = val;
-                          return { ...prev, heroFeatures: f };
-                        });
-                      }}
-                      className="w-full bg-[#040e1c] border border-white/10 rounded-lg px-2.5 py-1.5 text-white"
+                      placeholder="/images/lenses/optisync/arte-08-hd-caixa-lente.jpg"
+                      className="w-full bg-[#040e1c] border border-white/10 rounded-lg px-2.5 py-1.5 text-xs text-white font-mono"
                     />
                   </div>
                 </div>
               </div>
             </div>
+
+            {/* Textos do Hero */}
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 pt-3 text-xs border-t border-white/10">
+              <div>
+                <label className="text-slate-300 font-semibold block mb-1">Badge Superior</label>
+                <input
+                  type="text"
+                  value={optisyncSettings.heroBadge || ""}
+                  onChange={(e) =>
+                    setOptisyncSettings((prev) => ({ ...prev, heroBadge: e.target.value }))
+                  }
+                  className="w-full bg-[#040e1c] border border-white/10 rounded-xl px-3 py-2 text-white"
+                />
+              </div>
+              <div>
+                <label className="text-slate-300 font-semibold block mb-1">Título Hero</label>
+                <input
+                  type="text"
+                  value={optisyncSettings.heroTitle || ""}
+                  onChange={(e) =>
+                    setOptisyncSettings((prev) => ({ ...prev, heroTitle: e.target.value }))
+                  }
+                  className="w-full bg-[#040e1c] border border-white/10 rounded-xl px-3 py-2 text-white font-bold"
+                />
+              </div>
+              <div>
+                <label className="text-slate-300 font-semibold block mb-1">Destaque do Título (Amarelo)</label>
+                <input
+                  type="text"
+                  value={optisyncSettings.heroTitleHighlight || ""}
+                  onChange={(e) =>
+                    setOptisyncSettings((prev) => ({ ...prev, heroTitleHighlight: e.target.value }))
+                  }
+                  className="w-full bg-[#040e1c] border border-white/10 rounded-xl px-3 py-2 text-white"
+                />
+              </div>
+            </div>
           </div>
 
-          {/* CARD 3: VISIBILIDADE DAS SEÇÕES DA PÁGINA */}
+          {/* CARD 3: LINHA 1 - OPTISYNC HD (ADULTO & USO DIGITAL) */}
+          <div className="bg-[#0a1526] border border-blue-500/30 rounded-2xl p-6 space-y-4">
+            <div className="flex items-center justify-between flex-wrap gap-2">
+              <h3 className="text-base font-bold text-white flex items-center gap-2">
+                <Sparkles size={16} className="text-sky-400" />
+                <span>Linha 1: OPTiSYNC HD (Adulto &amp; Telas)</span>
+              </h3>
+              <label className="relative inline-flex items-center cursor-pointer">
+                <input
+                  type="checkbox"
+                  checked={optisyncSettings.hdLine?.enabled ?? true}
+                  onChange={(e) =>
+                    setOptisyncSettings((prev) => ({
+                      ...prev,
+                      hdLine: { ...(prev.hdLine as any), enabled: e.target.checked },
+                    }))
+                  }
+                  className="sr-only peer"
+                />
+                <div className="w-9 h-5 bg-slate-700 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-blue-600"></div>
+              </label>
+            </div>
+
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 text-xs">
+              {/* Arte 8: Caixa e Lente */}
+              <div className="p-3 bg-[#040e1c] rounded-xl border border-white/10 space-y-2">
+                <span className="text-[11px] font-semibold text-slate-300 block">Arte 8: Caixa e Lente</span>
+                <input
+                  type="text"
+                  value={optisyncSettings.hdLine?.productImageUrl || ""}
+                  onChange={(e) =>
+                    setOptisyncSettings((prev) => ({
+                      ...prev,
+                      hdLine: { ...(prev.hdLine as any), productImageUrl: e.target.value },
+                    }))
+                  }
+                  placeholder="/images/lenses/optisync/arte-08-hd-caixa-lente.jpg"
+                  className="w-full bg-[#020716] border border-white/10 rounded px-2 py-1 text-white text-[11px] font-mono"
+                />
+              </div>
+
+              {/* Arte 5: Gamer */}
+              <div className="p-3 bg-[#040e1c] rounded-xl border border-white/10 space-y-2">
+                <span className="text-[11px] font-semibold text-slate-300 block">Arte 5: Gamer / Telas</span>
+                <input
+                  type="text"
+                  value={optisyncSettings.hdLine?.gamerImageUrl || ""}
+                  onChange={(e) =>
+                    setOptisyncSettings((prev) => ({
+                      ...prev,
+                      hdLine: { ...(prev.hdLine as any), gamerImageUrl: e.target.value },
+                    }))
+                  }
+                  placeholder="/images/lenses/optisync/arte-05-hd-gamer.jpg"
+                  className="w-full bg-[#020716] border border-white/10 rounded px-2 py-1 text-white text-[11px] font-mono"
+                />
+              </div>
+
+              {/* Arte 10: Escritório */}
+              <div className="p-3 bg-[#040e1c] rounded-xl border border-white/10 space-y-2">
+                <span className="text-[11px] font-semibold text-slate-300 block">Arte 10: Home Office</span>
+                <input
+                  type="text"
+                  value={optisyncSettings.hdLine?.officeImageUrl || ""}
+                  onChange={(e) =>
+                    setOptisyncSettings((prev) => ({
+                      ...prev,
+                      hdLine: { ...(prev.hdLine as any), officeImageUrl: e.target.value },
+                    }))
+                  }
+                  placeholder="/images/lenses/optisync/arte-10-hd-computador.jpg"
+                  className="w-full bg-[#020716] border border-white/10 rounded px-2 py-1 text-white text-[11px] font-mono"
+                />
+              </div>
+
+              {/* Arte 6: Robô */}
+              <div className="p-3 bg-[#040e1c] rounded-xl border border-white/10 space-y-2">
+                <span className="text-[11px] font-semibold text-slate-300 block">Arte 6: Robô Laboratório</span>
+                <input
+                  type="text"
+                  value={optisyncSettings.hdLine?.robotImageUrl || ""}
+                  onChange={(e) =>
+                    setOptisyncSettings((prev) => ({
+                      ...prev,
+                      hdLine: { ...(prev.hdLine as any), robotImageUrl: e.target.value },
+                    }))
+                  }
+                  placeholder="/images/lenses/optisync/arte-06-hd-robo.jpg"
+                  className="w-full bg-[#020716] border border-white/10 rounded px-2 py-1 text-white text-[11px] font-mono"
+                />
+              </div>
+            </div>
+          </div>
+
+          {/* CARD 4: LINHA 2 - OPTISYNC HD FOTOSSENSÍVEL */}
+          <div className="bg-[#0a1526] border border-purple-500/30 rounded-2xl p-6 space-y-4">
+            <div className="flex items-center justify-between flex-wrap gap-2">
+              <h3 className="text-base font-bold text-white flex items-center gap-2">
+                <Sun size={16} className="text-[#FFC21A]" />
+                <span>Linha 2: OPTiSYNC HD Fotossensível (Transição UV &amp; Slider)</span>
+              </h3>
+              <label className="relative inline-flex items-center cursor-pointer">
+                <input
+                  type="checkbox"
+                  checked={optisyncSettings.photochromicLine?.enabled ?? true}
+                  onChange={(e) =>
+                    setOptisyncSettings((prev) => ({
+                      ...prev,
+                      photochromicLine: { ...(prev.photochromicLine as any), enabled: e.target.checked },
+                    }))
+                  }
+                  className="sr-only peer"
+                />
+                <div className="w-9 h-5 bg-slate-700 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-purple-600"></div>
+              </label>
+            </div>
+
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 text-xs">
+              {/* Arte 7: Banner Meio a Meio */}
+              <div className="p-3 bg-[#040e1c] rounded-xl border border-white/10 space-y-2">
+                <span className="text-[11px] font-semibold text-slate-300 block">Arte 7: Banner Óculos Meio a Meio (3:2)</span>
+                <input
+                  type="text"
+                  value={optisyncSettings.photochromicLine?.halfDarkBannerUrl || ""}
+                  onChange={(e) =>
+                    setOptisyncSettings((prev) => ({
+                      ...prev,
+                      photochromicLine: { ...(prev.photochromicLine as any), halfDarkBannerUrl: e.target.value },
+                    }))
+                  }
+                  placeholder="/images/lenses/optisync/arte-07-fotossensivel-banner.jpg"
+                  className="w-full bg-[#020716] border border-white/10 rounded px-2 py-1 text-white text-[11px] font-mono"
+                />
+              </div>
+
+              {/* Arte 4: 3 Estados Homem/Mulher */}
+              <div className="p-3 bg-[#040e1c] rounded-xl border border-white/10 space-y-2">
+                <span className="text-[11px] font-semibold text-slate-300 block">Arte 4: Grade 3 Estados (3:2)</span>
+                <input
+                  type="text"
+                  value={optisyncSettings.photochromicLine?.threeStatesGridUrl || ""}
+                  onChange={(e) =>
+                    setOptisyncSettings((prev) => ({
+                      ...prev,
+                      photochromicLine: { ...(prev.photochromicLine as any), threeStatesGridUrl: e.target.value },
+                    }))
+                  }
+                  placeholder="/images/lenses/optisync/arte-04-fotossensivel-estados.jpg"
+                  className="w-full bg-[#020716] border border-white/10 rounded px-2 py-1 text-white text-[11px] font-mono"
+                />
+              </div>
+
+              {/* Texto de Velocidade */}
+              <div className="p-3 bg-[#040e1c] rounded-xl border border-white/10 space-y-2">
+                <span className="text-[11px] font-semibold text-slate-300 block">Tempo de Ativação / Retorno</span>
+                <input
+                  type="text"
+                  value={optisyncSettings.photochromicLine?.transitionSpeedText || ""}
+                  onChange={(e) =>
+                    setOptisyncSettings((prev) => ({
+                      ...prev,
+                      photochromicLine: { ...(prev.photochromicLine as any), transitionSpeedText: e.target.value },
+                    }))
+                  }
+                  placeholder="Ativação em até 30 segundos sob radiação UV"
+                  className="w-full bg-[#020716] border border-white/10 rounded px-2 py-1 text-white text-[11px]"
+                />
+              </div>
+            </div>
+          </div>
+
+          {/* CARD 5: LINHA 3 - OPTISYNC KIDS ADVENTURE */}
+          <div className="bg-[#0a1526] border border-amber-500/30 rounded-2xl p-6 space-y-4">
+            <div className="flex items-center justify-between flex-wrap gap-2">
+              <h3 className="text-base font-bold text-white flex items-center gap-2">
+                <Compass size={16} className="text-[#FFC21A]" />
+                <span>Linha 3: OPTiSYNC Kids Adventure (Infantil &amp; Juvenil)</span>
+              </h3>
+              <label className="relative inline-flex items-center cursor-pointer">
+                <input
+                  type="checkbox"
+                  checked={optisyncSettings.kidsLine?.enabled ?? true}
+                  onChange={(e) =>
+                    setOptisyncSettings((prev) => ({
+                      ...prev,
+                      kidsLine: { ...(prev.kidsLine as any), enabled: e.target.checked },
+                    }))
+                  }
+                  className="sr-only peer"
+                />
+                <div className="w-9 h-5 bg-slate-700 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-amber-500"></div>
+              </label>
+            </div>
+
+            <div className="p-3 rounded-xl bg-amber-500/10 border border-amber-500/20 text-xs text-amber-200">
+              <strong>Diretriz Ética Obrigatória:</strong> Mantenha os textos infantis focados em resistência mecânica, leveza e conforto anatômico; nunca insira promessas médicas ou controle de miopia sem aprovação prévia.
+            </div>
+
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-xs">
+              {/* Arte 1: Pôster Menino Kids */}
+              <div className="p-3 bg-[#040e1c] rounded-xl border border-white/10 space-y-2">
+                <span className="text-[11px] font-semibold text-slate-300 block">Arte 1: Pôster Kids Adventure (4:5)</span>
+                <input
+                  type="text"
+                  value={optisyncSettings.kidsLine?.posterBoyUrl || ""}
+                  onChange={(e) =>
+                    setOptisyncSettings((prev) => ({
+                      ...prev,
+                      kidsLine: { ...(prev.kidsLine as any), posterBoyUrl: e.target.value },
+                    }))
+                  }
+                  placeholder="/images/lenses/optisync/arte-01-kids-poster.jpg"
+                  className="w-full bg-[#020716] border border-white/10 rounded px-2 py-1 text-white text-[11px] font-mono"
+                />
+              </div>
+
+              {/* Arte 3: Logo 3D Kids Adventure */}
+              <div className="p-3 bg-[#040e1c] rounded-xl border border-white/10 space-y-2">
+                <span className="text-[11px] font-semibold text-slate-300 block">Arte 3: Logo 3D Kids Adventure (1:1)</span>
+                <input
+                  type="text"
+                  value={optisyncSettings.kidsLine?.logo3dUrl || ""}
+                  onChange={(e) =>
+                    setOptisyncSettings((prev) => ({
+                      ...prev,
+                      kidsLine: { ...(prev.kidsLine as any), logo3dUrl: e.target.value },
+                    }))
+                  }
+                  placeholder="/images/lenses/optisync/arte-03-kids-logo3d.jpg"
+                  className="w-full bg-[#020716] border border-white/10 rounded px-2 py-1 text-white text-[11px] font-mono"
+                />
+              </div>
+            </div>
+          </div>
+
+          {/* CARD 6: GALERIA DE ARTES & LIGHTBOX */}
+          <div className="bg-[#0a1526] border border-white/10 rounded-2xl p-6 space-y-4">
+            <div className="flex items-center justify-between flex-wrap gap-2">
+              <h3 className="text-base font-bold text-white flex items-center gap-2">
+                <ImageIcon size={16} className="text-sky-400" />
+                <span>Galeria Tecnológica &amp; Lightbox Acessível</span>
+              </h3>
+              <label className="relative inline-flex items-center cursor-pointer">
+                <input
+                  type="checkbox"
+                  checked={optisyncSettings.showGallery ?? true}
+                  onChange={(e) =>
+                    setOptisyncSettings((prev) => ({ ...prev, showGallery: e.target.checked }))
+                  }
+                  className="sr-only peer"
+                />
+                <div className="w-9 h-5 bg-slate-700 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-amber-500"></div>
+              </label>
+            </div>
+
+            <div className="space-y-3">
+              {(optisyncSettings.galleryItems || []).map((item, index) => (
+                <div
+                  key={item.id}
+                  className="p-3 bg-[#040e1c] rounded-xl border border-white/5 flex flex-col sm:flex-row items-center gap-3 text-xs"
+                >
+                  <div className="w-12 h-12 rounded-lg bg-black/50 overflow-hidden shrink-0 border border-white/10 relative">
+                    <img src={item.imageUrl} alt="" className="w-full h-full object-cover" />
+                  </div>
+                  <div className="flex-1 grid grid-cols-1 sm:grid-cols-4 gap-2 w-full">
+                    <input
+                      type="text"
+                      value={item.title}
+                      placeholder="Título"
+                      onChange={(e) => {
+                        const val = e.target.value;
+                        setOptisyncSettings((prev) => {
+                          const items = [...(prev.galleryItems || [])];
+                          items[index] = { ...items[index], title: val };
+                          return { ...prev, galleryItems: items };
+                        });
+                      }}
+                      className="bg-[#020716] border border-white/10 rounded px-2 py-1 text-white"
+                    />
+                    <input
+                      type="text"
+                      value={item.imageUrl}
+                      placeholder="URL da Imagem"
+                      onChange={(e) => {
+                        const val = e.target.value;
+                        setOptisyncSettings((prev) => {
+                          const items = [...(prev.galleryItems || [])];
+                          items[index] = { ...items[index], imageUrl: val };
+                          return { ...prev, galleryItems: items };
+                        });
+                      }}
+                      className="bg-[#020716] border border-white/10 rounded px-2 py-1 text-white font-mono text-[11px]"
+                    />
+                    <select
+                      value={item.line}
+                      onChange={(e) => {
+                        const val = e.target.value as any;
+                        setOptisyncSettings((prev) => {
+                          const items = [...(prev.galleryItems || [])];
+                          items[index] = { ...items[index], line: val };
+                          return { ...prev, galleryItems: items };
+                        });
+                      }}
+                      className="bg-[#020716] border border-white/10 rounded px-2 py-1 text-white"
+                    >
+                      <option value="hd">Linha HD</option>
+                      <option value="photochromic">Fotossensível</option>
+                      <option value="kids">Kids Adventure</option>
+                      <option value="geral">Geral</option>
+                    </select>
+                    <input
+                      type="text"
+                      value={item.altText}
+                      placeholder="Alt descritivo (acessibilidade)"
+                      onChange={(e) => {
+                        const val = e.target.value;
+                        setOptisyncSettings((prev) => {
+                          const items = [...(prev.galleryItems || [])];
+                          items[index] = { ...items[index], altText: val };
+                          return { ...prev, galleryItems: items };
+                        });
+                      }}
+                      className="bg-[#020716] border border-white/10 rounded px-2 py-1 text-white"
+                    />
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setOptisyncSettings((prev) => ({
+                        ...prev,
+                        galleryItems: (prev.galleryItems || []).filter((_, i) => i !== index),
+                      }));
+                    }}
+                    className="p-1.5 rounded-lg bg-rose-500/20 text-rose-300 hover:bg-rose-500/30 transition-colors"
+                  >
+                    <Trash2 size={14} />
+                  </button>
+                </div>
+              ))}
+
+              <button
+                type="button"
+                onClick={() => {
+                  setOptisyncSettings((prev) => ({
+                    ...prev,
+                    galleryItems: [
+                      ...(prev.galleryItems || []),
+                      {
+                        id: `gal-${Date.now()}`,
+                        title: "Nova Arte",
+                        line: "hd",
+                        imageUrl: "/images/lenses/optisync/arte-08-hd-caixa-lente.jpg",
+                        altText: "Nova arte oficial OPTiSYNC",
+                        aspectRatio: "4:5",
+                      },
+                    ],
+                  }));
+                }}
+                className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-white/5 hover:bg-white/10 text-slate-300 text-xs font-semibold"
+              >
+                <Plus size={13} />
+                <span>Adicionar Arte à Galeria</span>
+              </button>
+            </div>
+          </div>
+
+          {/* CARD 7: SEÇÃO DE CORES & BANNER ARTE 2 (PARTE DE BAIXO) */}
+          <div className="bg-[#0a1526] border border-amber-400/30 rounded-2xl p-6 space-y-4">
+            <h3 className="text-base font-bold text-white flex items-center gap-2">
+              <Palette size={16} className="text-[#FFC21A]" />
+              <span>Seção de Cores &amp; Banner da Arte 2 (Rodapé da Página)</span>
+            </h3>
+
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-xs">
+              <div className="p-3 bg-[#040e1c] rounded-xl border border-white/10 space-y-2">
+                <span className="text-[11px] font-semibold text-slate-300 block">Arte 2: Banner Seis Lentes Coloridas (3:2)</span>
+                <input
+                  type="text"
+                  value={optisyncSettings.colorsBannerUrl || ""}
+                  onChange={(e) =>
+                    setOptisyncSettings((prev) => ({ ...prev, colorsBannerUrl: e.target.value }))
+                  }
+                  placeholder="/images/lenses/optisync/arte-02-cores-banner.jpg"
+                  className="w-full bg-[#020716] border border-white/10 rounded px-2 py-1 text-white text-[11px] font-mono"
+                />
+              </div>
+
+              <div className="p-3 bg-[#040e1c] rounded-xl border border-white/10 space-y-2">
+                <span className="text-[11px] font-semibold text-slate-300 block">Título do Mostruário de Cores</span>
+                <input
+                  type="text"
+                  value={optisyncSettings.colorsBannerTitle || ""}
+                  onChange={(e) =>
+                    setOptisyncSettings((prev) => ({ ...prev, colorsBannerTitle: e.target.value }))
+                  }
+                  placeholder="Mostruário Exclusivo de Cores & Tonalidades Solares"
+                  className="w-full bg-[#020716] border border-white/10 rounded px-2 py-1 text-white text-[11px]"
+                />
+              </div>
+            </div>
+          </div>
+
+          {/* CARD 8: VISIBILIDADE DAS SEÇÕES DA PÁGINA */}
           <div className="bg-[#0a1526] border border-white/10 rounded-2xl p-6 space-y-4">
             <h3 className="text-base font-bold text-white flex items-center gap-2">
               <Layers size={16} className="text-amber-400" />
@@ -2868,10 +3396,11 @@ export default function AdminLensesPage() {
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 text-xs">
               {[
                 { key: "showHero", label: "Hero Principal" },
+                { key: "showLineSelector", label: "Seletor de 3 Linhas" },
+                { key: "showGallery", label: "Galeria & Lightbox" },
                 { key: "showBenefits", label: "Bloco de Benefícios" },
-                { key: "showModels", label: "Modelos da Linha" },
                 { key: "showComparison", label: "Tabela Comparativa" },
-                { key: "showSpecs", label: "Especificações Técnicas" },
+                { key: "showLabHighlight", label: "Laboratório Araçatuba" },
                 { key: "showFaq", label: "Perguntas Frequentes (FAQ)" },
                 { key: "showWhatsappCta", label: "CTA Especialista WhatsApp" },
                 { key: "showColorsCta", label: "Link p/ Seção de Cores" },

@@ -13,9 +13,26 @@ export async function getOptiSyncPageSettings(): Promise<OptiSyncPageSettings> {
         .maybeSingle();
 
       if (!error && data?.value) {
+        const val = data.value as Partial<OptiSyncPageSettings>;
         return {
           ...DEFAULT_OPTISYNC_SETTINGS,
-          ...(data.value as Partial<OptiSyncPageSettings>),
+          ...val,
+          hdLine: {
+            ...DEFAULT_OPTISYNC_SETTINGS.hdLine!,
+            ...(val.hdLine || {}),
+          },
+          photochromicLine: {
+            ...DEFAULT_OPTISYNC_SETTINGS.photochromicLine!,
+            ...(val.photochromicLine || {}),
+          },
+          kidsLine: {
+            ...DEFAULT_OPTISYNC_SETTINGS.kidsLine!,
+            ...(val.kidsLine || {}),
+          },
+          galleryItems:
+            val.galleryItems && val.galleryItems.length > 0
+              ? val.galleryItems
+              : DEFAULT_OPTISYNC_SETTINGS.galleryItems,
         };
       }
     } catch (err) {
