@@ -60,7 +60,16 @@ export async function GET() {
       data = res.data;
     }
 
-    const getVal = (key: string) => data?.find((s) => s.key === key)?.value ?? inMemorySettings[key];
+    const getVal = (key: string) => {
+      const row = data?.find((s) => s.key === key);
+      let val = row ? row.value : inMemorySettings[key];
+      if (typeof val === "string") {
+        try {
+          val = JSON.parse(val);
+        } catch {}
+      }
+      return val;
+    };
 
     const identityVal = getVal("identity");
     const appearanceVal = getVal("appearance");
@@ -156,32 +165,47 @@ export async function POST(req: NextRequest) {
         return;
       }
 
-      const { data: existing } = await adminSupabase
+      const { error: upsertError } = await adminSupabase
         .from("site_settings")
-        .select("id")
-        .eq("key", key)
-        .maybeSingle();
-
-      if (existing?.id) {
-        const { error } = await adminSupabase
-          .from("site_settings")
-          .update({
-            value,
-            description,
-            updated_at: now,
-          })
-          .eq("id", existing.id);
-        if (error) throw error;
-      } else {
-        const { error } = await adminSupabase
-          .from("site_settings")
-          .insert({
+        .upsert(
+          {
             key,
             description,
             value,
             updated_at: now,
-          });
-        if (error) throw error;
+          },
+          { onConflict: "key" }
+        );
+
+      if (upsertError) {
+        console.warn(`Aviso no upsert de ${key}, tentando update/insert fallback:`, upsertError.message);
+        const { data: existing } = await adminSupabase
+          .from("site_settings")
+          .select("id")
+          .eq("key", key)
+          .maybeSingle();
+
+        if (existing?.id) {
+          const { error: updateError } = await adminSupabase
+            .from("site_settings")
+            .update({
+              value,
+              description,
+              updated_at: now,
+            })
+            .eq("id", existing.id);
+          if (updateError) throw updateError;
+        } else {
+          const { error: insertError } = await adminSupabase
+            .from("site_settings")
+            .insert({
+              key,
+              description,
+              value,
+              updated_at: now,
+            });
+          if (insertError) throw insertError;
+        }
       }
     }
 

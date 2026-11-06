@@ -314,6 +314,12 @@ export default function AdminLensesPage() {
         throw new Error(data.error || "Erro ao salvar marcas homologadas.");
       }
 
+      try {
+        if (typeof window !== "undefined") {
+          localStorage.setItem("ventara_admin_brands_cache", JSON.stringify(homologatedBrands));
+        }
+      } catch {}
+
       setFeedback("Marcas homologadas, fotos das caixas e especificações salvas com sucesso!");
       setTimeout(() => setFeedback(null), 3500);
     } catch (err: any) {
@@ -463,6 +469,11 @@ export default function AdminLensesPage() {
 
     setHomologatedBrands(updated);
     try {
+      if (typeof window !== "undefined") {
+        localStorage.setItem("ventara_admin_brands_cache", JSON.stringify(updated));
+      }
+    } catch {}
+    try {
       await fetch("/api/admin/settings", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -483,6 +494,11 @@ export default function AdminLensesPage() {
     };
     const updated = [...homologatedBrands, newBrand];
     setHomologatedBrands(updated);
+    try {
+      if (typeof window !== "undefined") {
+        localStorage.setItem("ventara_admin_brands_cache", JSON.stringify(updated));
+      }
+    } catch {}
     try {
       await fetch("/api/admin/settings", {
         method: "POST",
@@ -512,6 +528,11 @@ export default function AdminLensesPage() {
     const brandName = deleteBrandConfirm.name;
     const updated = homologatedBrands.filter((b) => b.id !== brandId);
     setHomologatedBrands(updated);
+    try {
+      if (typeof window !== "undefined") {
+        localStorage.setItem("ventara_admin_brands_cache", JSON.stringify(updated));
+      }
+    } catch {}
     setDeleteBrandConfirm({ isOpen: false, id: "", name: "" });
     setIsSavingBrands(true);
 
@@ -717,6 +738,18 @@ export default function AdminLensesPage() {
 
   const loadLenses = async () => {
     try {
+      if (typeof window !== "undefined") {
+        const cached = localStorage.getItem("ventara_admin_lenses_cache");
+        if (cached) {
+          const parsed = JSON.parse(cached);
+          if (Array.isArray(parsed) && parsed.length > 0) {
+            setLenses(parsed);
+          }
+        }
+      }
+    } catch {}
+
+    try {
       const res = await fetch(`/api/admin/lenses?t=${Date.now()}`, {
         cache: "no-store",
       });
@@ -724,6 +757,11 @@ export default function AdminLensesPage() {
         const data = await res.json();
         if (data.lenses && Array.isArray(data.lenses)) {
           setLenses(data.lenses);
+          try {
+            if (typeof window !== "undefined") {
+              localStorage.setItem("ventara_admin_lenses_cache", JSON.stringify(data.lenses));
+            }
+          } catch {}
         }
       }
     } catch (err) {
@@ -735,6 +773,18 @@ export default function AdminLensesPage() {
 
   const loadLabSettings = async () => {
     try {
+      if (typeof window !== "undefined") {
+        const cachedBrands = localStorage.getItem("ventara_admin_brands_cache");
+        if (cachedBrands) {
+          const parsed = JSON.parse(cachedBrands);
+          if (Array.isArray(parsed) && parsed.length > 0) {
+            setHomologatedBrands(parsed);
+          }
+        }
+      }
+    } catch {}
+
+    try {
       const res = await fetch(`/api/admin/settings?t=${Date.now()}`, {
         cache: "no-store",
       });
@@ -745,6 +795,11 @@ export default function AdminLensesPage() {
         }
         if (data.homologated_brands && Array.isArray(data.homologated_brands)) {
           setHomologatedBrands(data.homologated_brands);
+          try {
+            if (typeof window !== "undefined") {
+              localStorage.setItem("ventara_admin_brands_cache", JSON.stringify(data.homologated_brands));
+            }
+          } catch {}
         }
         if (data.lenses_section) {
           setLensesSection((prev) => ({ ...prev, ...data.lenses_section }));
@@ -777,6 +832,11 @@ export default function AdminLensesPage() {
       }
 
       setLenses(updatedList);
+      try {
+        if (typeof window !== "undefined") {
+          localStorage.setItem("ventara_admin_lenses_cache", JSON.stringify(updatedList));
+        }
+      } catch {}
       setFeedback("Catálogo de lentes, preços e especificações atualizado com sucesso!");
       setTimeout(() => setFeedback(null), 3500);
       return data;
@@ -831,10 +891,18 @@ export default function AdminLensesPage() {
     const deletedName = deleteConfirm.name;
     const updated = lenses.filter((l) => l.id !== deletedId);
     setLenses(updated);
+    try {
+      if (typeof window !== "undefined") {
+        localStorage.setItem("ventara_admin_lenses_cache", JSON.stringify(updated));
+      }
+    } catch {}
     setDeleteConfirm({ isOpen: false, id: "", name: "" });
 
     try {
-      await handleSaveAll(updated);
+      await Promise.allSettled([
+        fetch(`/api/admin/lenses?id=${encodeURIComponent(deletedId)}`, { method: "DELETE" }),
+        handleSaveAll(updated),
+      ]);
       setToastMessage({
         message: `Lente "${deletedName}" removida do catálogo com sucesso.`,
         type: "success",
@@ -3006,71 +3074,215 @@ export default function AdminLensesPage() {
 
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 text-xs">
               {/* Arte 8: Caixa e Lente */}
-              <div className="p-3 bg-[#040e1c] rounded-xl border border-white/10 space-y-2">
-                <span className="text-[11px] font-semibold text-slate-300 block">Arte 8: Caixa e Lente</span>
-                <input
-                  type="text"
-                  value={optisyncSettings.hdLine?.productImageUrl || ""}
-                  onChange={(e) =>
-                    setOptisyncSettings((prev) => ({
-                      ...prev,
-                      hdLine: { ...(prev.hdLine as any), productImageUrl: e.target.value },
-                    }))
-                  }
-                  placeholder="/images/lenses/optisync/arte-08-hd-caixa-lente.jpg"
-                  className="w-full bg-[#020716] border border-white/10 rounded px-2 py-1 text-white text-[11px] font-mono"
-                />
+              <div className="p-3 bg-[#040e1c] rounded-xl border border-white/10 space-y-2 flex flex-col justify-between">
+                <div>
+                  <span className="text-[11px] font-semibold text-slate-300 block mb-1.5">Arte 8: Caixa e Lente (4:5)</span>
+                  <div className="w-full aspect-[4/3] bg-[#020716] rounded-lg overflow-hidden border border-white/10 relative flex items-center justify-center mb-2">
+                    {optisyncSettings.hdLine?.productImageUrl ? (
+                      <img
+                        src={optisyncSettings.hdLine.productImageUrl}
+                        alt="Arte 8"
+                        className="w-full h-full object-cover"
+                      />
+                    ) : (
+                      <span className="text-[10px] text-slate-500">Sem imagem</span>
+                    )}
+                  </div>
+                </div>
+                <div className="space-y-1.5">
+                  <label className="w-full py-1.5 px-2 rounded-lg bg-amber-400 hover:bg-amber-300 text-slate-950 font-bold text-[11px] uppercase tracking-wider flex items-center justify-center gap-1.5 cursor-pointer transition-colors shadow-sm">
+                    <Upload size={13} />
+                    <span>{uploadingSlotId === "hdProduct" ? "Enviando..." : "Trocar Foto"}</span>
+                    <input
+                      type="file"
+                      accept="image/*"
+                      onChange={(e) =>
+                        handleUploadToSlot(
+                          "hdProduct",
+                          (url) =>
+                            setOptisyncSettings((prev) => ({
+                              ...prev,
+                              hdLine: { ...(prev.hdLine as any), productImageUrl: url },
+                            })),
+                          e
+                        )
+                      }
+                      disabled={uploadingSlotId === "hdProduct"}
+                      className="hidden"
+                    />
+                  </label>
+                  <input
+                    type="text"
+                    value={optisyncSettings.hdLine?.productImageUrl || ""}
+                    onChange={(e) =>
+                      setOptisyncSettings((prev) => ({
+                        ...prev,
+                        hdLine: { ...(prev.hdLine as any), productImageUrl: e.target.value },
+                      }))
+                    }
+                    placeholder="/images/lenses/optisync/arte-08-hd-caixa-lente.jpg"
+                    className="w-full bg-[#020716] border border-white/10 rounded px-2 py-1 text-white text-[11px] font-mono"
+                  />
+                </div>
               </div>
 
               {/* Arte 5: Gamer */}
-              <div className="p-3 bg-[#040e1c] rounded-xl border border-white/10 space-y-2">
-                <span className="text-[11px] font-semibold text-slate-300 block">Arte 5: Gamer / Telas</span>
-                <input
-                  type="text"
-                  value={optisyncSettings.hdLine?.gamerImageUrl || ""}
-                  onChange={(e) =>
-                    setOptisyncSettings((prev) => ({
-                      ...prev,
-                      hdLine: { ...(prev.hdLine as any), gamerImageUrl: e.target.value },
-                    }))
-                  }
-                  placeholder="/images/lenses/optisync/arte-05-hd-gamer.jpg"
-                  className="w-full bg-[#020716] border border-white/10 rounded px-2 py-1 text-white text-[11px] font-mono"
-                />
+              <div className="p-3 bg-[#040e1c] rounded-xl border border-white/10 space-y-2 flex flex-col justify-between">
+                <div>
+                  <span className="text-[11px] font-semibold text-slate-300 block mb-1.5">Arte 5: Gamer / Telas (4:5)</span>
+                  <div className="w-full aspect-[4/3] bg-[#020716] rounded-lg overflow-hidden border border-white/10 relative flex items-center justify-center mb-2">
+                    {optisyncSettings.hdLine?.gamerImageUrl ? (
+                      <img
+                        src={optisyncSettings.hdLine.gamerImageUrl}
+                        alt="Arte 5"
+                        className="w-full h-full object-cover"
+                      />
+                    ) : (
+                      <span className="text-[10px] text-slate-500">Sem imagem</span>
+                    )}
+                  </div>
+                </div>
+                <div className="space-y-1.5">
+                  <label className="w-full py-1.5 px-2 rounded-lg bg-amber-400 hover:bg-amber-300 text-slate-950 font-bold text-[11px] uppercase tracking-wider flex items-center justify-center gap-1.5 cursor-pointer transition-colors shadow-sm">
+                    <Upload size={13} />
+                    <span>{uploadingSlotId === "hdGamer" ? "Enviando..." : "Trocar Foto"}</span>
+                    <input
+                      type="file"
+                      accept="image/*"
+                      onChange={(e) =>
+                        handleUploadToSlot(
+                          "hdGamer",
+                          (url) =>
+                            setOptisyncSettings((prev) => ({
+                              ...prev,
+                              hdLine: { ...(prev.hdLine as any), gamerImageUrl: url },
+                            })),
+                          e
+                        )
+                      }
+                      disabled={uploadingSlotId === "hdGamer"}
+                      className="hidden"
+                    />
+                  </label>
+                  <input
+                    type="text"
+                    value={optisyncSettings.hdLine?.gamerImageUrl || ""}
+                    onChange={(e) =>
+                      setOptisyncSettings((prev) => ({
+                        ...prev,
+                        hdLine: { ...(prev.hdLine as any), gamerImageUrl: e.target.value },
+                      }))
+                    }
+                    placeholder="/images/lenses/optisync/arte-05-hd-gamer.jpg"
+                    className="w-full bg-[#020716] border border-white/10 rounded px-2 py-1 text-white text-[11px] font-mono"
+                  />
+                </div>
               </div>
 
               {/* Arte 10: Escritório */}
-              <div className="p-3 bg-[#040e1c] rounded-xl border border-white/10 space-y-2">
-                <span className="text-[11px] font-semibold text-slate-300 block">Arte 10: Home Office</span>
-                <input
-                  type="text"
-                  value={optisyncSettings.hdLine?.officeImageUrl || ""}
-                  onChange={(e) =>
-                    setOptisyncSettings((prev) => ({
-                      ...prev,
-                      hdLine: { ...(prev.hdLine as any), officeImageUrl: e.target.value },
-                    }))
-                  }
-                  placeholder="/images/lenses/optisync/arte-10-hd-computador.jpg"
-                  className="w-full bg-[#020716] border border-white/10 rounded px-2 py-1 text-white text-[11px] font-mono"
-                />
+              <div className="p-3 bg-[#040e1c] rounded-xl border border-white/10 space-y-2 flex flex-col justify-between">
+                <div>
+                  <span className="text-[11px] font-semibold text-slate-300 block mb-1.5">Arte 10: Home Office (4:5)</span>
+                  <div className="w-full aspect-[4/3] bg-[#020716] rounded-lg overflow-hidden border border-white/10 relative flex items-center justify-center mb-2">
+                    {optisyncSettings.hdLine?.officeImageUrl ? (
+                      <img
+                        src={optisyncSettings.hdLine.officeImageUrl}
+                        alt="Arte 10"
+                        className="w-full h-full object-cover"
+                      />
+                    ) : (
+                      <span className="text-[10px] text-slate-500">Sem imagem</span>
+                    )}
+                  </div>
+                </div>
+                <div className="space-y-1.5">
+                  <label className="w-full py-1.5 px-2 rounded-lg bg-amber-400 hover:bg-amber-300 text-slate-950 font-bold text-[11px] uppercase tracking-wider flex items-center justify-center gap-1.5 cursor-pointer transition-colors shadow-sm">
+                    <Upload size={13} />
+                    <span>{uploadingSlotId === "hdOffice" ? "Enviando..." : "Trocar Foto"}</span>
+                    <input
+                      type="file"
+                      accept="image/*"
+                      onChange={(e) =>
+                        handleUploadToSlot(
+                          "hdOffice",
+                          (url) =>
+                            setOptisyncSettings((prev) => ({
+                              ...prev,
+                              hdLine: { ...(prev.hdLine as any), officeImageUrl: url },
+                            })),
+                          e
+                        )
+                      }
+                      disabled={uploadingSlotId === "hdOffice"}
+                      className="hidden"
+                    />
+                  </label>
+                  <input
+                    type="text"
+                    value={optisyncSettings.hdLine?.officeImageUrl || ""}
+                    onChange={(e) =>
+                      setOptisyncSettings((prev) => ({
+                        ...prev,
+                        hdLine: { ...(prev.hdLine as any), officeImageUrl: e.target.value },
+                      }))
+                    }
+                    placeholder="/images/lenses/optisync/arte-10-hd-computador.jpg"
+                    className="w-full bg-[#020716] border border-white/10 rounded px-2 py-1 text-white text-[11px] font-mono"
+                  />
+                </div>
               </div>
 
               {/* Arte 6: Robô */}
-              <div className="p-3 bg-[#040e1c] rounded-xl border border-white/10 space-y-2">
-                <span className="text-[11px] font-semibold text-slate-300 block">Arte 6: Robô Laboratório</span>
-                <input
-                  type="text"
-                  value={optisyncSettings.hdLine?.robotImageUrl || ""}
-                  onChange={(e) =>
-                    setOptisyncSettings((prev) => ({
-                      ...prev,
-                      hdLine: { ...(prev.hdLine as any), robotImageUrl: e.target.value },
-                    }))
-                  }
-                  placeholder="/images/lenses/optisync/arte-06-hd-robo.jpg"
-                  className="w-full bg-[#020716] border border-white/10 rounded px-2 py-1 text-white text-[11px] font-mono"
-                />
+              <div className="p-3 bg-[#040e1c] rounded-xl border border-white/10 space-y-2 flex flex-col justify-between">
+                <div>
+                  <span className="text-[11px] font-semibold text-slate-300 block mb-1.5">Arte 6: Robô Laboratório (4:5)</span>
+                  <div className="w-full aspect-[4/3] bg-[#020716] rounded-lg overflow-hidden border border-white/10 relative flex items-center justify-center mb-2">
+                    {optisyncSettings.hdLine?.robotImageUrl ? (
+                      <img
+                        src={optisyncSettings.hdLine.robotImageUrl}
+                        alt="Arte 6"
+                        className="w-full h-full object-cover"
+                      />
+                    ) : (
+                      <span className="text-[10px] text-slate-500">Sem imagem</span>
+                    )}
+                  </div>
+                </div>
+                <div className="space-y-1.5">
+                  <label className="w-full py-1.5 px-2 rounded-lg bg-amber-400 hover:bg-amber-300 text-slate-950 font-bold text-[11px] uppercase tracking-wider flex items-center justify-center gap-1.5 cursor-pointer transition-colors shadow-sm">
+                    <Upload size={13} />
+                    <span>{uploadingSlotId === "hdRobot" ? "Enviando..." : "Trocar Foto"}</span>
+                    <input
+                      type="file"
+                      accept="image/*"
+                      onChange={(e) =>
+                        handleUploadToSlot(
+                          "hdRobot",
+                          (url) =>
+                            setOptisyncSettings((prev) => ({
+                              ...prev,
+                              hdLine: { ...(prev.hdLine as any), robotImageUrl: url },
+                            })),
+                          e
+                        )
+                      }
+                      disabled={uploadingSlotId === "hdRobot"}
+                      className="hidden"
+                    />
+                  </label>
+                  <input
+                    type="text"
+                    value={optisyncSettings.hdLine?.robotImageUrl || ""}
+                    onChange={(e) =>
+                      setOptisyncSettings((prev) => ({
+                        ...prev,
+                        hdLine: { ...(prev.hdLine as any), robotImageUrl: e.target.value },
+                      }))
+                    }
+                    placeholder="/images/lenses/optisync/arte-06-hd-robo.jpg"
+                    className="w-full bg-[#020716] border border-white/10 rounded px-2 py-1 text-white text-[11px] font-mono"
+                  />
+                </div>
               </div>
             </div>
           </div>
@@ -3100,42 +3312,117 @@ export default function AdminLensesPage() {
 
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 text-xs">
               {/* Arte 7: Banner Meio a Meio */}
-              <div className="p-3 bg-[#040e1c] rounded-xl border border-white/10 space-y-2">
-                <span className="text-[11px] font-semibold text-slate-300 block">Arte 7: Banner Óculos Meio a Meio (3:2)</span>
-                <input
-                  type="text"
-                  value={optisyncSettings.photochromicLine?.halfDarkBannerUrl || ""}
-                  onChange={(e) =>
-                    setOptisyncSettings((prev) => ({
-                      ...prev,
-                      photochromicLine: { ...(prev.photochromicLine as any), halfDarkBannerUrl: e.target.value },
-                    }))
-                  }
-                  placeholder="/images/lenses/optisync/arte-07-fotossensivel-banner.jpg"
-                  className="w-full bg-[#020716] border border-white/10 rounded px-2 py-1 text-white text-[11px] font-mono"
-                />
+              <div className="p-3 bg-[#040e1c] rounded-xl border border-white/10 space-y-2 flex flex-col justify-between">
+                <div>
+                  <span className="text-[11px] font-semibold text-slate-300 block mb-1.5">Arte 7: Banner Óculos Meio a Meio (3:2)</span>
+                  <div className="w-full aspect-[3/2] bg-[#020716] rounded-lg overflow-hidden border border-white/10 relative flex items-center justify-center mb-2">
+                    {optisyncSettings.photochromicLine?.halfDarkBannerUrl ? (
+                      <img
+                        src={optisyncSettings.photochromicLine.halfDarkBannerUrl}
+                        alt="Arte 7"
+                        className="w-full h-full object-cover"
+                      />
+                    ) : (
+                      <span className="text-[10px] text-slate-500">Sem imagem</span>
+                    )}
+                  </div>
+                </div>
+                <div className="space-y-1.5">
+                  <label className="w-full py-1.5 px-2 rounded-lg bg-amber-400 hover:bg-amber-300 text-slate-950 font-bold text-[11px] uppercase tracking-wider flex items-center justify-center gap-1.5 cursor-pointer transition-colors shadow-sm">
+                    <Upload size={13} />
+                    <span>{uploadingSlotId === "photoBanner" ? "Enviando..." : "Trocar Banner"}</span>
+                    <input
+                      type="file"
+                      accept="image/*"
+                      onChange={(e) =>
+                        handleUploadToSlot(
+                          "photoBanner",
+                          (url) =>
+                            setOptisyncSettings((prev) => ({
+                              ...prev,
+                              photochromicLine: { ...(prev.photochromicLine as any), halfDarkBannerUrl: url },
+                            })),
+                          e
+                        )
+                      }
+                      disabled={uploadingSlotId === "photoBanner"}
+                      className="hidden"
+                    />
+                  </label>
+                  <input
+                    type="text"
+                    value={optisyncSettings.photochromicLine?.halfDarkBannerUrl || ""}
+                    onChange={(e) =>
+                      setOptisyncSettings((prev) => ({
+                        ...prev,
+                        photochromicLine: { ...(prev.photochromicLine as any), halfDarkBannerUrl: e.target.value },
+                      }))
+                    }
+                    placeholder="/images/lenses/optisync/arte-07-fotossensivel-banner.jpg"
+                    className="w-full bg-[#020716] border border-white/10 rounded px-2 py-1 text-white text-[11px] font-mono"
+                  />
+                </div>
               </div>
 
               {/* Arte 4: 3 Estados Homem/Mulher */}
-              <div className="p-3 bg-[#040e1c] rounded-xl border border-white/10 space-y-2">
-                <span className="text-[11px] font-semibold text-slate-300 block">Arte 4: Grade 3 Estados (3:2)</span>
-                <input
-                  type="text"
-                  value={optisyncSettings.photochromicLine?.threeStatesGridUrl || ""}
-                  onChange={(e) =>
-                    setOptisyncSettings((prev) => ({
-                      ...prev,
-                      photochromicLine: { ...(prev.photochromicLine as any), threeStatesGridUrl: e.target.value },
-                    }))
-                  }
-                  placeholder="/images/lenses/optisync/arte-04-fotossensivel-estados.jpg"
-                  className="w-full bg-[#020716] border border-white/10 rounded px-2 py-1 text-white text-[11px] font-mono"
-                />
+              <div className="p-3 bg-[#040e1c] rounded-xl border border-white/10 space-y-2 flex flex-col justify-between">
+                <div>
+                  <span className="text-[11px] font-semibold text-slate-300 block mb-1.5">Arte 4: Grade 3 Estados (3:2)</span>
+                  <div className="w-full aspect-[3/2] bg-[#020716] rounded-lg overflow-hidden border border-white/10 relative flex items-center justify-center mb-2">
+                    {optisyncSettings.photochromicLine?.threeStatesGridUrl ? (
+                      <img
+                        src={optisyncSettings.photochromicLine.threeStatesGridUrl}
+                        alt="Arte 4"
+                        className="w-full h-full object-cover"
+                      />
+                    ) : (
+                      <span className="text-[10px] text-slate-500">Sem imagem</span>
+                    )}
+                  </div>
+                </div>
+                <div className="space-y-1.5">
+                  <label className="w-full py-1.5 px-2 rounded-lg bg-amber-400 hover:bg-amber-300 text-slate-950 font-bold text-[11px] uppercase tracking-wider flex items-center justify-center gap-1.5 cursor-pointer transition-colors shadow-sm">
+                    <Upload size={13} />
+                    <span>{uploadingSlotId === "photoGrid" ? "Enviando..." : "Trocar Grade"}</span>
+                    <input
+                      type="file"
+                      accept="image/*"
+                      onChange={(e) =>
+                        handleUploadToSlot(
+                          "photoGrid",
+                          (url) =>
+                            setOptisyncSettings((prev) => ({
+                              ...prev,
+                              photochromicLine: { ...(prev.photochromicLine as any), threeStatesGridUrl: url },
+                            })),
+                          e
+                        )
+                      }
+                      disabled={uploadingSlotId === "photoGrid"}
+                      className="hidden"
+                    />
+                  </label>
+                  <input
+                    type="text"
+                    value={optisyncSettings.photochromicLine?.threeStatesGridUrl || ""}
+                    onChange={(e) =>
+                      setOptisyncSettings((prev) => ({
+                        ...prev,
+                        photochromicLine: { ...(prev.photochromicLine as any), threeStatesGridUrl: e.target.value },
+                      }))
+                    }
+                    placeholder="/images/lenses/optisync/arte-04-fotossensivel-estados.jpg"
+                    className="w-full bg-[#020716] border border-white/10 rounded px-2 py-1 text-white text-[11px] font-mono"
+                  />
+                </div>
               </div>
 
               {/* Texto de Velocidade */}
-              <div className="p-3 bg-[#040e1c] rounded-xl border border-white/10 space-y-2">
-                <span className="text-[11px] font-semibold text-slate-300 block">Tempo de Ativação / Retorno</span>
+              <div className="p-3 bg-[#040e1c] rounded-xl border border-white/10 space-y-2 flex flex-col justify-between">
+                <div>
+                  <span className="text-[11px] font-semibold text-slate-300 block mb-1">Tempo de Ativação / Retorno</span>
+                  <p className="text-[10px] text-slate-400 mb-2">Descreva a velocidade e tecnologia de escurecimento.</p>
+                </div>
                 <input
                   type="text"
                   value={optisyncSettings.photochromicLine?.transitionSpeedText || ""}
@@ -3146,7 +3433,7 @@ export default function AdminLensesPage() {
                     }))
                   }
                   placeholder="Ativação em até 30 segundos sob radiação UV"
-                  className="w-full bg-[#020716] border border-white/10 rounded px-2 py-1 text-white text-[11px]"
+                  className="w-full bg-[#020716] border border-white/10 rounded px-2 py-1.5 text-white text-[11px]"
                 />
               </div>
             </div>
@@ -3181,37 +3468,109 @@ export default function AdminLensesPage() {
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-xs">
               {/* Arte 1: Pôster Menino Kids */}
-              <div className="p-3 bg-[#040e1c] rounded-xl border border-white/10 space-y-2">
-                <span className="text-[11px] font-semibold text-slate-300 block">Arte 1: Pôster Kids Adventure (4:5)</span>
-                <input
-                  type="text"
-                  value={optisyncSettings.kidsLine?.posterBoyUrl || ""}
-                  onChange={(e) =>
-                    setOptisyncSettings((prev) => ({
-                      ...prev,
-                      kidsLine: { ...(prev.kidsLine as any), posterBoyUrl: e.target.value },
-                    }))
-                  }
-                  placeholder="/images/lenses/optisync/arte-01-kids-poster.jpg"
-                  className="w-full bg-[#020716] border border-white/10 rounded px-2 py-1 text-white text-[11px] font-mono"
-                />
+              <div className="p-3 bg-[#040e1c] rounded-xl border border-white/10 space-y-2 flex flex-col justify-between">
+                <div>
+                  <span className="text-[11px] font-semibold text-slate-300 block mb-1.5">Arte 1: Pôster Kids Adventure (4:5)</span>
+                  <div className="w-full aspect-[4/3] bg-[#020716] rounded-lg overflow-hidden border border-white/10 relative flex items-center justify-center mb-2">
+                    {optisyncSettings.kidsLine?.posterBoyUrl ? (
+                      <img
+                        src={optisyncSettings.kidsLine.posterBoyUrl}
+                        alt="Arte 1"
+                        className="w-full h-full object-cover"
+                      />
+                    ) : (
+                      <span className="text-[10px] text-slate-500">Sem imagem</span>
+                    )}
+                  </div>
+                </div>
+                <div className="space-y-1.5">
+                  <label className="w-full py-1.5 px-2 rounded-lg bg-amber-400 hover:bg-amber-300 text-slate-950 font-bold text-[11px] uppercase tracking-wider flex items-center justify-center gap-1.5 cursor-pointer transition-colors shadow-sm">
+                    <Upload size={13} />
+                    <span>{uploadingSlotId === "kidsPoster" ? "Enviando..." : "Trocar Pôster"}</span>
+                    <input
+                      type="file"
+                      accept="image/*"
+                      onChange={(e) =>
+                        handleUploadToSlot(
+                          "kidsPoster",
+                          (url) =>
+                            setOptisyncSettings((prev) => ({
+                              ...prev,
+                              kidsLine: { ...(prev.kidsLine as any), posterBoyUrl: url },
+                            })),
+                          e
+                        )
+                      }
+                      disabled={uploadingSlotId === "kidsPoster"}
+                      className="hidden"
+                    />
+                  </label>
+                  <input
+                    type="text"
+                    value={optisyncSettings.kidsLine?.posterBoyUrl || ""}
+                    onChange={(e) =>
+                      setOptisyncSettings((prev) => ({
+                        ...prev,
+                        kidsLine: { ...(prev.kidsLine as any), posterBoyUrl: e.target.value },
+                      }))
+                    }
+                    placeholder="/images/lenses/optisync/arte-01-kids-poster.jpg"
+                    className="w-full bg-[#020716] border border-white/10 rounded px-2 py-1 text-white text-[11px] font-mono"
+                  />
+                </div>
               </div>
 
               {/* Arte 3: Logo 3D Kids Adventure */}
-              <div className="p-3 bg-[#040e1c] rounded-xl border border-white/10 space-y-2">
-                <span className="text-[11px] font-semibold text-slate-300 block">Arte 3: Logo 3D Kids Adventure (1:1)</span>
-                <input
-                  type="text"
-                  value={optisyncSettings.kidsLine?.logo3dUrl || ""}
-                  onChange={(e) =>
-                    setOptisyncSettings((prev) => ({
-                      ...prev,
-                      kidsLine: { ...(prev.kidsLine as any), logo3dUrl: e.target.value },
-                    }))
-                  }
-                  placeholder="/images/lenses/optisync/arte-03-kids-logo3d.jpg"
-                  className="w-full bg-[#020716] border border-white/10 rounded px-2 py-1 text-white text-[11px] font-mono"
-                />
+              <div className="p-3 bg-[#040e1c] rounded-xl border border-white/10 space-y-2 flex flex-col justify-between">
+                <div>
+                  <span className="text-[11px] font-semibold text-slate-300 block mb-1.5">Arte 3: Logo 3D Kids Adventure (1:1)</span>
+                  <div className="w-full aspect-[4/3] bg-[#020716] rounded-lg overflow-hidden border border-white/10 relative flex items-center justify-center mb-2">
+                    {optisyncSettings.kidsLine?.logo3dUrl ? (
+                      <img
+                        src={optisyncSettings.kidsLine.logo3dUrl}
+                        alt="Arte 3"
+                        className="w-full h-full object-cover"
+                      />
+                    ) : (
+                      <span className="text-[10px] text-slate-500">Sem imagem</span>
+                    )}
+                  </div>
+                </div>
+                <div className="space-y-1.5">
+                  <label className="w-full py-1.5 px-2 rounded-lg bg-amber-400 hover:bg-amber-300 text-slate-950 font-bold text-[11px] uppercase tracking-wider flex items-center justify-center gap-1.5 cursor-pointer transition-colors shadow-sm">
+                    <Upload size={13} />
+                    <span>{uploadingSlotId === "kidsLogo" ? "Enviando..." : "Trocar Logo 3D"}</span>
+                    <input
+                      type="file"
+                      accept="image/*"
+                      onChange={(e) =>
+                        handleUploadToSlot(
+                          "kidsLogo",
+                          (url) =>
+                            setOptisyncSettings((prev) => ({
+                              ...prev,
+                              kidsLine: { ...(prev.kidsLine as any), logo3dUrl: url },
+                            })),
+                          e
+                        )
+                      }
+                      disabled={uploadingSlotId === "kidsLogo"}
+                      className="hidden"
+                    />
+                  </label>
+                  <input
+                    type="text"
+                    value={optisyncSettings.kidsLine?.logo3dUrl || ""}
+                    onChange={(e) =>
+                      setOptisyncSettings((prev) => ({
+                        ...prev,
+                        kidsLine: { ...(prev.kidsLine as any), logo3dUrl: e.target.value },
+                      }))
+                    }
+                    placeholder="/images/lenses/optisync/arte-03-kids-logo3d.jpg"
+                    className="w-full bg-[#020716] border border-white/10 rounded px-2 py-1 text-white text-[11px] font-mono"
+                  />
+                </div>
               </div>
             </div>
           </div>
@@ -3242,7 +3601,7 @@ export default function AdminLensesPage() {
                   key={item.id}
                   className="p-3 bg-[#040e1c] rounded-xl border border-white/5 flex flex-col sm:flex-row items-center gap-3 text-xs"
                 >
-                  <div className="w-12 h-12 rounded-lg bg-black/50 overflow-hidden shrink-0 border border-white/10 relative">
+                  <div className="w-12 h-12 rounded-lg bg-black/50 overflow-hidden shrink-0 border border-white/10 relative flex items-center justify-center">
                     <img src={item.imageUrl} alt="" className="w-full h-full object-cover" />
                   </div>
                   <div className="flex-1 grid grid-cols-1 sm:grid-cols-4 gap-2 w-full">
@@ -3260,20 +3619,48 @@ export default function AdminLensesPage() {
                       }}
                       className="bg-[#020716] border border-white/10 rounded px-2 py-1 text-white"
                     />
-                    <input
-                      type="text"
-                      value={item.imageUrl}
-                      placeholder="URL da Imagem"
-                      onChange={(e) => {
-                        const val = e.target.value;
-                        setOptisyncSettings((prev) => {
-                          const items = [...(prev.galleryItems || [])];
-                          items[index] = { ...items[index], imageUrl: val };
-                          return { ...prev, galleryItems: items };
-                        });
-                      }}
-                      className="bg-[#020716] border border-white/10 rounded px-2 py-1 text-white font-mono text-[11px]"
-                    />
+                    <div className="flex items-center gap-1.5">
+                      <input
+                        type="text"
+                        value={item.imageUrl}
+                        placeholder="URL da Imagem"
+                        onChange={(e) => {
+                          const val = e.target.value;
+                          setOptisyncSettings((prev) => {
+                            const items = [...(prev.galleryItems || [])];
+                            items[index] = { ...items[index], imageUrl: val };
+                            return { ...prev, galleryItems: items };
+                          });
+                        }}
+                        className="flex-1 bg-[#020716] border border-white/10 rounded px-2 py-1 text-white font-mono text-[11px]"
+                      />
+                      <label
+                        title="Fazer upload de foto direto do computador"
+                        className="py-1 px-2 rounded bg-amber-400 hover:bg-amber-300 text-slate-950 font-bold text-[10px] uppercase tracking-wider flex items-center justify-center gap-1 cursor-pointer shrink-0 transition-colors shadow-sm"
+                      >
+                        <Upload size={11} />
+                        <span>{uploadingSlotId === `gallery-${item.id}` ? "..." : "Upload"}</span>
+                        <input
+                          type="file"
+                          accept="image/*"
+                          onChange={(e) =>
+                            handleUploadToSlot(
+                              `gallery-${item.id}`,
+                              (url) => {
+                                setOptisyncSettings((prev) => {
+                                  const items = [...(prev.galleryItems || [])];
+                                  items[index] = { ...items[index], imageUrl: url };
+                                  return { ...prev, galleryItems: items };
+                                });
+                              },
+                              e
+                            )
+                          }
+                          disabled={uploadingSlotId === `gallery-${item.id}`}
+                          className="hidden"
+                        />
+                      </label>
+                    </div>
                     <select
                       value={item.line}
                       onChange={(e) => {
@@ -3355,17 +3742,49 @@ export default function AdminLensesPage() {
             </h3>
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-xs">
-              <div className="p-3 bg-[#040e1c] rounded-xl border border-white/10 space-y-2">
-                <span className="text-[11px] font-semibold text-slate-300 block">Arte 2: Banner Seis Lentes Coloridas (3:2)</span>
-                <input
-                  type="text"
-                  value={optisyncSettings.colorsBannerUrl || ""}
-                  onChange={(e) =>
-                    setOptisyncSettings((prev) => ({ ...prev, colorsBannerUrl: e.target.value }))
-                  }
-                  placeholder="/images/lenses/optisync/arte-02-cores-banner.jpg"
-                  className="w-full bg-[#020716] border border-white/10 rounded px-2 py-1 text-white text-[11px] font-mono"
-                />
+              <div className="p-3 bg-[#040e1c] rounded-xl border border-white/10 space-y-2 flex flex-col justify-between">
+                <div>
+                  <span className="text-[11px] font-semibold text-slate-300 block mb-1.5">Arte 2: Banner Seis Lentes Coloridas (3:2)</span>
+                  <div className="w-full aspect-[3/2] bg-[#020716] rounded-lg overflow-hidden border border-white/10 relative flex items-center justify-center mb-2">
+                    {optisyncSettings.colorsBannerUrl ? (
+                      <img
+                        src={optisyncSettings.colorsBannerUrl}
+                        alt="Arte 2: Banner Seis Lentes"
+                        className="w-full h-full object-cover"
+                      />
+                    ) : (
+                      <span className="text-[10px] text-slate-500">Sem imagem configurada</span>
+                    )}
+                  </div>
+                </div>
+                <div className="space-y-1.5">
+                  <label className="w-full py-1.5 px-2 rounded-lg bg-amber-400 hover:bg-amber-300 text-slate-950 font-bold text-[11px] uppercase tracking-wider flex items-center justify-center gap-1.5 cursor-pointer transition-colors shadow-sm">
+                    <Upload size={13} />
+                    <span>{uploadingSlotId === "colorsBanner" ? "Enviando..." : "Trocar Foto do Banner"}</span>
+                    <input
+                      type="file"
+                      accept="image/*"
+                      onChange={(e) =>
+                        handleUploadToSlot(
+                          "colorsBanner",
+                          (url) => setOptisyncSettings((prev) => ({ ...prev, colorsBannerUrl: url })),
+                          e
+                        )
+                      }
+                      disabled={uploadingSlotId === "colorsBanner"}
+                      className="hidden"
+                    />
+                  </label>
+                  <input
+                    type="text"
+                    value={optisyncSettings.colorsBannerUrl || ""}
+                    onChange={(e) =>
+                      setOptisyncSettings((prev) => ({ ...prev, colorsBannerUrl: e.target.value }))
+                    }
+                    placeholder="/images/lenses/optisync/arte-02-cores-banner.jpg"
+                    className="w-full bg-[#020716] border border-white/10 rounded px-2 py-1 text-white text-[11px] font-mono"
+                  />
+                </div>
               </div>
 
               <div className="p-3 bg-[#040e1c] rounded-xl border border-white/10 space-y-2">

@@ -20,43 +20,54 @@ async function saveLensesCatalog(adminSupabase: ReturnType<typeof createAdminCli
   }
 
   const now = new Date().toISOString();
-  const { data: existing, error: selectError } = await adminSupabase
+  const { error } = await adminSupabase
     .from("site_settings")
-    .select("id")
-    .eq("key", "lenses_catalog")
-    .maybeSingle();
-
-  if (selectError) {
-    console.warn("Aviso ao consultar lenses_catalog em site_settings:", selectError.message);
-  }
-
-  if (existing?.id) {
-    const { error } = await adminSupabase
-      .from("site_settings")
-      .update({
-        value: lenses,
-        description: "Catálogo completo de lentes, preços e especificações",
-        updated_at: now,
-      })
-      .eq("id", existing.id);
-
-    if (error) {
-      console.error("Erro ao atualizar lenses_catalog no Supabase:", error);
-      throw error;
-    }
-  } else {
-    const { error } = await adminSupabase
-      .from("site_settings")
-      .insert({
+    .upsert(
+      {
         key: "lenses_catalog",
         description: "Catálogo completo de lentes, preços e especificações",
         value: lenses,
         updated_at: now,
-      });
+      },
+      { onConflict: "key" }
+    );
 
-    if (error) {
-      console.error("Erro ao inserir lenses_catalog no Supabase:", error);
-      throw error;
+  if (error) {
+    console.warn("Aviso no upsert de lenses_catalog, aplicando fallback update/insert:", error.message);
+    const { data: existing } = await adminSupabase
+      .from("site_settings")
+      .select("id")
+      .eq("key", "lenses_catalog")
+      .maybeSingle();
+
+    if (existing?.id) {
+      const { error: updateError } = await adminSupabase
+        .from("site_settings")
+        .update({
+          value: lenses,
+          description: "Catálogo completo de lentes, preços e especificações",
+          updated_at: now,
+        })
+        .eq("id", existing.id);
+
+      if (updateError) {
+        console.error("Erro ao atualizar lenses_catalog no Supabase:", updateError);
+        throw updateError;
+      }
+    } else {
+      const { error: insertError } = await adminSupabase
+        .from("site_settings")
+        .insert({
+          key: "lenses_catalog",
+          description: "Catálogo completo de lentes, preços e especificações",
+          value: lenses,
+          updated_at: now,
+        });
+
+      if (insertError) {
+        console.error("Erro ao inserir lenses_catalog no Supabase:", insertError);
+        throw insertError;
+      }
     }
   }
 }
@@ -76,16 +87,24 @@ export async function GET() {
         .eq("key", "lenses_catalog")
         .maybeSingle();
 
-      if (!error && data?.value && Array.isArray(data.value)) {
-        inMemoryLensesCatalog = data.value as AdminLensItem[];
-        return NextResponse.json(
-          { success: true, lenses: inMemoryLensesCatalog },
-          {
-            headers: {
-              "Cache-Control": "no-store, no-cache, must-revalidate, proxy-revalidate",
-            },
-          }
-        );
+      if (!error && data?.value) {
+        let list = data.value;
+        if (typeof list === "string") {
+          try {
+            list = JSON.parse(list);
+          } catch {}
+        }
+        if (Array.isArray(list)) {
+          inMemoryLensesCatalog = list as AdminLensItem[];
+          return NextResponse.json(
+            { success: true, lenses: inMemoryLensesCatalog },
+            {
+              headers: {
+                "Cache-Control": "no-store, no-cache, must-revalidate, proxy-revalidate",
+              },
+            }
+          );
+        }
       }
     }
 
@@ -186,8 +205,16 @@ export async function DELETE(req: NextRequest) {
         .eq("key", "lenses_catalog")
         .maybeSingle();
 
-      if (data?.value && Array.isArray(data.value)) {
-        currentList = data.value as AdminLensItem[];
+      if (data?.value) {
+        let list = data.value;
+        if (typeof list === "string") {
+          try {
+            list = JSON.parse(list);
+          } catch {}
+        }
+        if (Array.isArray(list)) {
+          currentList = list as AdminLensItem[];
+        }
       }
     }
 
