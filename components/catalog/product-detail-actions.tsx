@@ -100,28 +100,53 @@ export function ProductDetailActions({
       name: "Somente a armação",
       desc: "Sem lentes de grau (ou provar na loja)",
       icon: Sparkles,
+      hasWhatsApp: false,
     },
     {
       id: "monofocal",
-      name: "Lentes Monofocais",
+      name: "Lentes Monofocais (Visão Simples)",
       desc: "Miopia, hipermetropia ou astigmatismo",
       icon: Layers,
+      hasWhatsApp: true,
+      whatsappLabel: "Lentes Monofocais / Visão Simples",
     },
     {
       id: "multifocal",
       name: "Lentes Multifocais",
       desc: "Transição contínua perto e longe",
       icon: Layers,
+      hasWhatsApp: true,
+      whatsappLabel: "Lentes Multifocais",
     },
     {
       id: "blue_filter",
       name: "Filtro Luz Azul / Antirreflexo",
       desc: "Conforto para telas e direção noturna",
       icon: ShieldCheck,
+      hasWhatsApp: true,
+      whatsappLabel: "Filtro Luz Azul e Antirreflexo",
     },
   ];
 
   const [selectedLens, setSelectedLens] = useState(lensOptions[0]);
+
+  const handleSelectLens = (lens: (typeof lensOptions)[0]) => {
+    setSelectedLens(lens);
+
+    if (lens.hasWhatsApp) {
+      const catLabel =
+        product.frame_type === "Solar" ? "Óculos Solar" : "Armação de Grau";
+      const whatsappMsg = encodeURIComponent(
+        `Olá! Gostei da armação "${product.name}" (${catLabel} - Cor: ${selectedVariant.color_name}) na Ótica Ventara.\n` +
+          `• Interesse em lentes: ${lens.name} (${lens.desc})\n` +
+          `Gostaria de consultar valores, tirar dúvidas e enviar minha receita médica para avaliação da dioptria.`
+      );
+      const url = `https://wa.me/5518996155748?text=${whatsappMsg}`;
+      if (typeof window !== "undefined") {
+        window.open(url, "_blank", "noopener,noreferrer");
+      }
+    }
+  };
 
   const handleRemoveFromCart = (id: string) => {
     const updated = cartItems.filter((i) => i.id !== id);
@@ -241,12 +266,13 @@ export function ProductDetailActions({
               <button
                 key={lens.id}
                 type="button"
-                onClick={() => setSelectedLens(lens)}
-                className={`p-3 rounded-xl border text-left transition-all active:scale-95 flex items-start gap-2.5 ${
+                onClick={() => handleSelectLens(lens)}
+                className={`p-3 rounded-xl border text-left transition-all active:scale-95 flex items-start gap-2.5 cursor-pointer relative ${
                   isChosen
                     ? "bg-amber-50/80 border-amber-400 text-slate-900 shadow-2xs"
                     : "bg-white border-slate-200/80 text-slate-700 hover:border-slate-300"
                 }`}
+                title={lens.hasWhatsApp ? `Consultar ${lens.name} no WhatsApp` : lens.name}
               >
                 <div
                   className={`p-1.5 rounded-lg flex-shrink-0 mt-0.5 ${
@@ -257,8 +283,18 @@ export function ProductDetailActions({
                 >
                   <LensIcon size={14} />
                 </div>
-                <div>
-                  <p className="text-xs font-semibold leading-tight text-slate-900">{lens.name}</p>
+                <div className="min-w-0 flex-1 pr-1">
+                  <div className="flex items-center gap-1.5 flex-wrap">
+                    <p className="text-xs font-semibold leading-tight text-slate-900">
+                      {lens.name}
+                    </p>
+                    {lens.hasWhatsApp && (
+                      <span className="inline-flex items-center gap-1 text-[9px] font-bold text-emerald-700 bg-emerald-50 border border-emerald-200/90 px-1.5 py-0.5 rounded-md shrink-0">
+                        <MessageCircle size={10} className="fill-emerald-600 text-emerald-600" />
+                        <span>WhatsApp</span>
+                      </span>
+                    )}
+                  </div>
                   <p className="text-[11px] text-slate-500 leading-tight mt-0.5">
                     {lens.desc}
                   </p>

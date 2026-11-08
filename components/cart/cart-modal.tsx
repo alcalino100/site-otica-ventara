@@ -418,7 +418,7 @@ export function CartModal({
             role="dialog"
             aria-modal="true"
             aria-label="Sua seleção de armações e pagamento"
-            className="relative z-10 w-full sm:max-w-[580px] md:max-w-[640px] h-full bg-[#050e18] text-white border-l border-white/10 shadow-[-30px_0_80px_rgba(0,0,0,0.9)] flex flex-col justify-between overflow-hidden"
+            className="relative z-10 w-full sm:max-w-[580px] md:max-w-[640px] h-full bg-white text-slate-900 border-l border-slate-200 shadow-[-20px_0_60px_rgba(0,0,0,0.25)] flex flex-col justify-between overflow-hidden"
             initial={{ transform: "translateX(100%)" }}
             animate={{ transform: "translateX(0%)" }}
             exit={{ transform: "translateX(100%)" }}
@@ -426,20 +426,20 @@ export function CartModal({
             onClick={(e) => e.stopPropagation()}
           >
             {/* Header com Navegação */}
-            <div className="p-6 sm:p-7 pb-4 border-b border-white/10 flex-shrink-0">
+            <div className="p-6 sm:p-7 pb-4 border-b border-slate-200 bg-white flex-shrink-0">
               <div className="flex items-center justify-between mb-3">
                 <div className="flex items-center gap-2">
                   {view !== "items" && view !== "success" ? (
                     <button
                       type="button"
                       onClick={() => setView("items")}
-                      className="inline-flex items-center gap-1.5 text-xs text-amber-400 hover:text-amber-300 font-semibold transition-colors mr-1 cursor-pointer"
+                      className="inline-flex items-center gap-1.5 text-xs text-amber-700 hover:text-amber-800 font-semibold transition-colors mr-1 cursor-pointer"
                     >
                       <ArrowLeft size={16} />
                       <span>Voltar</span>
                     </button>
                   ) : (
-                    <span className="text-[11px] font-semibold text-amber-400 tracking-[0.2em] uppercase">
+                    <span className="text-[11px] font-semibold text-amber-700 tracking-[0.2em] uppercase">
                       ÓTICA VENTARA · ATENDIMENTO EXCLUSIVO
                     </span>
                   )}
@@ -448,7 +448,7 @@ export function CartModal({
                 <button
                   type="button"
                   onClick={onClose}
-                  className="p-2 rounded-full text-slate-400 hover:text-white hover:bg-white/10 transition-colors active:scale-90 cursor-pointer"
+                  className="p-2 rounded-full text-slate-400 hover:text-slate-700 hover:bg-slate-100 transition-colors active:scale-90 cursor-pointer"
                   aria-label="Fechar gaveta"
                 >
                   <X size={20} />
@@ -456,25 +456,25 @@ export function CartModal({
               </div>
 
               <div className="flex items-baseline justify-between gap-4">
-                <h2 className="text-2xl sm:text-3xl font-bold tracking-tight text-white">
+                <h2 className="text-2xl sm:text-3xl font-bold tracking-tight text-slate-900">
                   {view === "items" && "Sua Seleção"}
                   {view === "checkout" && "Finalizar Pedido"}
                   {view === "pix" && "Pagamento via Pix"}
                   {view === "success" && "Pedido Confirmado"}
                 </h2>
                 {view === "items" && (
-                  <span className="text-xs px-3 py-1 rounded-full bg-white/5 border border-white/10 text-slate-300 font-medium flex-shrink-0">
+                  <span className="text-xs px-3 py-1 rounded-full bg-slate-100 border border-slate-200 text-slate-700 font-medium flex-shrink-0">
                     {cartItems.length}{" "}
                     {cartItems.length === 1 ? "armação selecionada" : "armações selecionadas"}
                   </span>
                 )}
                 {view === "pix" && (
-                  <span className="text-xs px-3 py-1 rounded-full bg-amber-400/15 border border-amber-400/30 text-amber-300 font-mono font-semibold flex items-center gap-1.5">
+                  <span className="text-xs px-3 py-1 rounded-full bg-amber-100 border border-amber-300 text-amber-800 font-mono font-semibold flex items-center gap-1.5">
                     <Clock size={13} /> {timeFormatted}
                   </span>
                 )}
               </div>
-              <p className="text-xs sm:text-[13px] text-slate-400 mt-1 leading-relaxed">
+              <p className="text-xs sm:text-[13px] text-slate-500 mt-1 leading-relaxed">
                 {view === "items" &&
                   "Armações salvas para orientação e compras diretas via Mercado Pago."}
                 {view === "checkout" &&
@@ -487,19 +487,19 @@ export function CartModal({
             </div>
 
             {/* CONTEÚDO PRINCIPAL BASEADO NA TELA ATIVA */}
-            <div className="flex-1 overflow-y-auto p-6 sm:p-7 space-y-5">
+            <div className="flex-1 overflow-y-auto p-6 sm:p-7 space-y-5 bg-white">
               {/* VIEW 1: ITENS DA SELEÇÃO */}
               {view === "items" && (
                 <>
                   {cartItems.length === 0 ? (
                     <div className="py-24 text-center flex flex-col items-center justify-center">
-                      <div className="w-20 h-20 rounded-3xl bg-amber-400/10 border border-amber-400/20 flex items-center justify-center text-amber-400 mb-5 shadow-inner">
+                      <div className="w-20 h-20 rounded-3xl bg-amber-100 border border-amber-200 flex items-center justify-center text-amber-700 mb-5 shadow-inner">
                         <ShoppingBag size={32} />
                       </div>
-                      <h3 className="text-lg font-semibold text-white mb-2">
+                      <h3 className="text-lg font-semibold text-slate-900 mb-2">
                         Sua seleção está vazia
                       </h3>
-                      <p className="text-xs sm:text-sm text-slate-400 max-w-sm mx-auto mb-7 leading-relaxed">
+                      <p className="text-xs sm:text-sm text-slate-500 max-w-sm mx-auto mb-7 leading-relaxed">
                         Explore nossa coleção de armações e adicione suas favoritas para comprar ou consultar medidas e lentes personalizadas.
                       </p>
                       <Button
@@ -525,9 +525,9 @@ export function CartModal({
                           return (
                             <div
                               key={`${item.id}-${index}`}
-                              className="p-4 rounded-2xl bg-[#091a2e]/80 border border-white/5 hover:border-white/15 transition-all flex gap-4 items-center group"
+                              className="p-4 rounded-2xl bg-slate-50 border border-slate-200 hover:border-slate-300 transition-all flex gap-4 items-center group shadow-2xs"
                             >
-                              <div className="w-24 sm:w-28 h-18 rounded-xl bg-[#030910] border border-white/10 flex items-center justify-center p-2 relative overflow-hidden flex-shrink-0">
+                              <div className="w-24 sm:w-28 h-18 rounded-xl bg-white border border-slate-200 flex items-center justify-center p-2 relative overflow-hidden flex-shrink-0">
                                 {item.imageUrl ? (
                                   <img
                                     src={item.imageUrl}
@@ -546,23 +546,23 @@ export function CartModal({
                               </div>
 
                               <div className="flex-1 min-w-0 pr-1">
-                                <h4 className="text-sm sm:text-base font-semibold text-white truncate group-hover:text-amber-300 transition-colors">
+                                <h4 className="text-sm sm:text-base font-semibold text-slate-900 truncate group-hover:text-amber-700 transition-colors">
                                   {item.name}
                                 </h4>
-                                <div className="flex items-center gap-2 text-xs text-slate-400 mt-0.5">
+                                <div className="flex items-center gap-2 text-xs text-slate-500 mt-0.5">
                                   <span className="truncate">{item.category}</span>
                                   <span>·</span>
                                   <span className="truncate">{item.color}</span>
                                 </div>
                                 {item.priceInCents ? (
                                   <div className="flex items-baseline gap-2 mt-1.5">
-                                    <span className="text-sm font-bold text-amber-400">
+                                    <span className="text-sm font-bold text-amber-700">
                                       {(item.priceInCents / 100).toLocaleString("pt-BR", {
                                         style: "currency",
                                         currency: "BRL",
                                       })}
                                     </span>
-                                    <span className="text-[11px] text-slate-400">
+                                    <span className="text-[11px] text-slate-500">
                                       ou em até 10x de{" "}
                                       {(item.priceInCents / 1000).toLocaleString("pt-BR", {
                                         style: "currency",
@@ -576,7 +576,7 @@ export function CartModal({
                               <button
                                 type="button"
                                 onClick={() => onRemoveItem(item.id)}
-                                className="p-2 rounded-xl text-slate-500 hover:text-red-400 hover:bg-red-500/10 active:scale-90 transition-all flex-shrink-0 cursor-pointer"
+                                className="p-2 rounded-xl text-slate-400 hover:text-red-600 hover:bg-red-50 active:scale-90 transition-all flex-shrink-0 cursor-pointer"
                                 aria-label={`Remover ${item.name}`}
                                 title="Remover da seleção"
                               >
@@ -588,19 +588,19 @@ export function CartModal({
                       </div>
 
                       {/* Informações de Compra Segura */}
-                      <div className="p-4 rounded-2xl bg-[#071626] border border-[#009ee3]/20 space-y-2">
-                        <div className="flex items-center gap-2 text-xs font-semibold text-[#009ee3]">
+                      <div className="p-4 rounded-2xl bg-sky-50 border border-sky-200 space-y-2">
+                        <div className="flex items-center gap-2 text-xs font-semibold text-sky-800">
                           <ShieldCheck size={16} />
                           <span>PAGAMENTO PROCESSADO PELO MERCADO PAGO</span>
                         </div>
-                        <p className="text-xs text-slate-300 leading-relaxed">
+                        <p className="text-xs text-slate-700 leading-relaxed">
                           Pague com <strong>Pix instantâneo</strong> (aprovação em segundos) ou parcele no <strong>cartão de crédito em até 10x sem juros</strong> com proteção antifraude.
                         </p>
                       </div>
 
                       {/* Badge da Loja Física */}
-                      <div className="flex items-start gap-3 p-3.5 rounded-xl bg-white/[0.02] border border-white/5 text-xs text-slate-300 leading-relaxed">
-                        <MapPin size={16} className="text-amber-400 flex-shrink-0 mt-0.5" />
+                      <div className="flex items-start gap-3 p-3.5 rounded-xl bg-slate-50 border border-slate-200 text-xs text-slate-700 leading-relaxed">
+                        <MapPin size={16} className="text-amber-600 flex-shrink-0 mt-0.5" />
                         <span>
                           <strong>Retirada Cortesia:</strong> Rua Princesa Isabel, 221 - Centro, Araçatuba-SP. Montagem precisa e ajuste facial gratuito.
                         </span>
@@ -614,21 +614,21 @@ export function CartModal({
               {view === "checkout" && (
                 <form id="checkout-form" onSubmit={handleSubmitCheckout} className="space-y-5">
                   {errorMessage && (
-                    <div className="p-3.5 rounded-xl bg-red-950/40 border border-red-500/30 text-red-200 text-xs flex items-start gap-2.5">
-                      <AlertCircle size={16} className="text-red-400 flex-shrink-0 mt-0.5" />
+                    <div className="p-3.5 rounded-xl bg-red-50 border border-red-200 text-red-700 text-xs flex items-start gap-2.5">
+                      <AlertCircle size={16} className="text-red-600 flex-shrink-0 mt-0.5" />
                       <span>{errorMessage}</span>
                     </div>
                   )}
 
                   {/* 1. Dados Pessoais */}
-                  <div className="space-y-3 bg-[#06111f] border border-white/10 rounded-2xl p-4 sm:p-5">
-                    <h3 className="text-xs font-bold uppercase tracking-wider text-amber-400">
+                  <div className="space-y-3 bg-slate-50 border border-slate-200 rounded-2xl p-4 sm:p-5 shadow-2xs">
+                    <h3 className="text-xs font-bold uppercase tracking-wider text-amber-700">
                       1. Seus Dados de Contato
                     </h3>
 
                     <div className="space-y-3 text-xs">
                       <div>
-                        <label className="text-slate-300 font-medium block mb-1">
+                        <label className="text-slate-700 font-medium block mb-1">
                           Nome Completo *
                         </label>
                         <input
@@ -637,13 +637,13 @@ export function CartModal({
                           value={customerName}
                           onChange={(e) => setCustomerName(e.target.value)}
                           placeholder="Ex: Gustavo Silva"
-                          className="w-full bg-[#040c16] border border-white/10 rounded-xl px-3.5 py-2.5 text-white placeholder-slate-600 focus:outline-none focus:border-amber-400"
+                          className="w-full bg-white border border-slate-300 rounded-xl px-3.5 py-2.5 text-slate-900 placeholder-slate-400 focus:outline-none focus:border-amber-500 focus:ring-1 focus:ring-amber-500 transition-colors"
                         />
                       </div>
 
                       <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                         <div>
-                          <label className="text-slate-300 font-medium block mb-1">
+                          <label className="text-slate-700 font-medium block mb-1">
                             E-mail *
                           </label>
                           <input
@@ -652,12 +652,12 @@ export function CartModal({
                             value={customerEmail}
                             onChange={(e) => setCustomerEmail(e.target.value)}
                             placeholder="seu@email.com"
-                            className="w-full bg-[#040c16] border border-white/10 rounded-xl px-3.5 py-2.5 text-white placeholder-slate-600 focus:outline-none focus:border-amber-400"
+                            className="w-full bg-white border border-slate-300 rounded-xl px-3.5 py-2.5 text-slate-900 placeholder-slate-400 focus:outline-none focus:border-amber-500 focus:ring-1 focus:ring-amber-500 transition-colors"
                           />
                         </div>
 
                         <div>
-                          <label className="text-slate-300 font-medium block mb-1">
+                          <label className="text-slate-700 font-medium block mb-1">
                             WhatsApp / Celular *
                           </label>
                           <input
@@ -666,13 +666,13 @@ export function CartModal({
                             value={customerPhone}
                             onChange={(e) => setCustomerPhone(e.target.value)}
                             placeholder="(18) 99999-9999"
-                            className="w-full bg-[#040c16] border border-white/10 rounded-xl px-3.5 py-2.5 text-white placeholder-slate-600 focus:outline-none focus:border-amber-400"
+                            className="w-full bg-white border border-slate-300 rounded-xl px-3.5 py-2.5 text-slate-900 placeholder-slate-400 focus:outline-none focus:border-amber-500 focus:ring-1 focus:ring-amber-500 transition-colors"
                           />
                         </div>
                       </div>
 
                       <div>
-                        <label className="text-slate-300 font-medium block mb-1">
+                        <label className="text-slate-700 font-medium block mb-1">
                           CPF (Obrigatório para emissão de nota e Pix) *
                         </label>
                         <input
@@ -682,15 +682,15 @@ export function CartModal({
                           onChange={(e) => setCustomerDocument(e.target.value)}
                           placeholder="000.000.000-00"
                           maxLength={14}
-                          className="w-full bg-[#040c16] border border-white/10 rounded-xl px-3.5 py-2.5 text-white placeholder-slate-600 focus:outline-none focus:border-amber-400 font-mono"
+                          className="w-full bg-white border border-slate-300 rounded-xl px-3.5 py-2.5 text-slate-900 placeholder-slate-400 focus:outline-none focus:border-amber-500 focus:ring-1 focus:ring-amber-500 font-mono transition-colors"
                         />
                       </div>
                     </div>
                   </div>
 
                   {/* 2. Modalidade de Entrega */}
-                  <div className="space-y-3 bg-[#06111f] border border-white/10 rounded-2xl p-4 sm:p-5">
-                    <h3 className="text-xs font-bold uppercase tracking-wider text-amber-400">
+                  <div className="space-y-3 bg-slate-50 border border-slate-200 rounded-2xl p-4 sm:p-5 shadow-2xs">
+                    <h3 className="text-xs font-bold uppercase tracking-wider text-amber-700">
                       2. Opção de Entrega
                     </h3>
 
@@ -700,18 +700,18 @@ export function CartModal({
                         onClick={() => setDeliveryType("store_pickup")}
                         className={`p-3.5 rounded-xl border text-left transition-all cursor-pointer ${
                           deliveryType === "store_pickup"
-                            ? "bg-amber-400/15 border-amber-400 text-white"
-                            : "bg-[#040c16] border-white/10 text-slate-400 hover:text-white"
+                            ? "bg-amber-50 border-2 border-amber-500 text-slate-900 shadow-2xs"
+                            : "bg-white border-slate-200 text-slate-600 hover:text-slate-900 hover:border-slate-300"
                         }`}
                       >
-                        <div className="flex items-center gap-2 font-semibold text-xs text-white">
-                          <Store size={15} className="text-amber-400" />
+                        <div className="flex items-center gap-2 font-semibold text-xs text-slate-900">
+                          <Store size={15} className="text-amber-600" />
                           <span>Retirada na Loja</span>
                         </div>
-                        <p className="text-[11px] text-slate-400 mt-1">
+                        <p className="text-[11px] text-slate-500 mt-1">
                           Rua Princesa Isabel, 221 · Araçatuba-SP
                         </p>
-                        <span className="text-[11px] font-bold text-emerald-400 mt-2 block">
+                        <span className="text-[11px] font-bold text-emerald-700 mt-2 block">
                           GRÁTIS
                         </span>
                       </button>
@@ -721,67 +721,67 @@ export function CartModal({
                         onClick={() => setDeliveryType("delivery")}
                         className={`p-3.5 rounded-xl border text-left transition-all cursor-pointer ${
                           deliveryType === "delivery"
-                            ? "bg-amber-400/15 border-amber-400 text-white"
-                            : "bg-[#040c16] border-white/10 text-slate-400 hover:text-white"
+                            ? "bg-amber-50 border-2 border-amber-500 text-slate-900 shadow-2xs"
+                            : "bg-white border-slate-200 text-slate-600 hover:text-slate-900 hover:border-slate-300"
                         }`}
                       >
-                        <div className="flex items-center gap-2 font-semibold text-xs text-white">
-                          <Truck size={15} className="text-amber-400" />
+                        <div className="flex items-center gap-2 font-semibold text-xs text-slate-900">
+                          <Truck size={15} className="text-amber-600" />
                           <span>Envio pelos Correios</span>
                         </div>
-                        <p className="text-[11px] text-slate-400 mt-1">
+                        <p className="text-[11px] text-slate-500 mt-1">
                           Entrega expressa com seguro total
                         </p>
-                        <span className="text-[11px] font-bold text-amber-400 mt-2 block">
+                        <span className="text-[11px] font-bold text-amber-700 mt-2 block">
                           {subtotalCents >= 35000 ? "GRÁTIS (acima de R$ 350)" : "R$ 25,00"}
                         </span>
                       </button>
                     </div>
 
                     {deliveryType === "delivery" && (
-                      <div className="space-y-3 pt-3 border-t border-white/10 text-xs">
+                      <div className="space-y-3 pt-3 border-t border-slate-200 text-xs">
                         <div className="grid grid-cols-2 gap-3">
                           <div>
-                            <label className="text-slate-300 font-medium block mb-1">CEP</label>
+                            <label className="text-slate-700 font-medium block mb-1">CEP</label>
                             <input
                               type="text"
                               value={postalCode}
                               onChange={(e) => setPostalCode(e.target.value)}
                               placeholder="16010-250"
-                              className="w-full bg-[#040c16] border border-white/10 rounded-xl px-3.5 py-2 text-white font-mono"
+                              className="w-full bg-white border border-slate-300 rounded-xl px-3.5 py-2 text-slate-900 font-mono focus:outline-none focus:border-amber-500"
                             />
                           </div>
                           <div>
-                            <label className="text-slate-300 font-medium block mb-1">Bairro</label>
+                            <label className="text-slate-700 font-medium block mb-1">Bairro</label>
                             <input
                               type="text"
                               value={neighborhood}
                               onChange={(e) => setNeighborhood(e.target.value)}
                               placeholder="Centro"
-                              className="w-full bg-[#040c16] border border-white/10 rounded-xl px-3.5 py-2 text-white"
+                              className="w-full bg-white border border-slate-300 rounded-xl px-3.5 py-2 text-slate-900 focus:outline-none focus:border-amber-500"
                             />
                           </div>
                         </div>
 
                         <div className="grid grid-cols-3 gap-3">
                           <div className="col-span-2">
-                            <label className="text-slate-300 font-medium block mb-1">Rua / Logradouro</label>
+                            <label className="text-slate-700 font-medium block mb-1">Rua / Logradouro</label>
                             <input
                               type="text"
                               value={street}
                               onChange={(e) => setStreet(e.target.value)}
                               placeholder="Rua Princesa Isabel"
-                              className="w-full bg-[#040c16] border border-white/10 rounded-xl px-3.5 py-2 text-white"
+                              className="w-full bg-white border border-slate-300 rounded-xl px-3.5 py-2 text-slate-900 focus:outline-none focus:border-amber-500"
                             />
                           </div>
                           <div>
-                            <label className="text-slate-300 font-medium block mb-1">Número</label>
+                            <label className="text-slate-700 font-medium block mb-1">Número</label>
                             <input
                               type="text"
                               value={number}
                               onChange={(e) => setNumber(e.target.value)}
                               placeholder="221"
-                              className="w-full bg-[#040c16] border border-white/10 rounded-xl px-3.5 py-2 text-white"
+                              className="w-full bg-white border border-slate-300 rounded-xl px-3.5 py-2 text-slate-900 focus:outline-none focus:border-amber-500"
                             />
                           </div>
                         </div>
@@ -790,21 +790,21 @@ export function CartModal({
                   </div>
 
                   {/* Bloco de Cupom de Desconto */}
-                  <div className="space-y-3 bg-[#06111f] border border-white/10 rounded-2xl p-4 sm:p-5">
+                  <div className="space-y-3 bg-slate-50 border border-slate-200 rounded-2xl p-4 sm:p-5 shadow-2xs">
                     <div className="flex items-center justify-between">
-                      <span className="text-xs font-bold uppercase tracking-wider text-amber-400 flex items-center gap-1.5">
+                      <span className="text-xs font-bold uppercase tracking-wider text-amber-700 flex items-center gap-1.5">
                         <Tag size={14} />
                         <span>Cupom de Desconto</span>
                       </span>
                       {appliedCoupon ? (
-                        <span className="text-[10px] font-bold text-emerald-400 bg-emerald-950/60 border border-emerald-500/30 px-2 py-0.5 rounded-full">
+                        <span className="text-[10px] font-bold text-emerald-800 bg-emerald-100 border border-emerald-300 px-2 py-0.5 rounded-full">
                           {appliedCoupon.code} aplicado
                         </span>
                       ) : (
                         <button
                           type="button"
                           onClick={() => setIsCouponOpen((prev) => !prev)}
-                          className="text-[11px] text-amber-400 hover:text-amber-300 font-semibold cursor-pointer"
+                          className="text-[11px] text-amber-700 hover:text-amber-800 font-semibold cursor-pointer"
                         >
                           {isCouponOpen ? "Ocultar" : "Adicionar Cupom"}
                         </button>
@@ -812,8 +812,8 @@ export function CartModal({
                     </div>
 
                     {appliedCoupon ? (
-                      <div className="flex items-center justify-between p-3 rounded-xl bg-emerald-500/10 border border-emerald-500/30 text-xs">
-                        <div className="text-emerald-300">
+                      <div className="flex items-center justify-between p-3 rounded-xl bg-emerald-50 border border-emerald-300 text-xs">
+                        <div className="text-emerald-800">
                           <strong>{appliedCoupon.code}</strong> · Desconto de{" "}
                           <span className="font-bold">
                             {appliedCoupon.discountType === "percentage"
@@ -825,7 +825,7 @@ export function CartModal({
                         <button
                           type="button"
                           onClick={handleRemoveCoupon}
-                          className="text-xs text-red-400 hover:text-red-300 font-bold px-2 py-1 rounded bg-white/5 cursor-pointer"
+                          className="text-xs text-red-600 hover:text-red-700 font-bold px-2 py-1 rounded bg-white border border-slate-200 cursor-pointer"
                         >
                           Remover
                         </button>
@@ -839,7 +839,7 @@ export function CartModal({
                               value={couponInput}
                               onChange={(e) => setCouponInput(e.target.value.toUpperCase())}
                               placeholder="Digite o cupom (ex: VENTARA10)"
-                              className="flex-1 bg-[#040c16] border border-white/15 rounded-xl px-3.5 py-2 text-xs text-white uppercase font-mono placeholder:normal-case placeholder:font-sans focus:outline-none focus:border-amber-400"
+                              className="flex-1 bg-white border border-slate-300 rounded-xl px-3.5 py-2 text-xs text-slate-900 uppercase font-mono placeholder:normal-case placeholder:font-sans focus:outline-none focus:border-amber-500"
                             />
                             <button
                               type="button"
@@ -850,7 +850,7 @@ export function CartModal({
                               {isValidatingCoupon ? "..." : "Aplicar"}
                             </button>
                           </div>
-                          <p className="text-[10px] text-slate-400">
+                          <p className="text-[10px] text-slate-500">
                             Ganhou cupom na Roleta ou tem código promocional? Digite aqui para abater no total.
                           </p>
                         </div>
@@ -861,8 +861,8 @@ export function CartModal({
                       <p
                         className={`text-[11px] font-medium ${
                           couponFeedback.type === "success"
-                            ? "text-emerald-400"
-                            : "text-red-400"
+                            ? "text-emerald-700"
+                            : "text-red-600"
                         }`}
                       >
                         {couponFeedback.text}
@@ -871,8 +871,8 @@ export function CartModal({
                   </div>
 
                   {/* 3. Forma de Pagamento */}
-                  <div className="space-y-3 bg-[#06111f] border border-white/10 rounded-2xl p-4 sm:p-5">
-                    <h3 className="text-xs font-bold uppercase tracking-wider text-amber-400">
+                  <div className="space-y-3 bg-slate-50 border border-slate-200 rounded-2xl p-4 sm:p-5 shadow-2xs">
+                    <h3 className="text-xs font-bold uppercase tracking-wider text-amber-700">
                       3. Pagamento Mercado Pago
                     </h3>
 
@@ -882,15 +882,15 @@ export function CartModal({
                         onClick={() => setPaymentMethod("pix")}
                         className={`p-3.5 rounded-xl border text-left transition-all cursor-pointer ${
                           paymentMethod === "pix"
-                            ? "bg-emerald-500/15 border-emerald-400 text-white"
-                            : "bg-[#040c16] border-white/10 text-slate-400 hover:text-white"
+                            ? "bg-emerald-50 border-2 border-emerald-500 text-slate-900 shadow-2xs"
+                            : "bg-white border-slate-200 text-slate-600 hover:text-slate-900 hover:border-slate-300"
                         }`}
                       >
-                        <div className="flex items-center gap-2 font-semibold text-xs text-emerald-400">
+                        <div className="flex items-center gap-2 font-semibold text-xs text-emerald-700">
                           <QrCode size={16} />
                           <span>Pix Instantâneo</span>
                         </div>
-                        <p className="text-[11px] text-slate-300 mt-1">
+                        <p className="text-[11px] text-slate-600 mt-1">
                           Aprovação em segundos com QR Code dinâmico do Mercado Pago.
                         </p>
                       </button>
@@ -900,15 +900,15 @@ export function CartModal({
                         onClick={() => setPaymentMethod("credit_card")}
                         className={`p-3.5 rounded-xl border text-left transition-all cursor-pointer ${
                           paymentMethod === "credit_card"
-                            ? "bg-[#009ee3]/20 border-[#009ee3] text-white"
-                            : "bg-[#040c16] border-white/10 text-slate-400 hover:text-white"
+                            ? "bg-sky-50 border-2 border-[#009ee3] text-slate-900 shadow-2xs"
+                            : "bg-white border-slate-200 text-slate-600 hover:text-slate-900 hover:border-slate-300"
                         }`}
                       >
                         <div className="flex items-center gap-2 font-semibold text-xs text-[#009ee3]">
                           <CreditCard size={16} />
                           <span>Cartão de Crédito</span>
                         </div>
-                        <p className="text-[11px] text-slate-300 mt-1">
+                        <p className="text-[11px] text-slate-600 mt-1">
                           Em até 10x sem juros via Mercado Pago com proteção antifraude.
                         </p>
                       </button>
@@ -920,20 +920,20 @@ export function CartModal({
               {/* VIEW 3: TELA DE PAGAMENTO PIX */}
               {view === "pix" && pixData && (
                 <div className="space-y-5 text-center">
-                  <div className="p-4 rounded-2xl bg-amber-400/[0.06] border border-amber-400/20">
-                    <span className="text-[11px] font-semibold text-amber-400 uppercase tracking-widest block">
+                  <div className="p-4 rounded-2xl bg-amber-50 border border-amber-200">
+                    <span className="text-[11px] font-semibold text-amber-800 uppercase tracking-widest block">
                       PEDIDO REGISTRADO: {createdOrder?.reference_code}
                     </span>
-                    <h3 className="text-2xl font-bold text-white mt-1">
+                    <h3 className="text-2xl font-bold text-slate-900 mt-1">
                       {totalFormatted}
                     </h3>
-                    <p className="text-xs text-slate-400 mt-0.5">
+                    <p className="text-xs text-slate-500 mt-0.5">
                       Pague via Pix no app do seu banco para confirmação imediata.
                     </p>
                   </div>
 
                   {/* QR Code Container */}
-                  <div className="p-5 rounded-2xl bg-white max-w-[260px] mx-auto shadow-xl border-4 border-slate-900">
+                  <div className="p-5 rounded-2xl bg-white max-w-[260px] mx-auto shadow-lg border-2 border-slate-200">
                     {pixData.qrCodeBase64 ? (
                       <img
                         src={`data:image/png;base64,${pixData.qrCodeBase64}`}
@@ -953,19 +953,19 @@ export function CartModal({
 
                   {/* Pix Copia e Cola */}
                   <div className="space-y-2 text-left max-w-md mx-auto">
-                    <label className="text-xs font-semibold text-slate-300 flex items-center justify-between">
+                    <label className="text-xs font-semibold text-slate-700 flex items-center justify-between">
                       <span>Código Pix (Copia e Cola):</span>
-                      <span className="text-[11px] text-amber-400 font-mono">
+                      <span className="text-[11px] text-amber-700 font-mono">
                         Expira em {timeFormatted}
                       </span>
                     </label>
 
-                    <div className="flex items-center gap-2 bg-[#040c16] border border-white/10 rounded-xl p-2.5">
+                    <div className="flex items-center gap-2 bg-slate-50 border border-slate-300 rounded-xl p-2.5">
                       <input
                         type="text"
                         readOnly
                         value={pixData.qrCode}
-                        className="bg-transparent text-xs text-slate-300 font-mono flex-1 outline-none truncate"
+                        className="bg-transparent text-xs text-slate-800 font-mono flex-1 outline-none truncate"
                       />
                       <button
                         type="button"
@@ -988,7 +988,7 @@ export function CartModal({
                   </div>
 
                   {/* Indicador de Polling em Tempo Real */}
-                  <div className="flex items-center justify-center gap-2 text-xs text-emerald-400 font-medium pt-1">
+                  <div className="flex items-center justify-center gap-2 text-xs text-emerald-700 font-medium pt-1">
                     <span className="relative flex h-2.5 w-2.5">
                       <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
                       <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-emerald-500"></span>
@@ -997,9 +997,9 @@ export function CartModal({
                   </div>
 
                   {/* Passos Rápidos */}
-                  <div className="p-4 rounded-xl bg-[#06111f] border border-white/10 text-xs text-slate-300 text-left space-y-1.5">
-                    <div className="font-semibold text-white">Como pagar:</div>
-                    <ol className="list-decimal list-inside space-y-1 text-slate-400">
+                  <div className="p-4 rounded-xl bg-slate-50 border border-slate-200 text-xs text-slate-700 text-left space-y-1.5">
+                    <div className="font-semibold text-slate-900">Como pagar:</div>
+                    <ol className="list-decimal list-inside space-y-1 text-slate-600">
                       <li>Abra o aplicativo do seu banco preferido.</li>
                       <li>Escolha a opção <strong>Pix com QR Code</strong> ou <strong>Pix Copia e Cola</strong>.</li>
                       <li>Cole o código copiado ou aponte a câmera para o QR Code.</li>
@@ -1012,26 +1012,26 @@ export function CartModal({
               {/* VIEW 4: TELA DE SUCESSO / CONFIRMAÇÃO */}
               {view === "success" && (
                 <div className="py-12 text-center space-y-5 flex flex-col items-center">
-                  <div className="w-20 h-20 rounded-full bg-emerald-500/20 border-2 border-emerald-400 text-emerald-400 flex items-center justify-center shadow-lg shadow-emerald-500/10">
+                  <div className="w-20 h-20 rounded-full bg-emerald-100 border-2 border-emerald-400 text-emerald-600 flex items-center justify-center shadow-lg shadow-emerald-500/10">
                     <CheckCircle2 size={44} className="stroke-[2.5]" />
                   </div>
 
                   <div className="space-y-1.5 max-w-md">
-                    <span className="text-[11px] font-bold tracking-widest uppercase text-emerald-400">
+                    <span className="text-[11px] font-bold tracking-widest uppercase text-emerald-700">
                       PAGAMENTO CONFIRMADO PELO MERCADO PAGO
                     </span>
-                    <h3 className="text-2xl font-bold text-white">
+                    <h3 className="text-2xl font-bold text-slate-900">
                       Parabéns! Pedido Concluído
                     </h3>
-                    <p className="text-xs text-slate-300 leading-relaxed">
+                    <p className="text-xs text-slate-600 leading-relaxed">
                       Seu pedido foi registrado com sucesso. Nossa equipe técnica já foi notificada e dará início à preparação das suas armações.
                     </p>
                   </div>
 
                   {createdOrder?.reference_code && (
-                    <div className="p-3.5 rounded-xl bg-white/5 border border-white/10 text-xs space-y-1">
-                      <span className="text-slate-400">Código de Rastreamento:</span>
-                      <p className="text-base font-bold text-amber-400 font-mono">
+                    <div className="p-3.5 rounded-xl bg-slate-50 border border-slate-200 text-xs space-y-1">
+                      <span className="text-slate-500">Código de Rastreamento:</span>
+                      <p className="text-base font-bold text-amber-700 font-mono">
                         {createdOrder.reference_code}
                       </p>
                     </div>
@@ -1054,7 +1054,7 @@ export function CartModal({
                         onClose();
                         setView("items");
                       }}
-                      className="w-full py-3 px-4 rounded-xl bg-white/5 hover:bg-white/10 text-slate-300 text-xs font-semibold transition-all cursor-pointer"
+                      className="w-full py-3 px-4 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-semibold transition-all cursor-pointer"
                     >
                       Voltar à Página Inicial
                     </button>
@@ -1065,16 +1065,16 @@ export function CartModal({
 
             {/* RODAPÉ FINANCEIRO E BOTÕES DE AÇÃO */}
             {view === "items" && cartItems.length > 0 && (
-              <div className="p-6 sm:p-7 pt-4 border-t border-white/10 bg-[#040b14]/95 backdrop-blur-md flex-shrink-0 space-y-3.5">
+              <div className="p-6 sm:p-7 pt-4 border-t border-slate-200 bg-white/95 backdrop-blur-md flex-shrink-0 space-y-3.5">
                 {subtotalCents > 0 && (
-                  <div className="space-y-1 bg-white/[0.02] p-3 rounded-xl border border-white/5">
+                  <div className="space-y-1 bg-slate-50 p-3 rounded-xl border border-slate-200">
                     <div className="flex items-baseline justify-between text-xs sm:text-sm">
-                      <span className="text-slate-400 font-medium">Subtotal das armações:</span>
-                      <span className="text-xl sm:text-2xl font-bold text-amber-400">
+                      <span className="text-slate-600 font-medium">Subtotal das armações:</span>
+                      <span className="text-xl sm:text-2xl font-bold text-amber-700">
                         {subtotalFormatted}
                       </span>
                     </div>
-                    <div className="flex items-baseline justify-between text-[11px] text-slate-400">
+                    <div className="flex items-baseline justify-between text-[11px] text-slate-500">
                       <span>Condição no Cartão:</span>
                       <span>em até 10x de {installmentFormatted} sem juros no Mercado Pago</span>
                     </div>
@@ -1085,7 +1085,7 @@ export function CartModal({
                 <button
                   type="button"
                   onClick={() => setView("checkout")}
-                  className="w-full h-14 bg-amber-400 hover:bg-amber-300 active:scale-[0.98] text-slate-950 font-bold text-xs sm:text-sm tracking-wider uppercase px-6 rounded-2xl shadow-xl shadow-amber-950/40 transition-all duration-150 cursor-pointer flex items-center justify-center gap-2.5 select-none"
+                  className="w-full h-14 bg-amber-400 hover:bg-amber-300 active:scale-[0.98] text-slate-950 font-bold text-xs sm:text-sm tracking-wider uppercase px-6 rounded-2xl shadow-md transition-all duration-150 cursor-pointer flex items-center justify-center gap-2.5 select-none"
                 >
                   <CreditCard size={19} className="text-slate-950 flex-shrink-0" />
                   <span className="whitespace-nowrap font-bold">
@@ -1099,7 +1099,7 @@ export function CartModal({
                   type="button"
                   disabled={isSubmitting}
                   onClick={handleWhatsAppConsultation}
-                  className="w-full h-12 bg-[#128c7e] hover:bg-[#0d6e63] active:scale-[0.98] text-white font-bold text-xs tracking-wider uppercase px-6 rounded-2xl shadow-lg transition-all duration-150 cursor-pointer flex items-center justify-center gap-2.5 border-none select-none"
+                  className="w-full h-12 bg-[#128c7e] hover:bg-[#0d6e63] active:scale-[0.98] text-white font-bold text-xs tracking-wider uppercase px-6 rounded-2xl shadow-md transition-all duration-150 cursor-pointer flex items-center justify-center gap-2.5 border-none select-none"
                 >
                   <MessageCircle size={18} className="text-white flex-shrink-0" />
                   <span className="whitespace-nowrap font-bold">
@@ -1112,7 +1112,7 @@ export function CartModal({
                   <button
                     type="button"
                     onClick={onClearCart}
-                    className="text-xs text-slate-500 hover:text-red-400 transition-colors py-1 cursor-pointer"
+                    className="text-xs text-slate-400 hover:text-red-600 transition-colors py-1 cursor-pointer"
                   >
                     Limpar toda a seleção
                   </button>
@@ -1120,7 +1120,7 @@ export function CartModal({
                   <button
                     type="button"
                     onClick={onClose}
-                    className="text-xs text-slate-400 hover:text-white transition-colors py-1 cursor-pointer"
+                    className="text-xs text-slate-500 hover:text-slate-900 transition-colors py-1 cursor-pointer"
                   >
                     Continuar navegando
                   </button>
@@ -1130,27 +1130,27 @@ export function CartModal({
 
             {/* RODAPÉ DO CHECKOUT */}
             {view === "checkout" && (
-              <div className="p-6 sm:p-7 pt-4 border-t border-white/10 bg-[#040b14]/95 backdrop-blur-md flex-shrink-0 space-y-3">
-                <div className="space-y-1 bg-white/[0.02] p-3 rounded-xl border border-white/5 text-xs">
-                  <div className="flex items-baseline justify-between text-slate-400">
+              <div className="p-6 sm:p-7 pt-4 border-t border-slate-200 bg-white/95 backdrop-blur-md flex-shrink-0 space-y-3">
+                <div className="space-y-1 bg-slate-50 p-3 rounded-xl border border-slate-200 text-xs">
+                  <div className="flex items-baseline justify-between text-slate-600">
                     <span>Subtotal:</span>
-                    <span className="text-white font-mono">{subtotalFormatted}</span>
+                    <span className="text-slate-900 font-mono font-medium">{subtotalFormatted}</span>
                   </div>
                   {discountCents > 0 && (
-                    <div className="flex items-baseline justify-between text-emerald-400 font-semibold">
+                    <div className="flex items-baseline justify-between text-emerald-700 font-semibold">
                       <span>Desconto ({appliedCoupon?.code}):</span>
                       <span className="font-mono">-{discountFormatted}</span>
                     </div>
                   )}
-                  <div className="flex items-baseline justify-between text-slate-400">
+                  <div className="flex items-baseline justify-between text-slate-600">
                     <span>Frete:</span>
-                    <span className="text-emerald-400 font-mono font-semibold">
+                    <span className="text-emerald-700 font-mono font-semibold">
                       {shippingFormatted}
                     </span>
                   </div>
-                  <div className="flex items-baseline justify-between pt-1 border-t border-white/10 text-sm font-bold text-white">
+                  <div className="flex items-baseline justify-between pt-1 border-t border-slate-200 text-sm font-bold text-slate-900">
                     <span>Total a Pagar:</span>
-                    <span className="text-amber-400 font-mono text-base">{totalFormatted}</span>
+                    <span className="text-amber-700 font-mono text-base font-bold">{totalFormatted}</span>
                   </div>
                 </div>
 
@@ -1158,7 +1158,7 @@ export function CartModal({
                   type="submit"
                   form="checkout-form"
                   disabled={isSubmitting}
-                  className="w-full h-14 bg-amber-400 hover:bg-amber-300 active:scale-[0.98] text-slate-950 font-bold text-xs sm:text-sm tracking-wider uppercase px-6 rounded-2xl shadow-xl shadow-amber-950/40 transition-all duration-150 cursor-pointer flex items-center justify-center gap-2.5 disabled:opacity-50 select-none"
+                  className="w-full h-14 bg-amber-400 hover:bg-amber-300 active:scale-[0.98] text-slate-950 font-bold text-xs sm:text-sm tracking-wider uppercase px-6 rounded-2xl shadow-md transition-all duration-150 cursor-pointer flex items-center justify-center gap-2.5 disabled:opacity-50 select-none"
                 >
                   {isSubmitting ? (
                     <span className="font-bold">PROCESSANDO PEDIDO...</span>
