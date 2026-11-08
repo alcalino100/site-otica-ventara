@@ -3,6 +3,8 @@
  * Persistência automática em localStorage e formatação de mensagens comerciais.
  */
 
+import { DEFAULT_WHATSAPP_PHONE, DEFAULT_SITE_URL, buildWhatsAppUrl } from "@/lib/whatsapp";
+
 export interface CartProduct {
   id: string;
   name: string;
@@ -14,7 +16,6 @@ export interface CartProduct {
 }
 
 const CART_STORAGE_KEY = "ventara_selected_frames_v1";
-const WHATSAPP_PHONE = "5518996155748";
 
 export function getStoredCart(): CartProduct[] {
   if (typeof window === "undefined") return [];
@@ -37,20 +38,20 @@ export function saveStoredCart(items: CartProduct[]): void {
 }
 
 export function buildWhatsAppProductUrl(productName: string, productSlug: string): string {
-  const siteUrl = typeof window !== "undefined" ? window.location.origin : "https://otica-ventara-murex.vercel.app";
+  const siteUrl = typeof window !== "undefined" ? window.location.origin : DEFAULT_SITE_URL;
   const productLink = `${siteUrl}/produto/${productSlug}`;
 
   const message = `Olá equipe da Ótica Ventara! Gostaria de consultar a disponibilidade e valores de lentes para a armação:\n\n👓 *${productName}*\n🔗 Link: ${productLink}\n\nPodem me orientar sobre as opções de lentes para a minha receita?`;
 
-  return `https://wa.me/${WHATSAPP_PHONE}?text=${encodeURIComponent(message)}`;
+  return buildWhatsAppUrl(message);
 }
 
 export function buildWhatsAppCartUrl(items: CartProduct[]): string {
-  const siteUrl = typeof window !== "undefined" ? window.location.origin : "https://otica-ventara-murex.vercel.app";
+  const siteUrl = typeof window !== "undefined" ? window.location.origin : DEFAULT_SITE_URL;
 
   if (items.length === 0) {
     const emptyMsg = `Olá! Gostaria de saber mais sobre as armações e lentes da Ótica Ventara em Araçatuba.`;
-    return `https://wa.me/${WHATSAPP_PHONE}?text=${encodeURIComponent(emptyMsg)}`;
+    return buildWhatsAppUrl(emptyMsg);
   }
 
   const itemsList = items
@@ -75,5 +76,5 @@ export function buildWhatsAppCartUrl(items: CartProduct[]): string {
 
   const message = `Olá equipe da Ótica Ventara! Fiz uma seleção de armações no site e gostaria de atendimento:\n\n${itemsList}${totalSummary}\n\nGostaria de verificar a disponibilidade e consultar opções de lentes para a minha receita.`;
 
-  return `https://wa.me/${WHATSAPP_PHONE}?text=${encodeURIComponent(message)}`;
+  return buildWhatsAppUrl(message);
 }

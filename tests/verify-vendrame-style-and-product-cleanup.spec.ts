@@ -23,7 +23,7 @@ test.describe("Validação: Remoção de cards, Lentes mais convidativas e Modal
     await expect(
       page.getByText("Precisa de lentes para esta armação?")
     ).toBeVisible();
-    await expect(page.getByText("Consultoria Técnica")).toBeVisible();
+    await expect(page.getByText("Consultoria Técnica", { exact: true })).toBeVisible();
 
     // 4 opções de lentes presentes com textos intactos
     const monofocalBtn = page.locator(

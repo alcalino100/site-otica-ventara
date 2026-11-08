@@ -1,6 +1,6 @@
+type ClassDictionary = Record<string, any>;
+type ClassArray = ClassValue[];
 export type ClassValue = ClassArray | ClassDictionary | string | number | null | boolean | undefined;
-export type ClassDictionary = Record<string, any>;
-export type ClassArray = ClassValue[];
 
 export function cn(...inputs: ClassValue[]): string {
   const classes: string[] = [];
@@ -19,5 +19,3 @@ export function cn(...inputs: ClassValue[]): string {
   }
   return classes.join(" ");
 }
-
-export default cn;

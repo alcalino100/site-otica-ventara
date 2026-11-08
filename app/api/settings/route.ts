@@ -15,6 +15,7 @@ import {
   DEFAULT_FOOTER_PAYMENT_SETTINGS,
   DEFAULT_ARMACOES_PAGE_SETTINGS,
   DEFAULT_OPTISYNC_SETTINGS,
+  IN_MEMORY_SITE_SETTINGS,
 } from "@/lib/site-settings-constants";
 import {
   SiteIdentitySettings,
@@ -61,20 +62,20 @@ export async function GET() {
 
     if (error || !data) {
       return NextResponse.json({
-        identity: DEFAULT_IDENTITY,
-        appearance: DEFAULT_APPEARANCE,
-        shipping: DEFAULT_SHIPPING,
-        lab_showcase: DEFAULT_LAB_SHOWCASE,
-        showcase_media: DEFAULT_SHOWCASE_MEDIA,
-        homologated_brands: DEFAULT_HOMOLOGATED_BRANDS,
-        promotional_showcase: DEFAULT_PROMOTIONAL_SHOWCASE,
-        lenses_section: DEFAULT_LENSES_SECTION_SETTINGS,
-        hero_banner: DEFAULT_HERO_BANNER,
-        interactive_showcase: DEFAULT_INTERACTIVE_SHOWCASE,
-        live_broadcast: DEFAULT_LIVE_BROADCAST,
-        payment_methods: DEFAULT_FOOTER_PAYMENT_SETTINGS,
-        armacoes_page_settings: DEFAULT_ARMACOES_PAGE_SETTINGS,
-        optisync_page_settings: DEFAULT_OPTISYNC_SETTINGS,
+        identity: IN_MEMORY_SITE_SETTINGS["identity"] || DEFAULT_IDENTITY,
+        appearance: IN_MEMORY_SITE_SETTINGS["appearance"] || DEFAULT_APPEARANCE,
+        shipping: IN_MEMORY_SITE_SETTINGS["shipping"] || DEFAULT_SHIPPING,
+        lab_showcase: IN_MEMORY_SITE_SETTINGS["lab_showcase"] || DEFAULT_LAB_SHOWCASE,
+        showcase_media: IN_MEMORY_SITE_SETTINGS["showcase_media"] || DEFAULT_SHOWCASE_MEDIA,
+        homologated_brands: IN_MEMORY_SITE_SETTINGS["homologated_brands"] || DEFAULT_HOMOLOGATED_BRANDS,
+        promotional_showcase: IN_MEMORY_SITE_SETTINGS["promotional_showcase"] || DEFAULT_PROMOTIONAL_SHOWCASE,
+        lenses_section: IN_MEMORY_SITE_SETTINGS["lenses_section"] || DEFAULT_LENSES_SECTION_SETTINGS,
+        hero_banner: IN_MEMORY_SITE_SETTINGS["hero_banner"] || DEFAULT_HERO_BANNER,
+        interactive_showcase: IN_MEMORY_SITE_SETTINGS["interactive_showcase"] || DEFAULT_INTERACTIVE_SHOWCASE,
+        live_broadcast: IN_MEMORY_SITE_SETTINGS["live_broadcast"] || DEFAULT_LIVE_BROADCAST,
+        payment_methods: IN_MEMORY_SITE_SETTINGS["payment_methods"] || DEFAULT_FOOTER_PAYMENT_SETTINGS,
+        armacoes_page_settings: IN_MEMORY_SITE_SETTINGS["armacoes_page_settings"] || DEFAULT_ARMACOES_PAGE_SETTINGS,
+        optisync_page_settings: IN_MEMORY_SITE_SETTINGS["optisync_page_settings"] || DEFAULT_OPTISYNC_SETTINGS,
       });
     }
 
@@ -94,24 +95,54 @@ export async function GET() {
     const optisyncSettingsRow = data.find((s) => s.key === "optisync_page_settings");
 
     return NextResponse.json({
-      identity: identityRow?.value ? { ...DEFAULT_IDENTITY, ...(identityRow.value as SiteIdentitySettings) } : DEFAULT_IDENTITY,
-      appearance: appearanceRow?.value ? { ...DEFAULT_APPEARANCE, ...(appearanceRow.value as SiteAppearanceSettings) } : DEFAULT_APPEARANCE,
-      shipping: shippingRow?.value ? { ...DEFAULT_SHIPPING, ...(shippingRow.value as SiteShippingSettings) } : DEFAULT_SHIPPING,
-      lab_showcase: labRow?.value ? { ...DEFAULT_LAB_SHOWCASE, ...(labRow.value as LabShowcaseSettings) } : DEFAULT_LAB_SHOWCASE,
-      showcase_media: showcaseRow?.value ? { ...DEFAULT_SHOWCASE_MEDIA, ...(showcaseRow.value as ShowcaseMediaSettings) } : DEFAULT_SHOWCASE_MEDIA,
-      homologated_brands: brandsRow?.value ? (brandsRow.value as HomologatedBrand[]) : DEFAULT_HOMOLOGATED_BRANDS,
-      promotional_showcase: promoRow?.value ? { ...DEFAULT_PROMOTIONAL_SHOWCASE, ...(promoRow.value as PromotionalShowcaseSettings) } : DEFAULT_PROMOTIONAL_SHOWCASE,
-      lenses_section: lensesSectionRow?.value ? { ...DEFAULT_LENSES_SECTION_SETTINGS, ...(lensesSectionRow.value as LensesSectionSettings) } : DEFAULT_LENSES_SECTION_SETTINGS,
-      hero_banner: heroBannerRow?.value ? { ...DEFAULT_HERO_BANNER, ...(heroBannerRow.value as HeroBannerSettings) } : DEFAULT_HERO_BANNER,
-      interactive_showcase: interactiveShowcaseRow?.value ? { ...DEFAULT_INTERACTIVE_SHOWCASE, ...(interactiveShowcaseRow.value as InteractiveShowcaseSettings) } : DEFAULT_INTERACTIVE_SHOWCASE,
-      live_broadcast: liveBroadcastRow?.value ? { ...DEFAULT_LIVE_BROADCAST, ...(liveBroadcastRow.value as LiveBroadcastSettings) } : DEFAULT_LIVE_BROADCAST,
-      payment_methods: paymentMethodsRow?.value ? { ...DEFAULT_FOOTER_PAYMENT_SETTINGS, ...(paymentMethodsRow.value as FooterPaymentSettings) } : DEFAULT_FOOTER_PAYMENT_SETTINGS,
+      identity: identityRow?.value
+        ? { ...DEFAULT_IDENTITY, ...(identityRow.value as SiteIdentitySettings) }
+        : IN_MEMORY_SITE_SETTINGS["identity"]
+        ? { ...DEFAULT_IDENTITY, ...IN_MEMORY_SITE_SETTINGS["identity"] }
+        : DEFAULT_IDENTITY,
+      appearance: appearanceRow?.value
+        ? { ...DEFAULT_APPEARANCE, ...(appearanceRow.value as SiteAppearanceSettings) }
+        : IN_MEMORY_SITE_SETTINGS["appearance"]
+        ? { ...DEFAULT_APPEARANCE, ...IN_MEMORY_SITE_SETTINGS["appearance"] }
+        : DEFAULT_APPEARANCE,
+      shipping: shippingRow?.value
+        ? { ...DEFAULT_SHIPPING, ...(shippingRow.value as SiteShippingSettings) }
+        : IN_MEMORY_SITE_SETTINGS["shipping"]
+        ? { ...DEFAULT_SHIPPING, ...IN_MEMORY_SITE_SETTINGS["shipping"] }
+        : DEFAULT_SHIPPING,
+      lab_showcase: labRow?.value
+        ? { ...DEFAULT_LAB_SHOWCASE, ...(labRow.value as LabShowcaseSettings) }
+        : IN_MEMORY_SITE_SETTINGS["lab_showcase"] || DEFAULT_LAB_SHOWCASE,
+      showcase_media: showcaseRow?.value
+        ? { ...DEFAULT_SHOWCASE_MEDIA, ...(showcaseRow.value as ShowcaseMediaSettings) }
+        : IN_MEMORY_SITE_SETTINGS["showcase_media"] || DEFAULT_SHOWCASE_MEDIA,
+      homologated_brands: brandsRow?.value
+        ? (brandsRow.value as HomologatedBrand[])
+        : IN_MEMORY_SITE_SETTINGS["homologated_brands"] || DEFAULT_HOMOLOGATED_BRANDS,
+      promotional_showcase: promoRow?.value
+        ? { ...DEFAULT_PROMOTIONAL_SHOWCASE, ...(promoRow.value as PromotionalShowcaseSettings) }
+        : IN_MEMORY_SITE_SETTINGS["promotional_showcase"] || DEFAULT_PROMOTIONAL_SHOWCASE,
+      lenses_section: lensesSectionRow?.value
+        ? { ...DEFAULT_LENSES_SECTION_SETTINGS, ...(lensesSectionRow.value as LensesSectionSettings) }
+        : IN_MEMORY_SITE_SETTINGS["lenses_section"] || DEFAULT_LENSES_SECTION_SETTINGS,
+      hero_banner: heroBannerRow?.value
+        ? { ...DEFAULT_HERO_BANNER, ...(heroBannerRow.value as HeroBannerSettings) }
+        : IN_MEMORY_SITE_SETTINGS["hero_banner"] || DEFAULT_HERO_BANNER,
+      interactive_showcase: interactiveShowcaseRow?.value
+        ? { ...DEFAULT_INTERACTIVE_SHOWCASE, ...(interactiveShowcaseRow.value as InteractiveShowcaseSettings) }
+        : IN_MEMORY_SITE_SETTINGS["interactive_showcase"] || DEFAULT_INTERACTIVE_SHOWCASE,
+      live_broadcast: liveBroadcastRow?.value
+        ? { ...DEFAULT_LIVE_BROADCAST, ...(liveBroadcastRow.value as LiveBroadcastSettings) }
+        : IN_MEMORY_SITE_SETTINGS["live_broadcast"] || DEFAULT_LIVE_BROADCAST,
+      payment_methods: paymentMethodsRow?.value
+        ? { ...DEFAULT_FOOTER_PAYMENT_SETTINGS, ...(paymentMethodsRow.value as FooterPaymentSettings) }
+        : IN_MEMORY_SITE_SETTINGS["payment_methods"] || DEFAULT_FOOTER_PAYMENT_SETTINGS,
       armacoes_page_settings: armacoesSettingsRow?.value
         ? { ...DEFAULT_ARMACOES_PAGE_SETTINGS, ...(armacoesSettingsRow.value as ArmacoesPageSettings) }
-        : DEFAULT_ARMACOES_PAGE_SETTINGS,
+        : IN_MEMORY_SITE_SETTINGS["armacoes_page_settings"] || DEFAULT_ARMACOES_PAGE_SETTINGS,
       optisync_page_settings: optisyncSettingsRow?.value
         ? { ...DEFAULT_OPTISYNC_SETTINGS, ...(optisyncSettingsRow.value as OptiSyncPageSettings) }
-        : DEFAULT_OPTISYNC_SETTINGS,
+        : IN_MEMORY_SITE_SETTINGS["optisync_settings"] || DEFAULT_OPTISYNC_SETTINGS,
     });
   } catch {
     return NextResponse.json({

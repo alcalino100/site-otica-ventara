@@ -125,5 +125,3 @@ export function ProductGallery({ product }: ProductGalleryProps) {
     </div>
   );
 }
-
-export default ProductGallery;

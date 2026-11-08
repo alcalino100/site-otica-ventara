@@ -6,15 +6,15 @@ import { Header } from "@/components/layout/header";
 import { Footer } from "@/components/layout/footer";
 import { RotateCcw, ArrowLeft, CheckCircle2, AlertCircle, Clock, ShieldCheck, MessageSquare } from "lucide-react";
 import { useSiteSettings } from "@/components/providers/site-settings-provider";
+import { buildWhatsAppUrl } from "@/lib/whatsapp";
 
 export default function RefundPolicyPage() {
   const { identity } = useSiteSettings();
 
   const handleSupportWhatsApp = () => {
-    const text = encodeURIComponent(
-      `Olá! Gostaria de orientações sobre troca, devolução ou reembolso de um pedido realizado na ${identity.store_name}.`
-    );
-    window.open(`https://wa.me/5518996155748?text=${text}`, "_blank");
+    const text =
+      `Olá! Gostaria de orientações sobre troca, devolução ou reembolso de um pedido realizado na ${identity.store_name}.`;
+    window.open(buildWhatsAppUrl(text, identity.phone_whatsapp), "_blank");
   };
 
   return (

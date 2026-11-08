@@ -16,6 +16,7 @@ import {
   AdminLensItem,
   isLensInColorSection,
 } from "@/lib/lenses-data";
+import { buildWhatsAppUrl } from "@/lib/whatsapp";
 
 interface ColoredLensesShowcaseProps {
   initialLenses?: AdminLensItem[];
@@ -93,10 +94,9 @@ export function ColoredLensesShowcase({ initialLenses }: ColoredLensesShowcasePr
   const extraLenses = lensList.slice(7); // Cores adicionais (ex: Rosa, Roxo)
 
   const getWhatsAppUrl = (lens: ColoredLensPreset) => {
-    const msg = encodeURIComponent(
-      `Olá! Estive no site da Ótica Ventara e gostei da Lente Solar na cor "${lens.colorName}" (${lens.name}) com valor de ${lens.priceFormatted}. Gostaria de solicitar um orçamento para o meu grau.`
-    );
-    return `https://wa.me/5518996155748?text=${msg}`;
+    const msg =
+      `Olá! Estive no site da Ótica Ventara e gostei da Lente Solar na cor "${lens.colorName}" (${lens.name}) com valor de ${lens.priceFormatted}. Gostaria de solicitar um orçamento para o meu grau.`;
+    return buildWhatsAppUrl(msg);
   };
 
   const renderLensButton = (lens: ColoredLensPreset, size: "lg" | "md" = "md") => {

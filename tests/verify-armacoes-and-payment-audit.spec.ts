@@ -2,8 +2,20 @@ import { test, expect } from "@playwright/test";
 
 test.describe("E-commerce de Armações e Auditoria de Pagamentos", () => {
   test("1. Botão Armações no Header deve apontar para /armacoes", async ({ page }) => {
+    await page.addInitScript(() => {
+      try {
+        window.sessionStorage.setItem("ventara_wheel_session_camp-ventara-2025-v1", "true");
+        window.localStorage.setItem("ventara_wheel_participated_camp-ventara-2025-v1_v1", "true");
+      } catch {}
+    });
+
     await page.goto("/");
     await page.waitForLoadState("domcontentloaded");
+
+    const closeWheel = page.locator('button[aria-label="Fechar janela promocional"]');
+    if (await closeWheel.isVisible({ timeout: 1500 }).catch(() => false)) {
+      await closeWheel.click();
+    }
 
     const isMobileMenu = await page.locator('button[aria-label="Abrir menu"]').isVisible();
     if (isMobileMenu) {
@@ -152,18 +164,15 @@ test.describe("E-commerce de Armações e Auditoria de Pagamentos", () => {
     expect(txData).toHaveProperty("metrics");
   });
 
-  test("7. Página de detalhe da armação deve exibir estrelas, em estoque, economia e botão de favoritos", async ({
+  test("7. Página de detalhe da armação deve exibir especificações, botão de favoritos e compra direta", async ({
     page,
   }) => {
     await page.goto("/armacoes/ventara-safari");
     await page.waitForLoadState("domcontentloaded");
 
-    // Estrelas de avaliação
-    await expect(page.getByText("5.0")).toBeVisible();
-    await expect(page.getByText("234 avaliações")).toBeVisible();
-
-    // Em estoque
-    await expect(page.getByText("Em Estoque")).toBeVisible();
+    // Título e Curadoria
+    await expect(page.locator("h1")).toContainText(/VENTARA SAFARI/i);
+    await expect(page.getByText("Curadoria Autoral", { exact: true })).toBeVisible();
 
     // Botão de Favoritar
     const heartBtn = page.locator("button[aria-label='Favoritar armação']");

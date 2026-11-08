@@ -12,6 +12,7 @@ import {
   Share2,
   ArrowRight,
 } from "lucide-react";
+import { buildWhatsAppUrl } from "@/lib/whatsapp";
 
 interface LensLeadModalProps {
   isOpen: boolean;
@@ -94,14 +95,13 @@ export function LensLeadModal({
       ? `\n• Perfil/Rede Social: ${socialProfile.trim()}`
       : "";
 
-    const whatsappMsg = encodeURIComponent(
+    const whatsappMsg =
       `Olá! Meu nome é ${cleanName}.\n` +
-        `Gostei da armação "${productName}" (${catLabel} - Cor: ${colorName}) na Ótica Ventara.\n` +
-        `• Interesse em lentes: ${selectedLensName} (${selectedLensDesc})${socialText}\n\n` +
-        `Gostaria de consultar valores, tirar dúvidas sobre a montagem no laboratório e enviar minha receita médica para avaliação da dioptria.`
-    );
+      `Gostei da armação "${productName}" (${catLabel} - Cor: ${colorName}) na Ótica Ventara.\n` +
+      `• Interesse em lentes: ${selectedLensName} (${selectedLensDesc})${socialText}\n\n` +
+      `Gostaria de consultar valores, tirar dúvidas sobre a montagem no laboratório e enviar minha receita médica para avaliação da dioptria.`;
 
-    const url = `https://wa.me/5518996155748?text=${whatsappMsg}`;
+    const url = buildWhatsAppUrl(whatsappMsg);
     if (typeof window !== "undefined") {
       window.open(url, "_blank", "noopener,noreferrer");
     }

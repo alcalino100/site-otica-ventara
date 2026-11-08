@@ -32,6 +32,7 @@ import {
 } from "@/types/promotion-wheel";
 import { PromotionWheelCanvas } from "@/components/promotions/promotion-wheel-canvas";
 import { BrandLogo } from "@/components/ui/brand-logo";
+import { buildWhatsAppUrl } from "@/lib/whatsapp";
 
 type PageState = "form" | "submitting" | "spinning" | "result" | "error";
 
@@ -143,12 +144,10 @@ export function RoletaClient() {
   };
 
   const whatsappMessage = resultData?.coupon?.code
-    ? encodeURIComponent(
-        `Olá Óticas Ventara! Acabei de girar a roleta no site e garanti meu cupom exclusivo *${resultData.coupon.code}* de 10% OFF. Gostaria de escolher minha armação!`
-      )
-    : encodeURIComponent("Olá Óticas Ventara! Gostaria de saber mais sobre as promoções ativas.");
+    ? `Olá Óticas Ventara! Acabei de girar a roleta no site e garanti meu cupom exclusivo *${resultData.coupon.code}* de 10% OFF. Gostaria de escolher minha armação!`
+    : "Olá Óticas Ventara! Gostaria de saber mais sobre as promoções ativas.";
 
-  const whatsappUrl = `https://wa.me/5518996155748?text=${whatsappMessage}`;
+  const whatsappUrl = buildWhatsAppUrl(whatsappMessage);
 
   return (
     <div className="min-h-screen bg-[#06121C] text-[#F5F5F2] flex flex-col selection:bg-[#E8C765] selection:text-[#06121C]">

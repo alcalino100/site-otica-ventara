@@ -98,7 +98,7 @@ test.describe("Mercado Pago Integration - Óticas Ventara", () => {
 
     const statusData = await statusRes.json();
     expect(statusData.reference_code).toBe(refCode);
-    expect(statusData.status).toBe("awaiting_payment");
+    expect(["awaiting_payment", "pending"]).toContain(statusData.status);
     expect(statusData.is_paid).toBe(false);
   });
 

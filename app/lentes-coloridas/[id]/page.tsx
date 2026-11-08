@@ -18,6 +18,7 @@ import { Header } from "@/components/layout/header";
 import { Footer } from "@/components/layout/footer";
 import { getStoredColoredLenses, getStoredColoredLensById } from "@/lib/lenses-server";
 import { COLORED_LENSES_LIST } from "@/lib/lenses-data";
+import { buildWhatsAppUrl } from "@/lib/whatsapp";
 
 export const revalidate = 60;
 
@@ -206,7 +207,7 @@ export default async function LensDetailPage({ params }: LensDetailPageProps) {
               {/* CTA WHATSAPP COM A RECEITA */}
               <div className="space-y-3 pt-2">
                 <a
-                  href={`https://wa.me/5518996155748?text=${whatsAppMessage}`}
+                  href={buildWhatsAppUrl(whatsAppMessage)}
                   target="_blank"
                   rel="noopener noreferrer"
                   className="w-full py-4 px-6 rounded-2xl bg-gradient-to-r from-amber-400 via-amber-300 to-amber-400 hover:from-amber-300 hover:to-amber-300 text-slate-950 font-bold text-xs uppercase tracking-wider flex items-center justify-center gap-2.5 shadow-lg shadow-amber-400/20 active:scale-95 transition-all cursor-pointer"

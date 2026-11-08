@@ -14,6 +14,7 @@ import {
 import { Header } from "@/components/layout/header";
 import { Footer } from "@/components/layout/footer";
 import { getStoredColoredLenses } from "@/lib/lenses-server";
+import { buildWhatsAppUrl } from "@/lib/whatsapp";
 
 export const revalidate = 60;
 
@@ -174,9 +175,9 @@ export default async function LentesColoridasPage() {
                     </Link>
 
                     <a
-                      href={`https://wa.me/5518996155748?text=${encodeURIComponent(
+                      href={buildWhatsAppUrl(
                         `Olá! Tenho interesse na lente solar "${lens.name}" (${lens.colorName}). Gostaria de fazer meu orçamento com grau.`
-                      )}`}
+                      )}
                       target="_blank"
                       rel="noopener noreferrer"
                       className="inline-flex items-center justify-center gap-1.5 py-2.5 px-3 rounded-xl bg-amber-400 hover:bg-amber-300 text-slate-950 text-xs font-bold transition-all"

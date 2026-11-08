@@ -21,7 +21,7 @@ import {
   DEFAULT_SHIPPING_TIMELINE,
 } from "./shipping-constants";
 
-export const DEFAULT_SHIPPING_CMS_THEME: ShippingCmsTheme = {
+export const DEFAULT_SHIPPING_THEME_OFFWHITE: ShippingCmsTheme = {
   preset_name: "offwhite_ventara",
   page_background: "#FAF8F4",
   section_alt_background: "#F3F0E9",
@@ -37,7 +37,7 @@ export const DEFAULT_SHIPPING_CMS_THEME: ShippingCmsTheme = {
   shadow_intensity: "subtle",
 };
 
-export const DARK_VENTARA_THEME: ShippingCmsTheme = {
+export const DEFAULT_SHIPPING_THEME_DARK: ShippingCmsTheme = {
   preset_name: "dark_ventara",
   page_background: "#02070D",
   section_alt_background: "#030913",
@@ -52,9 +52,6 @@ export const DARK_VENTARA_THEME: ShippingCmsTheme = {
   corner_radius: "rounded",
   shadow_intensity: "medium",
 };
-
-export const DEFAULT_SHIPPING_THEME_OFFWHITE = DEFAULT_SHIPPING_CMS_THEME;
-export const DEFAULT_SHIPPING_THEME_DARK = DARK_VENTARA_THEME;
 
 export const DEFAULT_SHIPPING_CMS_SEO: ShippingCmsSeo = {
   title: "Rede de Entregas Ventara | Da nossa ótica em Araçatuba para todo o Brasil",
@@ -216,7 +213,7 @@ export const DEFAULT_SHIPPING_CMS_SECTIONS: ShippingCmsSection[] = [
 export const DEFAULT_SHIPPING_CMS_DOCUMENT: ShippingCmsDocument = {
   status: "published",
   schema_version: 1,
-  theme: DEFAULT_SHIPPING_CMS_THEME,
+  theme: DEFAULT_SHIPPING_THEME_OFFWHITE,
   seo: DEFAULT_SHIPPING_CMS_SEO,
   sections: DEFAULT_SHIPPING_CMS_SECTIONS,
   audit: {

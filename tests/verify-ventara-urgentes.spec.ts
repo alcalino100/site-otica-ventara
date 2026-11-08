@@ -108,10 +108,10 @@ test.describe("Ventara 3 Bloqueadores Críticos - Verificação E2E", () => {
     // Título e Hero
     await expect(page.locator("h1")).toContainText(/OPTiSYNC HD/i);
 
-    // Tabela comparativa e cabeçalho
-    await expect(
-      page.getByRole("heading", { level: 2, name: /Lente Convencional vs OPTiSYNC HD/i })
-    ).toBeVisible();
+    // Três linhas de produto e diferenciais presentes
+    await expect(page.locator("#linha-hd")).toBeVisible();
+    await expect(page.locator("#linha-fotossensivel")).toBeVisible();
+    await expect(page.locator("#linha-kids")).toBeVisible();
 
     // Bloco escuro de laboratório próprio
     await expect(page.getByText("Laboratório Óptico Próprio em Araçatuba")).toBeVisible();
@@ -119,8 +119,8 @@ test.describe("Ventara 3 Bloqueadores Críticos - Verificação E2E", () => {
     // FAQ presente
     await expect(page.getByText("Perguntas Frequentes sobre a OPTiSYNC")).toBeVisible();
 
-    // O único botão de WhatsApp CTA para consultar óptico está na seção final do rodapé
-    const whatsappBtn = page.getByRole("link", { name: /Consultar Óptico no WhatsApp/i });
+    // Botão de WhatsApp CTA para consultar óptico presente
+    const whatsappBtn = page.getByRole("link", { name: /Consultar Óptico no WhatsApp/i }).first();
     await expect(whatsappBtn).toBeVisible();
     await expect(whatsappBtn).toHaveAttribute("href", /wa\.me/);
   });

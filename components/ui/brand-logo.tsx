@@ -44,5 +44,3 @@ export function BrandLogo({
     </div>
   );
 }
-
-export default BrandLogo;

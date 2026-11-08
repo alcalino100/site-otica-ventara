@@ -26,6 +26,7 @@ import {
   XCircle,
 } from "lucide-react";
 import { BrandLogo } from "@/components/ui/brand-logo";
+import { buildWhatsAppUrl } from "@/lib/whatsapp";
 
 export default function RastreioPage() {
   const [query, setQuery] = useState("");
@@ -90,8 +91,8 @@ export default function RastreioPage() {
   };
 
   const whatsappOrderUrl = order
-    ? `https://wa.me/5518996155748?text=Ol%C3%A1%21%20Gostaria%20de%20informa%C3%A7%C3%B5es%20sobre%20meu%20pedido%20${order.reference_code}.`
-    : "https://wa.me/5518996155748?text=Ol%C3%A1%21%20Gostaria%20de%20consultar%20o%20rastreio%20do%20meu%20pedido.";
+    ? buildWhatsAppUrl(`Olá! Gostaria de informações sobre meu pedido ${order.reference_code}.`)
+    : buildWhatsAppUrl("Olá! Gostaria de consultar o rastreio do meu pedido.");
 
   // Status do pedido e modalidade
   const isCancelled = order?.status === "cancelled";
@@ -182,7 +183,7 @@ export default function RastreioPage() {
               Responsável Técnico
             </Link>
             <a
-              href="https://wa.me/5518996155748"
+              href={buildWhatsAppUrl()}
               target="_blank"
               rel="noopener noreferrer"
               className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full bg-emerald-500/15 border border-emerald-500/30 text-emerald-600 dark:text-emerald-300 hover:bg-emerald-500/25 transition-all"
@@ -309,7 +310,7 @@ export default function RastreioPage() {
 
             <div className="pt-2 text-center">
               <a
-                href="https://wa.me/5518996155748?text=Ol%C3%A1%21%20Gostaria%20de%20consultar%20o%20status%20do%20meu%20pedido%20na%20%C3%93ticas%20Ventara."
+                href={buildWhatsAppUrl("Olá! Gostaria de consultar o status do meu pedido na Óticas Ventara.")}
                 target="_blank"
                 rel="noopener noreferrer"
                 className="inline-flex items-center gap-2 px-4 py-2.5 rounded-full bg-white/5 hover:bg-white/10 border border-white/10 text-xs font-semibold text-slate-200 transition-colors"
