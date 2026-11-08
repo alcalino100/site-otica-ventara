@@ -31,11 +31,22 @@ test.describe("Validação: Tema Branco no Checkout e WhatsApp nas Lentes (#136)
     const count = await whatsappBadges.count();
     expect(count).toBeGreaterThanOrEqual(3);
 
-    // Clica em 'Lentes Monofocais (Visão Simples)'
+    // Clica em 'Lentes Monofocais (Visão Simples)' abrindo a consultoria de leads
     const monofocalBtn = page
       .locator("button:has-text('Lentes Monofocais (Visão Simples)')")
       .first();
     await monofocalBtn.click();
+
+    // Preenche dados do lead no modal
+    await page.locator("input[placeholder='Ex: Gustavo Silva']").fill("Cliente Teste");
+    await page.locator("input[placeholder='(18) 99999-9999']").fill("(18) 99999-9999");
+
+    const leadPromise = page.waitForResponse(
+      (res) =>
+        res.url().includes("/api/leads/consultation") && res.status() === 200
+    );
+    await page.locator("button:has-text('AVANÇAR PARA O WHATSAPP E ENVIAR RECEITA')").click();
+    await leadPromise;
 
     // Verifica se window.open foi chamado com o link do WhatsApp formatado
     const openedUrl = await page.evaluate(

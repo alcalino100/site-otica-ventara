@@ -161,39 +161,6 @@ export default async function FrameDetailPage({ params }: FrameDetailPageProps) 
             {/* Galeria Visual (7 colunas) */}
             <div className="lg:col-span-7 space-y-4">
               <ProductGallery product={product} />
-
-              {/* Destaques de Confiança e Procedência */}
-              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 text-xs pt-2">
-                <div className="p-4 rounded-2xl bg-slate-50 border border-slate-200/80 shadow-2xs flex items-center gap-3">
-                  <div className="w-9 h-9 rounded-xl bg-amber-500/10 flex items-center justify-center text-amber-600 shrink-0">
-                    <ShieldCheck size={18} />
-                  </div>
-                  <div>
-                    <p className="font-semibold text-slate-900">Garantia Oficial</p>
-                    <p className="text-[11px] text-slate-500">12 meses com nota fiscal</p>
-                  </div>
-                </div>
-
-                <div className="p-4 rounded-2xl bg-slate-50 border border-slate-200/80 shadow-2xs flex items-center gap-3">
-                  <div className="w-9 h-9 rounded-xl bg-amber-500/10 flex items-center justify-center text-amber-600 shrink-0">
-                    <Glasses size={18} />
-                  </div>
-                  <div>
-                    <p className="font-semibold text-slate-900">Ajuste Gratuito</p>
-                    <p className="text-[11px] text-slate-500">Calibração anatômica</p>
-                  </div>
-                </div>
-
-                <div className="p-4 rounded-2xl bg-slate-50 border border-slate-200/80 shadow-2xs flex items-center gap-3">
-                  <div className="w-9 h-9 rounded-xl bg-amber-500/10 flex items-center justify-center text-amber-600 shrink-0">
-                    <Clock size={18} />
-                  </div>
-                  <div>
-                    <p className="font-semibold text-slate-900">Montagem Ágil</p>
-                    <p className="text-[11px] text-slate-500">Laboratório próprio</p>
-                  </div>
-                </div>
-              </div>
             </div>
 
             {/* Informações Técnicas e Ações (5 colunas) */}

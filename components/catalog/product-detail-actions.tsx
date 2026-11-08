@@ -15,6 +15,7 @@ import {
 import { Product } from "@/types/ecommerce";
 import { getStoredCart, saveStoredCart, CartProduct } from "@/lib/cart";
 import { CartModal } from "@/components/cart/cart-modal";
+import { LensLeadModal } from "@/components/catalog/lens-lead-modal";
 
 interface ProductDetailActionsProps {
   product: Product;
@@ -129,22 +130,15 @@ export function ProductDetailActions({
   ];
 
   const [selectedLens, setSelectedLens] = useState(lensOptions[0]);
+  const [isLensModalOpen, setIsLensModalOpen] = useState(false);
+  const [lensForModal, setLensForModal] = useState(lensOptions[1]);
 
   const handleSelectLens = (lens: (typeof lensOptions)[0]) => {
     setSelectedLens(lens);
 
     if (lens.hasWhatsApp) {
-      const catLabel =
-        product.frame_type === "Solar" ? "Óculos Solar" : "Armação de Grau";
-      const whatsappMsg = encodeURIComponent(
-        `Olá! Gostei da armação "${product.name}" (${catLabel} - Cor: ${selectedVariant.color_name}) na Ótica Ventara.\n` +
-          `• Interesse em lentes: ${lens.name} (${lens.desc})\n` +
-          `Gostaria de consultar valores, tirar dúvidas e enviar minha receita médica para avaliação da dioptria.`
-      );
-      const url = `https://wa.me/5518996155748?text=${whatsappMsg}`;
-      if (typeof window !== "undefined") {
-        window.open(url, "_blank", "noopener,noreferrer");
-      }
+      setLensForModal(lens);
+      setIsLensModalOpen(true);
     }
   };
 
@@ -249,11 +243,12 @@ export function ProductDetailActions({
       {/* Guia Interativo de Escolha de Lentes */}
       <div className="space-y-3 pt-3 border-t border-slate-200/80">
         <div className="flex items-center justify-between text-xs">
-          <span className="font-semibold text-slate-800 uppercase tracking-wider flex items-center gap-1.5">
+          <span className="font-semibold text-slate-900 uppercase tracking-wider flex items-center gap-1.5">
             <Layers size={14} className="text-amber-600" />
             Precisa de lentes para esta armação?
           </span>
-          <span className="text-[11px] text-amber-600 font-semibold">
+          <span className="inline-flex items-center gap-1 text-[11px] font-semibold text-amber-700 bg-amber-50 border border-amber-200/80 px-2.5 py-0.5 rounded-full shadow-2xs">
+            <Sparkles size={11} className="text-amber-600" />
             Consultoria Técnica
           </span>
         </div>
@@ -267,21 +262,21 @@ export function ProductDetailActions({
                 key={lens.id}
                 type="button"
                 onClick={() => handleSelectLens(lens)}
-                className={`p-3 rounded-xl border text-left transition-all active:scale-95 flex items-start gap-2.5 cursor-pointer relative ${
+                className={`p-3.5 rounded-2xl border text-left transition-all active:scale-[0.98] flex items-start gap-3 cursor-pointer relative group ${
                   isChosen
-                    ? "bg-amber-50/80 border-amber-400 text-slate-900 shadow-2xs"
-                    : "bg-white border-slate-200/80 text-slate-700 hover:border-slate-300"
+                    ? "bg-gradient-to-br from-amber-50/90 via-amber-50/40 to-white border-amber-400 text-slate-900 shadow-2xs ring-1 ring-amber-400/40"
+                    : "bg-white border-slate-200 text-slate-700 hover:border-amber-300 hover:bg-slate-50/60 hover:shadow-2xs"
                 }`}
                 title={lens.hasWhatsApp ? `Consultar ${lens.name} no WhatsApp` : lens.name}
               >
                 <div
-                  className={`p-1.5 rounded-lg flex-shrink-0 mt-0.5 ${
+                  className={`p-2 rounded-xl flex-shrink-0 mt-0.5 transition-colors ${
                     isChosen
-                      ? "bg-amber-400 text-slate-950 font-bold"
-                      : "bg-slate-100 text-amber-600"
+                      ? "bg-amber-400 text-slate-950 shadow-2xs"
+                      : "bg-slate-100 text-amber-700 group-hover:bg-amber-100 group-hover:text-amber-800"
                   }`}
                 >
-                  <LensIcon size={14} />
+                  <LensIcon size={15} />
                 </div>
                 <div className="min-w-0 flex-1 pr-1">
                   <div className="flex items-center gap-1.5 flex-wrap">
@@ -289,13 +284,13 @@ export function ProductDetailActions({
                       {lens.name}
                     </p>
                     {lens.hasWhatsApp && (
-                      <span className="inline-flex items-center gap-1 text-[9px] font-bold text-emerald-700 bg-emerald-50 border border-emerald-200/90 px-1.5 py-0.5 rounded-md shrink-0">
+                      <span className="inline-flex items-center gap-1 text-[9px] font-bold text-emerald-800 bg-emerald-50 border border-emerald-300/80 px-2 py-0.5 rounded-full shadow-2xs shrink-0 tracking-wide">
                         <MessageCircle size={10} className="fill-emerald-600 text-emerald-600" />
                         <span>WhatsApp</span>
                       </span>
                     )}
                   </div>
-                  <p className="text-[11px] text-slate-500 leading-tight mt-0.5">
+                  <p className="text-[11px] text-slate-500 leading-tight mt-1">
                     {lens.desc}
                   </p>
                 </div>
@@ -352,11 +347,14 @@ export function ProductDetailActions({
           </button>
         </div>
 
-        {/* Botão Terciário: Consultar Lentes no WhatsApp */}
+        {/* Botão Terciário: Consultar Lentes no WhatsApp (Abre Modal de Consultoria / Lead) */}
         <a
           href={whatsappUrl}
-          target="_blank"
-          rel="noopener noreferrer"
+          onClick={(e) => {
+            e.preventDefault();
+            setLensForModal(selectedLens.hasWhatsApp ? selectedLens : lensOptions[1]);
+            setIsLensModalOpen(true);
+          }}
           className="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-semibold text-xs tracking-wider uppercase py-3.5 px-6 rounded-2xl flex items-center justify-center gap-2.5 transition-all active:scale-95 text-center shadow-md hover:shadow-lg cursor-pointer group"
         >
           <MessageCircle size={18} className="text-white" />
@@ -380,6 +378,17 @@ export function ProductDetailActions({
         onRemoveItem={handleRemoveFromCart}
         onClearCart={handleClearCart}
         initialView={cartModalView}
+      />
+
+      {/* Modal de Captação e Consultoria de Lentes estilo Ótica Vendrame */}
+      <LensLeadModal
+        isOpen={isLensModalOpen}
+        onClose={() => setIsLensModalOpen(false)}
+        productName={product.name}
+        frameType={product.frame_type}
+        colorName={selectedVariant.color_name || "Padrão"}
+        selectedLensName={lensForModal.name}
+        selectedLensDesc={lensForModal.desc}
       />
     </div>
   );
