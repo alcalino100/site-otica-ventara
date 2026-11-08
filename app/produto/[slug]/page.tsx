@@ -162,39 +162,6 @@ export default async function ProductDetailPage({ params }: ProductPageProps) {
           {/* Coluna 1: Imagem / Visual da Armação (7 colunas) */}
           <div className="lg:col-span-7 space-y-4">
             <ProductGallery product={product} />
-
-            {/* Destaques de Confiança e Procedência */}
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 text-xs">
-              <div className="p-4 rounded-2xl bg-white border border-slate-200/90 shadow-2xs flex items-center gap-3">
-                <div className="w-9 h-9 rounded-xl bg-amber-50 flex items-center justify-center text-amber-600 flex-shrink-0">
-                  <ShieldCheck size={18} />
-                </div>
-                <div>
-                  <p className="font-semibold text-slate-900">Garantia Oficial</p>
-                  <p className="text-[11px] text-slate-500">Nota fiscal e procedência</p>
-                </div>
-              </div>
-
-              <div className="p-4 rounded-2xl bg-white border border-slate-200/90 shadow-2xs flex items-center gap-3">
-                <div className="w-9 h-9 rounded-xl bg-amber-50 flex items-center justify-center text-amber-600 flex-shrink-0">
-                  <Glasses size={18} />
-                </div>
-                <div>
-                  <p className="font-semibold text-slate-900">Ajuste Gratuito</p>
-                  <p className="text-[11px] text-slate-500">Calibração anatômica</p>
-                </div>
-              </div>
-
-              <div className="p-4 rounded-2xl bg-white border border-slate-200/90 shadow-2xs flex items-center gap-3">
-                <div className="w-9 h-9 rounded-xl bg-amber-50 flex items-center justify-center text-amber-600 flex-shrink-0">
-                  <Clock size={18} />
-                </div>
-                <div>
-                  <p className="font-semibold text-slate-900">Montagem Ágil</p>
-                  <p className="text-[11px] text-slate-500">Laboratório próprio</p>
-                </div>
-              </div>
-            </div>
           </div>
 
           {/* Coluna 2: Informações Técnicas e Ações (5 colunas) */}

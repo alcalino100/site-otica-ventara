@@ -147,7 +147,6 @@ test.describe("Ventara 3 Bloqueadores Críticos - Verificação E2E", () => {
 
     await page.goto(targetHref!);
     await expect(page.locator("h1")).toBeVisible();
-    await expect(page.getByText("Garantia Oficial")).toBeVisible();
     await expect(page.getByText("Dimensões Anatômicas (mm):")).toBeVisible();
   });
 
