@@ -16,6 +16,7 @@ import {
   HelpCircle,
 } from "lucide-react";
 import { BrandLogo } from "@/components/ui/brand-logo";
+import { buildWhatsAppUrl } from "@/lib/whatsapp";
 import { Footer } from "@/components/layout/footer";
 
 export const metadata: Metadata = {
@@ -25,8 +26,9 @@ export const metadata: Metadata = {
 };
 
 export default function MedicaoPorFotoPage() {
-  const whatsappUrl =
-    "https://wa.me/5518996155748?text=Ol%C3%A1!%20Li%20sobre%20o%20servi%C3%A7o%20de%20medi%C3%A7%C3%A3o%20de%20DNP%20por%20foto%20e%20gostaria%20de%20tirar%20d%C3%BAvidas%20sobre%20minha%20receita.";
+  const whatsappUrl = buildWhatsAppUrl(
+    "Olá! Li sobre o serviço de medição de DNP por foto e gostaria de tirar dúvidas sobre minha receita."
+  );
 
   return (
     <div className="min-h-screen bg-[#06111f] text-slate-100 flex flex-col selection:bg-amber-400 selection:text-slate-950">

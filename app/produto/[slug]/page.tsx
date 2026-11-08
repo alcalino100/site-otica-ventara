@@ -1,24 +1,9 @@
-import React, { cache } from "react";
+import React from "react";
 import { Metadata } from "next";
-import Link from "next/link";
 import { notFound } from "next/navigation";
-import {
-  ArrowLeft,
-  ShieldCheck,
-  Sparkles,
-  Check,
-  Glasses,
-  MapPin,
-  Clock,
-  ArrowRight,
-} from "lucide-react";
-import { Product } from "@/types/ecommerce";
 import { DEFAULT_CATALOG } from "@/lib/catalog-data";
-import { createStaticSupabaseClient, isSupabaseConfigured } from "@/lib/supabase/server";
-import { FrameArt } from "@/components/catalog/frame-art";
-import { ProductGallery } from "@/components/catalog/product-gallery";
-import { ProductDetailActions } from "@/components/catalog/product-detail-actions";
-import { BrandLogo } from "@/components/ui/brand-logo";
+import { getProductByIdOrSlug } from "@/lib/catalog-server";
+import { ProductDetailView } from "@/components/catalog/product-detail-view";
 
 interface ProductPageProps {
   params: Promise<{ slug: string }>;
@@ -30,41 +15,9 @@ export async function generateStaticParams() {
   }));
 }
 
-const getProductBySlug = cache(async (slug: string): Promise<Product | null> => {
-  if (isSupabaseConfigured()) {
-    try {
-      const supabase = createStaticSupabaseClient();
-      const { data, error } = await supabase
-        .from("products")
-        .select(`
-          *,
-          category:categories(*),
-          images:product_images(*),
-          variants:product_variants(*)
-        `)
-        .eq("slug", slug)
-        .eq("is_published", true)
-        .maybeSingle();
-
-      if (!error && data) {
-        return data as Product;
-      }
-    } catch (err) {
-      console.warn("Erro ao buscar produto do Supabase, usando catálogo padrão:", err);
-    }
-  }
-
-  // Fallback instantâneo para o catálogo estruturado oficial (0ms)
-  let defaultFound = DEFAULT_CATALOG.find((p) => p.slug === slug);
-  if (!defaultFound && slug === "ventara-horizonte") {
-    defaultFound = DEFAULT_CATALOG.find((p) => p.slug === "ventara-horizonte-sport");
-  }
-  return defaultFound || null;
-});
-
 export async function generateMetadata({ params }: ProductPageProps): Promise<Metadata> {
   const { slug } = await params;
-  const product = await getProductBySlug(slug);
+  const product = await getProductByIdOrSlug(slug);
 
   if (!product) {
     return {
@@ -89,245 +42,22 @@ export async function generateMetadata({ params }: ProductPageProps): Promise<Me
 
 export default async function ProductDetailPage({ params }: ProductPageProps) {
   const { slug } = await params;
-  const product = await getProductBySlug(slug);
+  const product = await getProductByIdOrSlug(slug);
 
   if (!product) {
     notFound();
   }
 
-  const primaryImage =
-    product.images?.find((img) => img.is_primary)?.url || product.images?.[0]?.url;
-  const priceFormatted = (product.price_in_cents / 100).toLocaleString("pt-BR", {
-    style: "currency",
-    currency: "BRL",
-  });
-
-  const installmentFormatted = (product.price_in_cents / 1000).toLocaleString("pt-BR", {
-    style: "currency",
-    currency: "BRL",
-  });
-
-  const comparePriceFormatted = product.compare_at_price_in_cents
-    ? (product.compare_at_price_in_cents / 100).toLocaleString("pt-BR", {
-        style: "currency",
-        currency: "BRL",
-      })
-    : null;
-
-  // Recomendações relacionadas (outros modelos do catálogo excluindo o atual)
-  const relatedProducts = DEFAULT_CATALOG.filter((p) => p.slug !== product.slug).slice(0, 3);
+  const relatedProducts = DEFAULT_CATALOG.filter(
+    (p) => p.slug !== product.slug && p.id !== product.id
+  ).slice(0, 4);
 
   return (
-    <div className="min-h-screen bg-[#f8fafc] text-slate-900 font-sans selection:bg-amber-400 selection:text-slate-950">
-      {/* Top Bar Navigation com BrandLogo oficial */}
-      <header className="border-b border-slate-200 bg-white sticky top-0 z-40 shadow-xs">
-        <div className="max-w-[1400px] mx-auto px-4 sm:px-8 lg:px-10 h-16 flex items-center justify-between">
-          <Link
-            href="/#armacoes"
-            className="inline-flex items-center gap-2 text-xs font-semibold text-slate-600 hover:text-amber-600 transition-colors active:scale-95 py-2"
-          >
-            <ArrowLeft size={16} /> <span>Voltar ao Catálogo</span>
-          </Link>
-
-          <Link href="/" className="flex items-center gap-2" title="Página Inicial Ótica Ventara">
-            <BrandLogo size="sm" tone="light" />
-          </Link>
-
-          <div className="hidden sm:flex items-center gap-2 text-[11px] text-slate-500 font-medium">
-            <MapPin size={13} className="text-amber-600" />
-            <span>Araçatuba · SP</span>
-          </div>
-        </div>
-      </header>
-
-      <main className="max-w-[1400px] mx-auto px-4 sm:px-8 lg:px-10 py-8 sm:py-12">
-        {/* Breadcrumb de Navegação */}
-        <nav
-          className="text-xs text-slate-500 mb-6 sm:mb-8 flex items-center gap-2"
-          aria-label="Breadcrumb"
-        >
-          <Link href="/" className="hover:text-amber-600 transition-colors">
-            Início
-          </Link>
-          <span className="text-slate-400">/</span>
-          <Link href="/#armacoes" className="hover:text-amber-600 transition-colors">
-            Armações
-          </Link>
-          <span className="text-slate-400">/</span>
-          <span className="text-slate-900 font-bold">{product.name}</span>
-        </nav>
-
-        {/* Grade Principal do Produto: Vitrine Visual + Detalhes Técnicos & Ações */}
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-14 items-start">
-          {/* Coluna 1: Imagem / Visual da Armação (7 colunas) */}
-          <div className="lg:col-span-7 space-y-4">
-            <ProductGallery product={product} />
-          </div>
-
-          {/* Coluna 2: Informações Técnicas e Ações (5 colunas) */}
-          <div className="lg:col-span-5 space-y-6">
-            <div>
-              <div className="flex items-center gap-2 mb-2">
-                <span className="text-xs font-bold tracking-widest uppercase text-amber-600">
-                  {product.category?.name || "Coleção Ventara Eyewear"}
-                </span>
-                <span className="text-[10px] text-slate-700 font-medium flex items-center gap-1 bg-amber-50 border border-amber-200 px-2.5 py-0.5 rounded-full">
-                  <Sparkles size={11} className="text-amber-600" /> Curadoria Autoral
-                </span>
-              </div>
-
-              <h1 className="text-3xl sm:text-4xl font-semibold tracking-tight text-slate-950 leading-tight">
-                {product.name}
-              </h1>
-
-              <div className="flex items-baseline gap-3 mt-4">
-                <span className="text-3xl font-bold text-slate-950 font-mono tracking-tight">
-                  {priceFormatted}
-                </span>
-                {comparePriceFormatted && (
-                  <span className="text-sm text-slate-400 line-through">
-                    {comparePriceFormatted}
-                  </span>
-                )}
-                <span className="text-xs font-semibold text-emerald-700 bg-emerald-50 px-2.5 py-1 rounded-full border border-emerald-200">
-                  à vista no Pix
-                </span>
-              </div>
-
-              <p className="text-xs text-slate-600 mt-1.5">
-                ou em até 10x de <strong className="text-slate-900 font-semibold">{installmentFormatted}</strong> sem juros no cartão
-              </p>
-            </div>
-
-            <p className="text-sm text-slate-600 leading-relaxed font-normal">
-              {product.description}
-            </p>
-
-            {/* Tabela de Especificações Técnicas de Ótica */}
-            <div className="bg-white border border-slate-200/90 rounded-2xl p-5 space-y-3.5 shadow-2xs">
-              <h2 className="text-xs font-bold uppercase tracking-wider text-slate-900 border-b border-slate-100 pb-2.5 flex items-center justify-between">
-                <span>Especificações Técnicas</span>
-                <span className="text-[10px] font-semibold text-amber-600">Padrão Óptico ABNT</span>
-              </h2>
-
-              <dl className="grid grid-cols-2 gap-y-3 gap-x-4 text-xs">
-                <div>
-                  <dt className="text-slate-500 font-medium">Formato do Aro:</dt>
-                  <dd className="font-semibold text-slate-900 mt-0.5">
-                    {product.frame_shape || "Clássico"}
-                  </dd>
-                </div>
-
-                <div>
-                  <dt className="text-slate-500 font-medium">Material da Armação:</dt>
-                  <dd className="font-semibold text-slate-900 mt-0.5">
-                    {product.frame_material || "Acetato Premium"}
-                  </dd>
-                </div>
-
-                <div>
-                  <dt className="text-slate-500 font-medium">Medida da Lente:</dt>
-                  <dd className="font-semibold text-slate-900 mt-0.5 font-mono">
-                    {product.dimensions_lens_mm
-                      ? `${product.dimensions_lens_mm} mm`
-                      : "Padrão (52 mm)"}
-                  </dd>
-                </div>
-
-                <div>
-                  <dt className="text-slate-500 font-medium">Ponte Nasal / Haste:</dt>
-                  <dd className="font-semibold text-slate-900 mt-0.5 font-mono">
-                    {product.dimensions_bridge_mm || 18} mm / {product.dimensions_temple_mm || 145} mm
-                  </dd>
-                </div>
-              </dl>
-            </div>
-
-            {/* Garantias Oficiais Confirmadas */}
-            <div className="border border-slate-200/90 bg-white rounded-2xl p-4 space-y-2.5 text-xs text-slate-700 shadow-2xs">
-              <div className="flex items-center gap-2.5">
-                <Check size={16} className="text-emerald-600 flex-shrink-0 stroke-[2.5]" />
-                <span>Ajuste facial sob medida no laboratório próprio da ótica</span>
-              </div>
-              <div className="flex items-center gap-2.5">
-                <Check size={16} className="text-emerald-600 flex-shrink-0 stroke-[2.5]" />
-                <span>Atendimento presencial no Centro de Araçatuba ou entrega segura</span>
-              </div>
-            </div>
-
-            {/* Ações de Conversão com Seletor de Cores e Guia de Lentes */}
-            <ProductDetailActions product={product} />
-          </div>
-        </div>
-
-        {/* Seção Editorial: Você Também Pode Gostar */}
-        <section className="mt-20 pt-12 border-t border-slate-200">
-          <div className="flex items-center justify-between mb-8">
-            <div>
-              <span className="text-[11px] font-bold uppercase tracking-widest text-amber-600">
-                SUGESTÕES DE CURADORIA
-              </span>
-              <h2 className="text-xl sm:text-2xl font-semibold text-slate-950 tracking-tight mt-1">
-                Você também pode gostar
-              </h2>
-            </div>
-            <Link
-              href="/#armacoes"
-              className="inline-flex items-center gap-1.5 text-xs text-amber-600 hover:text-amber-700 transition-colors font-semibold"
-            >
-              <span>Ver todas</span> <ArrowRight size={14} />
-            </Link>
-          </div>
-
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
-            {relatedProducts.map((rel) => {
-              const relImg = rel.images?.find((i) => i.is_primary)?.url || rel.images?.[0]?.url;
-              const relPrice = (rel.price_in_cents / 100).toLocaleString("pt-BR", {
-                style: "currency",
-                currency: "BRL",
-              });
-
-              return (
-                <Link
-                  key={rel.id}
-                  href={`/produto/${rel.slug}`}
-                  className="group p-5 rounded-2xl bg-white hover:border-amber-400/60 border border-slate-200/90 hover:shadow-xl transition-all duration-200 flex flex-col justify-between shadow-xs"
-                >
-                  <div className="bg-slate-100/90 rounded-2xl p-3 sm:p-4 flex items-center justify-center aspect-[4/3] w-full mb-4 overflow-hidden relative group-hover:bg-slate-100 transition-colors">
-                    {relImg ? (
-                      <img
-                        src={relImg}
-                        alt={rel.name}
-                        className="w-full h-full object-contain group-hover:scale-105 transition-transform duration-300"
-                      />
-                    ) : (
-                      <div className="w-full max-w-[160px]">
-                        <FrameArt
-                          solar={rel.frame_type === "Solar"}
-                          round={rel.frame_shape === "Redondo"}
-                          amber={rel.slug.includes("aurora")}
-                        />
-                      </div>
-                    )}
-                  </div>
-
-                  <div>
-                    <span className="text-[10px] font-bold uppercase tracking-wider text-slate-500">
-                      {rel.frame_type === "Solar" ? "Óculos Solar" : "Armação de Grau"}
-                    </span>
-                    <h3 className="text-sm font-semibold text-slate-900 group-hover:text-amber-600 transition-colors mt-0.5">
-                      {rel.name}
-                    </h3>
-                    <p className="text-sm font-bold text-slate-900 font-mono mt-1">
-                      {relPrice}
-                    </p>
-                  </div>
-                </Link>
-              );
-            })}
-          </div>
-        </section>
-      </main>
-    </div>
+    <ProductDetailView
+      product={product}
+      relatedProducts={relatedProducts}
+      backLink={{ href: "/armacoes", label: "Voltar ao Catálogo" }}
+      hrefPrefix="/produto"
+    />
   );
 }

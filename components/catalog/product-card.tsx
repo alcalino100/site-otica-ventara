@@ -6,6 +6,7 @@ import { Plus, ShoppingBag, Check, ArrowRight, MessageSquare, Sparkles } from "l
 import { Product } from "@/types/ecommerce";
 import { FrameArt } from "./frame-art";
 import { PricePromo } from "@/components/ui/price-promo";
+import { buildProductWhatsAppUrl } from "@/lib/whatsapp";
 
 interface ProductCardProps {
   product: Product;
@@ -77,10 +78,7 @@ export function ProductCard({
           { name: "Âmbar", hex: "#d97706" },
         ];
 
-  const whatsappMessage = encodeURIComponent(
-    `Olá! Gostei do modelo "${product.name}" (${categoryLabel}) da Ótica Ventara e gostaria de mais informações.`
-  );
-  const whatsappUrl = `https://wa.me/5518996155748?text=${whatsappMessage}`;
+  const whatsappUrl = buildProductWhatsAppUrl(product.name, product.slug, categoryLabel);
 
   return (
     <div className="product group relative rounded-3xl overflow-hidden border border-slate-200/80 hover:border-amber-400/70 shadow-sm hover:shadow-2xl transition-all duration-300 flex flex-col justify-end bg-[#040d1a] aspect-[3/4.2] sm:aspect-[3/4.2] min-h-[350px] sm:min-h-[460px]">

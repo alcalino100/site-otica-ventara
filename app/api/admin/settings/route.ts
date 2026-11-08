@@ -28,9 +28,8 @@ import {
   DEFAULT_FOOTER_PAYMENT_SETTINGS,
   DEFAULT_ARMACOES_PAGE_SETTINGS,
   DEFAULT_OPTISYNC_SETTINGS,
+  IN_MEMORY_SITE_SETTINGS,
 } from "@/lib/site-settings-constants";
-
-let inMemorySettings: Record<string, any> = {};
 
 export async function GET() {
   try {
@@ -62,7 +61,7 @@ export async function GET() {
 
     const getVal = (key: string) => {
       const row = data?.find((s) => s.key === key);
-      let val = row ? row.value : inMemorySettings[key];
+      let val = row ? row.value : IN_MEMORY_SITE_SETTINGS[key];
       if (typeof val === "string") {
         try {
           val = JSON.parse(val);
@@ -141,13 +140,13 @@ export async function GET() {
       appearance: DEFAULT_APPEARANCE,
       lab_showcase: DEFAULT_LAB_SHOWCASE,
       showcase_media: DEFAULT_SHOWCASE_MEDIA,
-      homologated_brands: inMemorySettings["homologated_brands"] || DEFAULT_HOMOLOGATED_BRANDS,
+      homologated_brands: IN_MEMORY_SITE_SETTINGS["homologated_brands"] || DEFAULT_HOMOLOGATED_BRANDS,
       promotional_showcase: DEFAULT_PROMOTIONAL_SHOWCASE,
-      lenses_section: inMemorySettings["lenses_section"] || DEFAULT_LENSES_SECTION_SETTINGS,
+      lenses_section: IN_MEMORY_SITE_SETTINGS["lenses_section"] || DEFAULT_LENSES_SECTION_SETTINGS,
       hero_banner: DEFAULT_HERO_BANNER,
       live_broadcast: DEFAULT_LIVE_BROADCAST,
       payment_methods: DEFAULT_FOOTER_PAYMENT_SETTINGS,
-      armacoes_page_settings: inMemorySettings["armacoes_page_settings"] || DEFAULT_ARMACOES_PAGE_SETTINGS,
+      armacoes_page_settings: IN_MEMORY_SITE_SETTINGS["armacoes_page_settings"] || DEFAULT_ARMACOES_PAGE_SETTINGS,
     });
   }
 }
@@ -159,7 +158,7 @@ export async function POST(req: NextRequest) {
     const now = new Date().toISOString();
 
     async function saveSetting(key: string, description: string, value: any) {
-      inMemorySettings[key] = value;
+      IN_MEMORY_SITE_SETTINGS[key] = value;
 
       if (!isSupabaseConfigured()) {
         return;

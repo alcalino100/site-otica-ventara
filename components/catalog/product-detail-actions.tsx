@@ -16,6 +16,7 @@ import { Product } from "@/types/ecommerce";
 import { getStoredCart, saveStoredCart, CartProduct } from "@/lib/cart";
 import { CartModal } from "@/components/cart/cart-modal";
 import { LensLeadModal } from "@/components/catalog/lens-lead-modal";
+import { buildWhatsAppUrl } from "@/lib/whatsapp";
 
 interface ProductDetailActionsProps {
   product: Product;
@@ -196,13 +197,12 @@ export function ProductDetailActions({
   // Monta mensagem detalhada e personalizada para o WhatsApp oficial
   const categoryLabel =
     product.frame_type === "Solar" ? "Óculos Solar" : "Armação de Grau";
-  const whatsappText = encodeURIComponent(
+  const whatsappText =
     `Olá! Gostei da armação "${product.name}" (${categoryLabel}) na Ótica Ventara.\n` +
-      `• Cor selecionada: ${selectedVariant.color_name}\n` +
-      `• Interesse em lentes: ${selectedLens.name} (${selectedLens.desc})\n` +
-      `Gostaria de saber mais sobre disponibilidade e valores para minha receita.`
-  );
-  const whatsappUrl = `https://wa.me/5518996155748?text=${whatsappText}`;
+    `• Cor selecionada: ${selectedVariant.color_name}\n` +
+    `• Interesse em lentes: ${selectedLens.name} (${selectedLens.desc})\n` +
+    `Gostaria de saber mais sobre disponibilidade e valores para minha receita.`;
+  const whatsappUrl = buildWhatsAppUrl(whatsappText);
 
   return (
     <div className="space-y-6 pt-2">

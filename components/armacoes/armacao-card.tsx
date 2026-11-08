@@ -5,6 +5,7 @@ import Link from "next/link";
 import { ShoppingBag, Check, MessageSquare, Tag, Sparkles } from "lucide-react";
 import { Product } from "@/types/ecommerce";
 import { FrameArt } from "@/components/catalog/frame-art";
+import { buildProductWhatsAppUrl } from "@/lib/whatsapp";
 
 interface ArmacaoCardProps {
   product: Product;
@@ -113,10 +114,11 @@ export function ArmacaoCard({
       product.frame_shape?.toLowerCase() || "moderno"
     } e encaixe anatômico confortável.`;
 
-  const whatsappMessage = encodeURIComponent(
-    `Olá! Gostei do modelo "${product.name}" (${categoryLabel}) na Ótica Ventara e gostaria de tirar dúvidas e consultar valores para minha receita.`
+  const whatsappUrl = buildProductWhatsAppUrl(
+    product.name,
+    product.slug || product.id,
+    categoryLabel
   );
-  const whatsappUrl = `https://wa.me/5518996155748?text=${whatsappMessage}`;
 
   return (
     <div className="product group bg-white rounded-2xl sm:rounded-3xl p-3 sm:p-5 border border-slate-200/90 hover:border-amber-400/80 shadow-xs hover:shadow-xl transition-all duration-300 flex flex-col justify-between h-full">
@@ -263,5 +265,3 @@ export function ArmacaoCard({
     </div>
   );
 }
-
-export default ArmacaoCard;

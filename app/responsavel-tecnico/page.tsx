@@ -16,6 +16,7 @@ import {
   FileText,
 } from "lucide-react";
 import { BrandLogo } from "@/components/ui/brand-logo";
+import { buildWhatsAppUrl } from "@/lib/whatsapp";
 
 export const metadata: Metadata = {
   title: "Responsável Técnico | Gustavo Guimarães Cordeiro | Óticas Ventara",
@@ -30,8 +31,9 @@ export const metadata: Metadata = {
 };
 
 export default function ResponsavelTecnicoPage() {
-  const whatsappUrl =
-    "https://wa.me/5518996155748?text=Ol%C3%A1%2C%20Gustavo!%20Gostaria%20de%20tirar%20uma%20d%C3%BAvida%20t%C3%A9cnica%20sobre%20minha%20receita%20de%20%C3%B3culos.";
+  const whatsappUrl = buildWhatsAppUrl(
+    "Olá, Gustavo! Gostaria de tirar uma dúvida técnica sobre minha receita de óculos."
+  );
 
   return (
     <div className="min-h-screen bg-[#02070d] text-slate-100 selection:bg-amber-400 selection:text-slate-950 font-sans">

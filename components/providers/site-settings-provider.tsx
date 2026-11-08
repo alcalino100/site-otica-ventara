@@ -15,6 +15,7 @@ import {
   DEFAULT_LIVE_BROADCAST,
   DEFAULT_FOOTER_PAYMENT_SETTINGS,
 } from "@/lib/site-settings-constants";
+import { cleanPhoneNumber, DEFAULT_WHATSAPP_PHONE } from "@/lib/whatsapp";
 
 interface SiteSettingsContextValue {
   identity: SiteIdentitySettings;
@@ -40,7 +41,7 @@ const SiteSettingsContext = createContext<SiteSettingsContextValue>({
   liveBroadcast: DEFAULT_LIVE_BROADCAST,
   paymentMethods: DEFAULT_FOOTER_PAYMENT_SETTINGS,
   fullAddress: `${DEFAULT_IDENTITY.address_street}, ${DEFAULT_IDENTITY.address_neighborhood} · ${DEFAULT_IDENTITY.address_city}-${DEFAULT_IDENTITY.address_state}`,
-  cleanWhatsAppNumber: "5518996155748",
+  cleanWhatsAppNumber: DEFAULT_WHATSAPP_PHONE,
   updateSettings: () => {},
 });
 
@@ -119,9 +120,7 @@ export function SiteSettingsProvider({ children }: { children: React.ReactNode }
   }, [appearance]);
 
   const fullAddress = `${identity.address_street}, ${identity.address_neighborhood} · ${identity.address_city}-${identity.address_state}`;
-  const cleanWhatsAppNumber = identity.phone_whatsapp.replace(/\D/g, "").length >= 10
-    ? `55${identity.phone_whatsapp.replace(/\D/g, "")}`
-    : "5518996155748";
+  const cleanWhatsAppNumber = cleanPhoneNumber(identity.phone_whatsapp);
 
   const updateSettings = (
     newIdentity?: Partial<SiteIdentitySettings>,

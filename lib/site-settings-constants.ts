@@ -283,6 +283,17 @@ export function getInMemoryHeroSettings(): HeroCarouselSettings {
   return IN_MEMORY_HERO_SETTINGS;
 }
 
+const globalStore = ((globalThis as any).__SITE_SETTINGS_STORE = (globalThis as any).__SITE_SETTINGS_STORE || {});
+export const IN_MEMORY_SITE_SETTINGS: Record<string, any> = globalStore;
+
+export function setInMemorySiteSetting(key: string, value: any) {
+  IN_MEMORY_SITE_SETTINGS[key] = value;
+}
+
+export function getInMemorySiteSetting(key: string) {
+  return IN_MEMORY_SITE_SETTINGS[key];
+}
+
 export const DEFAULT_HERO_SLIDES: HeroSlide[] = [
   {
     id: "default-hero-slide-1",

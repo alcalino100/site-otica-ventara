@@ -3,7 +3,7 @@
 import React from "react";
 import { Filter, RotateCcw, Check, Sparkles } from "lucide-react";
 
-export interface FilterState {
+interface FilterState {
   category: string;
   shape: string;
   material: string;
@@ -231,5 +231,3 @@ export function ArmacaoFilters({
     </aside>
   );
 }
-
-export default ArmacaoFilters;

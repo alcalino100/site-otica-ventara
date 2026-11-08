@@ -6,15 +6,15 @@ import { Header } from "@/components/layout/header";
 import { Footer } from "@/components/layout/footer";
 import { ShieldCheck, ArrowLeft, Mail, MessageSquare, Lock, Eye, FileText, CheckCircle2 } from "lucide-react";
 import { useSiteSettings } from "@/components/providers/site-settings-provider";
+import { buildWhatsAppUrl } from "@/lib/whatsapp";
 
 export default function PrivacyPolicyPage() {
   const { identity } = useSiteSettings();
 
   const handleDataDeletionWhatsApp = () => {
-    const text = encodeURIComponent(
-      `Olá! Gostaria de exercer meus direitos de titular de dados (LGPD Art. 18) e solicitar a consulta/exclusão dos meus dados cadastrais na ${identity.store_name}.`
-    );
-    window.open(`https://wa.me/5518996155748?text=${text}`, "_blank");
+    const text =
+      `Olá! Gostaria de exercer meus direitos de titular de dados (LGPD Art. 18) e solicitar a consulta/exclusão dos meus dados cadastrais na ${identity.store_name}.`;
+    window.open(buildWhatsAppUrl(text, identity.phone_whatsapp), "_blank");
   };
 
   return (
