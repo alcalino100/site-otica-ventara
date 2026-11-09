@@ -50,13 +50,19 @@ export function LineNavTabs({
     setActiveTab(id);
     const element = document.getElementById(targetId);
     if (element) {
-      element.scrollIntoView({ behavior: "smooth", block: "start" });
+      const headerOffset = 90;
+      const elementPosition = element.getBoundingClientRect().top;
+      const offsetPosition = elementPosition + window.pageYOffset - headerOffset;
+      window.scrollTo({
+        top: offsetPosition,
+        behavior: "smooth",
+      });
     }
   };
 
   return (
-    <div className="w-full max-w-4xl mx-auto px-4">
-      <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 p-2 rounded-3xl bg-[#000933]/90 border border-[#0044C9]/40 backdrop-blur-xl shadow-2xl">
+    <div className="w-full max-w-4xl mx-auto px-2 sm:px-4">
+      <div className="grid grid-cols-3 gap-1.5 sm:gap-3 p-1.5 sm:p-2 rounded-2xl sm:rounded-3xl bg-[#000933]/90 border border-[#0044C9]/40 backdrop-blur-xl shadow-2xl">
         {lines.map((line) => {
           const Icon = line.icon;
           const isActive = activeTab === line.id;
@@ -65,15 +71,15 @@ export function LineNavTabs({
               key={line.id}
               type="button"
               onClick={() => handleScrollTo(line.id, line.targetId)}
-              className={`group relative p-4 rounded-2xl text-left transition-all duration-300 cursor-pointer focus:outline-none focus:ring-2 focus:ring-[#FFC21A] ${
+              className={`group relative p-2.5 sm:p-4 rounded-xl sm:rounded-2xl text-left transition-all duration-300 cursor-pointer focus:outline-none focus:ring-2 focus:ring-[#FFC21A] ${
                 isActive
                   ? `${line.activeBg} text-white shadow-lg`
                   : "bg-white/[0.03] hover:bg-white/[0.08] text-slate-200 border border-white/10"
               }`}
             >
-              <div className="flex items-center justify-between mb-1.5">
+              <div className="flex items-center justify-between mb-1 sm:mb-1.5">
                 <span
-                  className={`text-[10px] uppercase font-bold tracking-wider px-2 py-0.5 rounded-full ${
+                  className={`text-[9px] sm:text-[10px] uppercase font-bold tracking-wider px-1.5 sm:px-2 py-0.5 rounded-full truncate max-w-[80px] sm:max-w-none ${
                     isActive
                       ? "bg-black/30 text-white"
                       : "bg-[#0044C9]/30 text-sky-300"
@@ -82,12 +88,12 @@ export function LineNavTabs({
                   {line.badge}
                 </span>
                 <Icon
-                  className={`w-4 h-4 ${
+                  className={`w-3.5 h-3.5 sm:w-4 sm:h-4 shrink-0 ${
                     isActive ? "text-white" : "text-[#FFC21A]"
                   }`}
                 />
               </div>
-              <h3 className="text-sm sm:text-base font-extrabold tracking-tight">
+              <h3 className="text-xs sm:text-base font-extrabold tracking-tight truncate">
                 {line.title}
               </h3>
             </button>

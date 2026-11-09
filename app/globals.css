@@ -194,6 +194,12 @@
   animation: lensGlowPulse 8s ease-in-out infinite;
 }
 
+@media (max-width: 640px) {
+  .animate-lens-glow {
+    animation: none !important;
+  }
+}
+
 /* Respeito Absoluto a Prefers Reduced Motion */
 @media (prefers-reduced-motion: reduce) {
   .animate-lens-float,
