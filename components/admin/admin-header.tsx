@@ -97,22 +97,30 @@ export function AdminHeader() {
   };
 
   const allNavModules = [
-    { href: "/admin", label: "Dashboard", icon: LayoutDashboard, minRole: "editor" },
-    { href: "/admin/metricas", label: "Métricas & UTMs", icon: BarChart3, minRole: "admin" },
-    { href: "/admin/identidade", label: "Identidade", icon: Palette, minRole: "super_admin" },
-    { href: "/admin/banners", label: "Banners", icon: ImageIcon, minRole: "admin" },
-    { href: "/admin/live", label: "Ao Vivo (Live)", icon: Radio, minRole: "editor" },
-    { href: "/admin/promocoes/roleta", label: "Roleta Promocional", icon: Sparkles, minRole: "admin" },
-    { href: "/admin/produtos", label: "Produtos", icon: Package, minRole: "editor" },
-    { href: "/admin/lentes", label: "Lentes & Preços", icon: Eye, minRole: "editor" },
-    { href: "/admin/categorias", label: "Categorias", icon: FolderTree, minRole: "admin" },
-    { href: "/admin/estoque", label: "Estoque", icon: Boxes, minRole: "editor" },
-    { href: "/admin/pedidos", label: "Pedidos", icon: ShoppingCart, minRole: "editor" },
-    { href: "/admin/pagamentos", label: "Pagamentos", icon: CreditCard, minRole: "admin" },
-    { href: "/admin/entrega", label: "Entrega", icon: Truck, minRole: "admin" },
-    { href: "/admin/configuracoes", label: "Geral", icon: Settings, minRole: "super_admin" },
-    { href: "/admin/usuarios", label: "Usuários", icon: Users, minRole: "super_admin" },
+    { href: "/admin", label: "Dashboard", icon: LayoutDashboard, minRole: "editor", group: "overview" },
+    { href: "/admin/metricas", label: "Métricas & UTMs", icon: BarChart3, minRole: "admin", group: "overview" },
+    { href: "/admin/produtos", label: "Produtos", icon: Package, minRole: "editor", group: "catalog" },
+    { href: "/admin/lentes", label: "Lentes & Preços", icon: Eye, minRole: "editor", group: "catalog" },
+    { href: "/admin/categorias", label: "Categorias", icon: FolderTree, minRole: "admin", group: "catalog" },
+    { href: "/admin/estoque", label: "Estoque", icon: Boxes, minRole: "editor", group: "catalog" },
+    { href: "/admin/pedidos", label: "Pedidos", icon: ShoppingCart, minRole: "editor", group: "store" },
+    { href: "/admin/pagamentos", label: "Pagamentos", icon: CreditCard, minRole: "admin", group: "store" },
+    { href: "/admin/entrega", label: "Entrega", icon: Truck, minRole: "admin", group: "store" },
+    { href: "/admin/banners", label: "Banners", icon: ImageIcon, minRole: "admin", group: "store" },
+    { href: "/admin/live", label: "Ao Vivo (Live)", icon: Radio, minRole: "editor", group: "store" },
+    { href: "/admin/promocoes/roleta", label: "Roleta Promocional", icon: Sparkles, minRole: "admin", group: "store" },
+    { href: "/admin/identidade", label: "Identidade", icon: Palette, minRole: "super_admin", group: "system" },
+    { href: "/admin/configuracoes", label: "Geral", icon: Settings, minRole: "super_admin", group: "system" },
+    { href: "/admin/usuarios", label: "Usuários", icon: Users, minRole: "super_admin", group: "system" },
   ];
+
+  /** Rótulos de cada grupo para o separador visual no desktop */
+  const groupLabels: Record<string, string> = {
+    overview: "Visão Geral",
+    catalog: "Catálogo",
+    store: "Loja",
+    system: "Sistema",
+  };
 
   const visibleModules = allNavModules.filter((mod) => {
     if (!currentUser) return true;
@@ -208,41 +216,66 @@ export function AdminHeader() {
             type="button"
             onClick={() => setIsMobileOpen((prev) => !prev)}
             className="lg:hidden p-2 rounded-xl text-slate-300 hover:text-white hover:bg-white/5 active:scale-95"
-            aria-label="Abrir menu de navegação"
+            aria-label={isMobileOpen ? "Fechar menu de navegação" : "Abrir menu de navegação"}
+            aria-expanded={isMobileOpen}
+            aria-controls="admin-mobile-nav"
           >
             {isMobileOpen ? <X size={20} /> : <Menu size={20} />}
           </button>
         </div>
       </div>
 
-      {/* Barra de Módulos (Desktop) */}
+      {/* Barra de Módulos (Desktop) — itens agrupados com separadores visuais */}
       <div className="hidden lg:block border-t border-white/5 bg-[#02070d]/90 px-4 sm:px-8 lg:px-10">
-        <div className="max-w-[1400px] mx-auto flex items-center gap-1.5 overflow-x-auto py-2 scrollbar-none">
-          {visibleModules.map(({ href, label, icon: Icon }) => {
-            const isActive =
-              pathname === href || (href !== "/admin" && pathname?.startsWith(href));
+        <nav aria-label="Navegação do painel" className="max-w-[1400px] mx-auto flex items-center gap-0 overflow-x-auto py-2 scrollbar-none">
+          {(["overview", "catalog", "store", "system"] as const).map((group, groupIdx) => {
+            const groupModules = visibleModules.filter((m) => m.group === group);
+            if (groupModules.length === 0) return null;
             return (
-              <Link
-                key={href}
-                href={href}
-                className={`inline-flex items-center gap-2 px-3 py-1.5 rounded-lg text-xs font-medium transition-all duration-150 flex-shrink-0 ${
-                  isActive
-                    ? "bg-amber-400 text-[#02070d] font-bold shadow-xs"
-                    : "text-slate-300 hover:text-white hover:bg-white/5"
-                }`}
-                style={isActive ? { color: "#02070d" } : undefined}
-              >
-                <Icon size={14} />
-                <span>{label}</span>
-              </Link>
+              <React.Fragment key={group}>
+                {/* Separador entre grupos (não antes do primeiro) */}
+                {groupIdx > 0 && (
+                  <span
+                    aria-hidden="true"
+                    className="mx-2 h-4 w-px bg-white/15 shrink-0"
+                  />
+                )}
+                <div className="flex items-center gap-1 shrink-0">
+                  {groupModules.map(({ href, label, icon: Icon }) => {
+                    const isActive =
+                      pathname === href || (href !== "/admin" && pathname?.startsWith(href));
+                    return (
+                      <Link
+                        key={href}
+                        href={href}
+                        className={`inline-flex items-center gap-2 px-3 py-1.5 rounded-lg text-xs font-medium transition-all duration-150 flex-shrink-0 ${
+                          isActive
+                            ? "bg-amber-400 text-[#02070d] font-bold shadow-xs"
+                            : "text-slate-300 hover:text-white hover:bg-white/5"
+                        }`}
+                        style={isActive ? { color: "#02070d" } : undefined}
+                      >
+                        <Icon size={14} />
+                        <span>{label}</span>
+                      </Link>
+                    );
+                  })}
+                </div>
+              </React.Fragment>
             );
           })}
-        </div>
+        </nav>
       </div>
 
       {/* Gaveta de Navegação Mobile */}
       {isMobileOpen && (
-        <div className="lg:hidden border-t border-white/10 bg-[#030912] p-4 space-y-2">
+        <div
+          id="admin-mobile-nav"
+          role="dialog"
+          aria-modal="true"
+          aria-label="Menu de navegação do painel"
+          className="lg:hidden border-t border-white/10 bg-[#030912] p-4 space-y-2"
+        >
           {currentUser && (
             <div className="p-3 mb-2 rounded-xl bg-white/[0.04] border border-white/10 flex items-center justify-between">
               <div>

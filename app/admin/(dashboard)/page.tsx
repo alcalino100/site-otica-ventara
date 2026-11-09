@@ -24,7 +24,6 @@ import { createClient, isSupabaseConfigured } from "@/lib/supabase/client";
 import { DEFAULT_CATALOG } from "@/lib/catalog-data";
 import { NumberTicker } from "@/components/ui/number-ticker";
 import { Skeleton } from "@/components/ui/skeleton";
-import { WordsStagger } from "@/registry/spell-ui/words-stagger";
 
 interface DashboardStats {
   totalProducts: number;
@@ -150,6 +149,10 @@ function AdminDashboardOverview() {
     {
       title: "Pedidos Pendentes",
       value: stats.pendingOrders,
+      badge:
+        stats.pendingOrders > 0
+          ? { text: "Requer ação", color: "bg-amber-400/20 text-amber-300 border-amber-400/40" }
+          : null,
       subtext:
         stats.pendingOrders === 0
           ? "Nenhum pedido aguardando ação"
@@ -163,6 +166,10 @@ function AdminDashboardOverview() {
     {
       title: "Alertas de Estoque Baixo",
       value: stats.lowStockCount,
+      badge:
+        stats.lowStockCount > 0
+          ? { text: "Atenção", color: "bg-rose-500/20 text-rose-300 border-rose-500/40" }
+          : null,
       subtext:
         stats.lowStockCount === 0
           ? "Estoque em níveis normais"
@@ -190,13 +197,15 @@ function AdminDashboardOverview() {
   ];
 
   const operationalModules = [
+    // ── Gestão Diária ── módulos de maior frequência de uso
     {
-      title: "Métricas & Tráfego UTM",
+      title: "Pedidos & Vendas",
       description:
-        "Rastreamento de cliques em anúncios, visualizações de página de destino e gerador de links para criativos.",
-      icon: TrendingUp,
-      href: "/admin/metricas",
-      actionText: "Ver Métricas & Gerador UTM",
+        "Fluxo completo de pedidos: aguardando pagamento, preparação, envio e retirada.",
+      icon: ShoppingCart,
+      href: "/admin/pedidos",
+      actionText: "Ver Pedidos",
+      daily: true,
     },
     {
       title: "Produtos & Catálogo",
@@ -205,14 +214,7 @@ function AdminDashboardOverview() {
       icon: Package,
       href: "/admin/produtos",
       actionText: "Gerenciar Produtos",
-    },
-    {
-      title: "Importador CSV",
-      description:
-        "Upload e validação em lote de planilhas de armações com relatório de erros.",
-      icon: FileSpreadsheet,
-      href: "/admin/produtos/importar",
-      actionText: "Importar Planilha",
+      daily: true,
     },
     {
       title: "Controle de Estoque",
@@ -221,14 +223,26 @@ function AdminDashboardOverview() {
       icon: Boxes,
       href: "/admin/estoque",
       actionText: "Acessar Estoque",
+      daily: true,
+    },
+    // ── Configurações & Marketing ── uso menos frequente
+    {
+      title: "Métricas & Tráfego UTM",
+      description:
+        "Rastreamento de cliques em anúncios, visualizações de página de destino e gerador de links para criativos.",
+      icon: TrendingUp,
+      href: "/admin/metricas",
+      actionText: "Ver Métricas & Gerador UTM",
+      daily: false,
     },
     {
-      title: "Pedidos & Vendas",
+      title: "Importador CSV",
       description:
-        "Fluxo completo de pedidos: aguardando pagamento, preparação, envio e retirada.",
-      icon: ShoppingCart,
-      href: "/admin/pedidos",
-      actionText: "Ver Pedidos",
+        "Upload e validação em lote de planilhas de armações com relatório de erros.",
+      icon: FileSpreadsheet,
+      href: "/admin/produtos/importar",
+      actionText: "Importar Planilha",
+      daily: false,
     },
     {
       title: "Identidade Visual",
@@ -237,6 +251,7 @@ function AdminDashboardOverview() {
       icon: Palette,
       href: "/admin/identidade",
       actionText: "Editar Identidade",
+      daily: false,
     },
     {
       title: "Banners da Loja",
@@ -245,6 +260,7 @@ function AdminDashboardOverview() {
       icon: ImageIcon,
       href: "/admin/banners",
       actionText: "Gerenciar Banners",
+      daily: false,
     },
     {
       title: "Pagamentos (Gateways)",
@@ -253,6 +269,7 @@ function AdminDashboardOverview() {
       icon: CreditCard,
       href: "/admin/pagamentos",
       actionText: "Status de Pagamentos",
+      daily: false,
     },
     {
       title: "Entrega & Retirada",
@@ -261,6 +278,7 @@ function AdminDashboardOverview() {
       icon: Truck,
       href: "/admin/entrega",
       actionText: "Configurar Frete",
+      daily: false,
     },
     {
       title: "Configurações Gerais",
@@ -269,6 +287,7 @@ function AdminDashboardOverview() {
       icon: Settings,
       href: "/admin/configuracoes",
       actionText: "Configurações",
+      daily: false,
     },
     {
       title: "Usuários & Permissões",
@@ -277,6 +296,7 @@ function AdminDashboardOverview() {
       icon: Users,
       href: "/admin/usuarios",
       actionText: "Gerenciar Equipe",
+      daily: false,
     },
   ];
 
@@ -292,14 +312,10 @@ function AdminDashboardOverview() {
             Central Administrativa da <span className="font-normal text-amber-400">Ótica Ventara</span>
           </h1>
           <div className="mt-2">
-            <WordsStagger
-              delay={0.1}
-              duration={0.35}
-              stagger={0.03}
-              className="text-xs sm:text-sm text-slate-300 leading-relaxed font-normal"
-            >
+            {/* Subtítulo estático: evita CLS causado por animação de entrada */}
+            <p className="text-xs sm:text-sm text-slate-300 leading-relaxed font-normal">
               Indicadores consolidados em tempo real com governança, rastreabilidade e integridade de dados.
-            </WordsStagger>
+            </p>
           </div>
         </div>
 
@@ -331,9 +347,16 @@ function AdminDashboardOverview() {
               className={`p-6 rounded-2xl bg-[#071626]/90 backdrop-blur-sm border ${card.borderColor} hover:border-amber-400/40 hover:bg-[#0a1f33] transition-all duration-200 flex flex-col justify-between group shadow-lg active:scale-95`}
             >
               <div className="flex items-center justify-between mb-4">
-                <span className="text-xs font-semibold uppercase tracking-wider text-slate-300">
-                  {card.title}
-                </span>
+                <div className="flex items-center gap-2">
+                  <span className="text-xs font-semibold uppercase tracking-wider text-slate-300">
+                    {card.title}
+                  </span>
+                  {card.badge && (
+                    <span className={`text-[10px] font-bold px-1.5 py-0.5 rounded-full border ${card.badge.color}`}>
+                      {card.badge.text}
+                    </span>
+                  )}
+                </div>
                 <div
                   className={`p-2.5 rounded-xl ${card.bgColor} ${card.color} border border-white/5`}
                 >
@@ -364,7 +387,7 @@ function AdminDashboardOverview() {
       </div>
 
       {/* Módulos de Operação e Gestão */}
-      <div className="space-y-6 pt-4">
+      <div className="space-y-8 pt-4">
         <div className="flex items-center justify-between pb-2 border-b border-white/5">
           <div>
             <h2 className="text-lg font-semibold text-white tracking-tight">
@@ -379,37 +402,94 @@ function AdminDashboardOverview() {
           </span>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
-          {operationalModules.map((mod) => {
-            const Icon = mod.icon;
-            return (
-              <Link
-                key={mod.title}
-                href={mod.href}
-                className="group p-6 rounded-2xl bg-[#061423]/90 hover:bg-[#091d33] border border-white/10 hover:border-amber-400/40 transition-all duration-200 flex flex-col justify-between shadow-md active:scale-95"
-              >
-                <div>
-                  <div className="w-11 h-11 rounded-xl bg-amber-400/10 border border-amber-400/20 flex items-center justify-center text-amber-400 mb-4 group-hover:bg-amber-400 group-hover:text-[#06111f] transition-all duration-200 shadow-sm">
-                    <Icon size={20} />
-                  </div>
-                  <h3 className="text-sm font-semibold text-white group-hover:text-amber-300 transition-colors mb-2">
-                    {mod.title}
-                  </h3>
-                  <p className="text-xs text-slate-200 leading-relaxed font-normal">
-                    {mod.description}
-                  </p>
-                </div>
+        {/* ── Gestão Diária ── */}
+        <div className="space-y-4">
+          <div className="flex items-center justify-between">
+            <h3 className="text-xs font-bold uppercase tracking-wider text-amber-400">
+              Gestão Diária
+            </h3>
+            <span className="text-[11px] text-slate-400">Uso frequente (pedidos, catálogo e estoque)</span>
+          </div>
 
-                <div className="pt-4 mt-5 border-t border-white/5 flex items-center justify-between text-xs text-slate-300 group-hover:text-amber-400 transition-colors">
-                  <span className="font-semibold">{mod.actionText}</span>
-                  <ArrowRight
-                    size={14}
-                    className="transform group-hover:translate-x-1 transition-transform"
-                  />
-                </div>
-              </Link>
-            );
-          })}
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
+            {operationalModules
+              .filter((m) => m.daily)
+              .map((mod) => {
+                const Icon = mod.icon;
+                return (
+                  <Link
+                    key={mod.title}
+                    href={mod.href}
+                    className="group p-6 rounded-2xl bg-[#061423]/90 hover:bg-[#091d33] border border-white/10 hover:border-amber-400/40 transition-all duration-200 flex flex-col justify-between shadow-md active:scale-95"
+                  >
+                    <div>
+                      <div className="w-11 h-11 rounded-xl bg-amber-400/10 border border-amber-400/20 flex items-center justify-center text-amber-400 mb-4 group-hover:bg-amber-400 group-hover:text-[#06111f] transition-all duration-200 shadow-sm">
+                        <Icon size={20} />
+                      </div>
+                      <h3 className="text-sm font-semibold text-white group-hover:text-amber-300 transition-colors mb-2">
+                        {mod.title}
+                      </h3>
+                      <p className="text-xs text-slate-200 leading-relaxed font-normal">
+                        {mod.description}
+                      </p>
+                    </div>
+
+                    <div className="pt-4 mt-5 border-t border-white/5 flex items-center justify-between text-xs text-slate-300 group-hover:text-amber-400 transition-colors">
+                      <span className="font-semibold">{mod.actionText}</span>
+                      <ArrowRight
+                        size={14}
+                        className="transform group-hover:translate-x-1 transition-transform"
+                      />
+                    </div>
+                  </Link>
+                );
+              })}
+          </div>
+        </div>
+
+        {/* ── Configurações & Marketing ── */}
+        <div className="space-y-4 pt-2">
+          <div className="flex items-center justify-between">
+            <h3 className="text-xs font-bold uppercase tracking-wider text-slate-400">
+              Configurações & Marketing
+            </h3>
+            <span className="text-[11px] text-slate-400">Identidade, pagamentos, frete e ajustes</span>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+            {operationalModules
+              .filter((m) => !m.daily)
+              .map((mod) => {
+                const Icon = mod.icon;
+                return (
+                  <Link
+                    key={mod.title}
+                    href={mod.href}
+                    className="group p-5 rounded-2xl bg-[#061423]/60 hover:bg-[#091d33] border border-white/10 hover:border-amber-400/30 transition-all duration-200 flex flex-col justify-between shadow-sm active:scale-95"
+                  >
+                    <div>
+                      <div className="w-9 h-9 rounded-xl bg-amber-400/8 border border-amber-400/15 flex items-center justify-center text-amber-400/80 mb-3 group-hover:bg-amber-400 group-hover:text-[#06111f] transition-all duration-200">
+                        <Icon size={16} />
+                      </div>
+                      <h3 className="text-xs font-semibold text-white group-hover:text-amber-300 transition-colors mb-1.5">
+                        {mod.title}
+                      </h3>
+                      <p className="text-[11px] text-slate-400 leading-relaxed font-normal line-clamp-2">
+                        {mod.description}
+                      </p>
+                    </div>
+
+                    <div className="pt-3 mt-4 border-t border-white/5 flex items-center justify-between text-[11px] text-slate-400 group-hover:text-amber-400 transition-colors">
+                      <span className="font-semibold">{mod.actionText}</span>
+                      <ArrowRight
+                        size={12}
+                        className="transform group-hover:translate-x-1 transition-transform"
+                      />
+                    </div>
+                  </Link>
+                );
+              })}
+          </div>
         </div>
       </div>
     </div>

@@ -217,7 +217,7 @@ export default function NewProductPage() {
       {/* Top Header */}
       <div className="flex items-center justify-between">
         <Link
-          href="/admin"
+          href="/admin/produtos"
           className="inline-flex items-center gap-1.5 text-xs text-slate-400 hover:text-white transition-colors"
         >
           <ArrowLeft size={14} /> Voltar para lista de produtos
@@ -256,10 +256,11 @@ export default function NewProductPage() {
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
-              <label className="block text-xs font-medium text-slate-300 mb-1">
+              <label htmlFor="product-name" className="block text-xs font-medium text-slate-300 mb-1">
                 Nome da Armação *
               </label>
               <input
+                id="product-name"
                 type="text"
                 required
                 value={name}
@@ -270,10 +271,11 @@ export default function NewProductPage() {
             </div>
 
             <div>
-              <label className="block text-xs font-medium text-slate-300 mb-1">
+              <label htmlFor="product-slug" className="block text-xs font-medium text-slate-300 mb-1">
                 Slug (identificador de URL) *
               </label>
               <input
+                id="product-slug"
                 type="text"
                 required
                 value={slug}
@@ -285,10 +287,11 @@ export default function NewProductPage() {
           </div>
 
           <div>
-            <label className="block text-xs font-medium text-slate-300 mb-1">
+            <label htmlFor="product-description" className="block text-xs font-medium text-slate-300 mb-1">
               Descrição Comercial da Armação
             </label>
             <textarea
+              id="product-description"
               rows={3}
               value={description}
               onChange={(e) => setDescription(e.target.value)}
@@ -299,10 +302,11 @@ export default function NewProductPage() {
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pt-2">
             <div>
-              <label className="block text-xs font-medium text-slate-300 mb-1">
+              <label htmlFor="product-price" className="block text-xs font-medium text-slate-300 mb-1">
                 Preço de Venda (R$) *
               </label>
               <input
+                id="product-price"
                 type="text"
                 required
                 value={priceReal}
@@ -313,10 +317,11 @@ export default function NewProductPage() {
             </div>
 
             <div>
-              <label className="block text-xs font-medium text-slate-300 mb-1">
+              <label htmlFor="product-compare-price" className="block text-xs font-medium text-slate-300 mb-1">
                 Preço Comparativo 'De' (R$ - opcional)
               </label>
               <input
+                id="product-compare-price"
                 type="text"
                 value={comparePriceReal}
                 onChange={(e) => setComparePriceReal(e.target.value)}
@@ -336,8 +341,9 @@ export default function NewProductPage() {
 
           <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4">
             <div>
-              <label className="block text-xs font-medium text-slate-300 mb-1">Tipo</label>
+              <label htmlFor="frame-type" className="block text-xs font-medium text-slate-300 mb-1">Tipo</label>
               <select
+                id="frame-type"
                 value={frameType}
                 onChange={(e) => setFrameType(e.target.value as FrameType)}
                 className="w-full bg-[#040e17] border border-slate-700 rounded-lg px-3 py-2 text-xs text-white focus:outline-none focus:border-amber-400"
@@ -349,8 +355,9 @@ export default function NewProductPage() {
             </div>
 
             <div>
-              <label className="block text-xs font-medium text-slate-300 mb-1">Formato do Aro</label>
+              <label htmlFor="frame-shape" className="block text-xs font-medium text-slate-300 mb-1">Formato do Aro</label>
               <select
+                id="frame-shape"
                 value={frameShape}
                 onChange={(e) => setFrameShape(e.target.value as FrameShape)}
                 className="w-full bg-[#040e17] border border-slate-700 rounded-lg px-3 py-2 text-xs text-white focus:outline-none focus:border-amber-400"
@@ -367,8 +374,9 @@ export default function NewProductPage() {
             </div>
 
             <div>
-              <label className="block text-xs font-medium text-slate-300 mb-1">Material</label>
+              <label htmlFor="frame-material" className="block text-xs font-medium text-slate-300 mb-1">Material</label>
               <select
+                id="frame-material"
                 value={frameMaterial}
                 onChange={(e) => setFrameMaterial(e.target.value as FrameMaterial)}
                 className="w-full bg-[#040e17] border border-slate-700 rounded-lg px-3 py-2 text-xs text-white focus:outline-none focus:border-amber-400"
@@ -382,8 +390,9 @@ export default function NewProductPage() {
             </div>
 
             <div>
-              <label className="block text-xs font-medium text-slate-300 mb-1">Gênero</label>
+              <label htmlFor="frame-gender" className="block text-xs font-medium text-slate-300 mb-1">Gênero</label>
               <select
+                id="frame-gender"
                 value={gender}
                 onChange={(e) => setGender(e.target.value as FrameGender)}
                 className="w-full bg-[#040e17] border border-slate-700 rounded-lg px-3 py-2 text-xs text-white focus:outline-none focus:border-amber-400"
@@ -398,10 +407,11 @@ export default function NewProductPage() {
 
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 pt-2 border-t border-white/5">
             <div>
-              <label className="block text-xs font-medium text-slate-300 mb-1">
+              <label htmlFor="lens-mm" className="block text-xs font-medium text-slate-300 mb-1">
                 Lente (Largura mm)
               </label>
               <input
+                id="lens-mm"
                 type="number"
                 value={lensMm}
                 onChange={(e) => setLensMm(parseInt(e.target.value) || 0)}
@@ -411,10 +421,11 @@ export default function NewProductPage() {
             </div>
 
             <div>
-              <label className="block text-xs font-medium text-slate-300 mb-1">
+              <label htmlFor="bridge-mm" className="block text-xs font-medium text-slate-300 mb-1">
                 Ponte Nasal (mm)
               </label>
               <input
+                id="bridge-mm"
                 type="number"
                 value={bridgeMm}
                 onChange={(e) => setBridgeMm(parseInt(e.target.value) || 0)}
@@ -424,10 +435,11 @@ export default function NewProductPage() {
             </div>
 
             <div>
-              <label className="block text-xs font-medium text-slate-300 mb-1">
+              <label htmlFor="temple-mm" className="block text-xs font-medium text-slate-300 mb-1">
                 Haste (Comprimento mm)
               </label>
               <input
+                id="temple-mm"
                 type="number"
                 value={templeMm}
                 onChange={(e) => setTempleMm(parseInt(e.target.value) || 0)}
@@ -478,11 +490,12 @@ export default function NewProductPage() {
             </div>
 
             <div>
-              <label className="block text-xs font-medium text-slate-300 mb-1">
+              <label htmlFor="image-url-input" className="block text-xs font-medium text-slate-300 mb-1">
                 Ou adicione via URL direta
               </label>
               <div className="flex gap-2">
                 <input
+                  id="image-url-input"
                   type="url"
                   placeholder="https://..."
                   value={urlInput}
@@ -549,10 +562,11 @@ export default function NewProductPage() {
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pt-2 border-t border-white/5">
             <div>
-              <label className="block text-xs font-medium text-slate-300 mb-1">
+              <label htmlFor="color-name" className="block text-xs font-medium text-slate-300 mb-1">
                 Cor Principal da Armação
               </label>
               <input
+                id="color-name"
                 type="text"
                 value={colorName}
                 onChange={(e) => setColorName(e.target.value)}
@@ -562,10 +576,11 @@ export default function NewProductPage() {
             </div>
 
             <div>
-              <label className="block text-xs font-medium text-slate-300 mb-1">
+              <label htmlFor="stock-quantity" className="block text-xs font-medium text-slate-300 mb-1">
                 Estoque Disponível (unidades)
               </label>
               <input
+                id="stock-quantity"
                 type="number"
                 min="0"
                 value={stockQuantity}
@@ -598,23 +613,30 @@ export default function NewProductPage() {
           </div>
         </div>
 
-        {/* Submit Actions */}
-        <div className="flex items-center justify-end gap-3 pt-2">
-          <Link
-            href="/admin"
-            className="px-4 py-2.5 rounded-lg border border-slate-700 text-xs font-medium text-slate-300 hover:text-white hover:bg-white/5 transition-colors"
-          >
-            Cancelar
-          </Link>
+        {/* Barra de Salvamento Fixa no Rodapé (Sticky Save Bar) */}
+        <div className="sticky bottom-0 bg-[#030c13]/95 backdrop-blur-md border-t border-white/10 p-4 -mx-4 sm:-mx-8 lg:-mx-10 px-4 sm:px-8 lg:px-10 flex flex-col sm:flex-row items-center justify-between gap-3 z-30 shadow-2xl">
+          <div className="text-xs text-slate-400">
+            {errorMessage && <span className="text-rose-400 font-medium">⚠️ {errorMessage}</span>}
+            {successMessage && <span className="text-emerald-400 font-medium">✓ {successMessage}</span>}
+            {!errorMessage && !successMessage && <span>Preencha os campos obrigatórios (*) para publicar</span>}
+          </div>
+          <div className="flex items-center gap-3">
+            <Link
+              href="/admin/produtos"
+              className="px-4 py-2.5 rounded-lg border border-slate-700 text-xs font-medium text-slate-300 hover:text-white hover:bg-white/5 transition-colors"
+            >
+              Cancelar
+            </Link>
 
-          <button
-            type="submit"
-            disabled={isSubmitting}
-            className="inline-flex items-center gap-2 bg-amber-400 hover:bg-amber-300 active:scale-[0.98] text-[#030c13] font-semibold text-xs tracking-wider uppercase px-6 py-2.5 rounded-lg transition-all shadow-lg shadow-amber-400/10 disabled:opacity-50"
-          >
-            <Save size={15} />
-            {isSubmitting ? "Cadastrando Armação..." : "Salvar e Publicar"}
-          </button>
+            <button
+              type="submit"
+              disabled={isSubmitting}
+              className="inline-flex items-center gap-2 bg-amber-400 hover:bg-amber-300 active:scale-[0.98] text-[#030c13] font-semibold text-xs tracking-wider uppercase px-6 py-2.5 rounded-lg transition-all shadow-lg shadow-amber-400/10 disabled:opacity-50 cursor-pointer"
+            >
+              <Save size={15} />
+              {isSubmitting ? "Cadastrando Armação..." : "Salvar e Publicar"}
+            </button>
+          </div>
         </div>
       </form>
     </div>
