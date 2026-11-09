@@ -14,6 +14,7 @@ import { ProductGallery } from "@/components/catalog/product-gallery";
 import { ProductDetailActions } from "@/components/catalog/product-detail-actions";
 import { Header } from "@/components/layout/header";
 import { Footer } from "@/components/layout/footer";
+import { formatProductPricing } from "@/lib/pricing";
 
 export interface ProductDetailViewProps {
   product: Product;
@@ -28,35 +29,7 @@ export function ProductDetailView({
   backLink = { href: "/armacoes", label: "Voltar ao Catálogo" },
   hrefPrefix = "/produto",
 }: ProductDetailViewProps) {
-  const currentPrice = product.price_in_cents / 100;
-  const originalPrice =
-    typeof product.original_price === "number"
-      ? product.original_price
-      : product.compare_at_price_in_cents
-      ? product.compare_at_price_in_cents / 100
-      : null;
-
-  const hasDiscount = originalPrice !== null && originalPrice > currentPrice;
-  const discountPercent = hasDiscount
-    ? Math.round(((originalPrice - currentPrice) / originalPrice) * 100)
-    : null;
-
-  const priceFormatted = currentPrice.toLocaleString("pt-BR", {
-    style: "currency",
-    currency: "BRL",
-  });
-
-  const originalPriceFormatted = originalPrice
-    ? originalPrice.toLocaleString("pt-BR", {
-        style: "currency",
-        currency: "BRL",
-      })
-    : null;
-
-  const installmentFormatted = (currentPrice / 10).toLocaleString("pt-BR", {
-    style: "currency",
-    currency: "BRL",
-  });
+  const pricing = formatProductPricing(product);
 
   return (
     <div className="min-h-screen flex flex-col bg-white text-slate-900 selection:bg-amber-400 selection:text-slate-950 font-sans">
@@ -116,16 +89,16 @@ export function ProductDetailView({
 
                 <div className="flex items-baseline gap-3 mt-4">
                   <span className="text-3xl font-bold text-slate-950 font-mono tracking-tight">
-                    {priceFormatted}
+                    {pricing.currentPriceFormatted}
                   </span>
-                  {originalPriceFormatted && (
+                  {pricing.hasDiscount && pricing.originalPriceFormatted && (
                     <span className="text-sm text-slate-400 line-through">
-                      {originalPriceFormatted}
+                      {pricing.originalPriceFormatted}
                     </span>
                   )}
-                  {discountPercent && (
+                  {pricing.hasDiscount && pricing.discountBadgeText && (
                     <span className="text-xs font-bold text-amber-600 bg-amber-50 px-2.5 py-0.5 rounded-full border border-amber-200">
-                      -{discountPercent}% OFF
+                      {pricing.discountBadgeText}
                     </span>
                   )}
                   <span className="text-xs font-semibold text-emerald-700 bg-emerald-50 px-2.5 py-1 rounded-full border border-emerald-200">
@@ -135,7 +108,7 @@ export function ProductDetailView({
 
                 <p className="text-xs text-slate-600 mt-1.5">
                   ou em até 10x de{" "}
-                  <strong className="text-slate-900 font-semibold">{installmentFormatted}</strong> sem
+                  <strong className="text-slate-900 font-semibold">{pricing.installmentFormatted}</strong> sem
                   juros no cartão
                 </p>
               </div>

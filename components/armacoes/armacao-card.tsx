@@ -6,6 +6,7 @@ import { ShoppingBag, Check, MessageSquare, Tag, Sparkles } from "lucide-react";
 import { Product } from "@/types/ecommerce";
 import { FrameArt } from "@/components/catalog/frame-art";
 import { buildProductWhatsAppUrl } from "@/lib/whatsapp";
+import { formatProductPricing } from "@/lib/pricing";
 
 interface ArmacaoCardProps {
   product: Product;
@@ -36,38 +37,7 @@ export function ArmacaoCard({
     product.images?.find((img) => img.is_primary)?.url ||
     product.images?.[0]?.url;
 
-  const currentPrice = product.price_in_cents / 100;
-  const originalPriceInReais =
-    typeof product.original_price === "number"
-      ? product.original_price
-      : product.compare_at_price_in_cents
-      ? product.compare_at_price_in_cents / 100
-      : null;
-
-  const hasDiscount = Boolean(originalPriceInReais && originalPriceInReais > currentPrice);
-  const discountPercent = hasDiscount
-    ? Math.round(((originalPriceInReais! - currentPrice) / originalPriceInReais!) * 100)
-    : 0;
-
-  const currentFormatted = currentPrice.toLocaleString("pt-BR", {
-    style: "currency",
-    currency: "BRL",
-  });
-
-  const originalFormatted = originalPriceInReais
-    ? originalPriceInReais.toLocaleString("pt-BR", {
-        style: "currency",
-        currency: "BRL",
-      })
-    : null;
-
-  const installmentFormatted = (product.price_in_cents / 1000).toLocaleString(
-    "pt-BR",
-    {
-      style: "currency",
-      currency: "BRL",
-    }
-  );
+  const pricing = formatProductPricing(product);
 
   const productUrl = `${hrefPrefix}/${product.slug || product.id}`;
 
@@ -80,18 +50,14 @@ export function ArmacaoCard({
       ? "Óculos de Sol"
       : "Armação de Grau";
 
-  // Amostras de cores e variação
+  // Amostras derivadas exclusivamente de variantes reais cadastradas
   const swatches =
     product.variants && product.variants.length > 0
       ? product.variants.map((v) => ({
           name: v.color_name,
           hex: v.color_hex || "#1e293b",
         }))
-      : [
-          { name: "Tartaruga Safari", hex: "#78350f" },
-          { name: "Preto Clássico", hex: "#0f172a" },
-          { name: "Âmbar Solar", hex: "#d97706" },
-        ];
+      : [];
 
   const primarySwatch = swatches[0];
   const extraColorsCount = Math.max(0, swatches.length - 1);
@@ -125,10 +91,10 @@ export function ArmacaoCard({
       <div>
         {/* 1. Header do Card com Badges Estilo Vitrine Oficial */}
         <div className="flex items-center justify-between gap-1.5 mb-2.5 min-h-[24px]">
-          {hasDiscount && discountPercent > 0 ? (
+          {pricing.hasDiscount && pricing.discountBadgeText ? (
             <span className="inline-flex items-center gap-1 px-2 sm:px-2.5 py-0.5 rounded-full bg-emerald-600 text-white font-bold text-[9px] sm:text-[10px] tracking-wide shadow-xs">
               <Tag size={10} />
-              <span>-{discountPercent}% OFF</span>
+              <span>{pricing.discountBadgeText}</span>
             </span>
           ) : (
             <span className="inline-flex items-center gap-1 px-2 sm:px-2.5 py-0.5 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200 font-bold text-[9px] sm:text-[10px] tracking-wide">
@@ -197,36 +163,38 @@ export function ArmacaoCard({
         </div>
 
         {/* 4. Variação de Cores com Indicador Numérico */}
-        <div className="flex items-center gap-1.5 my-2.5">
-          <span
-            className="w-3 h-3 rounded-full border border-slate-300 shrink-0 shadow-xs"
-            style={{ backgroundColor: primarySwatch.hex }}
-            title={primarySwatch.name}
-          />
-          <span className="text-[10px] sm:text-[11px] text-slate-600 font-medium truncate">
-            {primarySwatch.name}
-          </span>
-          {extraColorsCount > 0 && (
-            <span className="text-[9px] sm:text-[10px] text-slate-400 font-mono">
-              (+{extraColorsCount})
+        {swatches.length > 0 && primarySwatch && (
+          <div className="flex items-center gap-1.5 my-2.5 min-h-[18px]">
+            <span
+              className="w-3 h-3 rounded-full border border-slate-300 shrink-0 shadow-xs"
+              style={{ backgroundColor: primarySwatch.hex }}
+              title={primarySwatch.name}
+            />
+            <span className="text-[10px] sm:text-[11px] text-slate-600 font-medium truncate">
+              {primarySwatch.name}
             </span>
-          )}
-        </div>
+            {extraColorsCount > 0 && (
+              <span className="text-[9px] sm:text-[10px] text-slate-400 font-mono">
+                (+{extraColorsCount})
+              </span>
+            )}
+          </div>
+        )}
 
-        {/* 5. Preços e Parcelamento */}
+        {/* 5. Preços e Parcelamento Centralizados */}
         <div className="pt-2 border-t border-slate-200/70 mb-3">
           <div className="flex items-baseline gap-2">
-            {hasDiscount && originalFormatted && (
+            {pricing.hasDiscount && pricing.originalPriceFormatted && (
               <span className="text-[11px] sm:text-xs text-slate-400 line-through font-mono">
-                {originalFormatted}
+                {pricing.originalPriceFormatted}
               </span>
             )}
             <span className="text-sm sm:text-base font-extrabold text-slate-900 font-mono">
-              {currentFormatted}
+              {pricing.currentPriceFormatted}
             </span>
           </div>
           <p className="text-[10px] sm:text-[11px] text-slate-500 mt-0.5">
-            10x de {installmentFormatted} sem juros
+            10x de {pricing.installmentFormatted} sem juros
           </p>
         </div>
       </div>

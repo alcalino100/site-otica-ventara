@@ -68,28 +68,21 @@ export function ProductDetailActions({
     }
   };
 
-  // Variantes de Cor disponíveis
+  // Variantes de Cor disponíveis a partir das cadastradas
   const variants =
     product.variants && product.variants.length > 0
       ? product.variants
       : [
           {
-            id: "v-default-1",
-            color_name: "Preto Clássico",
+            id: `v-${product.id}-default`,
+            product_id: product.id,
+            sku: product.sku || `${product.slug.toUpperCase()}-01`,
+            color_name: "Padrão",
             color_hex: "#111827",
-            sku: `${product.slug.toUpperCase()}-BLK`,
-          },
-          {
-            id: "v-default-2",
-            color_name: "Âmbar Translúcido",
-            color_hex: "#b45309",
-            sku: `${product.slug.toUpperCase()}-AMB`,
-          },
-          {
-            id: "v-default-3",
-            color_name: "Grafite Nobre",
-            color_hex: "#374151",
-            sku: `${product.slug.toUpperCase()}-GRF`,
+            size: "Único",
+            stock_quantity: 10,
+            created_at: new Date().toISOString(),
+            updated_at: new Date().toISOString(),
           },
         ];
 
@@ -206,39 +199,47 @@ export function ProductDetailActions({
 
   return (
     <div className="space-y-6 pt-2">
-      {/* Seletor Interativo de Cores */}
-      <div className="space-y-2.5">
-        <div className="flex items-center justify-between text-xs">
-          <span className="font-semibold text-slate-800 uppercase tracking-wider">
-            Cor da Armação:
-          </span>
-          <span className="font-bold text-amber-600">{selectedVariant.color_name}</span>
-        </div>
+      {/* Seletor Interativo de Cores: apenas exibido quando houver 2 ou mais variantes */}
+      {variants.length >= 2 && (
+        <div className="space-y-2.5">
+          <div className="flex items-center justify-between text-xs">
+            <span className="font-semibold text-slate-800 uppercase tracking-wider">
+              Cor da Armação:
+            </span>
+            <span className="font-bold text-amber-600">{selectedVariant.color_name}</span>
+          </div>
 
-        <div className="flex items-center gap-2.5 flex-wrap">
-          {variants.map((v) => {
-            const isSelected = selectedVariant.id === v.id;
-            return (
-              <button
-                key={v.id}
-                type="button"
-                onClick={() => setSelectedVariant(v)}
-                className={`flex items-center gap-2 px-3.5 py-2 rounded-xl text-xs font-medium border transition-all active:scale-95 ${
-                  isSelected
-                    ? "bg-amber-50 text-amber-900 border-amber-400 shadow-2xs font-semibold"
-                    : "bg-white text-slate-700 border-slate-200 hover:border-slate-300"
-                }`}
-              >
-                <span
-                  className="w-3.5 h-3.5 rounded-full border border-black/10 shadow-2xs flex-shrink-0"
-                  style={{ backgroundColor: v.color_hex || "#1e293b" }}
-                />
-                <span>{v.color_name}</span>
-              </button>
-            );
-          })}
+          <div
+            className="flex items-center gap-2.5 flex-wrap"
+            role="radiogroup"
+            aria-label="Cores disponíveis para esta armação"
+          >
+            {variants.map((v) => {
+              const isSelected = selectedVariant.id === v.id;
+              return (
+                <button
+                  key={v.id}
+                  type="button"
+                  role="radio"
+                  aria-checked={isSelected}
+                  onClick={() => setSelectedVariant(v)}
+                  className={`flex items-center gap-2 px-3.5 py-2 rounded-xl text-xs font-medium border transition-all active:scale-95 cursor-pointer ${
+                    isSelected
+                      ? "bg-amber-50 text-amber-900 border-amber-400 shadow-2xs font-semibold ring-1 ring-amber-400"
+                      : "bg-white text-slate-700 border-slate-200 hover:border-slate-300"
+                  }`}
+                >
+                  <span
+                    className="w-3.5 h-3.5 rounded-full border border-black/10 shadow-2xs flex-shrink-0"
+                    style={{ backgroundColor: v.color_hex || "#1e293b" }}
+                  />
+                  <span>{v.color_name}</span>
+                </button>
+              );
+            })}
+          </div>
         </div>
-      </div>
+      )}
 
       {/* Guia Interativo de Escolha de Lentes */}
       <div className="space-y-3 pt-3 border-t border-slate-200/80">
