@@ -11,6 +11,7 @@ const SEGMENT_LABELS: Record<string, string> = {
   produtos: "Produtos",
   novo: "Novo Produto",
   importar: "Importar CSV",
+  "fotos-lote": "Fotos em Lote",
   lentes: "Lentes & Preços",
   categorias: "Categorias",
   estoque: "Estoque",

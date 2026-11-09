@@ -1,9 +1,7 @@
 import React, { Suspense } from "react";
 import { Metadata } from "next";
 import { ArmacoesView } from "./armacoes-view";
-import { DEFAULT_CATALOG } from "@/lib/catalog-data";
-import { Product } from "@/types/ecommerce";
-import { createStaticSupabaseClient, isSupabaseConfigured } from "@/lib/supabase/server";
+import { getUnifiedProducts } from "@/lib/products";
 import { getArmacoesPageSettings } from "@/lib/armacoes-settings";
 
 export const metadata: Metadata = {
@@ -31,42 +29,16 @@ export const metadata: Metadata = {
 
 export const revalidate = 60;
 
-async function getProducts(): Promise<Product[]> {
-  if (isSupabaseConfigured()) {
-    try {
-      const supabase = createStaticSupabaseClient();
-      const { data, error } = await supabase
-        .from("products")
-        .select(`
-          *,
-          category:categories(*),
-          images:product_images(*),
-          variants:product_variants(*)
-        `)
-        .eq("is_published", true)
-        .order("created_at", { ascending: false });
-
-      if (!error && data && data.length > 0) {
-        return data as Product[];
-      }
-    } catch (err) {
-      console.warn("Erro ao buscar armações do Supabase, usando catálogo padrão:", err);
-    }
-  }
-
-  return DEFAULT_CATALOG.filter((p) => p.is_published !== false);
-}
-
 export default async function ArmacoesPage() {
   const [products, heroSettings] = await Promise.all([
-    getProducts(),
+    getUnifiedProducts({ limit: 200 }),
     getArmacoesPageSettings(),
   ]);
 
   return (
     <Suspense
       fallback={
-        <div className="min-h-screen bg-[#f8fafc] flex items-center justify-center text-slate-800 text-xs font-semibold">
+        <div className="min-h-screen bg-[#02070D] flex items-center justify-center text-slate-300 text-xs font-semibold">
           Carregando catálogo Ventara Eyewear...
         </div>
       }

@@ -18,6 +18,7 @@ import { FAQAccordion } from "../components/sections/faq-accordion";
 import { Toast } from "../components/ui/toast";
 import { Product } from "@/types/ecommerce";
 import { DEFAULT_CATALOG } from "@/lib/catalog-data";
+import { normalizeProduct } from "@/lib/products";
 import { getStoredCart, saveStoredCart, CartProduct } from "@/lib/cart";
 import { createClient, isSupabaseConfigured } from "@/lib/supabase/client";
 
@@ -70,10 +71,12 @@ export default function Home() {
             variants:product_variants(*)
           `)
           .eq("is_published", true)
-          .order("created_at", { ascending: false });
+          .order("created_at", { ascending: false })
+          .order("id", { ascending: true })
+          .range(0, 99);
 
         if (!error && data && data.length > 0) {
-          setProducts(data as Product[]);
+          setProducts(data.map(normalizeProduct));
         }
       } catch (err) {
         console.warn("Utilizando catálogo padrão estruturado:", err);
@@ -183,8 +186,8 @@ export default function Home() {
           isSearchOpen={isSearchOpen}
         />
 
-        {/* 5.1. Vitrine Promocional de Fundo Branco: Até 25% OFF em Modelos Selecionados */}
-        <PromotionalOffersSection />
+        {/* 5.1. Vitrine Promocional de Fundo Branco: Até X% OFF em Modelos Selecionados */}
+        <PromotionalOffersSection products={products} />
 
         {/* 6. Apresentação da Óticas Ventara, Responsável Técnico e Laboratório Próprio */}
         <WhyChooseSection />

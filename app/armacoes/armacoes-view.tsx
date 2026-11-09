@@ -296,14 +296,14 @@ export function ArmacoesView({
     (searchQuery.trim() !== "" ? 1 : 0);
 
   return (
-    <div className="min-h-screen flex flex-col bg-[#fafafa] text-slate-900 selection:bg-amber-400 selection:text-slate-950 font-sans">
+    <div className="min-h-screen flex flex-col bg-[#02070D] text-slate-900 selection:bg-amber-400 selection:text-slate-950 font-sans">
       <Header
         cartCount={cartItems.length}
         onOpenCart={() => setIsCartOpen(true)}
         theme="dark"
       />
 
-      <main className="flex-1 pb-20">
+      <main className="flex-1 pb-20 bg-[#fafafa]">
         {/* HERO SECTION CINEMATOGRÁFICO COM FOTO DE FUNDO E DEGRADÊ */}
         <section className="relative overflow-hidden bg-[#02070D] min-h-[380px] sm:min-h-[430px] flex items-center justify-between select-none border-b border-slate-200 pt-20 sm:pt-24">
           {/* 1. Foto de Fundo Full-Bleed */}

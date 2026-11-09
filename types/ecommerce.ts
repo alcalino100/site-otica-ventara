@@ -19,6 +19,10 @@ export type FrameMaterial =
 
 export type FrameGender = "Unissex" | "Feminino" | "Masculino" | "Infantil";
 
+export type ProductStatus = "rascunho" | "publicado";
+
+export type ProductAvailability = "disponivel" | "sob_consulta" | "fora_do_site";
+
 export interface Category {
   id: string;
   name: string;
@@ -66,6 +70,9 @@ export interface Product {
   id: string;
   category_id: string | null;
   brand_id: string | null;
+  sku?: string;
+  status?: ProductStatus;
+  availability?: ProductAvailability;
   name: string;
   slug: string;
   description: string | null;

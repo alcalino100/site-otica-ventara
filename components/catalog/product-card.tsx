@@ -7,6 +7,7 @@ import { Product } from "@/types/ecommerce";
 import { FrameArt } from "./frame-art";
 import { PricePromo } from "@/components/ui/price-promo";
 import { buildProductWhatsAppUrl } from "@/lib/whatsapp";
+import { formatProductPricing } from "@/lib/pricing";
 
 interface ProductCardProps {
   product: Product;
@@ -37,24 +38,7 @@ export function ProductCard({
     product.images?.find((img) => img.is_primary)?.url ||
     product.images?.[0]?.url;
 
-  const originalPriceInReais =
-    typeof product.original_price === "number"
-      ? product.original_price
-      : product.compare_at_price_in_cents
-      ? product.compare_at_price_in_cents / 100
-      : null;
-
-  const priceFormatted = (product.price_in_cents / 100).toLocaleString("pt-BR", {
-    style: "currency",
-    currency: "BRL",
-  });
-  const installmentFormatted = (product.price_in_cents / 1000).toLocaleString(
-    "pt-BR",
-    {
-      style: "currency",
-      currency: "BRL",
-    }
-  );
+  const pricing = formatProductPricing(product);
 
   const categoryLabel =
     product.gender === "Infantil"
@@ -65,18 +49,14 @@ export function ProductCard({
       ? "Óculos de Sol"
       : "Armação de Grau";
 
-  // Cores autorais derivadas das variantes ou padrões
+  // Amostras derivadas exclusivamente de variantes cadastradas
   const swatches =
     product.variants && product.variants.length > 0
       ? product.variants.map((v) => ({
           name: v.color_name,
           hex: v.color_hex || "#1e293b",
         }))
-      : [
-          { name: "Preto Clássico", hex: "#0f172a" },
-          { name: "Tartaruga", hex: "#78350f" },
-          { name: "Âmbar", hex: "#d97706" },
-        ];
+      : [];
 
   const whatsappUrl = buildProductWhatsAppUrl(product.name, product.slug, categoryLabel);
 
@@ -160,18 +140,20 @@ export function ProductCard({
             </h3>
           </Link>
           <p className="text-[11px] sm:text-xs text-slate-300 font-medium line-clamp-1 mt-0.5">
-            {product.frame_material || "Acetato Premium"} ·{" "}
-            {product.frame_shape ? `Aro ${product.frame_shape}` : "Clássico"}
+            {product.description ||
+              `${product.frame_material || "Acetato Premium"} · ${
+                product.frame_shape ? `Aro ${product.frame_shape}` : "Clássico"
+              }`}
           </p>
         </div>
 
         {/* Preço e Botão de Adicionar à Sacola */}
         <div className="pt-2 border-t border-white/10 flex items-center justify-between gap-1.5 sm:gap-2">
           <PricePromo
-            currentPrice={product.price_in_cents / 100}
-            originalPrice={originalPriceInReais}
+            currentPrice={pricing.currentPriceInReais}
+            originalPrice={pricing.originalPriceInReais}
             showDiscountBadge={true}
-            installmentText={`ou até 10x de ${installmentFormatted} sem juros`}
+            installmentText={`ou até 10x de ${pricing.installmentFormatted} sem juros`}
             theme="dark"
             size="md"
             className="min-w-0"
