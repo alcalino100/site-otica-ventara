@@ -14,6 +14,7 @@ import {
   Star,
   Sparkles,
   Pencil,
+  Camera,
 } from "lucide-react";
 import { Product } from "@/types/ecommerce";
 import { createClient, isSupabaseConfigured } from "@/lib/supabase/client";
@@ -51,7 +52,8 @@ export default function AdminProductsPage() {
           images:product_images(url, is_primary, alt_text),
           variants:product_variants(stock_quantity, sku, color_name)
         `)
-        .order("created_at", { ascending: false });
+        .order("created_at", { ascending: false })
+        .order("id", { ascending: true });
 
       const { data, error } = (await Promise.race([
         fetchPromise,
@@ -166,9 +168,13 @@ export default function AdminProductsPage() {
   };
 
   const filteredProducts = products.filter((p) => {
+    const q = searchQuery.toLowerCase().trim();
     const matchesSearch =
-      p.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      p.slug.toLowerCase().includes(searchQuery.toLowerCase());
+      !q ||
+      p.name.toLowerCase().includes(q) ||
+      p.slug.toLowerCase().includes(q) ||
+      (p.sku && p.sku.toLowerCase().includes(q)) ||
+      p.variants?.some((v) => v.sku && v.sku.toLowerCase().includes(q));
 
     const matchesStatus =
       statusFilter === "all" ||
@@ -203,6 +209,15 @@ export default function AdminProductsPage() {
         </div>
 
         <div className="flex items-center gap-2.5">
+          <Link
+            href="/admin/produtos/fotos-lote"
+            className="inline-flex items-center gap-2 px-3.5 py-2.5 rounded-xl bg-white/5 hover:bg-white/10 border border-white/10 text-white text-xs font-semibold uppercase tracking-wider transition-all active:scale-95"
+            title="Upload de fotos em massa com casamento automático por SKU"
+          >
+            <Camera size={15} className="text-amber-400" />
+            <span>Fotos em Lote</span>
+          </Link>
+
           <Link
             href="/admin/produtos/importar"
             className="inline-flex items-center gap-2 px-3.5 py-2.5 rounded-xl bg-white/5 hover:bg-white/10 border border-white/10 text-white text-xs font-semibold uppercase tracking-wider transition-all active:scale-95"
