@@ -72,6 +72,11 @@ export function normalizeProduct(raw: any): Product {
         color_hex: v.color_hex || "#1e293b",
         size: v.size || "Único",
         stock_quantity: Number(v.stock_quantity ?? 10),
+        price_in_cents: typeof v.price_in_cents === "number" ? v.price_in_cents : null,
+        compare_at_price_in_cents: typeof v.compare_at_price_in_cents === "number" ? v.compare_at_price_in_cents : null,
+        image_url: v.image_url || null,
+        is_available: v.is_available !== false,
+        sort_order: Number(v.sort_order ?? idx),
         created_at: v.created_at || new Date().toISOString(),
         updated_at: v.updated_at || new Date().toISOString(),
       }))

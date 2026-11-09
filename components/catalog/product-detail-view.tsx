@@ -1,4 +1,6 @@
-import React from "react";
+"use client";
+
+import React, { useState } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import {
@@ -9,7 +11,7 @@ import {
   ArrowRight,
   MapPin,
 } from "lucide-react";
-import { Product } from "@/types/ecommerce";
+import { Product, ProductVariant } from "@/types/ecommerce";
 import { ProductGallery } from "@/components/catalog/product-gallery";
 import { ProductDetailActions } from "@/components/catalog/product-detail-actions";
 import { Header } from "@/components/layout/header";
@@ -29,7 +31,25 @@ export function ProductDetailView({
   backLink = { href: "/armacoes", label: "Voltar ao Catálogo" },
   hrefPrefix = "/produto",
 }: ProductDetailViewProps) {
-  const pricing = formatProductPricing(product);
+  const variants = product.variants && product.variants.length > 0 ? product.variants : [];
+  const [selectedVariant, setSelectedVariant] = useState<ProductVariant | null>(variants[0] || null);
+
+  const activePriceInCents =
+    selectedVariant && typeof selectedVariant.price_in_cents === "number" && selectedVariant.price_in_cents > 0
+      ? selectedVariant.price_in_cents
+      : product.price_in_cents;
+
+  const activeCompareAtInCents =
+    selectedVariant && typeof selectedVariant.compare_at_price_in_cents === "number" && selectedVariant.compare_at_price_in_cents > 0
+      ? selectedVariant.compare_at_price_in_cents
+      : product.compare_at_price_in_cents;
+
+  const pricing = formatProductPricing({
+    price_in_cents: activePriceInCents,
+    compare_at_price_in_cents: activeCompareAtInCents,
+  });
+
+  const activeImage = selectedVariant?.image_url || null;
 
   return (
     <div className="min-h-screen flex flex-col bg-white text-slate-900 selection:bg-amber-400 selection:text-slate-950 font-sans">
@@ -68,7 +88,7 @@ export function ProductDetailView({
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-14 items-start">
             {/* Coluna 1: Imagem / Galeria da Armação (7 colunas) */}
             <div className="lg:col-span-7 space-y-4">
-              <ProductGallery product={product} />
+              <ProductGallery product={product} overrideImage={activeImage} />
             </div>
 
             {/* Coluna 2: Informações Técnicas e Ações (5 colunas) */}
@@ -186,7 +206,11 @@ export function ProductDetailView({
               </div>
 
               {/* Ações de Conversão com Seletor de Cores e Guia de Lentes */}
-              <ProductDetailActions product={product} />
+              <ProductDetailActions
+                product={product}
+                selectedVariant={selectedVariant}
+                onSelectVariant={setSelectedVariant}
+              />
             </div>
           </div>
 

@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
+import { revalidatePath } from "next/cache";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { DEFAULT_CATALOG } from "@/lib/catalog-data";
 
@@ -18,7 +19,7 @@ export async function GET(req: NextRequest) {
           *,
           category:categories(name, slug),
           images:product_images(id, url, is_primary, alt_text, sort_order),
-          variants:product_variants(id, stock_quantity, sku, color_name)
+          variants:product_variants(id, stock_quantity, sku, color_name, color_hex, size, price_in_cents, compare_at_price_in_cents, image_url, is_available, sort_order)
         `)
         .eq("id", id)
         .maybeSingle();
@@ -42,7 +43,7 @@ export async function GET(req: NextRequest) {
         *,
         category:categories(name, slug),
         images:product_images(id, url, is_primary, alt_text, sort_order),
-        variants:product_variants(id, stock_quantity, sku, color_name)
+        variants:product_variants(id, stock_quantity, sku, color_name, color_hex, size, price_in_cents, compare_at_price_in_cents, image_url, is_available, sort_order)
       `)
       .order("created_at", { ascending: false });
 
@@ -200,20 +201,60 @@ export async function POST(req: NextRequest) {
       }
     }
 
-    // 3. Cadastrar variação de estoque em 'product_variants'
-    const cleanSlug = body.slug.toUpperCase().replace(/[^A-Z0-9]/g, "").slice(0, 8);
-    const skuGenerated = `VEN-${cleanSlug || "PROD"}-${Math.floor(100 + Math.random() * 900)}`;
+    // 3. Cadastrar variações de cor e acabamento em 'product_variants'
+    if (Array.isArray(body.variants) && body.variants.length > 0) {
+      const variantsToInsert = body.variants.map((v: any, idx: number) => {
+        const varSku = v.sku || `${productData.sku || "VEN-PROD"}-${idx + 1}`;
+        return {
+          product_id: productId,
+          sku: String(varSku).trim().toUpperCase(),
+          color_name: v.color_name || v.name || "Padrão",
+          color_hex: v.color_hex || "#0f172a",
+          size: v.size || "Único",
+          stock_quantity: typeof v.stock_quantity === "number" ? v.stock_quantity : 5,
+          price_in_cents: typeof v.price_in_cents === "number" ? v.price_in_cents : productData.price_in_cents,
+          compare_at_price_in_cents:
+            typeof v.compare_at_price_in_cents === "number"
+              ? v.compare_at_price_in_cents
+              : productData.compare_at_price_in_cents,
+          image_url: v.image_url || imagesToInsert[0]?.url || null,
+          is_available: v.is_available !== false,
+          sort_order: idx,
+        };
+      });
 
-    const { error: variantError } = await adminSupabase.from("product_variants").insert({
-      product_id: productId,
-      sku: skuGenerated,
-      color_name: body.color_name || "Padrão",
-      size: "Único",
-      stock_quantity: typeof body.stock_quantity === "number" ? body.stock_quantity : 1,
-    });
+      const { error: variantError } = await adminSupabase
+        .from("product_variants")
+        .insert(variantsToInsert);
 
-    if (variantError) {
-      console.warn("Aviso ao criar variante de estoque:", variantError);
+      if (variantError) {
+        console.warn("Aviso ao criar variantes estruturadas:", variantError);
+      }
+    } else {
+      const cleanSlug = body.slug.toUpperCase().replace(/[^A-Z0-9]/g, "").slice(0, 8);
+      const skuGenerated = body.sku || `VEN-${cleanSlug || "PROD"}-${Math.floor(100 + Math.random() * 900)}`;
+
+      const { error: variantError } = await adminSupabase.from("product_variants").insert({
+        product_id: productId,
+        sku: skuGenerated,
+        color_name: body.color_name || "Padrão",
+        size: "Único",
+        stock_quantity: typeof body.stock_quantity === "number" ? body.stock_quantity : 1,
+      });
+
+      if (variantError) {
+        console.warn("Aviso ao criar variante de estoque:", variantError);
+      }
+    }
+
+    try {
+      revalidatePath("/");
+      revalidatePath("/armacoes");
+      revalidatePath(`/produto/${productData.slug}`);
+      revalidatePath(`/armacoes/${productData.slug}`);
+      revalidatePath("/admin/produtos");
+    } catch {
+      // Ignora erro de revalidação
     }
 
     return NextResponse.json({
@@ -332,6 +373,18 @@ export async function PATCH(req: NextRequest) {
       }
     }
 
+    try {
+      revalidatePath("/");
+      revalidatePath("/armacoes");
+      if (updatedProduct?.slug) {
+        revalidatePath(`/produto/${updatedProduct.slug}`);
+        revalidatePath(`/armacoes/${updatedProduct.slug}`);
+      }
+      revalidatePath("/admin/produtos");
+    } catch {
+      // Ignora erro de revalidação
+    }
+
     return NextResponse.json({
       success: true,
       product: updatedProduct,
@@ -387,6 +440,14 @@ export async function DELETE(req: NextRequest) {
         { error: `Erro ao excluir produto: ${error.message}` },
         { status: 500 }
       );
+    }
+
+    try {
+      revalidatePath("/");
+      revalidatePath("/armacoes");
+      revalidatePath("/admin/produtos");
+    } catch {
+      // Ignora erro de revalidação
     }
 
     return NextResponse.json({

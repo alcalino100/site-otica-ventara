@@ -42,7 +42,7 @@ function resolveProductSlug(item: PromoProductItem): string {
     const directMatch = DEFAULT_CATALOG.find((p) => p.slug === rawSlug || p.id === rawSlug);
     if (directMatch) return directMatch.slug;
 
-    if (rawSlug !== "ventara-safari") return rawSlug;
+    return rawSlug;
   }
 
   if (item.name && item.name.trim()) {
@@ -59,7 +59,7 @@ function resolveProductSlug(item: PromoProductItem): string {
     if (partialMatch) return partialMatch.slug;
   }
 
-  return item.slug?.trim() || "ventara-safari";
+  return item.slug?.trim() || "";
 }
 
 export function PromotionalOffersSection({ products = [] }: PromotionalOffersSectionProps) {
@@ -95,24 +95,31 @@ export function PromotionalOffersSection({ products = [] }: PromotionalOffersSec
     loadSettings();
   }, []);
 
-  // Resolução de preços dinâmicos a partir da fonte única de dados
+  // Resolução de preços dinâmicos a partir da fonte única de dados com desduplicação
   const resolvedItems: ResolvedPromoItem[] = useMemo(() => {
-    return promoSettings.items.map((item) => {
+    const resolved: ResolvedPromoItem[] = [];
+    const seenSlugsOrIds = new Set<string>();
+
+    for (const item of promoSettings.items) {
       const targetSlug = resolveProductSlug(item);
       const matched =
         products.find(
           (p) =>
-            p.slug === targetSlug ||
+            (targetSlug && p.slug === targetSlug) ||
             p.id === item.id ||
-            p.name.toLowerCase().trim() === item.name.toLowerCase().trim()
+            (item.name && p.name.toLowerCase().trim() === item.name.toLowerCase().trim())
         ) ||
         DEFAULT_CATALOG.find(
           (p) =>
-            p.slug === targetSlug ||
-            p.name.toLowerCase().trim() === item.name.toLowerCase().trim()
+            (targetSlug && p.slug === targetSlug) ||
+            (item.name && p.name.toLowerCase().trim() === item.name.toLowerCase().trim())
         );
 
       if (matched) {
+        const uniqueKey = matched.slug || matched.id;
+        if (seenSlugsOrIds.has(uniqueKey)) continue;
+        seenSlugsOrIds.add(uniqueKey);
+
         const pricing = formatProductPricing(matched);
         const primaryImg =
           matched.images?.find((i) => i.is_primary)?.url ||
@@ -121,7 +128,7 @@ export function PromotionalOffersSection({ products = [] }: PromotionalOffersSec
         const variants = matched.variants || [];
         const firstVariant = variants[0];
 
-        return {
+        resolved.push({
           id: matched.id,
           name: matched.name,
           slug: matched.slug,
@@ -139,36 +146,10 @@ export function PromotionalOffersSection({ products = [] }: PromotionalOffersSec
           colorHex: firstVariant?.color_hex || item.colorHex || "#1e293b",
           extraColorsCount: Math.max(0, variants.length - 1),
           description: matched.description || item.description,
-        };
+        });
       }
-
-      // Caso não encontre produto correspondente, computa via motor com números sanitizados
-      const numCurrent =
-        Number(item.promotionalPrice?.replace(/[^0-9,]/g, "").replace(",", ".")) || 389;
-      const numOriginal = item.originalPrice
-        ? Number(item.originalPrice.replace(/[^0-9,]/g, "").replace(",", "."))
-        : null;
-
-      const pricing = formatProductPricing({
-        price_in_cents: Math.round(numCurrent * 100),
-        compare_at_price_in_cents: numOriginal ? Math.round(numOriginal * 100) : null,
-      });
-
-      return {
-        id: item.id,
-        name: item.name,
-        slug: targetSlug,
-        category: item.category || "Armação",
-        tag: item.tag || (pricing.hasDiscount ? "Oferta" : "Destaque"),
-        pricing,
-        image: item.image,
-        imageFit: item.imageFit || "cover",
-        colorName: item.colorName || "Padrão",
-        colorHex: item.colorHex || "#1e293b",
-        extraColorsCount: 0,
-        description: item.description,
-      };
-    });
+    }
+    return resolved;
   }, [promoSettings.items, products]);
 
   if (!promoSettings.isEnabled || resolvedItems.length === 0) {
@@ -185,6 +166,13 @@ export function PromotionalOffersSection({ products = [] }: PromotionalOffersSec
     maxDiscountDisplayed > 0
       ? `ATÉ ${maxDiscountDisplayed}% OFF · CURADORIA VENTARA`
       : promoSettings.pillText || "CURADORIA EXCLUSIVA";
+
+  const displayedTitle =
+    maxDiscountDisplayed > 0
+      ? promoSettings.title?.includes("Até")
+        ? promoSettings.title.replace(/Até\s+\d+%\s*OFF/i, `Até ${maxDiscountDisplayed}% OFF`)
+        : `Até ${maxDiscountDisplayed}% OFF em modelos selecionados`
+      : promoSettings.title || "Modelos Selecionados em Destaque";
 
   const getWhatsAppBuyUrl = (item: ResolvedPromoItem) => {
     const discountText = item.pricing.hasDiscount ? ` com ${item.pricing.discountBadgeText}` : "";
@@ -215,7 +203,7 @@ export function PromotionalOffersSection({ products = [] }: PromotionalOffersSec
               <span>{displayedPillText}</span>
             </div>
             <h2 className="text-2xl sm:text-3xl md:text-4xl font-extrabold text-slate-900 tracking-tight">
-              {promoSettings.title || "Modelos Selecionados em Destaque"}
+              {displayedTitle}
             </h2>
             <p className="text-xs sm:text-sm text-slate-600 max-w-2xl mt-1.5 leading-relaxed">
               {promoSettings.subtitle ||
@@ -245,22 +233,27 @@ export function PromotionalOffersSection({ products = [] }: PromotionalOffersSec
                   className="group bg-slate-50/70 hover:bg-white rounded-2xl sm:rounded-3xl p-3 sm:p-5 border border-slate-200/90 hover:border-amber-400/60 shadow-xs hover:shadow-xl transition-all duration-300 flex flex-col justify-between"
                 >
                   <div>
-                    {/* Selos de Desconto e Categoria */}
+                    {/* Selos de Desconto e Categoria (Sem duplicação de 'Oferta' e '-X% OFF') */}
                     <div className="flex items-center justify-between gap-1.5 mb-2 min-h-[22px]">
                       {item.pricing.hasDiscount && item.pricing.discountBadgeText ? (
                         <span className="inline-flex items-center gap-1 px-2 sm:px-2.5 py-0.5 rounded-full bg-emerald-600 text-white font-bold text-[9px] sm:text-[10px] tracking-wide shadow-xs">
                           <Tag size={10} />
                           <span>{item.pricing.discountBadgeText}</span>
                         </span>
-                      ) : (
-                        <span />
-                      )}
-
-                      {item.tag && (
+                      ) : item.tag && item.tag.toLowerCase() !== "oferta" ? (
                         <span className="text-[9px] font-semibold text-slate-600 bg-slate-200/70 px-2 py-0.5 rounded-full truncate">
                           {item.tag}
                         </span>
+                      ) : (
+                        <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-amber-50 text-amber-700 border border-amber-200/60 font-bold text-[9px] tracking-wide">
+                          <Sparkles size={9} className="text-amber-500" />
+                          <span>OFERTA</span>
+                        </span>
                       )}
+
+                      <span className="text-[9px] font-semibold text-slate-500 bg-slate-100 px-2 py-0.5 rounded-full truncate">
+                        {item.category}
+                      </span>
                     </div>
 
                     {/* Foto do Modelo com Zoom no Hover */}
@@ -311,22 +304,22 @@ export function PromotionalOffersSection({ products = [] }: PromotionalOffersSec
                       )}
                     </div>
 
-                    {/* Variação de Cores: apenas com rótulo limpo sem (+0) redundante */}
-                    <div className="flex items-center gap-1.5 my-2.5 min-h-[18px]">
-                      <span
-                        className="w-3 h-3 rounded-full border border-slate-300 shrink-0 shadow-xs"
-                        style={{ backgroundColor: item.colorHex || "#1e293b" }}
-                        title={item.colorName || "Cor principal"}
-                      />
-                      <span className="text-[10px] text-slate-500 font-medium truncate">
-                        {item.colorName || "Cor padrão"}
-                      </span>
-                      {item.extraColorsCount > 0 && (
+                    {/* Variação de Cores: apenas se houver 2 ou mais variantes */}
+                    {item.extraColorsCount > 0 && (
+                      <div className="flex items-center gap-1.5 my-2.5 min-h-[18px]">
+                        <span
+                          className="w-3 h-3 rounded-full border border-slate-300 shrink-0 shadow-xs"
+                          style={{ backgroundColor: item.colorHex || "#1e293b" }}
+                          title={item.colorName || "Cor principal"}
+                        />
+                        <span className="text-[10px] text-slate-500 font-medium truncate">
+                          {item.colorName || "Cor padrão"}
+                        </span>
                         <span className="text-[9px] text-slate-400 font-mono">
                           +{item.extraColorsCount}
                         </span>
-                      )}
-                    </div>
+                      </div>
+                    )}
 
                     {/* Seção de Preços (Fonte Única e Matemática Pura) */}
                     <div className="pt-2 border-t border-slate-200/70 mb-3">
@@ -337,10 +330,10 @@ export function PromotionalOffersSection({ products = [] }: PromotionalOffersSec
                           </span>
                         )}
                         <span className="text-sm sm:text-base font-extrabold text-slate-900 font-mono">
-                          {item.pricing.currentPriceFormatted}
+                          {item.pricing.isStartingFrom ? item.pricing.startingFromFormatted : item.pricing.currentPriceFormatted}
                         </span>
                       </div>
-                      <p className="text-[10px] text-slate-500 mt-0.5">
+                      <p className="text-[10px] sm:text-[11px] text-slate-500 mt-0.5">
                         10x de {item.pricing.installmentFormatted} sem juros
                       </p>
                     </div>

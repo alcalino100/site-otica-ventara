@@ -14,15 +14,23 @@ export interface FormattedProductPricing {
   currentPriceFormatted: string;
   originalPriceFormatted: string | null;
   discountBadgeText: string | null;
+  unifiedBadgeText: string | null;
   installmentFormatted: string;
   installmentFullText: string;
   pixPriceFormatted: string;
+  isStartingFrom?: boolean;
+  startingFromFormatted?: string;
 }
 
 export interface PricingInput {
   price_in_cents: number;
   compare_at_price_in_cents?: number | null;
   original_price?: number | null;
+  variants?: Array<{
+    price_in_cents?: number | null;
+    compare_at_price_in_cents?: number | null;
+    is_available?: boolean;
+  }> | null;
 }
 
 /**
@@ -69,25 +77,54 @@ export function calculateInstallment(
 }
 
 /**
- * Retorna todas as informações formatadas de preço para um produto.
+ * Retorna todas as informações formatadas de preço para um produto,
+ * considerando variações de preço quando disponíveis.
  */
 export function formatProductPricing(product: PricingInput): FormattedProductPricing {
-  const currentPriceInCents = Math.max(0, Number(product.price_in_cents) || 0);
-  const currentPriceInReais = currentPriceInCents / 100;
+  const basePriceInCents = Math.max(0, Number(product.price_in_cents) || 0);
 
+  // Analisa variantes com preço próprio
+  let currentPriceInCents = basePriceInCents;
   let originalPriceInCents: number | null = null;
-  if (
-    typeof product.compare_at_price_in_cents === "number" &&
-    product.compare_at_price_in_cents > currentPriceInCents
-  ) {
-    originalPriceInCents = product.compare_at_price_in_cents;
-  } else if (
-    typeof product.original_price === "number" &&
-    product.original_price * 100 > currentPriceInCents
-  ) {
-    originalPriceInCents = Math.round(product.original_price * 100);
+  let isStartingFrom = false;
+
+  const validVariants = (product.variants || []).filter(
+    (v) => v.is_available !== false && typeof v.price_in_cents === "number" && v.price_in_cents > 0
+  );
+
+  if (validVariants.length > 0) {
+    const variantPrices = validVariants.map((v) => v.price_in_cents as number);
+    const minVariantPrice = Math.min(...variantPrices);
+    const maxVariantPrice = Math.max(...variantPrices);
+
+    if (minVariantPrice !== maxVariantPrice) {
+      isStartingFrom = true;
+    }
+
+    currentPriceInCents = minVariantPrice;
+
+    // Busca o compare_at da menor variação ou do produto base
+    const minVariant = validVariants.find((v) => v.price_in_cents === minVariantPrice);
+    if (minVariant?.compare_at_price_in_cents && minVariant.compare_at_price_in_cents > minVariantPrice) {
+      originalPriceInCents = minVariant.compare_at_price_in_cents;
+    }
   }
 
+  if (originalPriceInCents === null) {
+    if (
+      typeof product.compare_at_price_in_cents === "number" &&
+      product.compare_at_price_in_cents > currentPriceInCents
+    ) {
+      originalPriceInCents = product.compare_at_price_in_cents;
+    } else if (
+      typeof product.original_price === "number" &&
+      product.original_price * 100 > currentPriceInCents
+    ) {
+      originalPriceInCents = Math.round(product.original_price * 100);
+    }
+  }
+
+  const currentPriceInReais = currentPriceInCents / 100;
   const originalPriceInReais =
     originalPriceInCents !== null ? originalPriceInCents / 100 : null;
 
@@ -101,9 +138,15 @@ export function formatProductPricing(product: PricingInput): FormattedProductPri
   const originalPriceFormatted =
     originalPriceInReais !== null ? formatCurrencyBRL(originalPriceInReais) : null;
 
+  // Selo unificado: se houver desconto percentual, ele é a autoridade.
+  // Evita duplicar "Oferta" e "-X% OFF" no mesmo card.
   const discountBadgeText = hasDiscount ? `-${discountPercent}% OFF` : null;
+  const unifiedBadgeText = discountBadgeText || (hasDiscount ? "OFERTA" : null);
 
   const installment = calculateInstallment(currentPriceInCents, 10);
+  const startingFromFormatted = isStartingFrom
+    ? `A partir de ${currentPriceFormatted}`
+    : currentPriceFormatted;
 
   return {
     currentPriceInCents,
@@ -115,8 +158,11 @@ export function formatProductPricing(product: PricingInput): FormattedProductPri
     currentPriceFormatted,
     originalPriceFormatted,
     discountBadgeText,
+    unifiedBadgeText,
     installmentFormatted: installment.formatted,
     installmentFullText: installment.fullText,
     pixPriceFormatted: currentPriceFormatted,
+    isStartingFrom,
+    startingFromFormatted,
   };
 }

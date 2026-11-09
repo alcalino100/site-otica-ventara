@@ -62,6 +62,11 @@ export interface ProductVariant {
   color_hex: string | null;
   size: string;
   stock_quantity: number;
+  price_in_cents?: number | null;
+  compare_at_price_in_cents?: number | null;
+  image_url?: string | null;
+  is_available?: boolean;
+  sort_order?: number;
   created_at: string;
   updated_at: string;
 }

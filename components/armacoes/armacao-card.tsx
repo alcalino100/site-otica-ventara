@@ -162,8 +162,8 @@ export function ArmacaoCard({
           </p>
         </div>
 
-        {/* 4. Variação de Cores com Indicador Numérico */}
-        {swatches.length > 0 && primarySwatch && (
+        {/* 4. Variação de Cores: apenas exibida se houver 2 ou mais variantes */}
+        {swatches.length >= 2 && primarySwatch && (
           <div className="flex items-center gap-1.5 my-2.5 min-h-[18px]">
             <span
               className="w-3 h-3 rounded-full border border-slate-300 shrink-0 shadow-xs"
@@ -173,11 +173,9 @@ export function ArmacaoCard({
             <span className="text-[10px] sm:text-[11px] text-slate-600 font-medium truncate">
               {primarySwatch.name}
             </span>
-            {extraColorsCount > 0 && (
-              <span className="text-[9px] sm:text-[10px] text-slate-400 font-mono">
-                (+{extraColorsCount})
-              </span>
-            )}
+            <span className="text-[9px] sm:text-[10px] text-slate-400 font-mono">
+              (+{extraColorsCount})
+            </span>
           </div>
         )}
 
@@ -190,7 +188,7 @@ export function ArmacaoCard({
               </span>
             )}
             <span className="text-sm sm:text-base font-extrabold text-slate-900 font-mono">
-              {pricing.currentPriceFormatted}
+              {pricing.isStartingFrom ? pricing.startingFromFormatted : pricing.currentPriceFormatted}
             </span>
           </div>
           <p className="text-[10px] sm:text-[11px] text-slate-500 mt-0.5">
