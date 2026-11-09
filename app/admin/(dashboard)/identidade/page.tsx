@@ -3,7 +3,6 @@
 import React, { useState, useEffect } from "react";
 import {
   Palette,
-  CheckCircle2,
   Save,
   Eye,
   MapPin,
@@ -13,6 +12,7 @@ import {
   Glasses,
   RotateCcw,
 } from "lucide-react";
+import { AdminToast } from "@/components/admin/admin-toast";
 import { createClient } from "@/lib/supabase/client";
 import { SiteIdentitySettings, SiteAppearanceSettings } from "@/types/ecommerce";
 import { useSiteSettings } from "@/components/providers/site-settings-provider";
@@ -20,7 +20,7 @@ import { useSiteSettings } from "@/components/providers/site-settings-provider";
 export default function AdminIdentityPage() {
   const supabase = createClient();
   const { updateSettings } = useSiteSettings();
-  const [feedback, setFeedback] = useState<string | null>(null);
+  const [feedback, setFeedback] = useState<{ type: "success" | "error"; message: string } | null>(null);
   const [isSaving, setIsSaving] = useState(false);
 
   const defaultIdentity: SiteIdentitySettings = {
@@ -85,12 +85,16 @@ export default function AdminIdentityPage() {
       // Aplica imediatamente ao tema do site e preview
       updateSettings(identity, appearance);
 
-      setFeedback("Identidade visual e dados atualizados com sucesso!");
-      setTimeout(() => setFeedback(null), 3500);
+      setFeedback({
+        type: "success",
+        message: "Identidade visual e dados atualizados com sucesso!",
+      });
     } catch (err: any) {
       console.error(err);
-      setFeedback(err.message || "Erro ao salvar alterações.");
-      setTimeout(() => setFeedback(null), 3500);
+      setFeedback({
+        type: "error",
+        message: err.message || "Erro ao salvar alterações.",
+      });
     } finally {
       setIsSaving(false);
     }
@@ -98,12 +102,13 @@ export default function AdminIdentityPage() {
 
   return (
     <div className="space-y-6 max-w-6xl mx-auto">
-      {/* Toast Feedback */}
+      {/* Toast Feedback Acessível */}
       {feedback && (
-        <div className="fixed top-20 right-6 z-50 bg-amber-400 text-[#06111f] font-semibold text-xs px-4 py-2.5 rounded-lg shadow-xl animate-fade-in flex items-center gap-2">
-          <CheckCircle2 size={16} />
-          <span>{feedback}</span>
-        </div>
+        <AdminToast
+          type={feedback.type}
+          message={feedback.message}
+          onDismiss={() => setFeedback(null)}
+        />
       )}
 
       {/* Header */}

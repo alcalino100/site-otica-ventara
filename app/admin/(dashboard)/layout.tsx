@@ -1,5 +1,6 @@
 import React from "react";
 import { AdminHeader } from "@/components/admin/admin-header";
+import { AdminBreadcrumb } from "@/components/admin/admin-breadcrumb";
 import { ShieldCheck } from "lucide-react";
 
 export const metadata = {
@@ -16,6 +17,8 @@ export default function AdminDashboardLayout({
     <div className="min-h-screen bg-[#030c13] text-slate-100 flex flex-col font-sans selection:bg-amber-400 selection:text-slate-950">
       <AdminHeader />
       <main className="flex-1 max-w-[1400px] w-full mx-auto px-4 sm:px-8 lg:px-10 py-8 sm:py-10">
+        {/* Breadcrumb de localização — oculto na raiz /admin */}
+        <AdminBreadcrumb className="mb-5" />
         {children}
       </main>
       <footer className="border-t border-white/5 py-6 bg-[#02070c] text-xs text-slate-400">

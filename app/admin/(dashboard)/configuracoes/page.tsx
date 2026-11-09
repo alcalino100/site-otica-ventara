@@ -1,10 +1,11 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
-import { Settings, ShieldCheck, Activity, Phone, Mail, Clock, Save, CheckCircle2 } from "lucide-react";
+import { Settings, ShieldCheck, Activity, Phone, Mail, Clock, Save } from "lucide-react";
+import { AdminToast } from "@/components/admin/admin-toast";
 
 export default function AdminSettingsPage() {
-  const [feedback, setFeedback] = useState<string | null>(null);
+  const [feedback, setFeedback] = useState<{ type: "success" | "error"; message: string } | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
 
@@ -73,10 +74,15 @@ export default function AdminSettingsPage() {
         throw new Error(data.error || "Erro ao salvar configurações.");
       }
 
-      setFeedback("Configurações corporativas salvas com sucesso e sincronizadas com o site!");
-      setTimeout(() => setFeedback(null), 3500);
+      setFeedback({
+        type: "success",
+        message: "Configurações corporativas salvas com sucesso e sincronizadas com o site!",
+      });
     } catch (err: any) {
-      alert(err.message || "Falha ao gravar dados no servidor.");
+      setFeedback({
+        type: "error",
+        message: err.message || "Falha ao gravar dados no servidor.",
+      });
     } finally {
       setIsSaving(false);
     }
@@ -84,12 +90,13 @@ export default function AdminSettingsPage() {
 
   return (
     <div className="space-y-6 max-w-4xl mx-auto">
-      {/* Toast Feedback */}
+      {/* Toast Feedback Acessível */}
       {feedback && (
-        <div className="fixed top-20 right-6 z-50 bg-amber-400 text-[#06111f] font-semibold text-xs px-4 py-2.5 rounded-lg shadow-xl animate-fade-in flex items-center gap-2">
-          <CheckCircle2 size={16} />
-          <span>{feedback}</span>
-        </div>
+        <AdminToast
+          type={feedback.type}
+          message={feedback.message}
+          onDismiss={() => setFeedback(null)}
+        />
       )}
 
       {/* Header */}
@@ -117,8 +124,9 @@ export default function AdminSettingsPage() {
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-xs">
             <div>
-              <label className="block text-slate-400 mb-1">Razão Social / Denominação</label>
+              <label htmlFor="company-name" className="block text-slate-400 mb-1">Razão Social / Denominação</label>
               <input
+                id="company-name"
                 type="text"
                 value={companyName}
                 onChange={(e) => setCompanyName(e.target.value)}
@@ -128,8 +136,9 @@ export default function AdminSettingsPage() {
             </div>
 
             <div>
-              <label className="block text-slate-400 mb-1">Nome Fantasia / Marca</label>
+              <label htmlFor="trade-name" className="block text-slate-400 mb-1">Nome Fantasia / Marca</label>
               <input
+                id="trade-name"
                 type="text"
                 value={tradeName}
                 onChange={(e) => setTradeName(e.target.value)}
@@ -139,8 +148,9 @@ export default function AdminSettingsPage() {
             </div>
 
             <div>
-              <label className="block text-slate-400 mb-1">E-mail de Atendimento e Suporte</label>
+              <label htmlFor="support-email" className="block text-slate-400 mb-1">E-mail de Atendimento e Suporte</label>
               <input
+                id="support-email"
                 type="email"
                 value={supportEmail}
                 onChange={(e) => setSupportEmail(e.target.value)}
@@ -150,8 +160,9 @@ export default function AdminSettingsPage() {
             </div>
 
             <div>
-              <label className="block text-slate-400 mb-1">WhatsApp de Contato</label>
+              <label htmlFor="support-phone" className="block text-slate-400 mb-1">WhatsApp de Contato</label>
               <input
+                id="support-phone"
                 type="text"
                 value={supportPhone}
                 onChange={(e) => setSupportPhone(e.target.value)}
@@ -161,8 +172,9 @@ export default function AdminSettingsPage() {
             </div>
 
             <div className="sm:col-span-2">
-              <label className="block text-slate-400 mb-1">Horário de Funcionamento Presencial</label>
+              <label htmlFor="business-hours" className="block text-slate-400 mb-1">Horário de Funcionamento Presencial</label>
               <input
+                id="business-hours"
                 type="text"
                 value={businessHours}
                 onChange={(e) => setBusinessHours(e.target.value)}

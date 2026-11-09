@@ -332,10 +332,11 @@ export default function EditProductPage() {
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
-              <label className="block text-xs font-medium text-slate-300 mb-1">
+              <label htmlFor="edit-product-name" className="block text-xs font-medium text-slate-300 mb-1">
                 Nome da Armação *
               </label>
               <input
+                id="edit-product-name"
                 type="text"
                 required
                 value={name}
@@ -345,10 +346,11 @@ export default function EditProductPage() {
             </div>
 
             <div>
-              <label className="block text-xs font-medium text-slate-300 mb-1">
+              <label htmlFor="edit-product-slug" className="block text-xs font-medium text-slate-300 mb-1">
                 Slug (URL Amigável) *
               </label>
               <input
+                id="edit-product-slug"
                 type="text"
                 required
                 value={slug}
@@ -359,10 +361,11 @@ export default function EditProductPage() {
           </div>
 
           <div>
-            <label className="block text-xs font-medium text-slate-300 mb-1">
+            <label htmlFor="edit-product-description" className="block text-xs font-medium text-slate-300 mb-1">
               Descrição Detalhada e Sensorial
             </label>
             <textarea
+              id="edit-product-description"
               rows={3}
               value={description}
               onChange={(e) => setDescription(e.target.value)}
@@ -372,10 +375,11 @@ export default function EditProductPage() {
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
-              <label className="block text-xs font-medium text-slate-300 mb-1">
+              <label htmlFor="edit-product-price" className="block text-xs font-medium text-slate-300 mb-1">
                 Preço de Venda à Vista (R$) *
               </label>
               <input
+                id="edit-product-price"
                 type="text"
                 required
                 value={priceReal}
@@ -385,10 +389,11 @@ export default function EditProductPage() {
             </div>
 
             <div>
-              <label className="block text-xs font-medium text-slate-300 mb-1">
+              <label htmlFor="edit-product-compare-price" className="block text-xs font-medium text-slate-300 mb-1">
                 Preço Comparativo &quot;De&quot; (R$ - Opcional)
               </label>
               <input
+                id="edit-product-compare-price"
                 type="text"
                 value={comparePriceReal}
                 onChange={(e) => setComparePriceReal(e.target.value)}
@@ -407,10 +412,11 @@ export default function EditProductPage() {
 
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
             <div>
-              <label className="block text-xs font-medium text-slate-300 mb-1">
+              <label htmlFor="edit-frame-type" className="block text-xs font-medium text-slate-300 mb-1">
                 Tipo de Óculos
               </label>
               <select
+                id="edit-frame-type"
                 value={frameType}
                 onChange={(e) => setFrameType(e.target.value as FrameType)}
                 className="w-full bg-[#040e17] border border-slate-700 rounded-lg px-3 py-2 text-xs text-white focus:outline-none focus:border-amber-400"
@@ -423,10 +429,11 @@ export default function EditProductPage() {
             </div>
 
             <div>
-              <label className="block text-xs font-medium text-slate-300 mb-1">
+              <label htmlFor="edit-frame-shape" className="block text-xs font-medium text-slate-300 mb-1">
                 Formato do Aro
               </label>
               <select
+                id="edit-frame-shape"
                 value={frameShape}
                 onChange={(e) => setFrameShape(e.target.value as FrameShape)}
                 className="w-full bg-[#040e17] border border-slate-700 rounded-lg px-3 py-2 text-xs text-white focus:outline-none focus:border-amber-400"
@@ -441,10 +448,11 @@ export default function EditProductPage() {
             </div>
 
             <div>
-              <label className="block text-xs font-medium text-slate-300 mb-1">
+              <label htmlFor="edit-frame-material" className="block text-xs font-medium text-slate-300 mb-1">
                 Material da Estrutura
               </label>
               <select
+                id="edit-frame-material"
                 value={frameMaterial}
                 onChange={(e) => setFrameMaterial(e.target.value as FrameMaterial)}
                 className="w-full bg-[#040e17] border border-slate-700 rounded-lg px-3 py-2 text-xs text-white focus:outline-none focus:border-amber-400"
@@ -458,10 +466,11 @@ export default function EditProductPage() {
             </div>
 
             <div>
-              <label className="block text-xs font-medium text-slate-300 mb-1">
+              <label htmlFor="edit-frame-gender" className="block text-xs font-medium text-slate-300 mb-1">
                 Gênero / Perfil
               </label>
               <select
+                id="edit-frame-gender"
                 value={gender}
                 onChange={(e) => setGender(e.target.value as FrameGender)}
                 className="w-full bg-[#040e17] border border-slate-700 rounded-lg px-3 py-2 text-xs text-white focus:outline-none focus:border-amber-400"
@@ -476,10 +485,11 @@ export default function EditProductPage() {
 
           <div className="grid grid-cols-3 gap-4 pt-2">
             <div>
-              <label className="block text-xs font-medium text-slate-300 mb-1">
+              <label htmlFor="edit-lens-mm" className="block text-xs font-medium text-slate-300 mb-1">
                 Largura da Lente (mm)
               </label>
               <input
+                id="edit-lens-mm"
                 type="number"
                 value={lensMm}
                 onChange={(e) => setLensMm(parseInt(e.target.value) || 0)}
@@ -488,10 +498,11 @@ export default function EditProductPage() {
             </div>
 
             <div>
-              <label className="block text-xs font-medium text-slate-300 mb-1">
+              <label htmlFor="edit-bridge-mm" className="block text-xs font-medium text-slate-300 mb-1">
                 Ponte Nasal (mm)
               </label>
               <input
+                id="edit-bridge-mm"
                 type="number"
                 value={bridgeMm}
                 onChange={(e) => setBridgeMm(parseInt(e.target.value) || 0)}
@@ -500,10 +511,11 @@ export default function EditProductPage() {
             </div>
 
             <div>
-              <label className="block text-xs font-medium text-slate-300 mb-1">
+              <label htmlFor="edit-temple-mm" className="block text-xs font-medium text-slate-300 mb-1">
                 Haste (Comprimento mm)
               </label>
               <input
+                id="edit-temple-mm"
                 type="number"
                 value={templeMm}
                 onChange={(e) => setTempleMm(parseInt(e.target.value) || 0)}
@@ -553,11 +565,12 @@ export default function EditProductPage() {
             </div>
 
             <div>
-              <label className="block text-xs font-medium text-slate-300 mb-1">
+              <label htmlFor="edit-image-url-input" className="block text-xs font-medium text-slate-300 mb-1">
                 Ou adicione via URL direta
               </label>
               <div className="flex gap-2">
                 <input
+                  id="edit-image-url-input"
                   type="url"
                   placeholder="https://..."
                   value={urlInput}
@@ -629,10 +642,11 @@ export default function EditProductPage() {
           {/* Estoque e Publicação */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pt-4 border-t border-white/5">
             <div>
-              <label className="block text-xs font-medium text-slate-300 mb-1">
+              <label htmlFor="edit-color-name" className="block text-xs font-medium text-slate-300 mb-1">
                 Cor Principal da Armação
               </label>
               <input
+                id="edit-color-name"
                 type="text"
                 value={colorName}
                 onChange={(e) => setColorName(e.target.value)}
@@ -641,10 +655,11 @@ export default function EditProductPage() {
             </div>
 
             <div>
-              <label className="block text-xs font-medium text-slate-300 mb-1">
+              <label htmlFor="edit-stock-quantity" className="block text-xs font-medium text-slate-300 mb-1">
                 Estoque Disponível (unidades)
               </label>
               <input
+                id="edit-stock-quantity"
                 type="number"
                 min="0"
                 value={stockQuantity}
@@ -677,32 +692,39 @@ export default function EditProductPage() {
           </div>
         </div>
 
-        {/* Botão de Salvar Alterações */}
-        <div className="flex items-center justify-end gap-3 pt-2">
-          <Link
-            href="/admin/produtos"
-            className="px-4 py-2.5 rounded-xl border border-white/10 hover:bg-white/5 text-slate-300 text-xs font-semibold transition-all"
-          >
-            Cancelar
-          </Link>
+        {/* Barra de Salvamento Fixa no Rodapé (Sticky Save Bar) */}
+        <div className="sticky bottom-0 bg-[#030c13]/95 backdrop-blur-md border-t border-white/10 p-4 -mx-4 sm:-mx-8 lg:-mx-10 px-4 sm:px-8 lg:px-10 flex flex-col sm:flex-row items-center justify-between gap-3 z-30 shadow-2xl">
+          <div className="text-xs text-slate-400">
+            {errorMessage && <span className="text-rose-400 font-medium">⚠️ {errorMessage}</span>}
+            {successMessage && <span className="text-emerald-400 font-medium">✓ {successMessage}</span>}
+            {!errorMessage && !successMessage && <span>Altere os dados e salve para sincronizar no catálogo</span>}
+          </div>
+          <div className="flex items-center gap-3">
+            <Link
+              href="/admin/produtos"
+              className="px-4 py-2.5 rounded-xl border border-white/10 hover:bg-white/5 text-slate-300 text-xs font-semibold transition-all"
+            >
+              Cancelar
+            </Link>
 
-          <button
-            type="submit"
-            disabled={isSubmitting}
-            className="inline-flex items-center gap-2 px-6 py-2.5 rounded-xl bg-amber-400 hover:bg-amber-300 active:scale-95 text-slate-950 font-bold text-xs uppercase tracking-wider transition-all shadow-md disabled:opacity-50"
-          >
-            {isSubmitting ? (
-              <>
-                <Loader2 size={16} className="animate-spin" />
-                <span>Salvando...</span>
-              </>
-            ) : (
-              <>
-                <Save size={16} />
-                <span>Salvar Alterações</span>
-              </>
-            )}
-          </button>
+            <button
+              type="submit"
+              disabled={isSubmitting}
+              className="inline-flex items-center gap-2 px-6 py-2.5 rounded-xl bg-amber-400 hover:bg-amber-300 active:scale-95 text-slate-950 font-bold text-xs uppercase tracking-wider transition-all shadow-md disabled:opacity-50 cursor-pointer"
+            >
+              {isSubmitting ? (
+                <>
+                  <Loader2 size={16} className="animate-spin" />
+                  <span>Salvando...</span>
+                </>
+              ) : (
+                <>
+                  <Save size={16} />
+                  <span>Salvar Alterações</span>
+                </>
+              )}
+            </button>
+          </div>
         </div>
       </form>
     </div>
