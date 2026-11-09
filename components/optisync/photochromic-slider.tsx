@@ -34,7 +34,11 @@ export function PhotochromicSlider({
   const handlePointerDown = (e: React.PointerEvent<HTMLDivElement>) => {
     setIsDragging(true);
     updatePosition(e.clientX);
-    e.currentTarget.setPointerCapture(e.pointerId);
+    try {
+      e.currentTarget.setPointerCapture(e.pointerId);
+    } catch {
+      // Ignore capture registration errors on iOS
+    }
   };
 
   const handlePointerMove = (e: React.PointerEvent<HTMLDivElement>) => {

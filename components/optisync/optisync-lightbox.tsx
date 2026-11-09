@@ -21,6 +21,8 @@ export function OptiSyncLightbox({
   const modalRef = useRef<HTMLDivElement>(null);
   const closeBtnRef = useRef<HTMLButtonElement>(null);
   const previousActiveElement = useRef<HTMLElement | null>(null);
+  const touchStartX = useRef<number | null>(null);
+  const touchEndX = useRef<number | null>(null);
 
   const isOpen = currentIndex !== null && currentIndex >= 0 && currentIndex < items.length;
   const currentItem = isOpen ? items[currentIndex] : null;
@@ -34,6 +36,28 @@ export function OptiSyncLightbox({
     if (currentIndex === null || items.length === 0) return;
     onNavigate((currentIndex - 1 + items.length) % items.length);
   }, [currentIndex, items.length, onNavigate]);
+
+  const handleTouchStart = (e: React.TouchEvent) => {
+    touchStartX.current = e.touches[0].clientX;
+    touchEndX.current = null;
+  };
+
+  const handleTouchMove = (e: React.TouchEvent) => {
+    touchEndX.current = e.touches[0].clientX;
+  };
+
+  const handleTouchEnd = () => {
+    if (touchStartX.current === null || touchEndX.current === null) return;
+    const diff = touchStartX.current - touchEndX.current;
+    const minSwipeDistance = 45;
+    if (diff > minSwipeDistance) {
+      handleNext();
+    } else if (diff < -minSwipeDistance) {
+      handlePrev();
+    }
+    touchStartX.current = null;
+    touchEndX.current = null;
+  };
 
   // Capture previous focus & restore on close
   useEffect(() => {
@@ -101,7 +125,10 @@ export function OptiSyncLightbox({
       role="dialog"
       aria-modal="true"
       aria-label={currentItem.title}
-      className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-6 bg-[#00051E]/90 backdrop-blur-xl animate-fade-in"
+      onTouchStart={handleTouchStart}
+      onTouchMove={handleTouchMove}
+      onTouchEnd={handleTouchEnd}
+      className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-6 bg-[#00051E]/90 backdrop-blur-xl animate-fade-in touch-pan-y"
       onClick={(e) => {
         if (e.target === e.currentTarget) onClose();
       }}

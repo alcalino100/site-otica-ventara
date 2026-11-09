@@ -117,6 +117,28 @@ test.describe("Página /optisync — Três Linhas de Produto e Artes Oficiais", 
     const linkToCatalog = colorSection.locator("a[href='/lentes#secao-cores']");
     await expect(linkToCatalog).toBeVisible();
   });
+
+  test("Responsividade mobile: seletor de 3 colunas, tabela com scroll e galeria compacta", async ({ page }) => {
+    await page.setViewportSize({ width: 390, height: 844 });
+    await page.goto("/optisync");
+    await page.waitForLoadState("domcontentloaded");
+
+    // Container principal deve ter isolate
+    const mainEl = page.locator("main");
+    await expect(mainEl).toHaveClass(/isolate/);
+
+    // Seletor de linhas no mobile fica em grid de 3 colunas compacto
+    const tabsContainer = page.locator("button:has-text('OPTiSYNC HD')").first().locator("..");
+    await expect(tabsContainer).toBeVisible();
+
+    // Galeria exibe 2 colunas no mobile
+    const galleryGrid = page.locator(".grid.grid-cols-2").first();
+    await expect(galleryGrid).toBeVisible();
+
+    // Tabela comparativa exibe indicador de deslize no mobile
+    const scrollHint = page.getByText("← Deslize para comparar →");
+    await expect(scrollHint).toBeVisible();
+  });
 });
 
 test.describe("Painel Administrativo — CMS da Página OPTiSYNC", () => {
