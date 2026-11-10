@@ -1,8 +1,8 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useRef, useMemo } from "react";
 import Link from "next/link";
-import { Plus, ShoppingBag, Check, ArrowRight, MessageSquare, Sparkles } from "lucide-react";
+import { Plus, ShoppingBag, Check, ArrowRight, MessageSquare, Sparkles, ChevronLeft, ChevronRight } from "lucide-react";
 import { Product } from "@/types/ecommerce";
 import { FrameArt } from "./frame-art";
 import { PricePromo } from "@/components/ui/price-promo";
@@ -38,6 +38,84 @@ export function ProductCard({
     product.images?.find((img) => img.is_primary)?.url ||
     product.images?.[0]?.url;
 
+  const validImages = useMemo(() => {
+    const list: string[] = [];
+    if (product.images && product.images.length > 0) {
+      product.images.forEach((img) => {
+        if (img?.url && !list.includes(img.url)) list.push(img.url);
+      });
+    }
+    if (list.length === 0 && primaryImage) list.push(primaryImage);
+    return list;
+  }, [product.images, primaryImage]);
+
+  const [currentImgIdx, setCurrentImgIdx] = useState(0);
+  const touchStartPos = useRef<{ x: number; y: number } | null>(null);
+  const isSwipingRef = useRef(false);
+  const blockClickUntilRef = useRef(0);
+
+  const hasMultipleImages = validImages.length > 1;
+  const currentImageUrl = validImages[currentImgIdx] || primaryImage;
+
+  const handlePrev = (e?: React.MouseEvent | React.TouchEvent) => {
+    if (e) {
+      e.preventDefault();
+      e.stopPropagation();
+    }
+    if (!hasMultipleImages) return;
+    setCurrentImgIdx((prev) => (prev > 0 ? prev - 1 : validImages.length - 1));
+  };
+
+  const handleNext = (e?: React.MouseEvent | React.TouchEvent) => {
+    if (e) {
+      e.preventDefault();
+      e.stopPropagation();
+    }
+    if (!hasMultipleImages) return;
+    setCurrentImgIdx((prev) => (prev < validImages.length - 1 ? prev + 1 : 0));
+  };
+
+  const onTouchStart = (e: React.TouchEvent) => {
+    if (e.touches.length === 1) {
+      touchStartPos.current = { x: e.touches[0].clientX, y: e.touches[0].clientY };
+      isSwipingRef.current = false;
+    }
+  };
+
+  const onTouchMove = (e: React.TouchEvent) => {
+    if (!touchStartPos.current || e.touches.length !== 1) return;
+    const dx = e.touches[0].clientX - touchStartPos.current.x;
+    const dy = e.touches[0].clientY - touchStartPos.current.y;
+    if (Math.abs(dx) > Math.abs(dy) && Math.abs(dx) > 12) {
+      isSwipingRef.current = true;
+    }
+  };
+
+  const onTouchEnd = (e: React.TouchEvent) => {
+    if (!touchStartPos.current) return;
+    const changedTouch = e.changedTouches[0];
+    const dx = changedTouch.clientX - touchStartPos.current.x;
+    const dy = changedTouch.clientY - touchStartPos.current.y;
+
+    if (isSwipingRef.current && Math.abs(dx) > 35 && Math.abs(dx) > Math.abs(dy) * 1.2) {
+      blockClickUntilRef.current = Date.now() + 350;
+      if (dx < 0) {
+        handleNext();
+      } else {
+        handlePrev();
+      }
+    }
+    touchStartPos.current = null;
+    isSwipingRef.current = false;
+  };
+
+  const handleLinkClick = (e: React.MouseEvent) => {
+    if (Date.now() < blockClickUntilRef.current) {
+      e.preventDefault();
+      e.stopPropagation();
+    }
+  };
+
   const pricing = formatProductPricing(product);
 
   const categoryLabel =
@@ -61,21 +139,28 @@ export function ProductCard({
   const whatsappUrl = buildProductWhatsAppUrl(product.name, product.slug, categoryLabel);
 
   return (
-    <div className="product group relative rounded-3xl overflow-hidden border border-slate-200/80 hover:border-amber-400/70 shadow-sm hover:shadow-2xl transition-all duration-300 flex flex-col justify-end bg-[#040d1a] aspect-[3/4.2] sm:aspect-[3/4.2] min-h-[350px] sm:min-h-[460px]">
+    <div
+      className="product group relative rounded-3xl overflow-hidden border border-slate-200/80 hover:border-amber-400/70 shadow-sm hover:shadow-2xl transition-all duration-300 flex flex-col justify-end bg-[#040d1a] aspect-[3/4.2] sm:aspect-[3/4.2] min-h-[350px] sm:min-h-[460px] touch-pan-y"
+      onTouchStart={onTouchStart}
+      onTouchMove={onTouchMove}
+      onTouchEnd={onTouchEnd}
+      style={{ touchAction: "pan-y" }}
+    >
       {/* 1. Camada da Foto Sendo o Bloco Inteiro */}
       <Link
         href={`${hrefPrefix}/${product.slug}`}
+        onClick={handleLinkClick}
         className="absolute inset-0 z-0 block overflow-hidden"
         aria-label={`Ver detalhes da armação ${product.name}`}
       >
-        {primaryImage ? (
+        {currentImageUrl ? (
           <img
-            src={primaryImage}
+            src={currentImageUrl}
             alt={product.name}
-            className="w-full h-full object-cover object-center group-hover:scale-105 transition-transform duration-700 ease-out"
+            className="w-full h-full object-cover object-center group-hover-zoom-desktop transition-transform duration-700 ease-out"
           />
         ) : (
-          <div className="w-full h-full flex items-center justify-center p-4 pb-24 sm:p-8 sm:pb-36 bg-gradient-to-b from-slate-100 via-slate-50 to-slate-200 group-hover:scale-105 transition-transform duration-700 ease-out">
+          <div className="w-full h-full flex items-center justify-center p-4 pb-24 sm:p-8 sm:pb-36 bg-gradient-to-b from-slate-100 via-slate-50 to-slate-200 group-hover-zoom-desktop transition-transform duration-700 ease-out">
             <div className="w-full max-w-[180px] sm:max-w-[220px]">
               <FrameArt
                 solar={product.frame_type === "Solar"}
@@ -98,8 +183,46 @@ export function ProductCard({
         )}
       </Link>
 
+      {/* 1.1. Zona Morta das Setas: Botões autônomos com mínimo de 44px de toque */}
+      {hasMultipleImages && (
+        <div className="pointer-events-none absolute inset-x-0 top-1/3 -translate-y-1/2 z-20 flex items-center justify-between p-2">
+          <button
+            type="button"
+            data-testid="card-gallery-prev"
+            aria-label={`Foto anterior de ${product.name}`}
+            className="pointer-events-auto min-w-[44px] min-h-[44px] w-11 h-11 flex items-center justify-center rounded-full bg-black/50 hover:bg-black/75 active:scale-95 text-white backdrop-blur-md transition-all border border-white/20 shadow-md touch-manipulation cursor-pointer"
+            onClick={handlePrev}
+            onTouchStart={(e) => e.stopPropagation()}
+            onTouchEnd={handlePrev}
+          >
+            <ChevronLeft size={18} className="text-white" />
+          </button>
+          <button
+            type="button"
+            data-testid="card-gallery-next"
+            aria-label={`Próxima foto de ${product.name}`}
+            className="pointer-events-auto min-w-[44px] min-h-[44px] w-11 h-11 flex items-center justify-center rounded-full bg-black/50 hover:bg-black/75 active:scale-95 text-white backdrop-blur-md transition-all border border-white/20 shadow-md touch-manipulation cursor-pointer"
+            onClick={handleNext}
+            onTouchStart={(e) => e.stopPropagation()}
+            onTouchEnd={handleNext}
+          >
+            <ChevronRight size={18} className="text-white" />
+          </button>
+        </div>
+      )}
+
+      {/* 1.2. Indicador Numérico de Fotos */}
+      {hasMultipleImages && (
+        <div
+          data-testid="card-gallery-counter"
+          className="pointer-events-none absolute top-3 right-3 sm:top-4 sm:right-4 px-2 py-0.5 rounded-full bg-black/60 backdrop-blur-md text-white text-[10px] font-mono tracking-wider z-20 border border-white/15"
+        >
+          {currentImgIdx + 1}/{validImages.length}
+        </div>
+      )}
+
       {/* 2. Badge Flutuante no Topo (Elegante e Inset com Margem Segura) */}
-      <span className="absolute top-3 left-3 sm:top-4 sm:left-4 text-[9px] sm:text-[10px] font-bold tracking-wider uppercase px-2.5 py-1 sm:px-3 sm:py-1.5 rounded-full bg-[#06111f]/85 backdrop-blur-md text-amber-300 border border-amber-400/30 shadow-xs z-20 pointer-events-none">
+      <span className="absolute top-3 left-3 sm:top-4 sm:left-4 text-[9px] sm:text-[10px] font-bold tracking-wider uppercase px-2.5 py-1 sm:px-3 sm:py-1.5 rounded-full bg-[#06111f]/85 backdrop-blur-md text-amber-300 border border-amber-400/30 shadow-xs z-20 pointer-events-none whitespace-nowrap">
         {categoryLabel}
       </span>
 

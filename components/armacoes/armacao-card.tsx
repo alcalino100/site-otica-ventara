@@ -5,6 +5,7 @@ import Link from "next/link";
 import { ShoppingBag, Check, MessageSquare, Tag, Sparkles } from "lucide-react";
 import { Product } from "@/types/ecommerce";
 import { FrameArt } from "@/components/catalog/frame-art";
+import { CardImageGallery } from "@/components/catalog/card-image-gallery";
 import { buildProductWhatsAppUrl } from "@/lib/whatsapp";
 import { formatProductPricing } from "@/lib/pricing";
 
@@ -92,39 +93,35 @@ export function ArmacaoCard({
         {/* 1. Header do Card com Badges Estilo Vitrine Oficial */}
         <div className="flex items-center justify-between gap-1.5 mb-2.5 min-h-[24px]">
           {pricing.hasDiscount && pricing.discountBadgeText ? (
-            <span className="inline-flex items-center gap-1 px-2 sm:px-2.5 py-0.5 rounded-full bg-emerald-600 text-white font-bold text-[9px] sm:text-[10px] tracking-wide shadow-xs">
+            <span className="inline-flex items-center gap-1 px-2 sm:px-2.5 py-0.5 rounded-full bg-emerald-600 text-white font-bold text-[9px] sm:text-[10px] tracking-wide shadow-xs whitespace-nowrap shrink-0">
               <Tag size={10} />
               <span>{pricing.discountBadgeText}</span>
             </span>
           ) : (
-            <span className="inline-flex items-center gap-1 px-2 sm:px-2.5 py-0.5 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200 font-bold text-[9px] sm:text-[10px] tracking-wide">
+            <span className="inline-flex items-center gap-1 px-2 sm:px-2.5 py-0.5 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200 font-bold text-[9px] sm:text-[10px] tracking-wide whitespace-nowrap shrink-0">
               <Sparkles size={10} className="text-emerald-600" />
               <span>EXCLUSIVO</span>
             </span>
           )}
 
-          <span className="text-[9px] sm:text-[10px] font-semibold text-slate-600 bg-slate-100 border border-slate-200/80 px-2 sm:px-2.5 py-0.5 rounded-full truncate">
+          <span
+            className="text-[9px] sm:text-[10px] font-semibold text-slate-600 bg-slate-100 border border-slate-200/80 px-2 sm:px-2.5 py-0.5 rounded-full truncate text-right ml-auto min-w-0"
+            title={highlightBadge}
+          >
             {highlightBadge}
           </span>
         </div>
 
-        {/* 2. Container da Foto do Modelo com Enquadramento Limpo */}
-        <Link
-          href={productUrl}
-          className="relative aspect-[4/3] w-full rounded-2xl overflow-hidden border border-slate-200/80 bg-slate-50 mb-3 block shadow-xs group-hover:shadow-md transition-all duration-300 group-hover:border-amber-400/60"
-          aria-label={`Ver detalhes do modelo ${product.name}`}
-        >
-          {primaryImage && !imgError ? (
-            /* eslint-disable-next-line @next/next/no-img-element */
-            <img
-              src={primaryImage}
-              alt={product.name}
-              onError={() => setImgError(true)}
-              className="w-full h-full object-cover object-center group-hover:scale-105 transition-transform duration-500 ease-out"
-              loading="lazy"
-            />
-          ) : (
-            <div className="w-full h-full flex items-center justify-center p-3 sm:p-4 group-hover:scale-105 transition-transform duration-300">
+        {/* 2. Container da Foto com Mini-Galeria Tátil, Zona Morta e Zero Zoom no Mobile */}
+        <div className="mb-3">
+          <CardImageGallery
+            images={product.images}
+            fallbackUrl={primaryImage}
+            productName={product.name}
+            productHref={productUrl}
+            aspectRatio="aspect-[4/3]"
+            imageFit="cover"
+            fallbackArt={
               <div className="w-full max-w-[140px] sm:max-w-[160px]">
                 <FrameArt
                   solar={product.frame_type === "Solar"}
@@ -143,9 +140,9 @@ export function ArmacaoCard({
                   }
                 />
               </div>
-            </div>
-          )}
-        </Link>
+            }
+          />
+        </div>
 
         {/* 3. Metadados e Nome do Modelo */}
         <div className="space-y-1">
