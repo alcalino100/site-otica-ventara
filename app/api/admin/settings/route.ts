@@ -55,6 +55,8 @@ export async function GET() {
           "payment_methods",
           "armacoes_page_settings",
           "optisync_page_settings",
+          "announcement_bar",
+          "benefits_bar",
         ]);
       data = res.data;
     }
@@ -85,12 +87,16 @@ export async function GET() {
     const paymentMethodsVal = getVal("payment_methods");
     const armacoesSettingsVal = getVal("armacoes_page_settings");
     const optisyncSettingsVal = getVal("optisync_page_settings");
+    const announcementBarVal = getVal("announcement_bar");
+    const benefitsBarVal = getVal("benefits_bar");
 
     return NextResponse.json(
       {
         identity: identityVal ? { ...DEFAULT_IDENTITY, ...(identityVal as SiteIdentitySettings) } : DEFAULT_IDENTITY,
         appearance: appearanceVal ? { ...DEFAULT_APPEARANCE, ...(appearanceVal as SiteAppearanceSettings) } : DEFAULT_APPEARANCE,
         shipping: shippingVal || null,
+        announcement_bar: announcementBarVal || null,
+        benefits_bar: benefitsBarVal || null,
         lab_showcase: labVal ? { ...DEFAULT_LAB_SHOWCASE, ...(labVal as LabShowcaseSettings) } : DEFAULT_LAB_SHOWCASE,
         showcase_media: showcaseVal ? { ...DEFAULT_SHOWCASE_MEDIA, ...(showcaseVal as ShowcaseMediaSettings) } : DEFAULT_SHOWCASE_MEDIA,
         homologated_brands: brandsVal ? (brandsVal as HomologatedBrand[]) : DEFAULT_HOMOLOGATED_BRANDS,
@@ -266,6 +272,14 @@ export async function POST(req: NextRequest) {
 
     if (body.optisync_page_settings) {
       await saveSetting("optisync_page_settings", "Configurações de Fundo, Efeitos e Conteúdo da Página OPTiSYNC HD (/optisync)", body.optisync_page_settings);
+    }
+
+    if (body.announcement_bar) {
+      await saveSetting("announcement_bar", "Barra Promocional no Topo do Site", body.announcement_bar);
+    }
+
+    if (body.benefits_bar) {
+      await saveSetting("benefits_bar", "Faixa de Benefícios da Página de Produto", body.benefits_bar);
     }
 
     try {

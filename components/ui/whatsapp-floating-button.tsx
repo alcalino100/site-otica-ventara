@@ -1,12 +1,18 @@
 "use client";
 
 import React, { useState } from "react";
-import { MessageCircle } from "lucide-react";
+import { usePathname } from "next/navigation";
 import { useSiteSettings } from "../providers/site-settings-provider";
 
 export function WhatsAppFloatingButton() {
   const [isHovered, setIsHovered] = useState(false);
   const { cleanWhatsAppNumber, identity } = useSiteSettings();
+  const pathname = usePathname() || "";
+
+  // Se estiver na PDP ou visualização de produto detalhado, eleva o botão no mobile para não sobrepor a barra de compra
+  const isPdp =
+    pathname.startsWith("/produto") ||
+    (pathname.startsWith("/armacoes/") && pathname !== "/armacoes");
 
   const defaultMessage = encodeURIComponent(
     `Olá! Estou no site da ${identity.store_name} e gostaria de atendimento especializado sobre armações e lentes.`
@@ -16,7 +22,11 @@ export function WhatsAppFloatingButton() {
   return (
     <aside
       aria-label="Atendimento pelo WhatsApp"
-      className="fixed bottom-[calc(1rem+env(safe-area-inset-bottom,0px))] right-[calc(1rem+env(safe-area-inset-right,0px))] sm:bottom-7 sm:right-7 z-[80] flex items-center gap-2.5 pointer-events-auto select-none"
+      className={`fixed right-[calc(1rem+env(safe-area-inset-right,0px))] sm:bottom-7 sm:right-7 z-[80] flex items-center gap-2.5 pointer-events-auto select-none transition-all duration-300 ${
+        isPdp
+          ? "bottom-[calc(5.75rem+env(safe-area-inset-bottom,0px))]"
+          : "bottom-[calc(1rem+env(safe-area-inset-bottom,0px))]"
+      }`}
     >
       {/* Tooltip elegante em Desktop com transição fluida */}
       <div

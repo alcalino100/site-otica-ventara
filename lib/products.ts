@@ -104,6 +104,16 @@ export function normalizeProduct(raw: any): Product {
     dimensions_lens_mm: raw.dimensions_lens_mm ? Number(raw.dimensions_lens_mm) : null,
     dimensions_bridge_mm: raw.dimensions_bridge_mm ? Number(raw.dimensions_bridge_mm) : null,
     dimensions_temple_mm: raw.dimensions_temple_mm ? Number(raw.dimensions_temple_mm) : null,
+    low_stock_threshold: typeof raw.low_stock_threshold === "number" ? raw.low_stock_threshold : 3,
+    face_shape_recommendations: Array.isArray(raw.face_shape_recommendations)
+      ? raw.face_shape_recommendations
+      : typeof raw.face_shape_recommendations === "string"
+      ? raw.face_shape_recommendations.split(",").map((s: string) => s.trim()).filter(Boolean)
+      : [],
+    warranty_text: raw.warranty_text ? String(raw.warranty_text).trim() : null,
+    exchange_text: raw.exchange_text ? String(raw.exchange_text).trim() : null,
+    faq_items: Array.isArray(raw.faq_items) ? raw.faq_items : [],
+    benefits_tags: Array.isArray(raw.benefits_tags) ? raw.benefits_tags : [],
     created_at: raw.created_at || new Date().toISOString(),
     updated_at: raw.updated_at || new Date().toISOString(),
     category: raw.category || null,
