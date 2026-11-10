@@ -7,9 +7,10 @@ import { Sparkles } from "lucide-react";
 
 interface ProductGalleryProps {
   product: Product;
+  overrideImage?: string | null;
 }
 
-export function ProductGallery({ product }: ProductGalleryProps) {
+export function ProductGallery({ product, overrideImage }: ProductGalleryProps) {
   const images = product.images && product.images.length > 0 ? product.images : [];
   const primaryIdx = Math.max(
     0,
@@ -17,7 +18,7 @@ export function ProductGallery({ product }: ProductGalleryProps) {
   );
   const [activeIdx, setActiveIdx] = useState(primaryIdx);
 
-  const activeImage = images[activeIdx]?.url;
+  const activeImage = overrideImage || images[activeIdx]?.url;
 
   return (
     <div className="space-y-4">

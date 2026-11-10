@@ -12,7 +12,7 @@ import {
   CreditCard,
   Heart,
 } from "lucide-react";
-import { Product } from "@/types/ecommerce";
+import { Product, ProductVariant } from "@/types/ecommerce";
 import { getStoredCart, saveStoredCart, CartProduct } from "@/lib/cart";
 import { CartModal } from "@/components/cart/cart-modal";
 import { LensLeadModal } from "@/components/catalog/lens-lead-modal";
@@ -21,52 +21,21 @@ import { buildWhatsAppUrl } from "@/lib/whatsapp";
 interface ProductDetailActionsProps {
   product: Product;
   onAddedNotification?: (message: string) => void;
+  selectedVariant?: ProductVariant | null;
+  onSelectVariant?: (v: ProductVariant) => void;
 }
 
 export function ProductDetailActions({
   product,
   onAddedNotification,
+  selectedVariant: propSelectedVariant,
+  onSelectVariant,
 }: ProductDetailActionsProps) {
   const [isAdded, setIsAdded] = useState(false);
   const [isWishlist, setIsWishlist] = useState(false);
   const [isCartOpen, setIsCartOpen] = useState(false);
   const [cartModalView, setCartModalView] = useState<"items" | "checkout">("checkout");
   const [cartItems, setCartItems] = useState<CartProduct[]>([]);
-
-  useEffect(() => {
-    setCartItems(getStoredCart());
-    try {
-      const saved = localStorage.getItem("ventara_wishlist");
-      if (saved) {
-        const list = JSON.parse(saved);
-        if (Array.isArray(list) && list.includes(product.id)) {
-          setIsWishlist(true);
-        }
-      }
-    } catch {
-      // Ignora erro de localStorage
-    }
-  }, [product.id]);
-
-  const toggleWishlist = () => {
-    try {
-      const saved = localStorage.getItem("ventara_wishlist");
-      let list: string[] = saved ? JSON.parse(saved) : [];
-      if (!Array.isArray(list)) list = [];
-      if (list.includes(product.id)) {
-        list = list.filter((id) => id !== product.id);
-        setIsWishlist(false);
-        if (onAddedNotification) onAddedNotification("Removido dos favoritos.");
-      } else {
-        list.push(product.id);
-        setIsWishlist(true);
-        if (onAddedNotification) onAddedNotification("Adicionado aos seus favoritos!");
-      }
-      localStorage.setItem("ventara_wishlist", JSON.stringify(list));
-    } catch {
-      setIsWishlist(!isWishlist);
-    }
-  };
 
   // Variantes de Cor disponíveis a partir das cadastradas
   const variants =
@@ -81,12 +50,27 @@ export function ProductDetailActions({
             color_hex: "#111827",
             size: "Único",
             stock_quantity: 10,
+            price_in_cents: product.price_in_cents,
+            compare_at_price_in_cents: product.compare_at_price_in_cents,
+            image_url: null,
+            is_available: true,
+            sort_order: 0,
             created_at: new Date().toISOString(),
             updated_at: new Date().toISOString(),
           },
         ];
 
-  const [selectedVariant, setSelectedVariant] = useState(variants[0]);
+  const [internalVariant, setInternalVariant] = useState(variants[0]);
+  const currentVariant = propSelectedVariant || internalVariant;
+
+  const handleVariantChange = (v: ProductVariant) => {
+    setInternalVariant(v);
+    if (onSelectVariant) {
+      onSelectVariant(v);
+    }
+  };
+
+  const toggleWishlist = () => setIsWishlist((prev) => !prev);
 
   // Opções de Lentes para Consultoria
   const lensOptions = [
@@ -149,15 +133,22 @@ export function ProductDetailActions({
 
   const createCartItem = (): CartProduct => {
     const primaryImg =
-      product.images?.find((i) => i.is_primary)?.url || product.images?.[0]?.url;
+      currentVariant.image_url ||
+      product.images?.find((i) => i.is_primary)?.url ||
+      product.images?.[0]?.url;
+
+    const variantPrice =
+      typeof currentVariant.price_in_cents === "number" && currentVariant.price_in_cents > 0
+        ? currentVariant.price_in_cents
+        : product.price_in_cents;
 
     return {
-      id: `${product.id}-${selectedVariant.id}`,
-      name: `${product.name} - ${selectedVariant.color_name}`,
+      id: `${product.id}-${currentVariant.id}`,
+      name: `${product.name} - ${currentVariant.color_name}`,
       slug: product.slug,
       category: product.category?.name || product.frame_type,
-      color: selectedVariant.color_name || "Padrão",
-      priceInCents: product.price_in_cents,
+      color: currentVariant.color_name || "Padrão",
+      priceInCents: variantPrice,
       imageUrl: primaryImg,
     };
   };
@@ -182,7 +173,7 @@ export function ProductDetailActions({
     setCartItems(updated);
     setIsAdded(true);
     if (onAddedNotification) {
-      onAddedNotification(`${product.name} adicionado à sua seleção.`);
+      onAddedNotification(`${product.name} (${currentVariant.color_name}) adicionado à sua seleção.`);
     }
     setTimeout(() => setIsAdded(false), 2000);
   };
@@ -190,9 +181,14 @@ export function ProductDetailActions({
   // Monta mensagem detalhada e personalizada para o WhatsApp oficial
   const categoryLabel =
     product.frame_type === "Solar" ? "Óculos Solar" : "Armação de Grau";
+  const finalPriceInReais =
+    (typeof currentVariant.price_in_cents === "number" && currentVariant.price_in_cents > 0
+      ? currentVariant.price_in_cents
+      : product.price_in_cents) / 100;
   const whatsappText =
     `Olá! Gostei da armação "${product.name}" (${categoryLabel}) na Ótica Ventara.\n` +
-    `• Cor selecionada: ${selectedVariant.color_name}\n` +
+    `• Variação / Cor: ${currentVariant.color_name} (SKU: ${currentVariant.sku})\n` +
+    `• Preço: R$ ${finalPriceInReais.toFixed(2).replace(".", ",")}\n` +
     `• Interesse em lentes: ${selectedLens.name} (${selectedLens.desc})\n` +
     `Gostaria de saber mais sobre disponibilidade e valores para minha receita.`;
   const whatsappUrl = buildWhatsAppUrl(whatsappText);
@@ -204,9 +200,9 @@ export function ProductDetailActions({
         <div className="space-y-2.5">
           <div className="flex items-center justify-between text-xs">
             <span className="font-semibold text-slate-800 uppercase tracking-wider">
-              Cor da Armação:
+              Variação / Cor:
             </span>
-            <span className="font-bold text-amber-600">{selectedVariant.color_name}</span>
+            <span className="font-bold text-amber-600">{currentVariant.color_name}</span>
           </div>
 
           <div
@@ -215,14 +211,18 @@ export function ProductDetailActions({
             aria-label="Cores disponíveis para esta armação"
           >
             {variants.map((v) => {
-              const isSelected = selectedVariant.id === v.id;
+              const isSelected = currentVariant.id === v.id;
+              const hasCustomPrice =
+                typeof v.price_in_cents === "number" &&
+                v.price_in_cents > 0 &&
+                v.price_in_cents !== product.price_in_cents;
               return (
                 <button
                   key={v.id}
                   type="button"
                   role="radio"
                   aria-checked={isSelected}
-                  onClick={() => setSelectedVariant(v)}
+                  onClick={() => handleVariantChange(v)}
                   className={`flex items-center gap-2 px-3.5 py-2 rounded-xl text-xs font-medium border transition-all active:scale-95 cursor-pointer ${
                     isSelected
                       ? "bg-amber-50 text-amber-900 border-amber-400 shadow-2xs font-semibold ring-1 ring-amber-400"
@@ -234,6 +234,11 @@ export function ProductDetailActions({
                     style={{ backgroundColor: v.color_hex || "#1e293b" }}
                   />
                   <span>{v.color_name}</span>
+                  {hasCustomPrice && (
+                    <span className="text-[10px] text-slate-500 font-mono">
+                      (R$ {(v.price_in_cents! / 100).toFixed(2).replace(".", ",")})
+                    </span>
+                  )}
                 </button>
               );
             })}
@@ -387,7 +392,7 @@ export function ProductDetailActions({
         onClose={() => setIsLensModalOpen(false)}
         productName={product.name}
         frameType={product.frame_type}
-        colorName={selectedVariant.color_name || "Padrão"}
+        colorName={currentVariant.color_name || "Padrão"}
         selectedLensName={lensForModal.name}
         selectedLensDesc={lensForModal.desc}
       />

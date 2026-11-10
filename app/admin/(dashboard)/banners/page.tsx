@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
+import Link from "next/link";
 import {
   Image as ImageIcon,
   Plus,
@@ -38,6 +39,7 @@ import {
   DEFAULT_ARMACOES_PAGE_SETTINGS,
 } from "@/lib/site-settings-constants";
 import { HeroSlidesManager } from "@/components/admin/hero-slides-manager";
+import { formatProductPricing } from "@/lib/pricing";
 
 export default function AdminBannersPage() {
   const supabase = createClient();
@@ -486,29 +488,50 @@ export default function AdminBannersPage() {
     }
   };
 
-  const handleAddPromoItem = () => {
-    const firstProd = availableProducts[0];
+  const handleAddPromoProduct = (prod: any) => {
+    if (!prod) return;
+    const exists = promotionalShowcase.items.some((it) => it.id === prod.id || it.slug === prod.slug);
+    if (exists) {
+      alert("Este produto já está adicionado à vitrine.");
+      return;
+    }
+
+    const primaryImg =
+      prod.images?.find((img: any) => img.is_primary)?.url ||
+      prod.images?.[0]?.url ||
+      "/images/products/urbano-black.png";
+
     const newItem: PromoProductItem = {
-      id: `promo-${Date.now()}`,
-      name: firstProd ? firstProd.name : "Novo Modelo em Oferta",
-      category: (firstProd?.category as any)?.name || "Armação de Grau",
+      id: prod.id || `promo-${Date.now()}`,
+      name: prod.name,
+      category:
+        (prod.category as any)?.name ||
+        (prod.frame_type === "Solar" ? "Óculos de Sol" : "Armação de Grau"),
       tag: "Oferta",
-      discountBadge: "-25% OFF",
-      originalPrice: firstProd?.price ? `R$ ${firstProd.price.toFixed(2).replace(".", ",")}` : "R$ 499,00",
-      promotionalPrice: firstProd?.promotional_price ? `R$ ${firstProd.promotional_price.toFixed(2).replace(".", ",")}` : "R$ 374,25",
+      discountBadge: "",
+      originalPrice: "",
+      promotionalPrice: "",
       installment: "10x sem juros",
-      image: firstProd?.images?.[0]?.url || "/images/products/urbano-black.png",
-      imageFit: "cover",
-      colorName: "Preto Clássico",
-      colorHex: "#0f172a",
-      slug: firstProd?.slug || "ventara-onca",
-      description: firstProd?.description || "Armação leve com garantia de 1 ano.",
-      extraColorsCount: 2,
+      image: primaryImg,
+      imageFit: "contain",
+      colorName: prod.variants?.[0]?.color_name || "Padrão",
+      colorHex: prod.variants?.[0]?.color_hex || "#0f172a",
+      slug: prod.slug,
+      description: prod.description || "Armação leve com garantia e design autoral.",
+      extraColorsCount: Math.max(0, (prod.variants?.length || 1) - 1),
     };
+
     setPromotionalShowcase((prev) => ({
       ...prev,
       items: [...prev.items, newItem],
     }));
+  };
+
+  const handleAddPromoItem = () => {
+    const firstProd = availableProducts[0];
+    if (firstProd) {
+      handleAddPromoProduct(firstProd);
+    }
   };
 
   const handleDeletePromoItem = (id: string) => {
@@ -1928,341 +1951,169 @@ export default function AdminBannersPage() {
               </div>
             </div>
 
+            {/* Seletor Rápido de Produtos por Busca (Única Porta de Entrada) */}
+            <div className="bg-[#0b1728] p-5 rounded-2xl border border-amber-400/30 space-y-3">
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+                <div>
+                  <h3 className="text-xs font-bold text-white uppercase tracking-wider flex items-center gap-2">
+                    <Sparkles size={14} className="text-amber-400" />
+                    <span>Adicionar Armação à Vitrine por Referência</span>
+                  </h3>
+                  <p className="text-[11px] text-slate-400 mt-0.5">
+                    Selecione produtos cadastrados. Foto, preço, desconto e parcelamento são atualizados automaticamente a partir de Produtos.
+                  </p>
+                </div>
+              </div>
+
+              <div className="flex flex-col sm:flex-row gap-2">
+                <select
+                  id="promo-product-picker"
+                  className="flex-1 bg-[#040c16] border border-white/15 rounded-xl px-3 py-2.5 text-white text-xs focus:outline-none focus:border-amber-400 cursor-pointer"
+                  defaultValue=""
+                >
+                  <option value="" disabled>-- Escolha um produto cadastrado no catálogo --</option>
+                  {availableProducts.map((p) => {
+                    const pr = formatProductPricing(p);
+                    const disc = pr.hasDiscount ? ` • ${pr.discountBadgeText}` : "";
+                    return (
+                      <option key={p.id || p.slug} value={p.id || p.slug}>
+                        {p.name} ({p.sku || p.slug}) — {pr.currentPriceFormatted}{disc}
+                      </option>
+                    );
+                  })}
+                </select>
+
+                <button
+                  type="button"
+                  onClick={() => {
+                    const sel = document.getElementById("promo-product-picker") as HTMLSelectElement;
+                    if (sel && sel.value) {
+                      const prod = availableProducts.find((p) => (p.id === sel.value || p.slug === sel.value));
+                      if (prod) {
+                        handleAddPromoProduct(prod);
+                        sel.value = "";
+                      }
+                    }
+                  }}
+                  className="px-5 py-2.5 rounded-xl bg-amber-400 hover:bg-amber-300 text-slate-950 font-bold text-xs uppercase tracking-wider transition-all shadow-md shadow-amber-400/20 cursor-pointer shrink-0"
+                >
+                  + Vincular à Vitrine
+                </button>
+              </div>
+            </div>
+
             {/* Modelos em Oferta */}
             <div>
               <div className="flex items-center justify-between mb-4">
                 <h3 className="text-sm font-bold text-white uppercase tracking-wider flex items-center gap-2">
                   <Tag size={15} className="text-amber-400" />
-                  <span>Modelos com Desconto ({promotionalShowcase.items.length})</span>
+                  <span>Modelos Vinculados ({promotionalShowcase.items.length})</span>
                 </h3>
                 <span className="text-xs text-slate-400">
-                  Cada card possui botão direto para comprar no WhatsApp com mensagem personalizada
+                  Sem duplicação de dados: as alterações feitas em Produtos refletem aqui sem retrabalho.
                 </span>
               </div>
 
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-5">
-                {promotionalShowcase.items.map((item, idx) => (
-                  <div
-                    key={item.id}
-                    className="bg-[#0b1728] border border-white/10 rounded-2xl p-4 flex flex-col justify-between space-y-3 hover:border-amber-400/40 transition-colors"
-                  >
-                    <div>
-                      {/* Top bar do card */}
-                      <div className="flex items-center justify-between gap-1 mb-2">
-                        <span className="text-[10px] font-bold text-amber-400 bg-amber-400/10 px-2 py-0.5 rounded-md">
-                          #{idx + 1}
-                        </span>
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
+                {promotionalShowcase.items.map((item, idx) => {
+                  const matched = availableProducts.find((p) => p.slug === item.slug || p.id === item.id);
+                  const pricing = matched ? formatProductPricing(matched) : null;
+                  const displayImg =
+                    matched?.images?.find((img: any) => img.is_primary)?.url ||
+                    matched?.images?.[0]?.url ||
+                    item.image;
+
+                  return (
+                    <div
+                      key={item.id}
+                      className="bg-[#0b1728] border border-white/10 rounded-2xl p-4 flex flex-col justify-between space-y-3 hover:border-amber-400/40 transition-colors"
+                    >
+                      <div>
+                        {/* Top bar do card */}
+                        <div className="flex items-center justify-between gap-1 mb-2">
+                          <span className="text-[10px] font-bold text-amber-400 bg-amber-400/10 px-2 py-0.5 rounded-md">
+                            #{idx + 1}
+                          </span>
+                          <button
+                            type="button"
+                            onClick={() => handleDeletePromoItem(item.id)}
+                            className="p-1 rounded-md text-rose-400 hover:bg-rose-500/20 transition-colors cursor-pointer"
+                            title="Remover modelo da vitrine"
+                          >
+                            <Trash2 size={13} />
+                          </button>
+                        </div>
+
+                        {/* Preview da foto oficial */}
+                        <div className="aspect-[4/3] w-full rounded-xl overflow-hidden border border-slate-200 mb-2 relative bg-white p-3 flex items-center justify-center">
+                          {pricing?.hasDiscount && (
+                            <span className="absolute top-1.5 left-1.5 z-10 text-[9px] font-bold px-2 py-0.5 rounded-full bg-emerald-600 text-white shadow-xs">
+                              {pricing.discountBadgeText}
+                            </span>
+                          )}
+                          <img
+                            src={displayImg}
+                            alt={item.name}
+                            className="max-h-full max-w-full object-contain"
+                          />
+                        </div>
+
+                        {/* Informações Oficiais Sincronizadas */}
+                        <div className="space-y-1 text-xs">
+                          <span className="text-[10px] text-slate-400 uppercase font-bold tracking-wider block">
+                            {matched?.category?.name || item.category || "Armação"}
+                          </span>
+                          <h4 className="font-bold text-white text-sm truncate">
+                            {matched?.name || item.name}
+                          </h4>
+                          <span className="text-[10px] font-mono text-amber-400 block">
+                            SKU: {matched?.sku || item.slug}
+                          </span>
+
+                          <div className="pt-2 border-t border-white/10 flex items-baseline gap-2">
+                            {pricing?.hasDiscount && pricing.originalPriceFormatted && (
+                              <span className="text-xs text-slate-400 line-through font-mono">
+                                {pricing.originalPriceFormatted}
+                              </span>
+                            )}
+                            <span className="text-sm font-extrabold text-white font-mono">
+                              {pricing?.currentPriceFormatted || item.promotionalPrice}
+                            </span>
+                          </div>
+                        </div>
+
+                        {/* Aviso de Lugares Onde Aparece */}
+                        <div className="mt-3 p-2.5 rounded-xl bg-white/5 border border-white/10 text-[11px] text-slate-300 space-y-1">
+                          <span className="text-[10px] text-amber-300 font-bold block uppercase tracking-wider">
+                            Este produto aparece em:
+                          </span>
+                          <div className="flex flex-wrap gap-1 text-[10px]">
+                            <span className="bg-slate-800 text-slate-300 px-2 py-0.5 rounded-md">Início</span>
+                            <span className="bg-slate-800 text-slate-300 px-2 py-0.5 rounded-md">Armações</span>
+                            <span className="bg-slate-800 text-slate-300 px-2 py-0.5 rounded-md">Detalhes</span>
+                            <span className="bg-emerald-950 text-emerald-300 px-2 py-0.5 rounded-md">Vitrine de Ofertas</span>
+                          </div>
+                        </div>
+                      </div>
+
+                      <div className="pt-2 border-t border-white/10 flex items-center justify-between text-[11px]">
+                        <Link
+                          href={`/admin/produtos`}
+                          className="text-amber-400 hover:text-amber-300 font-semibold"
+                        >
+                          Editar no Módulo Produtos ↗
+                        </Link>
                         <button
                           type="button"
                           onClick={() => handleDeletePromoItem(item.id)}
-                          className="p-1 rounded-md text-rose-400 hover:bg-rose-500/20 transition-colors"
-                          title="Remover modelo"
+                          className="text-slate-400 hover:text-rose-400 transition-colors text-[10px]"
                         >
-                          <Trash2 size={13} />
+                          Desvincular
                         </button>
                       </div>
-
-                      {/* Preview da foto como aparece no site */}
-                      <div className={`aspect-[4/3] w-full rounded-xl overflow-hidden border border-slate-200 mb-2 relative ${
-                        item.imageFit === "contain"
-                          ? "bg-white p-3 flex items-center justify-center"
-                          : "bg-slate-900"
-                      }`}>
-                        {item.discountBadge && item.discountBadge.trim() !== "" && (
-                          <span className="absolute top-1.5 left-1.5 z-10 text-[8px] font-bold px-1.5 py-0.5 rounded-full bg-emerald-600 text-white shadow-xs">
-                            {item.discountBadge}
-                          </span>
-                        )}
-                        <img
-                          src={item.image}
-                          alt={item.name}
-                          className={
-                            item.imageFit === "contain"
-                              ? "max-h-full max-w-full object-contain"
-                              : "w-full h-full object-cover object-center"
-                          }
-                        />
-                      </div>
-
-                      {/* Botão de Trocar Imagem via Upload */}
-                      <label className="w-full inline-flex items-center justify-center gap-1.5 py-2 px-3 rounded-xl bg-amber-400 hover:bg-amber-300 text-slate-950 font-bold text-xs uppercase tracking-wider cursor-pointer transition-all shadow-xs mb-2">
-                        <Upload size={12} />
-                        <span>
-                          {uploadingPromoId === item.id ? "Enviando..." : "Trocar Foto do Óculos"}
-                        </span>
-                        <input
-                          type="file"
-                          accept="image/*"
-                          className="hidden"
-                          disabled={uploadingPromoId === item.id}
-                          onChange={(e) => handlePromoItemUpload(item.id, e)}
-                        />
-                      </label>
-
-                      {/* Ajuste de Enquadramento da Foto */}
-                      <div className="mb-3 p-2 rounded-xl bg-white/5 border border-white/10 space-y-1.5">
-                        <label className="block text-slate-300 text-[11px] font-medium">
-                          Enquadramento da Imagem:
-                        </label>
-                        <div className="grid grid-cols-2 gap-1.5">
-                          <button
-                            type="button"
-                            onClick={() =>
-                              setPromotionalShowcase((prev) => ({
-                                ...prev,
-                                items: prev.items.map((it) =>
-                                  it.id === item.id ? { ...it, imageFit: "cover" } : it
-                                ),
-                              }))
-                            }
-                            className={`px-2 py-1.5 rounded-lg text-[10px] font-semibold text-center transition-all ${
-                              item.imageFit !== "contain"
-                                ? "bg-amber-400 text-slate-950 font-bold shadow-xs"
-                                : "bg-white/5 text-slate-400 hover:text-white"
-                            }`}
-                          >
-                            Preencher Completo
-                          </button>
-                          <button
-                            type="button"
-                            onClick={() =>
-                              setPromotionalShowcase((prev) => ({
-                                ...prev,
-                                items: prev.items.map((it) =>
-                                  it.id === item.id ? { ...it, imageFit: "contain" } : it
-                                ),
-                              }))
-                            }
-                            className={`px-2 py-1.5 rounded-lg text-[10px] font-semibold text-center transition-all ${
-                              item.imageFit === "contain"
-                                ? "bg-amber-400 text-slate-950 font-bold shadow-xs"
-                                : "bg-white/5 text-slate-400 hover:text-white"
-                            }`}
-                          >
-                            Ajustar c/ Bordas
-                          </button>
-                        </div>
-                      </div>
-
-                      {/* Campos Editáveis */}
-                      <div className="space-y-2 text-xs">
-                        {/* Seletor Rápido de Produto do Catálogo */}
-                        <div className="p-2.5 rounded-xl bg-amber-400/5 border border-amber-400/25 mb-1">
-                          <label className="block text-amber-300 text-[11px] font-bold mb-1 flex items-center justify-between">
-                            <span>Vincular Produto da Loja</span>
-                            <span className="text-[10px] text-slate-400 font-normal">Link automático</span>
-                          </label>
-                          <select
-                            value={item.slug || ""}
-                            onChange={(e) => {
-                              const selSlug = e.target.value;
-                              const found = availableProducts.find((p) => p.slug === selSlug);
-                              setPromotionalShowcase((prev) => ({
-                                ...prev,
-                                items: prev.items.map((it) => {
-                                  if (it.id !== item.id) return it;
-                                  if (!found) return { ...it, slug: selSlug };
-                                  const imgUrl =
-                                    found.images?.find((img: any) => img.is_primary)?.url ||
-                                    found.images?.[0]?.url ||
-                                    (typeof found.images?.[0] === "string" ? found.images[0] : it.image);
-                                  const formattedPrice = found.price
-                                    ? `R$ ${(found.price).toFixed(2).replace(".", ",")}`
-                                    : it.promotionalPrice;
-                                  const origFormatted =
-                                    found.promotional_price && found.price
-                                      ? `R$ ${(found.price).toFixed(2).replace(".", ",")}`
-                                      : "";
-                                  const finalPromo = found.promotional_price
-                                    ? `R$ ${(found.promotional_price).toFixed(2).replace(".", ",")}`
-                                    : formattedPrice;
-                                  return {
-                                    ...it,
-                                    slug: found.slug,
-                                    name: it.name && it.name !== "Novo Modelo em Oferta" ? it.name : found.name,
-                                    originalPrice: origFormatted || it.originalPrice,
-                                    promotionalPrice: finalPromo || it.promotionalPrice,
-                                    image: imgUrl || it.image,
-                                    category:
-                                      (found.category as any)?.name ||
-                                      (typeof found.category === "string" ? found.category : it.category),
-                                  };
-                                }),
-                              }));
-                            }}
-                            className="w-full bg-[#040c16] border border-amber-400/40 rounded-lg px-2 py-1.5 text-white text-xs focus:outline-none focus:border-amber-400 cursor-pointer font-medium"
-                          >
-                            <option value="">-- Vincular produto da loja (/produto/slug) --</option>
-                            {availableProducts.map((prod) => (
-                              <option key={prod.id || prod.slug} value={prod.slug}>
-                                {prod.name} (/produto/{prod.slug})
-                              </option>
-                            ))}
-                          </select>
-                        </div>
-
-                        <div>
-                          <label className="block text-slate-400 text-[11px] mb-0.5">Nome do Modelo</label>
-                          <input
-                            type="text"
-                            value={item.name}
-                            onChange={(e) =>
-                              setPromotionalShowcase((prev) => ({
-                                ...prev,
-                                items: prev.items.map((it) =>
-                                  it.id === item.id ? { ...it, name: e.target.value } : it
-                                ),
-                              }))
-                            }
-                            className="w-full bg-[#040c16] border border-white/10 rounded-lg px-2.5 py-1.5 text-white text-xs focus:outline-none focus:border-amber-400"
-                          />
-                        </div>
-
-                        <div className="grid grid-cols-2 gap-2">
-                          <div>
-                            <label className="block text-slate-400 text-[11px] mb-0.5">Categoria</label>
-                            <input
-                              type="text"
-                              value={item.category}
-                              onChange={(e) =>
-                                setPromotionalShowcase((prev) => ({
-                                  ...prev,
-                                  items: prev.items.map((it) =>
-                                    it.id === item.id ? { ...it, category: e.target.value } : it
-                                  ),
-                                }))
-                              }
-                              className="w-full bg-[#040c16] border border-white/10 rounded-lg px-2.5 py-1.5 text-white text-xs focus:outline-none focus:border-amber-400"
-                            />
-                          </div>
-                          <div>
-                            <div className="flex items-center justify-between mb-0.5">
-                              <label className="block text-slate-400 text-[11px]">Selo Desconto</label>
-                              {item.discountBadge && (
-                                <button
-                                  type="button"
-                                  onClick={() =>
-                                    setPromotionalShowcase((prev) => ({
-                                      ...prev,
-                                      items: prev.items.map((it) =>
-                                        it.id === item.id ? { ...it, discountBadge: "" } : it
-                                      ),
-                                    }))
-                                  }
-                                  className="text-[9px] text-amber-400 hover:underline cursor-pointer"
-                                >
-                                  Sem selo
-                                </button>
-                              )}
-                            </div>
-                            <input
-                              type="text"
-                              value={item.discountBadge || ""}
-                              onChange={(e) =>
-                                setPromotionalShowcase((prev) => ({
-                                  ...prev,
-                                  items: prev.items.map((it) =>
-                                    it.id === item.id ? { ...it, discountBadge: e.target.value } : it
-                                  ),
-                                }))
-                              }
-                              placeholder="Vazio = sem selo"
-                              className="w-full bg-[#040c16] border border-white/10 rounded-lg px-2.5 py-1.5 text-white text-xs focus:outline-none focus:border-amber-400"
-                            />
-                          </div>
-                        </div>
-
-                        <div className="grid grid-cols-2 gap-2">
-                          <div>
-                            <label className="block text-slate-400 text-[11px] mb-0.5">Preço Original</label>
-                            <input
-                              type="text"
-                              value={item.originalPrice || ""}
-                              onChange={(e) =>
-                                setPromotionalShowcase((prev) => ({
-                                  ...prev,
-                                  items: prev.items.map((it) =>
-                                    it.id === item.id ? { ...it, originalPrice: e.target.value } : it
-                                  ),
-                                }))
-                              }
-                              placeholder="Vazio = sem risco"
-                              className="w-full bg-[#040c16] border border-white/10 rounded-lg px-2.5 py-1.5 text-white text-xs focus:outline-none focus:border-amber-400"
-                            />
-                          </div>
-                          <div>
-                            <label className="block text-slate-400 text-[11px] mb-0.5">Preço Final</label>
-                            <input
-                              type="text"
-                              value={item.promotionalPrice}
-                              onChange={(e) =>
-                                setPromotionalShowcase((prev) => ({
-                                  ...prev,
-                                  items: prev.items.map((it) =>
-                                    it.id === item.id ? { ...it, promotionalPrice: e.target.value } : it
-                                  ),
-                                }))
-                              }
-                              className="w-full bg-[#040c16] border border-white/10 rounded-lg px-2.5 py-1.5 text-white text-xs focus:outline-none focus:border-amber-400"
-                            />
-                          </div>
-                        </div>
-
-                        <div>
-                          <label className="block text-slate-400 text-[11px] mb-0.5">Parcelamento</label>
-                          <input
-                            type="text"
-                            value={item.installment}
-                            onChange={(e) =>
-                              setPromotionalShowcase((prev) => ({
-                                ...prev,
-                                items: prev.items.map((it) =>
-                                  it.id === item.id ? { ...it, installment: e.target.value } : it
-                                ),
-                              }))
-                            }
-                            className="w-full bg-[#040c16] border border-white/10 rounded-lg px-2.5 py-1.5 text-white text-xs focus:outline-none focus:border-amber-400"
-                          />
-                        </div>
-
-                        <div className="grid grid-cols-2 gap-2">
-                          <div>
-                            <label className="block text-slate-400 text-[11px] mb-0.5">Nome da Cor</label>
-                            <input
-                              type="text"
-                              value={item.colorName}
-                              onChange={(e) =>
-                                setPromotionalShowcase((prev) => ({
-                                  ...prev,
-                                  items: prev.items.map((it) =>
-                                    it.id === item.id ? { ...it, colorName: e.target.value } : it
-                                  ),
-                                }))
-                              }
-                              className="w-full bg-[#040c16] border border-white/10 rounded-lg px-2.5 py-1.5 text-white text-xs focus:outline-none focus:border-amber-400"
-                            />
-                          </div>
-                          <div>
-                            <label className="block text-slate-400 text-[11px] mb-0.5">Slug (/produto/[slug])</label>
-                            <input
-                              type="text"
-                              value={item.slug}
-                              onChange={(e) =>
-                                setPromotionalShowcase((prev) => ({
-                                  ...prev,
-                                  items: prev.items.map((it) =>
-                                    it.id === item.id ? { ...it, slug: e.target.value } : it
-                                  ),
-                                }))
-                              }
-                              className="w-full bg-[#040c16] border border-white/10 rounded-lg px-2.5 py-1.5 text-white text-xs focus:outline-none focus:border-amber-400 font-mono"
-                            />
-                          </div>
-                        </div>
-                      </div>
                     </div>
-                  </div>
-                ))}
+                  );
+                })}
               </div>
             </div>
 

@@ -108,26 +108,24 @@ export function ProductCard({
 
       {/* 4. Bloco de Informações Sobre o Degradê */}
       <div className="relative z-20 p-3.5 sm:p-5 flex flex-col gap-1.5 sm:gap-2.5">
-        {/* Swatches de cor */}
-        <div className="flex items-center gap-2" title="Opções de cor disponíveis">
-          <div className="flex items-center -space-x-1">
-            {swatches.slice(0, 4).map((s, idx) => (
-              <span
-                key={idx}
-                className="w-3 h-3 sm:w-3.5 sm:h-3.5 rounded-full border border-white/40 shadow-xs inline-block"
-                style={{ backgroundColor: s.hex }}
-                title={s.name}
-              />
-            ))}
+        {/* Swatches de cor: só exibe se houver 2 ou mais variações cadastradas */}
+        {product.variants && product.variants.length >= 2 && (
+          <div className="flex items-center gap-2" title="Opções de cor disponíveis">
+            <div className="flex items-center -space-x-1">
+              {swatches.slice(0, 4).map((s, idx) => (
+                <span
+                  key={idx}
+                  className="w-3 h-3 sm:w-3.5 sm:h-3.5 rounded-full border border-white/40 shadow-xs inline-block"
+                  style={{ backgroundColor: s.hex }}
+                  title={s.name}
+                />
+              ))}
+            </div>
+            <span className="text-[10px] sm:text-[11px] text-amber-300 font-medium">
+              {product.variants.length} cores
+            </span>
           </div>
-          <span className="text-[10px] sm:text-[11px] text-amber-300 font-medium">
-            {product.variants?.length
-              ? `${product.variants.length} ${
-                  product.variants.length === 1 ? "cor" : "cores"
-                }`
-              : "Cores autorais"}
-          </span>
-        </div>
+        )}
 
         {/* Nome da Armação e Detalhes */}
         <div>
