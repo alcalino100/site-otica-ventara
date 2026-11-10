@@ -93,6 +93,12 @@ export interface Product {
   dimensions_lens_mm: number | null;
   dimensions_bridge_mm: number | null;
   dimensions_temple_mm: number | null;
+  low_stock_threshold?: number;
+  face_shape_recommendations?: string[];
+  warranty_text?: string | null;
+  exchange_text?: string | null;
+  faq_items?: ProductFaqItem[];
+  benefits_tags?: string[];
   created_at: string;
   updated_at: string;
 
@@ -101,6 +107,44 @@ export interface Product {
   brand?: Brand | null;
   images?: ProductImage[];
   variants?: ProductVariant[];
+}
+
+export interface ProductFaqItem {
+  question: string;
+  answer: string;
+}
+
+export interface StoreInfo {
+  name: string;
+  trade_name: string;
+  cnpj: string;
+  phone: string;
+  whatsapp: string;
+  email: string;
+  address_street: string;
+  address_number: string;
+  address_neighborhood: string;
+  address_city: string;
+  address_state: string;
+  address_cep: string;
+  business_hours: string;
+}
+
+export interface AnnouncementBarSettings {
+  is_active: boolean;
+  text: string;
+  bg_color: string;
+  text_color: string;
+  start_date?: string | null;
+  end_date?: string | null;
+}
+
+export interface BenefitItem {
+  id: string;
+  title: string;
+  desc: string;
+  icon: string;
+  enabled: boolean;
 }
 
 export type OrderStatus =
