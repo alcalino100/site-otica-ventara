@@ -37,13 +37,24 @@ export function ProductGallery({ product, overrideImage }: ProductGalleryProps) 
   const activeImage = overrideImage || images[activeIdx]?.url;
 
   const handleMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {
+    // Zoom por coordenadas ativo exclusivamente em Desktop com mouse
+    if (typeof window !== "undefined" && !window.matchMedia("(hover: hover) and (pointer: fine)").matches) {
+      return;
+    }
     const rect = e.currentTarget.getBoundingClientRect();
     const x = ((e.clientX - rect.left) / rect.width) * 100;
     const y = ((e.clientY - rect.top) / rect.height) * 100;
     setZoomCoords({ x, y });
   };
 
+  const handleMouseEnter = () => {
+    if (typeof window !== "undefined" && window.matchMedia("(hover: hover) and (pointer: fine)").matches) {
+      setIsZoomed(true);
+    }
+  };
+
   const handleTouchStart = (e: React.TouchEvent<HTMLDivElement>) => {
+    setIsZoomed(false);
     touchStartXRef.current = e.touches[0].clientX;
   };
 
@@ -110,15 +121,16 @@ export function ProductGallery({ product, overrideImage }: ProductGalleryProps) 
       <div className="flex-1 w-full space-y-3">
         {activeImage ? (
           <div
-            className="relative w-full aspect-[4/3] sm:aspect-[4/3] lg:aspect-square min-h-[340px] sm:min-h-[460px] lg:min-h-[520px] rounded-3xl overflow-hidden border border-slate-200/90 shadow-sm bg-slate-950 group select-none cursor-crosshair"
-            onMouseEnter={() => setIsZoomed(true)}
+            className="relative w-full aspect-[4/3] sm:aspect-[4/3] lg:aspect-square min-h-[340px] sm:min-h-[460px] lg:min-h-[520px] rounded-3xl overflow-hidden border border-slate-200/90 shadow-sm bg-slate-950 group select-none cursor-crosshair touch-pan-y"
+            onMouseEnter={handleMouseEnter}
             onMouseLeave={() => setIsZoomed(false)}
             onMouseMove={handleMouseMove}
             onTouchStart={handleTouchStart}
             onTouchMove={handleTouchMove}
             onTouchEnd={handleTouchEnd}
+            style={{ touchAction: "pan-y" }}
           >
-            {/* Imagem com suporte a Zoom por coordenadas */}
+            {/* Imagem com suporte a Zoom por coordenadas exclusivamente no Desktop */}
             <img
               src={activeImage}
               alt={images[activeIdx]?.alt_text || product.name}
@@ -141,16 +153,16 @@ export function ProductGallery({ product, overrideImage }: ProductGalleryProps) 
 
             {/* Badges de Categoria e Gênero no Topo */}
             <div className="absolute top-5 left-5 flex items-center gap-2 z-20">
-              <span className="text-[10px] sm:text-[11px] font-bold tracking-wider uppercase bg-black/45 backdrop-blur-md text-white border border-white/20 px-3 py-1.5 rounded-full shadow-sm">
+              <span className="text-[10px] sm:text-[11px] font-bold tracking-wider uppercase bg-black/45 backdrop-blur-md text-white border border-white/20 px-3 py-1.5 rounded-full shadow-sm whitespace-nowrap">
                 {product.frame_type === "Solar" ? "Óculos Solar UV400" : "Armação de Grau"}
               </span>
-              <span className="text-[10px] sm:text-[11px] font-semibold text-slate-200 bg-black/45 backdrop-blur-md border border-white/20 px-3 py-1.5 rounded-full shadow-sm">
+              <span className="text-[10px] sm:text-[11px] font-semibold text-slate-200 bg-black/45 backdrop-blur-md border border-white/20 px-3 py-1.5 rounded-full shadow-sm whitespace-nowrap">
                 {product.gender || "Unissex"}
               </span>
             </div>
 
             {/* Selo Curadoria Autoral no Topo Direito */}
-            <div className="absolute top-5 right-5 z-20 hidden sm:flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-black/45 backdrop-blur-md border border-white/20 text-white text-[10px] font-semibold tracking-wider uppercase shadow-sm">
+            <div className="absolute top-5 right-5 z-20 hidden sm:flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-black/45 backdrop-blur-md border border-white/20 text-white text-[10px] font-semibold tracking-wider uppercase shadow-sm whitespace-nowrap">
               <Sparkles size={12} className="text-[#FFD62E]" />
               <span>Peça Original</span>
             </div>
@@ -161,24 +173,46 @@ export function ProductGallery({ product, overrideImage }: ProductGalleryProps) 
               <span>Passe o mouse para ampliar</span>
             </div>
 
-            {/* Controles de Navegação Touch / Setas no Mobile */}
+            {/* Controles de Navegação Touch / Setas no Mobile com Zona Morta de 44px */}
             {images.length > 1 && (
               <>
                 <button
                   type="button"
-                  onClick={handlePrev}
-                  className="lg:hidden absolute left-3 top-1/2 -translate-y-1/2 z-20 p-2 rounded-full bg-black/50 backdrop-blur-md text-white hover:bg-black/70 transition-colors"
+                  data-testid="pdp-gallery-prev"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    e.preventDefault();
+                    handlePrev();
+                  }}
+                  onTouchStart={(e) => e.stopPropagation()}
+                  onTouchEnd={(e) => {
+                    e.stopPropagation();
+                    e.preventDefault();
+                    handlePrev();
+                  }}
+                  className="lg:hidden absolute left-3 top-1/2 -translate-y-1/2 z-20 min-w-[44px] min-h-[44px] w-11 h-11 flex items-center justify-center rounded-full bg-black/60 backdrop-blur-md text-white hover:bg-black/80 transition-colors border border-white/20 shadow-md touch-manipulation cursor-pointer"
                   aria-label="Imagem anterior"
                 >
-                  <ChevronLeft size={18} />
+                  <ChevronLeft size={20} />
                 </button>
                 <button
                   type="button"
-                  onClick={handleNext}
-                  className="lg:hidden absolute right-3 top-1/2 -translate-y-1/2 z-20 p-2 rounded-full bg-black/50 backdrop-blur-md text-white hover:bg-black/70 transition-colors"
+                  data-testid="pdp-gallery-next"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    e.preventDefault();
+                    handleNext();
+                  }}
+                  onTouchStart={(e) => e.stopPropagation()}
+                  onTouchEnd={(e) => {
+                    e.stopPropagation();
+                    e.preventDefault();
+                    handleNext();
+                  }}
+                  className="lg:hidden absolute right-3 top-1/2 -translate-y-1/2 z-20 min-w-[44px] min-h-[44px] w-11 h-11 flex items-center justify-center rounded-full bg-black/60 backdrop-blur-md text-white hover:bg-black/80 transition-colors border border-white/20 shadow-md touch-manipulation cursor-pointer"
                   aria-label="Próxima imagem"
                 >
-                  <ChevronRight size={18} />
+                  <ChevronRight size={20} />
                 </button>
               </>
             )}

@@ -265,6 +265,24 @@
     outline-offset: 4px;
   }
 
+  /* Zoom de catálogo estritamente restrito a Desktop com mouse (elimina sticky hover no mobile) */
+  @media (hover: hover) and (pointer: fine) {
+    .hover-zoom-desktop:hover {
+      transform: scale(1.05);
+    }
+    .group:hover .group-hover-zoom-desktop {
+      transform: scale(1.05);
+    }
+  }
+
+  /* Em celulares e telas de toque, bloqueia escala residual pós-toque */
+  @media (hover: none), (pointer: coarse) {
+    .hover-zoom-desktop,
+    .group-hover-zoom-desktop {
+      transform: scale(1) !important;
+    }
+  }
+
   /* Senior Designer Typography Hierarchy */
   h1, h2, h3, p {
     margin: 0;

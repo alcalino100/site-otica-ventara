@@ -8,6 +8,7 @@ import { DEFAULT_PROMOTIONAL_SHOWCASE } from "@/lib/site-settings-constants";
 import { DEFAULT_CATALOG } from "@/lib/catalog-data";
 import { useSiteSettings } from "../providers/site-settings-provider";
 import { FrameArt } from "../catalog/frame-art";
+import { CardImageGallery, GalleryImage } from "../catalog/card-image-gallery";
 import { formatProductPricing, FormattedProductPricing } from "@/lib/pricing";
 
 const INITIAL_LIMIT = 8;
@@ -24,6 +25,7 @@ interface ResolvedPromoItem {
   tag?: string;
   pricing: FormattedProductPricing;
   image?: string;
+  images?: GalleryImage[];
   imageFit?: "cover" | "contain";
   colorName?: string;
   colorHex?: string;
@@ -141,6 +143,12 @@ export function PromotionalOffersSection({ products = [] }: PromotionalOffersSec
           tag: item.tag || (pricing.hasDiscount ? "Oferta" : "Destaque"),
           pricing,
           image: primaryImg,
+          images:
+            matched.images && matched.images.length > 0
+              ? matched.images
+              : primaryImg
+              ? [{ url: primaryImg, alt_text: matched.name, is_primary: true }]
+              : [],
           imageFit: item.imageFit || "cover",
           colorName: firstVariant?.color_name || item.colorName || "Padrão",
           colorHex: firstVariant?.color_hex || item.colorHex || "#1e293b",
@@ -236,58 +244,49 @@ export function PromotionalOffersSection({ products = [] }: PromotionalOffersSec
                     {/* Selos de Desconto e Categoria (Sem duplicação de 'Oferta' e '-X% OFF') */}
                     <div className="flex items-center justify-between gap-1.5 mb-2 min-h-[22px]">
                       {item.pricing.hasDiscount && item.pricing.discountBadgeText ? (
-                        <span className="inline-flex items-center gap-1 px-2 sm:px-2.5 py-0.5 rounded-full bg-emerald-600 text-white font-bold text-[9px] sm:text-[10px] tracking-wide shadow-xs">
+                        <span className="inline-flex items-center gap-1 px-2 sm:px-2.5 py-0.5 rounded-full bg-emerald-600 text-white font-bold text-[9px] sm:text-[10px] tracking-wide shadow-xs whitespace-nowrap shrink-0">
                           <Tag size={10} />
                           <span>{item.pricing.discountBadgeText}</span>
                         </span>
                       ) : item.tag && item.tag.toLowerCase() !== "oferta" ? (
-                        <span className="text-[9px] font-semibold text-slate-600 bg-slate-200/70 px-2 py-0.5 rounded-full truncate">
+                        <span className="text-[9px] font-semibold text-slate-600 bg-slate-200/70 px-2 py-0.5 rounded-full truncate whitespace-nowrap shrink-0">
                           {item.tag}
                         </span>
                       ) : (
-                        <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-amber-50 text-amber-700 border border-amber-200/60 font-bold text-[9px] tracking-wide">
+                        <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-amber-50 text-amber-700 border border-amber-200/60 font-bold text-[9px] tracking-wide whitespace-nowrap shrink-0">
                           <Sparkles size={9} className="text-amber-500" />
                           <span>OFERTA</span>
                         </span>
                       )}
 
-                      <span className="text-[9px] font-semibold text-slate-500 bg-slate-100 px-2 py-0.5 rounded-full truncate">
+                      <span
+                        className="text-[9px] font-semibold text-slate-500 bg-slate-100 px-2 py-0.5 rounded-full truncate text-right ml-auto min-w-0"
+                        title={item.category}
+                      >
                         {item.category}
                       </span>
                     </div>
 
-                    {/* Foto do Modelo com Zoom no Hover */}
-                    <Link
-                      href={`/produto/${item.slug}`}
-                      className={`relative aspect-[4/3] w-full rounded-2xl overflow-hidden border transition-all duration-300 mb-3 block shadow-xs group-hover:shadow-md ${
-                        hasRealImage && item.imageFit !== "contain"
-                          ? "bg-slate-900/5 border-slate-200/90 group-hover:border-amber-400/60"
-                          : "bg-white p-2.5 sm:p-4 flex items-center justify-center border-slate-100 group-hover:border-slate-200"
-                      }`}
-                      aria-label={`Ver modelo ${item.name}`}
-                    >
-                      {hasRealImage ? (
-                        <img
-                          src={item.image}
-                          alt={item.name}
-                          onError={() => setImgErrors((prev) => ({ ...prev, [item.id]: true }))}
-                          className={`w-full h-full transition-transform duration-500 ease-out group-hover:scale-105 ${
-                            item.imageFit === "contain"
-                              ? "object-contain drop-shadow-sm"
-                              : "object-cover object-center"
-                          }`}
-                          loading="lazy"
-                        />
-                      ) : (
-                        <div className="w-full max-w-[140px] group-hover:scale-105 transition-transform duration-300">
-                          <FrameArt
-                            solar={item.category.toLowerCase().includes("solar")}
-                            round={item.name.toLowerCase().includes("redondo") || item.name.toLowerCase().includes("onça")}
-                            amber={item.colorName?.toLowerCase().includes("âmbar")}
-                          />
-                        </div>
-                      )}
-                    </Link>
+                    {/* Galeria Tátil com Zona Morta Independente e Zero Zoom no Mobile */}
+                    <div className="mb-3">
+                      <CardImageGallery
+                        images={item.images}
+                        fallbackUrl={item.image}
+                        productName={item.name}
+                        productHref={`/produto/${item.slug}`}
+                        aspectRatio="aspect-[4/3]"
+                        imageFit={item.imageFit || "cover"}
+                        fallbackArt={
+                          <div className="w-full max-w-[140px]">
+                            <FrameArt
+                              solar={item.category.toLowerCase().includes("solar")}
+                              round={item.name.toLowerCase().includes("redondo") || item.name.toLowerCase().includes("onça")}
+                              amber={item.colorName?.toLowerCase().includes("âmbar")}
+                            />
+                          </div>
+                        }
+                      />
+                    </div>
 
                     {/* Metadados e Nome */}
                     <div className="space-y-1">

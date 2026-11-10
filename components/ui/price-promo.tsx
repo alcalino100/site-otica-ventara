@@ -105,7 +105,7 @@ export function PricePromo({
             <span
               aria-hidden="true"
               data-testid="discount-badge"
-              className="text-[10px] sm:text-[11px] font-black tracking-wider px-1.5 py-0.5 rounded-md bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 border border-emerald-500/25 leading-none shrink-0"
+              className="text-[10px] sm:text-[11px] font-black tracking-wider px-1.5 py-0.5 rounded-md bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 border border-emerald-500/25 leading-none shrink-0 whitespace-nowrap"
             >
               -{discountPercent}%
             </span>
