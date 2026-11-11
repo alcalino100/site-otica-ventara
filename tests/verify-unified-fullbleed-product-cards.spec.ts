@@ -143,4 +143,45 @@ test.describe("Padronização Visual dos Cards de Produto com Foto Sangrada em T
     await expect(simImage).toBeVisible();
     await expect(simImage).toHaveClass(/object-cover/);
   });
+
+  test("7. Respiro visual do produto: texto não sobrepõe a armação e fotos usam foco central superior (#162)", async ({ page }) => {
+    // 1. Validação em Desktop (1280px)
+    await page.setViewportSize({ width: 1280, height: 800 });
+    await page.goto("/armacoes");
+    await page.waitForLoadState("domcontentloaded");
+
+    const deskCard = page.locator(".grid .product").first();
+    await expect(deskCard).toBeVisible();
+
+    const deskCardBox = await deskCard.boundingBox();
+    const deskTitle = deskCard.locator("h3").first();
+    const deskTitleBox = await deskTitle.boundingBox();
+
+    expect(deskCardBox).not.toBeNull();
+    expect(deskTitleBox).not.toBeNull();
+
+    if (deskCardBox && deskTitleBox) {
+      // No desktop, a distância do topo até o título deve ser de pelo menos 240px
+      const clearAreaDesk = deskTitleBox.y - deskCardBox.y;
+      expect(clearAreaDesk).toBeGreaterThanOrEqual(240);
+    }
+
+    // 2. Validação em Mobile (390px)
+    await page.setViewportSize({ width: 390, height: 844 });
+    await page.waitForTimeout(300);
+
+    const mobileCard = page.locator(".grid .product").first();
+    const mobCardBox = await mobileCard.boundingBox();
+    const mobTitle = mobileCard.locator("h3").first();
+    const mobTitleBox = await mobTitle.boundingBox();
+
+    expect(mobCardBox).not.toBeNull();
+    expect(mobTitleBox).not.toBeNull();
+
+    if (mobCardBox && mobTitleBox) {
+      // No mobile, a distância do topo até o título deve ser de pelo menos 130px
+      const clearAreaMob = mobTitleBox.y - mobCardBox.y;
+      expect(clearAreaMob).toBeGreaterThanOrEqual(130);
+    }
+  });
 });

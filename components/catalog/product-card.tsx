@@ -145,7 +145,7 @@ export function ProductCard({
 
   return (
     <Component
-      className="product group relative w-full min-w-0 max-w-full rounded-2xl sm:rounded-3xl overflow-hidden border border-slate-200/80 hover:border-amber-400/70 shadow-sm hover:shadow-2xl transition-all duration-300 flex flex-col justify-end bg-[#040d1a] aspect-[3/4.2] sm:aspect-[3/4.2] touch-pan-y"
+      className="product group relative w-full min-w-0 max-w-full rounded-2xl sm:rounded-3xl overflow-hidden border border-slate-200/80 hover:border-amber-400/70 shadow-sm hover:shadow-2xl transition-all duration-300 flex flex-col justify-end bg-[#040d1a] aspect-[3/4.8] sm:aspect-[3/5.2] min-h-[340px] sm:min-h-[480px] touch-pan-y"
       onTouchStart={onTouchStart}
       onTouchMove={onTouchMove}
       onTouchEnd={onTouchEnd}
@@ -164,7 +164,7 @@ export function ProductCard({
             alt={product.name}
             loading="lazy"
             decoding="async"
-            className="w-full h-full object-cover object-center group-hover-zoom-desktop transition-transform duration-700 ease-out"
+            className="w-full h-full object-cover object-[center_25%] group-hover-zoom-desktop transition-transform duration-700 ease-out"
           />
         ) : (
           <div className="w-full h-full flex items-center justify-center p-4 pb-24 sm:p-8 sm:pb-36 bg-gradient-to-b from-slate-100 via-slate-50 to-slate-200 group-hover-zoom-desktop transition-transform duration-700 ease-out">
@@ -233,11 +233,11 @@ export function ProductCard({
         {categoryLabel}
       </span>
 
-      {/* 3. Degradê Cobrindo de Baixo para Cima (~25% a 35%) */}
-      <div className="absolute inset-x-0 bottom-0 h-[65%] sm:h-[55%] bg-gradient-to-t from-[#02070d] via-[#02070d]/92 via-50% to-transparent pointer-events-none z-10" />
+      {/* 3. Degradê Cobrindo de Baixo para Cima (Refinado para dar respiro à armação) */}
+      <div className="absolute inset-x-0 bottom-0 h-[48%] sm:h-[42%] bg-gradient-to-t from-[#02070d] via-[#02070d]/92 via-50% to-transparent pointer-events-none z-10" />
 
       {/* 4. Bloco de Informações Sobre o Degradê */}
-      <div className="relative z-20 p-2.5 sm:p-5 flex flex-col gap-1 sm:gap-2.5 pointer-events-none">
+      <div className="relative z-20 p-3 sm:p-5 flex flex-col gap-1.5 sm:gap-2.5 pointer-events-none">
         {/* Swatches de cor: só exibe se houver 2 ou mais variações cadastradas */}
         {product.variants && product.variants.length >= 2 && (
           <div className="flex items-center gap-1.5 sm:gap-2 pointer-events-auto" title="Opções de cor disponíveis">

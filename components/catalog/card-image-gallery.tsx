@@ -157,7 +157,7 @@ export function CardImageGallery({
             className={`w-full h-full group-hover-zoom-desktop transition-transform duration-500 ease-out ${
               imageFit === "contain"
                 ? "object-contain p-2 drop-shadow-sm"
-                : "object-cover object-center"
+                : "object-cover object-[center_25%]"
             }`}
           />
         ) : fallbackArt ? (

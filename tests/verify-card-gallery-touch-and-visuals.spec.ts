@@ -10,8 +10,10 @@ test.describe("Validação de Toque, Zona Morta nas Setas, Zoom Seguro e Padroni
   test.beforeEach(async ({ page }) => {
     await page.addInitScript(() => {
       // Evita intercepção de ponteiros pela roleta promocional e cookies durante os testes
-      window.sessionStorage.setItem("ventara_wheel_session_default-optica-ventara-2025", "1");
-      window.localStorage.setItem("ventara_wheel_participated_default-optica-ventara-2025_v1", "1");
+      window.sessionStorage.setItem("ventara_wheel_disabled", "1");
+      window.localStorage.setItem("ventara_wheel_disabled", "1");
+      window.sessionStorage.setItem("ventara_wheel_session_camp-ventara-revelacao-v1", "1");
+      window.localStorage.setItem("ventara_wheel_participated_camp-ventara-revelacao-v1_v1", "1");
       window.localStorage.setItem("ventara_cookie_consent", "accepted");
     });
     await page.goto("/");
@@ -54,7 +56,7 @@ test.describe("Validação de Toque, Zona Morta nas Setas, Zoom Seguro e Padroni
     await expect(card).toBeVisible();
 
     const link = card.locator("a[href*='/produto/']").first();
-    await link.click();
+    await link.click({ position: { x: 50, y: 50 } });
 
     await page.waitForURL(/\/produto\//);
     const pdpImg = page.locator("[data-testid='pdp-main-image'], img[alt*='foto'], img[alt*='Ventara']").first();
@@ -95,7 +97,7 @@ test.describe("Validação de Toque, Zona Morta nas Setas, Zoom Seguro e Padroni
     await expect(card).toBeVisible();
 
     const link = card.locator("a[href*='/produto/']").first();
-    await link.click();
+    await link.click({ position: { x: 50, y: 50 } });
     await page.waitForURL(/\/produto\//);
 
     await page.goBack();
@@ -114,8 +116,8 @@ test.describe("Validação de Toque, Zona Morta nas Setas, Zoom Seguro e Padroni
         el.addEventListener("click", (e) => e.preventDefault(), { capture: true });
       });
 
-      // Dispara toque na imagem
-      await img.tap();
+      // Dispara toque na imagem (no centro superior da foto, livre de textos)
+      await img.tap({ position: { x: 50, y: 50 } });
       await page.waitForTimeout(100);
 
       const transform = await img.evaluate((el) => window.getComputedStyle(el).transform);
@@ -190,7 +192,7 @@ test.describe("Validação de Toque, Zona Morta nas Setas, Zoom Seguro e Padroni
   test("T10: Setas na PDP possuem zona morta de 44px e stopPropagation", async ({ page }) => {
     const card = page.locator("article.group").first();
     const link = card.locator("a[href*='/produto/']").first();
-    await link.click();
+    await link.click({ position: { x: 50, y: 50 } });
     await page.waitForURL(/\/produto\//);
 
     const pdpNextBtn = page.locator("[data-testid='pdp-gallery-next']");
