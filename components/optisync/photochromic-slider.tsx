@@ -13,8 +13,8 @@ interface PhotochromicSliderProps {
 }
 
 export function PhotochromicSlider({
-  clearImageUrl = "/images/lenses/optisync-hd.jpg",
-  darkImageUrl = "/images/lenses/optisync-fotossensivel-box.jpg",
+  clearImageUrl,
+  darkImageUrl,
   bannerImageUrl,
   altText = "Comparação de escurecimento da lente fotossensível OPTiSYNC",
   transitionSpeedText = "Ativação em até 30 segundos sob radiação UV",
@@ -22,6 +22,23 @@ export function PhotochromicSlider({
   const [position, setPosition] = useState(50);
   const [isDragging, setIsDragging] = useState(false);
   const containerRef = useRef<HTMLDivElement>(null);
+
+  const defaultClear = "/images/lenses/optisync-hd.jpg";
+  const defaultDark = "/images/lenses/optisync-fotossensivel-box.jpg";
+  const defaultBanner = "/images/lenses/optisync/arte-07-fotossensivel-banner.jpg";
+
+  const isCustom = (url?: string, defaultVal?: string) =>
+    Boolean(url && url.trim().length > 0 && url !== defaultVal);
+
+  const hasCustomClear = isCustom(clearImageUrl, defaultClear);
+  const hasCustomDark = isCustom(darkImageUrl, defaultDark);
+  const hasCustomBanner = isCustom(bannerImageUrl, defaultBanner);
+
+  // Imagens efetivas: prioriza customização do admin (límpida/escura/banner) sobre os defaults
+  const effectiveClear = hasCustomClear ? clearImageUrl! : defaultClear;
+  const effectiveDark = hasCustomDark
+    ? darkImageUrl!
+    : (hasCustomBanner ? bannerImageUrl! : defaultDark);
 
   const updatePosition = useCallback((clientX: number) => {
     if (!containerRef.current) return;
@@ -73,32 +90,6 @@ export function PhotochromicSlider({
     setPosition(next);
   };
 
-  const hasTwoImages = Boolean(clearImageUrl && darkImageUrl && clearImageUrl !== darkImageUrl);
-
-  // If a single banner image or only 1 image exists, render single view gracefully
-  if (!hasTwoImages && (bannerImageUrl || clearImageUrl || darkImageUrl)) {
-    const singleSrc = bannerImageUrl || darkImageUrl || clearImageUrl || "";
-    return (
-      <div className="relative rounded-2xl overflow-hidden border border-[#0044C9]/40 bg-[#000933]/90 shadow-2xl">
-        <div className="relative aspect-[3/2] w-full">
-          <Image
-            src={singleSrc}
-            alt={altText}
-            fill
-            sizes="(max-width: 768px) 100vw, (max-width: 1200px) 80vw, 1100px"
-            className="object-cover"
-          />
-        </div>
-        <div className="p-4 bg-[#00051E]/80 backdrop-blur-md flex items-center justify-between text-xs text-[#B8C2E6]">
-          <span className="flex items-center gap-1.5 font-medium text-[#FFC21A]">
-            <Sparkles className="w-4 h-4" /> {transitionSpeedText}
-          </span>
-          <span className="text-[#8A96C2]">Proteção 100% UV400 Contínua</span>
-        </div>
-      </div>
-    );
-  }
-
   return (
     <div className="space-y-3">
       <div
@@ -118,9 +109,9 @@ export function PhotochromicSlider({
       >
         {/* Camada Base: Lente Escurecida (Sol Pleno) */}
         <div className="relative aspect-[3/2] w-full">
-          {darkImageUrl && (
+          {effectiveDark && (
             <Image
-              src={darkImageUrl}
+              src={effectiveDark}
               alt={`${altText} - Estado Escurecido`}
               fill
               sizes="(max-width: 768px) 100vw, (max-width: 1200px) 80vw, 1100px"
@@ -141,9 +132,9 @@ export function PhotochromicSlider({
           style={{ clipPath: `inset(0 ${100 - position}% 0 0)` }}
         >
           <div className="relative w-full h-full">
-            {clearImageUrl && (
+            {effectiveClear && (
               <Image
-                src={clearImageUrl}
+                src={effectiveClear}
                 alt={`${altText} - Estado Límpido`}
                 fill
                 sizes="(max-width: 768px) 100vw, (max-width: 1200px) 80vw, 1100px"

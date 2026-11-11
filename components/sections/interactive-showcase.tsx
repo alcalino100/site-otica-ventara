@@ -712,58 +712,70 @@ export function InteractiveShowcase({
             {/* Coluna da Foto e Miniaturas: No mobile aparece PRIMEIRO (order-1) */}
             <div className="order-1 lg:order-2 lg:col-span-7 space-y-5">
               
-              {/* Moldura de Showcase Principal da Armação */}
-              <div className="relative bg-white rounded-3xl border border-slate-200 p-6 sm:p-10 flex flex-col items-center justify-center min-h-[280px] sm:min-h-[360px] shadow-sm overflow-hidden group">
+              {/* Moldura de Showcase Principal da Armação (Foto Sangrada Full-Bleed Luxo) */}
+              <div className="relative bg-[#040d1a] rounded-3xl border border-slate-700/60 shadow-xl overflow-hidden aspect-[4/3] sm:aspect-[16/10] min-h-[300px] sm:min-h-[380px] flex items-center justify-center group">
                 {/* Glow Suave de Fundo */}
-                <div className="absolute inset-0 bg-radial from-amber-400/5 via-transparent to-transparent pointer-events-none" />
+                <div className="absolute inset-0 bg-radial from-amber-400/10 via-transparent to-transparent pointer-events-none z-10" />
 
                 {/* Badge da Variação Selecionada */}
-                <div className="absolute top-4 left-4 flex items-center gap-2 z-10">
-                  <span className="text-[10px] font-bold uppercase tracking-wider px-3 py-1 rounded-full bg-slate-900 text-white shadow-xs">
+                <div className="absolute top-4 left-4 flex items-center gap-2 z-20 pointer-events-none">
+                  <span className="text-[10px] font-bold uppercase tracking-wider px-3 py-1 rounded-full bg-[#06111f]/90 text-amber-300 border border-amber-400/30 backdrop-blur-md shadow-md">
                     {currentData.featuredProductName}
                   </span>
-                  <span className="text-[10px] font-semibold text-slate-600 bg-slate-100 px-2.5 py-1 rounded-full border border-slate-200">
+                  <span className="text-[10px] font-semibold text-slate-200 bg-black/60 px-2.5 py-1 rounded-full border border-white/20 backdrop-blur-md shadow-md">
                     {activeVariation.name}
                   </span>
                 </div>
 
-                {/* Visual em Destaque da Armação com Transição Suave */}
+                {/* Visual em Destaque da Armação com Foto Sangrada e Transição Suave */}
                 <AnimatePresence mode="wait">
                   <motion.div
                     key={`${activeVariation.id}-${activeVariation.sku}`}
-                    initial={{ opacity: 0, y: 10, scale: 0.96 }}
-                    animate={{ opacity: 1, y: 0, scale: 1 }}
-                    exit={{ opacity: 0, y: -10, scale: 0.96 }}
-                    transition={{ duration: 0.3, ease: [0.32, 0.72, 0, 1] }}
-                    className="w-full max-w-[460px] flex items-center justify-center py-4"
+                    initial={{ opacity: 0, scale: 0.98 }}
+                    animate={{ opacity: 1, scale: 1 }}
+                    exit={{ opacity: 0, scale: 1.02 }}
+                    transition={{ duration: 0.35, ease: [0.32, 0.72, 0, 1] }}
+                    className="absolute inset-0 w-full h-full flex items-center justify-center"
                   >
                     {activeVariation.imageUrl && activeVariation.imageUrl.trim() !== "" ? (
                       <img
                         src={activeVariation.imageUrl}
                         alt={`${currentData.featuredProductName} - ${activeVariation.name}`}
-                        className="w-full h-auto max-h-64 sm:max-h-72 object-contain filter drop-shadow-xl transition-all duration-300"
+                        className="w-full h-full object-cover object-center group-hover:scale-105 transition-transform duration-700 ease-out"
                       />
                     ) : selectedCategory === "solar" && selectedGender === "masculino" ? (
-                      <SportsFrameArt
-                        lensColor={activeVariation.lensColor}
-                        frameColor={activeVariation.frameColor}
-                        className="w-full h-auto max-h-64 object-contain filter drop-shadow-xl"
-                      />
+                      <div className="w-full max-w-[420px] p-6 flex items-center justify-center">
+                        <SportsFrameArt
+                          lensColor={activeVariation.lensColor}
+                          frameColor={activeVariation.frameColor}
+                          className="w-full h-auto max-h-60 object-contain filter drop-shadow-2xl"
+                        />
+                      </div>
                     ) : (
-                      <FrameArt
-                        solar={selectedCategory === "solar"}
-                        amber={activeVariation.isAmber}
-                        round={activeVariation.isRound}
-                        className="w-full h-auto max-h-64 object-contain filter drop-shadow-xl"
-                      />
+                      <div className="w-full max-w-[420px] p-6 flex items-center justify-center">
+                        <FrameArt
+                          solar={selectedCategory === "solar"}
+                          amber={activeVariation.isAmber}
+                          round={activeVariation.isRound}
+                          className="w-full h-auto max-h-60 object-contain filter drop-shadow-2xl"
+                        />
+                      </div>
                     )}
                   </motion.div>
                 </AnimatePresence>
 
-                {/* Legenda do Acabamento Ativo */}
-                <p className="text-xs text-slate-500 font-medium text-center mt-2">
-                  Acabamento: <strong className="text-slate-800">{activeVariation.finish}</strong>
-                </p>
+                {/* Gradiente Escuro Inferior para Leitura Impecável */}
+                <div className="absolute inset-x-0 bottom-0 h-24 sm:h-28 bg-gradient-to-t from-[#02070d] via-[#02070d]/80 to-transparent pointer-events-none z-10" />
+
+                {/* Legenda do Acabamento Ativo no Rodapé do Card */}
+                <div className="absolute bottom-3.5 inset-x-4 z-20 flex items-center justify-between text-xs pointer-events-none">
+                  <p className="text-slate-300 font-medium drop-shadow-sm">
+                    Acabamento: <strong className="text-amber-400 font-semibold">{activeVariation.finish}</strong>
+                  </p>
+                  <span className="hidden sm:inline-block text-[10px] text-slate-400 font-mono uppercase tracking-wider bg-black/50 px-2 py-0.5 rounded-md border border-white/10">
+                    Linha Solar Premium
+                  </span>
+                </div>
               </div>
 
               {/* ============================================================== */}
@@ -792,29 +804,29 @@ export function InteractiveShowcase({
                       >
                         {/* Indicador de Selecionado */}
                         {isSelected && (
-                          <span className="absolute top-2 right-2 w-2 h-2 rounded-full bg-amber-500 ring-2 ring-white" />
+                          <span className="absolute top-2 right-2 w-2 h-2 rounded-full bg-amber-500 ring-2 ring-white z-10" />
                         )}
 
-                        {/* Visual da Miniatura */}
-                        <div className="w-full h-16 sm:h-20 bg-slate-50 rounded-xl flex items-center justify-center p-2 mb-2 group-hover:scale-105 transition-transform overflow-hidden">
+                        {/* Visual da Miniatura com Enquadramento Full */}
+                        <div className="w-full h-16 sm:h-20 bg-slate-900 rounded-xl flex items-center justify-center mb-2 group-hover:scale-105 transition-transform overflow-hidden relative border border-slate-200/50">
                           {v.imageUrl && v.imageUrl.trim() !== "" ? (
                             <img
                               src={v.imageUrl}
                               alt={v.name}
-                              className="w-full h-full object-contain"
+                              className="w-full h-full object-cover object-center"
                             />
                           ) : selectedCategory === "solar" && selectedGender === "masculino" ? (
                             <SportsFrameArt
                               lensColor={v.lensColor}
                               frameColor={v.frameColor}
-                              className="w-full h-full object-contain"
+                              className="w-full h-full object-contain p-1"
                             />
                           ) : (
                             <FrameArt
                               solar={selectedCategory === "solar"}
                               amber={v.isAmber}
                               round={v.isRound}
-                              className="w-full h-full object-contain"
+                              className="w-full h-full object-contain p-1"
                             />
                           )}
                         </div>

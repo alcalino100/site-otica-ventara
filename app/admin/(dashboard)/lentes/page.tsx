@@ -2871,6 +2871,8 @@ export default function AdminLensesPage() {
               { slot: "HD Escritório (Arte 10)", url: optisyncSettings.hdLine?.officeImageUrl },
               { slot: "HD Robô (Arte 6)", url: optisyncSettings.hdLine?.robotImageUrl },
               { slot: "Fotossensível Banner (Arte 7)", url: optisyncSettings.photochromicLine?.halfDarkBannerUrl },
+              { slot: "Fotossensível Estado Límpido", url: optisyncSettings.photochromicLine?.clearStateImageUrl },
+              { slot: "Fotossensível Estado Escuro", url: optisyncSettings.photochromicLine?.darkStateImageUrl },
               { slot: "Fotossensível 3 Estados (Arte 4)", url: optisyncSettings.photochromicLine?.threeStatesGridUrl },
               { slot: "Kids Pôster (Arte 1)", url: optisyncSettings.kidsLine?.posterBoyUrl },
               { slot: "Kids Logo 3D (Arte 3)", url: optisyncSettings.kidsLine?.logo3dUrl },
@@ -3310,11 +3312,11 @@ export default function AdminLensesPage() {
               </label>
             </div>
 
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 text-xs">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 text-xs">
               {/* Arte 7: Banner Meio a Meio */}
               <div className="p-3 bg-[#040e1c] rounded-xl border border-white/10 space-y-2 flex flex-col justify-between">
                 <div>
-                  <span className="text-[11px] font-semibold text-slate-300 block mb-1.5">Arte 7: Banner Óculos Meio a Meio (3:2)</span>
+                  <span className="text-[11px] font-semibold text-slate-300 block mb-1.5">Banner Meio a Meio (Arte 7)</span>
                   <div className="w-full aspect-[3/2] bg-[#020716] rounded-lg overflow-hidden border border-white/10 relative flex items-center justify-center mb-2">
                     {optisyncSettings.photochromicLine?.halfDarkBannerUrl ? (
                       <img
@@ -3359,6 +3361,112 @@ export default function AdminLensesPage() {
                       }))
                     }
                     placeholder="/images/lenses/optisync/arte-07-fotossensivel-banner.jpg"
+                    className="w-full bg-[#020716] border border-white/10 rounded px-2 py-1 text-white text-[11px] font-mono"
+                  />
+                </div>
+              </div>
+
+              {/* Simulador: Estado Límpido (Ambiente Interno) */}
+              <div className="p-3 bg-[#040e1c] rounded-xl border border-white/10 space-y-2 flex flex-col justify-between">
+                <div>
+                  <span className="text-[11px] font-semibold text-slate-300 block mb-1.5">Simulador: Límpido (Ambiente Interno)</span>
+                  <div className="w-full aspect-[3/2] bg-[#020716] rounded-lg overflow-hidden border border-white/10 relative flex items-center justify-center mb-2">
+                    {optisyncSettings.photochromicLine?.clearStateImageUrl ? (
+                      <img
+                        src={optisyncSettings.photochromicLine.clearStateImageUrl}
+                        alt="Simulador Límpido"
+                        className="w-full h-full object-cover"
+                      />
+                    ) : (
+                      <span className="text-[10px] text-slate-500">Sem imagem</span>
+                    )}
+                  </div>
+                </div>
+                <div className="space-y-1.5">
+                  <label className="w-full py-1.5 px-2 rounded-lg bg-sky-400 hover:bg-sky-300 text-slate-950 font-bold text-[11px] uppercase tracking-wider flex items-center justify-center gap-1.5 cursor-pointer transition-colors shadow-sm">
+                    <Upload size={13} />
+                    <span>{uploadingSlotId === "photoClear" ? "Enviando..." : "Trocar Límpida"}</span>
+                    <input
+                      type="file"
+                      accept="image/*"
+                      onChange={(e) =>
+                        handleUploadToSlot(
+                          "photoClear",
+                          (url) =>
+                            setOptisyncSettings((prev) => ({
+                              ...prev,
+                              photochromicLine: { ...(prev.photochromicLine as any), clearStateImageUrl: url },
+                            })),
+                          e
+                        )
+                      }
+                      disabled={uploadingSlotId === "photoClear"}
+                      className="hidden"
+                    />
+                  </label>
+                  <input
+                    type="text"
+                    value={optisyncSettings.photochromicLine?.clearStateImageUrl || ""}
+                    onChange={(e) =>
+                      setOptisyncSettings((prev) => ({
+                        ...prev,
+                        photochromicLine: { ...(prev.photochromicLine as any), clearStateImageUrl: e.target.value },
+                      }))
+                    }
+                    placeholder="/images/lenses/optisync-hd.jpg"
+                    className="w-full bg-[#020716] border border-white/10 rounded px-2 py-1 text-white text-[11px] font-mono"
+                  />
+                </div>
+              </div>
+
+              {/* Simulador: Estado Escuro (Sol Pleno) */}
+              <div className="p-3 bg-[#040e1c] rounded-xl border border-white/10 space-y-2 flex flex-col justify-between">
+                <div>
+                  <span className="text-[11px] font-semibold text-slate-300 block mb-1.5">Simulador: Escuro (Sol Pleno)</span>
+                  <div className="w-full aspect-[3/2] bg-[#020716] rounded-lg overflow-hidden border border-white/10 relative flex items-center justify-center mb-2">
+                    {optisyncSettings.photochromicLine?.darkStateImageUrl ? (
+                      <img
+                        src={optisyncSettings.photochromicLine.darkStateImageUrl}
+                        alt="Simulador Escuro"
+                        className="w-full h-full object-cover"
+                      />
+                    ) : (
+                      <span className="text-[10px] text-slate-500">Sem imagem</span>
+                    )}
+                  </div>
+                </div>
+                <div className="space-y-1.5">
+                  <label className="w-full py-1.5 px-2 rounded-lg bg-amber-400 hover:bg-amber-300 text-slate-950 font-bold text-[11px] uppercase tracking-wider flex items-center justify-center gap-1.5 cursor-pointer transition-colors shadow-sm">
+                    <Upload size={13} />
+                    <span>{uploadingSlotId === "photoDark" ? "Enviando..." : "Trocar Escura"}</span>
+                    <input
+                      type="file"
+                      accept="image/*"
+                      onChange={(e) =>
+                        handleUploadToSlot(
+                          "photoDark",
+                          (url) =>
+                            setOptisyncSettings((prev) => ({
+                              ...prev,
+                              photochromicLine: { ...(prev.photochromicLine as any), darkStateImageUrl: url },
+                            })),
+                          e
+                        )
+                      }
+                      disabled={uploadingSlotId === "photoDark"}
+                      className="hidden"
+                    />
+                  </label>
+                  <input
+                    type="text"
+                    value={optisyncSettings.photochromicLine?.darkStateImageUrl || ""}
+                    onChange={(e) =>
+                      setOptisyncSettings((prev) => ({
+                        ...prev,
+                        photochromicLine: { ...(prev.photochromicLine as any), darkStateImageUrl: e.target.value },
+                      }))
+                    }
+                    placeholder="/images/lenses/optisync-fotossensivel-box.jpg"
                     className="w-full bg-[#020716] border border-white/10 rounded px-2 py-1 text-white text-[11px] font-mono"
                   />
                 </div>
@@ -3416,12 +3524,14 @@ export default function AdminLensesPage() {
                   />
                 </div>
               </div>
+            </div>
 
-              {/* Texto de Velocidade */}
-              <div className="p-3 bg-[#040e1c] rounded-xl border border-white/10 space-y-2 flex flex-col justify-between">
+            {/* Texto de Velocidade e Tecnologia */}
+            <div className="p-3 bg-[#040e1c] rounded-xl border border-white/10 space-y-2 mt-4 text-xs">
+              <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2">
                 <div>
-                  <span className="text-[11px] font-semibold text-slate-300 block mb-1">Tempo de Ativação / Retorno</span>
-                  <p className="text-[10px] text-slate-400 mb-2">Descreva a velocidade e tecnologia de escurecimento.</p>
+                  <span className="text-[11px] font-semibold text-slate-300 block mb-0.5">Tempo de Ativação / Retorno</span>
+                  <p className="text-[10px] text-slate-400">Descreva a velocidade e tecnologia de escurecimento exibida no simulador.</p>
                 </div>
                 <input
                   type="text"
@@ -3433,7 +3543,7 @@ export default function AdminLensesPage() {
                     }))
                   }
                   placeholder="Ativação em até 30 segundos sob radiação UV"
-                  className="w-full bg-[#020716] border border-white/10 rounded px-2 py-1.5 text-white text-[11px]"
+                  className="w-full sm:w-80 bg-[#020716] border border-white/10 rounded px-2 py-1.5 text-white text-[11px]"
                 />
               </div>
             </div>

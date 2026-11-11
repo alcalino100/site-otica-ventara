@@ -41,14 +41,14 @@ export function PricePromo({
       ? "text-xl sm:text-3xl font-black"
       : size === "sm"
       ? "text-sm sm:text-lg font-black"
-      : "text-base sm:text-2xl font-black";
+      : "text-sm sm:text-2xl font-black";
 
   const originalPriceSizeClass =
     size === "lg"
       ? "text-xs sm:text-base"
       : size === "sm"
-      ? "text-[11px] sm:text-xs"
-      : "text-xs sm:text-sm";
+      ? "text-[10px] sm:text-xs"
+      : "text-[11px] sm:text-sm";
 
   // Cores de tema
   const currentTextColor =
@@ -76,39 +76,44 @@ export function PricePromo({
       )}
 
       {isValid && formattedOriginal ? (
-        <div className="flex items-baseline gap-1.5 sm:gap-2 flex-wrap">
-          {/* Texto de acessibilidade para leitores de tela */}
-          <span className="sr-only">
-            De {formattedOriginal} por {formattedCurrent}
-          </span>
+        <div>
+          <div className="flex items-baseline gap-1.5 sm:gap-2">
+            {/* Texto de acessibilidade para leitores de tela */}
+            <span className="sr-only">
+              De {formattedOriginal} por {formattedCurrent}
+            </span>
 
-          {/* Preço Antigo (Original) Riscado */}
-          <span
-            aria-hidden="true"
-            data-testid="original-price"
-            className={`line-through font-mono font-medium tracking-tight ${originalTextColor} ${originalPriceSizeClass}`}
-          >
-            {formattedOriginal}
-          </span>
-
-          {/* Preço Atual em Destaque */}
-          <span
-            aria-hidden="true"
-            data-testid="current-price"
-            className={`font-mono leading-tight tracking-tight ${currentTextColor} ${currentPriceSizeClass}`}
-          >
-            {formattedCurrent}
-          </span>
-
-          {/* Badge de Desconto em Porcentagem */}
-          {showDiscountBadge && discountPercent && discountPercent > 0 && (
+            {/* Preço Antigo (Original) Riscado */}
             <span
               aria-hidden="true"
-              data-testid="discount-badge"
-              className="text-[10px] sm:text-[11px] font-black tracking-wider px-1.5 py-0.5 rounded-md bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 border border-emerald-500/25 leading-none shrink-0 whitespace-nowrap"
+              data-testid="original-price"
+              className={`line-through font-mono font-medium tracking-tight ${originalTextColor} ${originalPriceSizeClass}`}
             >
-              -{discountPercent}%
+              {formattedOriginal}
             </span>
+
+            {/* Preço Atual em Destaque */}
+            <span
+              aria-hidden="true"
+              data-testid="current-price"
+              className={`font-mono leading-tight tracking-tight ${currentTextColor} ${currentPriceSizeClass}`}
+            >
+              {formattedCurrent}
+            </span>
+          </div>
+
+          {/* Badge de Desconto em Linha Dedicada (Padrão Exato da Foto 1) */}
+          {showDiscountBadge && discountPercent && discountPercent > 0 && (
+            <div className="mt-1">
+              <span
+                aria-hidden="true"
+                data-testid="discount-badge"
+                style={{ whiteSpace: "nowrap" }}
+                className="text-[9px] sm:text-[10px] font-black tracking-wider px-1.5 py-0.5 rounded-md bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 leading-none inline-block whitespace-nowrap text-nowrap"
+              >
+                -{discountPercent}%
+              </span>
+            </div>
           )}
         </div>
       ) : (
@@ -122,7 +127,7 @@ export function PricePromo({
 
       {installmentText && (
         <span
-          className={`text-[10px] sm:text-xs block mt-0.5 font-normal ${installmentTextColor}`}
+          className={`text-[9.5px] sm:text-xs block mt-0.5 font-normal ${installmentTextColor}`}
         >
           {installmentText}
         </span>
