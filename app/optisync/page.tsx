@@ -171,7 +171,7 @@ export default async function OptiSyncPage() {
         )}
       </div>
 
-      <main className="flex-1 relative z-10 isolate pt-20 sm:pt-28 pb-12 sm:pb-16 transform-gpu">
+      <main className="flex-1 relative z-10 isolate pt-20 sm:pt-28 pb-0 sm:pb-4 transform-gpu">
         {/* ====================================================================
             2. HERO SECTION COM RETRATO OFICIAL, CAIXA E LOGO
             ==================================================================== */}

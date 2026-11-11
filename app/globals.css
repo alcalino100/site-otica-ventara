@@ -1101,8 +1101,11 @@ h1 strong {
 
 /* Footer */
 .site-footer {
+  position: relative;
+  z-index: 10;
+  isolation: isolate;
   padding: 48px 5%;
-  background: #040c12;
+  background: #030810;
   border-top: 1px solid rgba(255, 255, 255, 0.06);
 }
 

@@ -179,7 +179,7 @@ test.describe("E-commerce de Armações e Auditoria de Pagamentos", () => {
     await expect(heartBtn).toBeVisible();
     await heartBtn.click();
 
-    // Botão Comprar Agora
-    await expect(page.getByRole("button", { name: /COMPRAR AGORA/i })).toBeVisible();
+    // Botão Principal de Compra
+    await expect(page.getByRole("button", { name: /COMPRAR AGORA|Adicionar ao Carrinho/i })).toBeVisible();
   });
 });

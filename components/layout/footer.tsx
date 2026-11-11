@@ -17,7 +17,7 @@ export function Footer({ onOpenLegal }: FooterProps) {
   const instaUrl = `https://instagram.com/${identity.instagram_handle.replace("@", "")}`;
 
   return (
-    <footer className="site-footer bg-[#030810] text-slate-300 border-t border-white/10 pt-16 pb-28 sm:pb-14">
+    <footer className="site-footer relative z-10 isolate bg-[#030810] text-slate-300 border-t border-white/10 pt-12 sm:pt-16 pb-28 sm:pb-14">
       <div className="max-w-[1400px] mx-auto px-4 sm:px-8 lg:px-10">
         <div className="grid grid-cols-1 md:grid-cols-4 gap-10 pb-12 border-b border-white/10">
           {/* Coluna 1: Marca & Assinatura */}

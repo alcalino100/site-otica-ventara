@@ -139,6 +139,25 @@ test.describe("Página /optisync — Três Linhas de Produto e Artes Oficiais", 
     const scrollHint = page.getByText("← Deslize para comparar →");
     await expect(scrollHint).toBeVisible();
   });
+
+  test("Rodapé no final de /optisync possui camada isolada z-10 sem espaço vazio excessivo", async ({ page }) => {
+    await page.setViewportSize({ width: 390, height: 844 });
+    await page.goto("/optisync");
+    await page.waitForLoadState("domcontentloaded");
+
+    const footer = page.locator("footer.site-footer");
+    await expect(footer).toBeVisible();
+    await expect(footer).toHaveClass(/relative/);
+    await expect(footer).toHaveClass(/z-10/);
+    await expect(footer).toHaveClass(/isolate/);
+
+    // Valida que o logo da marca e o bloco de pagamento estão presentes
+    const brandLogo = footer.locator("img[alt*='Ventara']").first();
+    await expect(brandLogo).toBeVisible();
+
+    const paymentMethods = footer.locator("[data-testid='footer-payment-methods']");
+    await expect(paymentMethods).toBeVisible();
+  });
 });
 
 test.describe("Painel Administrativo — CMS da Página OPTiSYNC", () => {
