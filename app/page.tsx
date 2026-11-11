@@ -111,14 +111,28 @@ export default function Home() {
         ? product.category
         : product.category?.name || product.frame_type || "Armação";
 
+    const firstVariant = product.variants?.[0];
+    const variantId = product.variantId || firstVariant?.id;
+    const stock =
+      typeof product.stockQuantity === "number"
+        ? product.stockQuantity
+        : typeof firstVariant?.stock_quantity === "number"
+        ? firstVariant.stock_quantity
+        : 10;
+
     const newItem: CartProduct = {
-      id: product.id || `cart-${Date.now()}`,
+      id: `${product.id}::${variantId || "default"}`,
+      productId: product.id,
+      variantId,
+      sku: product.sku || firstVariant?.sku,
       name: product.name,
       slug: product.slug,
       category,
       color,
       priceInCents: price,
       imageUrl: primaryImg,
+      quantity: 1,
+      stockQuantity: stock,
     };
 
     const updated = [...cartItems, newItem];

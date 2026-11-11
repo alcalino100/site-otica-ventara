@@ -35,6 +35,7 @@ import {
   updateCartQuantity,
   saveStoredCart,
   getStoredCart,
+  extractProductAndVariantIds,
 } from "@/lib/cart";
 import { FrameArt } from "../catalog/frame-art";
 import { useSiteSettings } from "../providers/site-settings-provider";
@@ -98,13 +99,21 @@ export function CartModal({
     let isMounted = true;
     async function validateCart() {
       try {
-        const payload = items.map((it) => ({
-          id: it.id,
-          productId: it.productId || it.id.split("-")[0],
-          variantId: it.variantId,
-          priceInCents: it.priceInCents,
-          quantity: it.quantity,
-        }));
+        const payload = items.map((it) => {
+          const { productId, variantId } = extractProductAndVariantIds(
+            it.id || "",
+            it.productId,
+            it.variantId
+          );
+          return {
+            id: it.id,
+            productId: productId || it.slug || "",
+            variantId,
+            sku: it.sku,
+            priceInCents: it.priceInCents,
+            quantity: it.quantity,
+          };
+        });
 
         const res = await fetch("/api/cart/validate", {
           method: "POST",
@@ -117,7 +126,7 @@ export function CartModal({
 
         if (!isMounted) return;
 
-        if (data.hasPriceChanges || data.hasOutOfStock) {
+        if (data.hasPriceChanges || data.hasOutOfStock || data.hasInsufficientStock) {
           const updatedItems = items.map((localItem) => {
             const match = data.items?.find((v: any) => v.id === localItem.id);
             if (match) {
@@ -126,7 +135,11 @@ export function CartModal({
                 priceInCents: match.currentPriceInCents,
                 stockQuantity: match.availableStock,
                 isOutOfStock: match.isOutOfStock,
-                priceChangedMessage: match.priceChanged ? match.message : undefined,
+                quantity:
+                  match.hasInsufficientStock && match.availableStock > 0
+                    ? match.availableStock
+                    : localItem.quantity,
+                priceChangedMessage: match.message || undefined,
               };
             }
             return localItem;
@@ -142,6 +155,8 @@ export function CartModal({
           }
           if (data.hasOutOfStock) {
             setHasOutOfStockItem(true);
+          } else {
+            setHasOutOfStockItem(false);
           }
         } else {
           setHasOutOfStockItem(false);

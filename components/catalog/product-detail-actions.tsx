@@ -213,7 +213,7 @@ export function ProductDetailActions({
       product.images?.[0]?.url;
 
     return {
-      id: `${product.id}-${currentVariant.id}`,
+      id: `${product.id}::${currentVariant.id}`,
       productId: product.id,
       variantId: currentVariant.id,
       sku: currentVariant.sku || product.sku,

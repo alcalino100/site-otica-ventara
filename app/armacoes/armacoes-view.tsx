@@ -96,16 +96,24 @@ export function ArmacoesView({
     } else {
       const primaryImage =
         product.images?.find((img) => img.is_primary)?.url || product.images?.[0]?.url;
-      const firstVariant = product.variants?.[0]?.color_name || "Padrão";
+      const firstVariant = product.variants?.[0];
+      const variantId = firstVariant?.id;
+      const stock =
+        typeof firstVariant?.stock_quantity === "number" ? firstVariant.stock_quantity : 10;
 
       const newItem: CartProduct = {
-        id: product.id,
+        id: `${product.id}::${variantId || "default"}`,
+        productId: product.id,
+        variantId,
+        sku: product.sku || firstVariant?.sku,
         name: product.name,
         slug: product.slug,
         category: product.category?.name || "Armação",
-        color: firstVariant,
+        color: firstVariant?.color_name || "Padrão",
         priceInCents: product.price_in_cents,
         imageUrl: primaryImage,
+        quantity: 1,
+        stockQuantity: stock,
       };
 
       updated = [...cartItems, newItem];

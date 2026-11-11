@@ -183,14 +183,14 @@ export function ProductCard({
         )}
       </Link>
 
-      {/* 1.1. Zona Morta das Setas: Botões autônomos com mínimo de 44px de toque */}
+      {/* 1.1. Setas de Navegação: Ocultas no mobile (troca via swipe sem cobrir o produto), visíveis apenas no desktop ao passar o mouse */}
       {hasMultipleImages && (
-        <div className="pointer-events-none absolute inset-x-0 top-1/3 -translate-y-1/2 z-20 flex items-center justify-between p-2">
+        <div className="hidden md:flex pointer-events-none absolute inset-x-0 top-1/3 -translate-y-1/2 z-20 items-center justify-between p-2 opacity-0 group-hover:opacity-100 transition-opacity duration-200">
           <button
             type="button"
             data-testid="card-gallery-prev"
             aria-label={`Foto anterior de ${product.name}`}
-            className="pointer-events-auto min-w-[44px] min-h-[44px] w-11 h-11 flex items-center justify-center rounded-full bg-black/50 hover:bg-black/75 active:scale-95 text-white backdrop-blur-md transition-all border border-white/20 shadow-md touch-manipulation cursor-pointer"
+            className="pointer-events-auto min-w-[44px] min-h-[44px] w-11 h-11 flex items-center justify-center rounded-full bg-black/60 hover:bg-black/85 active:scale-95 text-white backdrop-blur-md transition-all border border-white/20 shadow-md touch-manipulation cursor-pointer"
             onClick={handlePrev}
             onTouchStart={(e) => e.stopPropagation()}
             onTouchEnd={handlePrev}
@@ -201,7 +201,7 @@ export function ProductCard({
             type="button"
             data-testid="card-gallery-next"
             aria-label={`Próxima foto de ${product.name}`}
-            className="pointer-events-auto min-w-[44px] min-h-[44px] w-11 h-11 flex items-center justify-center rounded-full bg-black/50 hover:bg-black/75 active:scale-95 text-white backdrop-blur-md transition-all border border-white/20 shadow-md touch-manipulation cursor-pointer"
+            className="pointer-events-auto min-w-[44px] min-h-[44px] w-11 h-11 flex items-center justify-center rounded-full bg-black/60 hover:bg-black/85 active:scale-95 text-white backdrop-blur-md transition-all border border-white/20 shadow-md touch-manipulation cursor-pointer"
             onClick={handleNext}
             onTouchStart={(e) => e.stopPropagation()}
             onTouchEnd={handleNext}

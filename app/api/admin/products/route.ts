@@ -345,23 +345,27 @@ export async function PATCH(req: NextRequest) {
       await adminSupabase.from("product_images").insert(newImages);
     }
 
-    // 3. Se fornecido estoque ou cor, atualiza variante
+    // 3. Se fornecido estoque ou cor, atualiza variantes de estoque
     if (typeof stock_quantity === "number" || color_name) {
-      const { data: existingVariant } = await adminSupabase
+      const { data: existingVariants } = await adminSupabase
         .from("product_variants")
-        .select("id")
-        .eq("product_id", id)
-        .limit(1)
-        .maybeSingle();
+        .select("id, color_name")
+        .eq("product_id", id);
 
-      if (existingVariant?.id) {
-        await adminSupabase
-          .from("product_variants")
-          .update({
-            ...(typeof stock_quantity === "number" ? { stock_quantity } : {}),
-            ...(color_name ? { color_name } : {}),
-          })
-          .eq("id", existingVariant.id);
+      if (existingVariants && existingVariants.length > 0) {
+        if (typeof stock_quantity === "number") {
+          // Atualiza o saldo em todas as variantes do produto para evitar variantes zeradas fantasmas
+          await adminSupabase
+            .from("product_variants")
+            .update({ stock_quantity, updated_at: new Date().toISOString() })
+            .eq("product_id", id);
+        }
+        if (color_name) {
+          await adminSupabase
+            .from("product_variants")
+            .update({ color_name, updated_at: new Date().toISOString() })
+            .eq("id", existingVariants[0].id);
+        }
       } else {
         await adminSupabase.from("product_variants").insert({
           product_id: id,
