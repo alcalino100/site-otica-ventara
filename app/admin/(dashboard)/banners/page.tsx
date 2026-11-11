@@ -543,6 +543,13 @@ export default function AdminBannersPage() {
     }
   };
 
+  const handleUpdatePromoItem = (id: string, updates: Partial<PromoProductItem>) => {
+    setPromotionalShowcase((prev) => ({
+      ...prev,
+      items: prev.items.map((it) => (it.id === id ? { ...it, ...updates } : it)),
+    }));
+  };
+
   const isValidUrl = (url: string): boolean => {
     if (!url) return false;
     // Permite âncoras locais (#armacoes, #lentes) e URLs absolutas seguras (https://)
@@ -1880,7 +1887,7 @@ export default function AdminBannersPage() {
 
             {/* Configurações Gerais do Bloco */}
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 text-xs bg-[#0b1728] p-5 rounded-2xl border border-white/10">
-              <div className="sm:col-span-2 lg:col-span-1 flex items-center justify-between p-3 rounded-xl bg-[#040c16] border border-white/10">
+              <div className="flex items-center justify-between p-3 rounded-xl bg-[#040c16] border border-white/10">
                 <div>
                   <span className="text-white font-semibold block">Exibir Vitrine no Site</span>
                   <span className="text-[10px] text-slate-400">Ativa ou oculta a seção</span>
@@ -1896,6 +1903,53 @@ export default function AdminBannersPage() {
                   />
                   <div className="w-11 h-6 bg-slate-800 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-emerald-500"></div>
                 </label>
+              </div>
+
+              {/* Liga/desliga do selo verde OFF */}
+              <div className="flex items-center justify-between p-3 rounded-xl bg-[#040c16] border border-white/10">
+                <div>
+                  <span className="text-white font-semibold block">Selo Verde "-XX% OFF"</span>
+                  <span className="text-[10px] text-slate-400">Exibir pílula de desconto no card</span>
+                </div>
+                <label className="relative inline-flex items-center cursor-pointer">
+                  <input
+                    type="checkbox"
+                    data-testid="toggle-discount-badge"
+                    checked={promotionalShowcase.showDiscountBadge !== false}
+                    onChange={(e) =>
+                      setPromotionalShowcase({ ...promotionalShowcase, showDiscountBadge: e.target.checked })
+                    }
+                    className="sr-only peer"
+                  />
+                  <div className="w-11 h-6 bg-slate-800 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-emerald-500"></div>
+                </label>
+              </div>
+
+              {/* Estilo do Card: Split (Novo) vs Fullbleed (Anterior) */}
+              <div className="sm:col-span-2 p-3 rounded-xl bg-[#040c16] border border-white/10 flex flex-col justify-between">
+                <div className="flex items-center justify-between mb-1.5">
+                  <label htmlFor="promo-card-layout" className="text-white font-semibold block">
+                    Estilo do Card
+                  </label>
+                  <span className="text-[10px] text-amber-400 font-mono">
+                    {promotionalShowcase.cardLayout === "fullbleed" ? "Fundo Inteiro" : "Imagem no Topo (Padrão)"}
+                  </span>
+                </div>
+                <select
+                  id="promo-card-layout"
+                  data-testid="select-card-layout"
+                  value={promotionalShowcase.cardLayout || "split"}
+                  onChange={(e) =>
+                    setPromotionalShowcase({
+                      ...promotionalShowcase,
+                      cardLayout: e.target.value as "split" | "fullbleed",
+                    })
+                  }
+                  className="w-full bg-[#0b1728] border border-white/15 rounded-lg px-2.5 py-1.5 text-white text-xs focus:outline-none focus:border-amber-400 cursor-pointer"
+                >
+                  <option value="split">Imagem em cima (novo — padrão)</option>
+                  <option value="fullbleed">Imagem de fundo (anterior)</option>
+                </select>
               </div>
 
               <div>
@@ -1924,7 +1978,7 @@ export default function AdminBannersPage() {
                 />
               </div>
 
-              <div>
+              <div className="sm:col-span-2">
                 <label className="block text-slate-400 mb-1 font-medium">Texto do Link de Ofertas</label>
                 <input
                   type="text"
@@ -2079,6 +2133,28 @@ export default function AdminBannersPage() {
                             <span className="text-sm font-extrabold text-white font-mono">
                               {pricing?.currentPriceFormatted || item.promotionalPrice}
                             </span>
+                          </div>
+                        </div>
+
+                        {/* Ponto Focal Vertical da Armação */}
+                        <div className="mt-2.5 p-2 rounded-xl bg-white/5 border border-white/10 flex items-center justify-between text-[11px]">
+                          <div>
+                            <span className="text-white font-medium block">Ponto Focal Vertical (Y)</span>
+                            <span className="text-[10px] text-slate-400">Enquadramento da armação (padrão: 68%)</span>
+                          </div>
+                          <div className="flex items-center gap-1">
+                            <input
+                              type="number"
+                              min={0}
+                              max={100}
+                              value={item.focalY ?? 68}
+                              onChange={(e) => {
+                                const val = parseInt(e.target.value, 10);
+                                handleUpdatePromoItem(item.id, { focalY: isNaN(val) ? 68 : val });
+                              }}
+                              className="w-16 bg-[#040c16] border border-white/10 rounded-lg px-2 py-1 text-white text-center text-xs font-mono"
+                            />
+                            <span className="text-slate-400 text-xs">%</span>
                           </div>
                         </div>
 

@@ -1,6 +1,6 @@
 {
   "$schema": "https://unpkg.com/knip@5/schema.json",
-  "entry": ["app/**/*.{ts,tsx}", "lib/**/*.{ts,tsx}"],
+  "entry": ["app/**/*.{ts,tsx}", "lib/**/*.{ts,tsx}", "components/catalog/card-image-gallery.tsx"],
   "project": ["app/**/*.{ts,tsx}", "components/**/*.{ts,tsx}", "lib/**/*.{ts,tsx}", "tests/**/*.ts"],
   "ignoreDependencies": ["@commitlint/cli", "tailwindcss"],
   "ignoreBinaries": ["eslint"]

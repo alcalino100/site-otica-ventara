@@ -2,14 +2,13 @@
 
 import React, { useState, useEffect, useMemo } from "react";
 import Link from "next/link";
-import { Sparkles, Tag, ArrowRight, ChevronDown, ChevronUp } from "lucide-react";
+import { Sparkles, ArrowRight, ChevronDown, ChevronUp } from "lucide-react";
 import { PromotionalShowcaseSettings, PromoProductItem, Product } from "@/types/ecommerce";
 import { DEFAULT_PROMOTIONAL_SHOWCASE } from "@/lib/site-settings-constants";
 import { DEFAULT_CATALOG } from "@/lib/catalog-data";
 import { useSiteSettings } from "../providers/site-settings-provider";
-import { FrameArt } from "../catalog/frame-art";
-import { CardImageGallery, GalleryImage } from "../catalog/card-image-gallery";
 import { ProductCard } from "../catalog/product-card";
+import { PromoSplitCard, PromoSplitCardItem } from "./promo-split-card";
 import { formatProductPricing, FormattedProductPricing } from "@/lib/pricing";
 
 const INITIAL_LIMIT = 8;
@@ -20,7 +19,7 @@ interface PromotionalOffersSectionProps {
   cartIds?: string[];
 }
 
-interface ResolvedPromoItem {
+interface ResolvedPromoItem extends PromoSplitCardItem {
   id: string;
   name: string;
   slug: string;
@@ -28,12 +27,13 @@ interface ResolvedPromoItem {
   tag?: string;
   pricing: FormattedProductPricing;
   image?: string;
-  images?: GalleryImage[];
+  images?: { url: string; alt_text?: string | null }[];
   imageFit?: "cover" | "contain";
   colorName?: string;
   colorHex?: string;
   extraColorsCount: number;
   description?: string | null;
+  focalY?: number;
   product: Product;
 }
 
@@ -76,7 +76,6 @@ export function PromotionalOffersSection({
   const { cleanWhatsAppNumber } = useSiteSettings();
   const [promoSettings, setPromoSettings] =
     useState<PromotionalShowcaseSettings>(DEFAULT_PROMOTIONAL_SHOWCASE);
-  const [imgErrors, setImgErrors] = useState<Record<string, boolean>>({});
   const [isExpanded, setIsExpanded] = useState<boolean>(false);
 
   useEffect(() => {
@@ -175,13 +174,14 @@ export function PromotionalOffersSection({
             matched.images && matched.images.length > 0
               ? matched.images
               : primaryImg
-              ? [{ url: primaryImg, alt_text: matched.name, is_primary: true }]
+              ? [{ url: primaryImg, alt_text: matched.name }]
               : [],
           imageFit: item.imageFit || "cover",
           colorName: firstVariant?.color_name || item.colorName || "Padrão",
           colorHex: firstVariant?.color_hex || item.colorHex || "#1e293b",
           extraColorsCount: Math.max(0, variants.length - 1),
           description: matched.description || item.description,
+          focalY: item.focalY,
           product: productForCard,
         });
       }
@@ -193,7 +193,7 @@ export function PromotionalOffersSection({
     return null;
   }
 
-  // Cálculo dinâmico do maior desconto real exibido (evita contradição entre banner e cards)
+  // Cálculo dinâmico do maior desconto real exibido (evita contradição entre título e cards)
   const maxDiscountDisplayed = Math.max(
     ...resolvedItems.map((it) => it.pricing.discountPercent),
     0
@@ -217,7 +217,7 @@ export function PromotionalOffersSection({
       ? `(de ${item.pricing.originalPriceFormatted} por ${item.pricing.currentPriceFormatted})`
       : `(${item.pricing.currentPriceFormatted})`;
     const text = encodeURIComponent(
-      `Olá! Vi o modelo "${item.name}"${discountText} ${priceText} no site da Óticas Ventara e gostaria de garantir o meu!`
+      `Olá! Vi o modelo "${item.name}"${discountText} ${priceText} na vitrine de ofertas da Óticas Ventara e gostaria de garantir o meu!`
     );
     return `https://wa.me/${cleanWhatsAppNumber || "5518996155748"}?text=${text}`;
   };
@@ -226,13 +226,15 @@ export function PromotionalOffersSection({
     ? resolvedItems
     : resolvedItems.slice(0, INITIAL_LIMIT);
 
+  const isSplitLayout = (promoSettings.cardLayout ?? "split") !== "fullbleed";
+
   return (
     <section
       aria-label="Modelos Selecionados"
       className="py-14 sm:py-20 bg-white border-y border-slate-200/80 relative overflow-hidden"
     >
       <div className="max-w-[1400px] mx-auto px-4 sm:px-8 lg:px-10">
-        {/* Cabeçalho Limpo Estilo Fundo Branco */}
+        {/* Cabeçalho Limpo */}
         <div className="flex flex-col md:flex-row md:items-end justify-between gap-4 mb-8 sm:mb-12">
           <div>
             <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-amber-500/10 border border-amber-500/25 text-amber-700 text-[10px] sm:text-xs font-bold uppercase tracking-wider mb-2">
@@ -248,29 +250,47 @@ export function PromotionalOffersSection({
             </p>
           </div>
 
-          <a
-            href="#armacoes"
+          <Link
+            href="/armacoes"
             className="inline-flex items-center gap-2 text-xs sm:text-sm font-bold text-amber-600 hover:text-amber-700 transition-colors self-start md:self-auto cursor-pointer"
           >
-            <span>{promoSettings.ctaText || "Ver todas as armações"}</span>
+            <span>{promoSettings.ctaText || "Ver todas as ofertas"}</span>
             <ArrowRight size={14} />
-          </a>
+          </Link>
         </div>
 
-        {/* Grade de Produtos Promocionais (2 colunas no mobile, 4 no desktop) - Padrão Foto Sangrada Unificado */}
+        {/* Grade de Produtos Promocionais */}
         <div className="relative">
-          <div className="grid grid-cols-2 lg:grid-cols-4 gap-3.5 sm:gap-6">
-            {displayedItems.map((item) => (
-              <ProductCard
-                key={item.product.id}
-                product={item.product}
-                onAddToCart={onAddToCart}
-                isInCart={cartIds.includes(item.product.id)}
-                hrefPrefix="/produto"
-                as="article"
-              />
-            ))}
-          </div>
+          {isSplitLayout ? (
+            /* Novo Layout Split (Padrão): Imagem no Topo, Texto Embaixo, Selo Verde OFF */
+            <div className="flex sm:grid overflow-x-auto sm:overflow-visible snap-x snap-mandatory gap-3.5 sm:gap-6 pb-4 sm:pb-0 sm:grid-cols-2 lg:grid-cols-4 no-scrollbar">
+              {displayedItems.map((item, idx) => (
+                <PromoSplitCard
+                  key={item.product.id}
+                  item={item}
+                  showDiscountBadge={promoSettings.showDiscountBadge !== false}
+                  onAddToCart={onAddToCart}
+                  isInCart={cartIds.includes(item.product.id)}
+                  priority={idx === 0}
+                  whatsAppUrl={getWhatsAppBuyUrl(item)}
+                />
+              ))}
+            </div>
+          ) : (
+            /* Fallback Configurável no Admin: Imagem de Fundo (Fullbleed) */
+            <div className="grid grid-cols-2 lg:grid-cols-4 gap-3.5 sm:gap-6">
+              {displayedItems.map((item) => (
+                <ProductCard
+                  key={item.product.id}
+                  product={item.product}
+                  onAddToCart={onAddToCart}
+                  isInCart={cartIds.includes(item.product.id)}
+                  hrefPrefix="/produto"
+                  as="article"
+                />
+              ))}
+            </div>
+          )}
 
           {/* Botão Ver Mais / Ver Menos */}
           {resolvedItems.length > INITIAL_LIMIT && (

@@ -336,6 +336,7 @@ export interface PromoProductItem {
   slug: string;
   description?: string;
   extraColorsCount?: number;
+  focalY?: number; // Ponto focal vertical opcional em % (padrão 65%)
 }
 
 export interface PromotionalShowcaseSettings {
@@ -345,6 +346,8 @@ export interface PromotionalShowcaseSettings {
   subtitle: string;
   ctaText?: string;
   items: PromoProductItem[];
+  showDiscountBadge?: boolean; // Liga/desliga do selo verde OFF
+  cardLayout?: "split" | "fullbleed"; // Estilo do card: Imagem em cima (split) ou Imagem de fundo (fullbleed)
 }
 
 export interface PartnerLogoItem {
