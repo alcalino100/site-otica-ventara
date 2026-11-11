@@ -7,7 +7,7 @@ import { getArmacoesPageSettings } from "@/lib/armacoes-settings";
 export const metadata: Metadata = {
   title: "Catálogo de Armações e Óculos de Grau e Sol | Óticas Ventara",
   description:
-    "Explore a coleção de armações em acetato italiano e metal premium da Ótica Ventara em Araçatuba. Modelos gatinho, redondo, quadrado e solar com parcelamento em até 10x sem juros.",
+    "Explore a coleção de armações em acetato nobre e metal premium da Ótica Ventara em Araçatuba. Modelos gatinho, redondo, quadrado e solar com parcelamento em até 10x sem juros.",
   openGraph: {
     title: "Catálogo de Armações | Óticas Ventara",
     description:

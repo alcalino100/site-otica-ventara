@@ -268,11 +268,17 @@ export function ProductDetailActions({
   // URL Direta de Dúvidas no WhatsApp
   const categoryLabel = product.frame_type === "Solar" ? "Óculos Solar" : "Armação de Grau";
   const finalPriceInReais = activePriceInCents / 100;
+  const dimensionsSummary = [
+    product.dimensions_lens_mm ? `Lente ${product.dimensions_lens_mm} mm` : null,
+    product.dimensions_bridge_mm ? `Ponte ${product.dimensions_bridge_mm} mm` : null,
+    product.dimensions_temple_mm ? `Haste ${product.dimensions_temple_mm} mm` : null,
+  ].filter(Boolean).join(" · ");
+
   const whatsappQueryText =
     `Olá equipe da Ótica Ventara! Tenho dúvidas sobre a armação:\n\n` +
     `👓 *${product.name}* (${categoryLabel})\n` +
     `• Cor: *${currentVariant.color_name}* (SKU: ${currentVariant.sku || "N/A"})\n` +
-    `• Tamanho/Aro: Lente ${product.dimensions_lens_mm || 53}mm · Ponte ${product.dimensions_bridge_mm || 18}mm · Haste ${product.dimensions_temple_mm || 145}mm\n` +
+    (dimensionsSummary ? `• Medidas: ${dimensionsSummary}\n` : "") +
     `• Preço: R$ ${finalPriceInReais.toFixed(2).replace(".", ",")}\n\n` +
     `Poderiam me orientar sobre este modelo?`;
   const whatsappUrl = buildWhatsAppUrl(whatsappQueryText);

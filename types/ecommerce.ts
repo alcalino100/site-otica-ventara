@@ -93,6 +93,10 @@ export interface Product {
   dimensions_lens_mm: number | null;
   dimensions_bridge_mm: number | null;
   dimensions_temple_mm: number | null;
+  dimensions_frame_width_mm?: number | null;
+  dimensions_lens_height_mm?: number | null;
+  has_temple_engraving?: boolean;
+  material_origin?: string | null;
   low_stock_threshold?: number;
   face_shape_recommendations?: string[];
   warranty_text?: string | null;

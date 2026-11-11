@@ -104,6 +104,10 @@ export function normalizeProduct(raw: any): Product {
     dimensions_lens_mm: raw.dimensions_lens_mm ? Number(raw.dimensions_lens_mm) : null,
     dimensions_bridge_mm: raw.dimensions_bridge_mm ? Number(raw.dimensions_bridge_mm) : null,
     dimensions_temple_mm: raw.dimensions_temple_mm ? Number(raw.dimensions_temple_mm) : null,
+    dimensions_frame_width_mm: raw.dimensions_frame_width_mm ? Number(raw.dimensions_frame_width_mm) : null,
+    dimensions_lens_height_mm: raw.dimensions_lens_height_mm ? Number(raw.dimensions_lens_height_mm) : null,
+    has_temple_engraving: Boolean(raw.has_temple_engraving),
+    material_origin: raw.material_origin ? String(raw.material_origin).trim() : null,
     low_stock_threshold: typeof raw.low_stock_threshold === "number" ? raw.low_stock_threshold : 3,
     face_shape_recommendations: Array.isArray(raw.face_shape_recommendations)
       ? raw.face_shape_recommendations

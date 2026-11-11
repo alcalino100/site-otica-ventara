@@ -405,7 +405,7 @@ export function RoletaClient() {
             <div>
               <h4 className="text-sm font-bold text-white">Transparência & Procedência</h4>
               <p className="text-xs text-gray-400 mt-0.5">
-                Armações em acetato italiano e titânio nobre com garantia nacional e homologação óptica.
+                Armações em acetato nobre e titânio com garantia nacional e homologação óptica.
               </p>
               <button
                 type="button"

@@ -134,7 +134,7 @@ const SHOWCASE_CONFIGS: Record<`${CategoryType}_${GenderType}`, ShowcaseData> = 
     heroTitle: "Elegância e luz para o seu",
     heroHighlight: "olhar.",
     heroDescription:
-      "Formas fluídas, acetato italiano polido à mão e lentes solares de alto contraste que realçam a beleza e protegem sua visão.",
+      "Formas fluídas, acetato nobre polido à mão e lentes solares de alto contraste que realçam a beleza e protegem sua visão.",
     sectionTag: "COLEÇÃO SOLAR CONTEMPORÂNEA",
     productHeadline: "Design autoral e presença única.",
     productDescription:

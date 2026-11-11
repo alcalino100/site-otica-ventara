@@ -17,6 +17,8 @@ import {
   RotateCcw,
   Layers,
   Award,
+  LayoutGrid,
+  Square,
 } from "lucide-react";
 import { Product, ArmacoesPageSettings } from "@/types/ecommerce";
 import { DEFAULT_ARMACOES_PAGE_SETTINGS } from "@/lib/site-settings-constants";
@@ -79,6 +81,27 @@ export function ArmacoesView({
   const [cartItems, setCartItems] = useState<CartProduct[]>([]);
   const [isCartOpen, setIsCartOpen] = useState(false);
   const [toastMessage, setToastMessage] = useState<string | null>(null);
+  const [mobileViewMode, setMobileViewMode] = useState<"grid" | "single">("grid");
+
+  useEffect(() => {
+    try {
+      const savedMode = localStorage.getItem("ventara_catalog_mobile_view");
+      if (savedMode === "grid" || savedMode === "single") {
+        setMobileViewMode(savedMode);
+      }
+    } catch {
+      // Ignora erro de localStorage
+    }
+  }, []);
+
+  const handleSetMobileViewMode = (mode: "grid" | "single") => {
+    setMobileViewMode(mode);
+    try {
+      localStorage.setItem("ventara_catalog_mobile_view", mode);
+    } catch {
+      // Ignora
+    }
+  };
 
   useEffect(() => {
     setCartItems(getStoredCart());
@@ -668,19 +691,53 @@ export function ArmacoesView({
                   )}
                 </div>
 
-                {activeFiltersCount > 0 && (
-                  <button
-                    type="button"
-                    onClick={resetFilters}
-                    className="text-amber-600 hover:text-amber-700 font-semibold flex items-center gap-1 cursor-pointer"
-                  >
-                    <X size={14} />
-                    <span>Limpar filtros ({activeFiltersCount})</span>
-                  </button>
-                )}
+                <div className="flex items-center gap-2">
+                  {/* Alternador de Visualização no Mobile (P2) */}
+                  <div className="inline-flex items-center p-1 bg-slate-100 rounded-xl border border-slate-200 sm:hidden">
+                    <button
+                      type="button"
+                      onClick={() => handleSetMobileViewMode("grid")}
+                      className={`px-2.5 py-1 rounded-lg text-xs font-semibold flex items-center gap-1 transition-all ${
+                        mobileViewMode === "grid"
+                          ? "bg-white text-slate-900 shadow-xs"
+                          : "text-slate-500 hover:text-slate-800"
+                      }`}
+                      aria-label="Exibir em grade de 2 colunas"
+                      data-testid="view-mode-grid"
+                    >
+                      <LayoutGrid size={13} />
+                      <span>Grade (2 col)</span>
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => handleSetMobileViewMode("single")}
+                      className={`px-2.5 py-1 rounded-lg text-xs font-semibold flex items-center gap-1 transition-all ${
+                        mobileViewMode === "single"
+                          ? "bg-white text-slate-900 shadow-xs"
+                          : "text-slate-500 hover:text-slate-800"
+                      }`}
+                      aria-label="Exibir em 1 coluna ampla"
+                      data-testid="view-mode-single"
+                    >
+                      <Square size={13} />
+                      <span>Ampla (1 col)</span>
+                    </button>
+                  </div>
+
+                  {activeFiltersCount > 0 && (
+                    <button
+                      type="button"
+                      onClick={resetFilters}
+                      className="text-amber-600 hover:text-amber-700 font-semibold flex items-center gap-1 cursor-pointer"
+                    >
+                      <X size={14} />
+                      <span>Limpar filtros ({activeFiltersCount})</span>
+                    </button>
+                  )}
+                </div>
               </div>
 
-              {/* GRID RESPONSIVO (2 COLUNAS MOBILE, 3-4 COLUNAS DESKTOP) */}
+              {/* GRID RESPONSIVO (2 COLUNAS MOBILE CONFIGURÁVEL, 3-4 COLUNAS DESKTOP) */}
               {filteredProducts.length === 0 ? (
                 <div className="text-center py-20 bg-white rounded-3xl border border-slate-200 space-y-4 shadow-xs">
                   <Glasses size={40} className="mx-auto text-slate-400" />
@@ -699,7 +756,13 @@ export function ArmacoesView({
                   </button>
                 </div>
               ) : (
-                <div className="grid grid-cols-1 min-[440px]:grid-cols-2 lg:grid-cols-3 2xl:grid-cols-4 gap-4 sm:gap-6 items-stretch">
+                <div
+                  className={`grid gap-3 sm:gap-6 items-stretch ${
+                    mobileViewMode === "single"
+                      ? "grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 2xl:grid-cols-4"
+                      : "grid-cols-2 sm:grid-cols-2 lg:grid-cols-3 2xl:grid-cols-4"
+                  }`}
+                >
                   {filteredProducts.map((product) => (
                     <ArmacaoCard
                       key={product.id}

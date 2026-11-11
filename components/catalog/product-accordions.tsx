@@ -8,8 +8,11 @@ import {
   FileText,
   ShieldAlert,
   HelpCircle,
+  Sparkles,
 } from "lucide-react";
 import { Product, ProductFaqItem } from "@/types/ecommerce";
+import { FrameMeasurementsDiagram } from "./frame-measurements-diagram";
+import { FrameComparator } from "./frame-comparator";
 
 interface ProductAccordionsProps {
   product: Product;
@@ -23,16 +26,53 @@ export function ProductAccordions({ product }: ProductAccordionsProps) {
     setOpenSection((prev) => (prev === sectionId ? null : sectionId));
   };
 
+  const lensWidthMm = product.dimensions_lens_mm ?? null;
+  const bridgeMm = product.dimensions_bridge_mm ?? null;
+  const templeMm = product.dimensions_temple_mm ?? null;
+  const frameWidthMm = product.dimensions_frame_width_mm ?? null;
+  const lensHeightMm = product.dimensions_lens_height_mm ?? null;
+
   const hasDimensions = Boolean(
-    product.dimensions_lens_mm ||
-      product.dimensions_bridge_mm ||
-      product.dimensions_temple_mm
+    lensWidthMm || bridgeMm || templeMm || frameWidthMm || lensHeightMm
   );
 
-  const lensMm = product.dimensions_lens_mm || 53;
-  const bridgeMm = product.dimensions_bridge_mm || 18;
-  const templeMm = product.dimensions_temple_mm || 145;
-  const totalWidthMm = lensMm * 2 + bridgeMm;
+  // Lista de medidas estritamente aferidas (sem estimativas nem chutes com '~')
+  const measuredRows: { name: string; valueMm: number; usage: string }[] = [];
+  if (frameWidthMm) {
+    measuredRows.push({
+      name: "Largura Frontal Total",
+      valueMm: frameWidthMm,
+      usage: "Determina o caimento geral da armação nas têmporas do rosto.",
+    });
+  }
+  if (lensWidthMm) {
+    measuredRows.push({
+      name: "Largura da Lente (Aro)",
+      valueMm: lensWidthMm,
+      usage: "Campo de visão e proporção do aro frontal.",
+    });
+  }
+  if (lensHeightMm) {
+    measuredRows.push({
+      name: "Altura da Lente",
+      valueMm: lensHeightMm,
+      usage: "Cobertura vertical do olhar; excelente para acomodação de multifocais.",
+    });
+  }
+  if (bridgeMm) {
+    measuredRows.push({
+      name: "Ponte Nasal",
+      valueMm: bridgeMm,
+      usage: "Espaço de apoio e sustentação sobre o osso nasal sem marcas.",
+    });
+  }
+  if (templeMm) {
+    measuredRows.push({
+      name: "Comprimento da Haste",
+      valueMm: templeMm,
+      usage: "Alcance lateral até a curvatura anatômica atrás da orelha.",
+    });
+  }
 
   const faceShapes = product.face_shape_recommendations || [];
 
@@ -40,7 +80,7 @@ export function ProductAccordions({ product }: ProductAccordionsProps) {
     {
       question: "Como sei se esta armação vai ficar boa no meu rosto?",
       answer:
-        "Você pode conferir as dimensões anatômicas em milímetros e comparar com seus óculos atuais. Também oferecemos atendimento personalizado no WhatsApp e consultoria presencial na loja no Centro de Araçatuba.",
+        "Você pode conferir as medidas reais aferidas em milímetros na tabela abaixo e comparar diretamente com a armação que você já usa no nosso comparador interativo. Também oferecemos consultoria presencial na loja no Centro de Araçatuba e atendimento pelo WhatsApp.",
     },
     {
       question: "Vocês colocam as lentes de grau nesta armação?",
@@ -61,18 +101,18 @@ export function ProductAccordions({ product }: ProductAccordionsProps) {
 
   return (
     <div className="w-full space-y-3 pt-6 border-t border-slate-200">
-      {/* 1. Medidas Anatômicas (Some se não houver medidas) */}
+      {/* 1. Medidas Reais Aferidas (Some se não houver medidas cadastradas) */}
       {hasDimensions && (
-        <div className="border border-slate-200 rounded-2xl overflow-hidden bg-white">
+        <div className="border border-slate-200 rounded-3xl overflow-hidden bg-white shadow-sm">
           <button
             type="button"
             onClick={() => toggleSection("sizing")}
             aria-expanded={openSection === "sizing"}
-            className="w-full flex items-center justify-between p-4 sm:p-5 text-left font-bold text-xs uppercase tracking-wider text-slate-900 hover:bg-slate-50 transition-colors"
+            className="w-full flex items-center justify-between p-4 sm:p-6 text-left font-bold text-xs uppercase tracking-wider text-slate-900 hover:bg-slate-50 transition-colors"
           >
             <span className="flex items-center gap-2.5">
-              <Ruler size={16} className="text-amber-600" />
-              Tamanho e Medidas Anatômicas (ABNT)
+              <Ruler size={17} className="text-amber-600" />
+              Medidas Reais Aferidas (em milímetros)
             </span>
             <ChevronDown
               size={18}
@@ -83,91 +123,77 @@ export function ProductAccordions({ product }: ProductAccordionsProps) {
           </button>
 
           {openSection === "sizing" && (
-            <div className="p-4 sm:p-5 pt-0 space-y-4 text-xs text-slate-600 border-t border-slate-100">
-              <p className="leading-relaxed">
-                As medidas dos óculos são gravadas na parte interna das hastes no padrão
-                internacional de milímetros:
+            <div className="p-4 sm:p-6 pt-0 space-y-6 text-xs text-slate-600 border-t border-slate-100">
+              <p className="leading-relaxed text-slate-700">
+                Todas as dimensões abaixo representam medições exatas aferidas na armação física em milímetros:
               </p>
 
-              {/* Diagrama Simples da Armação SVG */}
-              <div className="bg-slate-50 border border-slate-200/80 rounded-xl p-4 flex flex-col items-center justify-center">
-                <svg
-                  viewBox="0 0 320 80"
-                  className="w-full max-w-[280px] h-auto text-slate-800"
-                  fill="none"
-                  stroke="currentColor"
-                  strokeWidth="2"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                >
-                  {/* Aro Esquerdo */}
-                  <rect x="25" y="15" width="100" height="50" rx="12" />
-                  {/* Aro Direito */}
-                  <rect x="195" y="15" width="100" height="50" rx="12" />
-                  {/* Ponte */}
-                  <path d="M125 35 Q160 25 195 35" />
-                  {/* Hastes */}
-                  <line x1="25" y1="25" x2="5" y2="20" />
-                  <line x1="295" y1="25" x2="315" y2="20" />
-                </svg>
-
-                <div className="flex items-center justify-between w-full max-w-[280px] text-[10px] font-mono text-slate-500 mt-2">
-                  <span className="text-center">Lente: {lensMm}mm</span>
-                  <span className="text-center">Ponte: {bridgeMm}mm</span>
-                  <span className="text-center">Haste: {templeMm}mm</span>
+              {/* Aviso Condicional de Gravação na Haste (Apenas se verificado no modelo) */}
+              {product.has_temple_engraving && (
+                <div className="p-3.5 bg-amber-50/70 border border-amber-200/80 rounded-2xl text-amber-900 text-xs flex items-center gap-2.5">
+                  <Sparkles size={16} className="text-amber-600 shrink-0" />
+                  <span>
+                    As medidas clássicas deste modelo vêm gravadas na parte interna de uma das hastes para fácil identificação.
+                  </span>
                 </div>
+              )}
+
+              {/* Diagrama Autoral SVG Ventara */}
+              <FrameMeasurementsDiagram
+                frameWidthMm={frameWidthMm}
+                lensWidthMm={lensWidthMm}
+                lensHeightMm={lensHeightMm}
+                bridgeMm={bridgeMm}
+                templeMm={templeMm}
+              />
+
+              {/* Tabela de Medidas Técnicas (Nome, Milímetros, Para quem serve) */}
+              <div className="overflow-x-auto rounded-2xl border border-slate-200 shadow-sm bg-white">
+                <table className="w-full text-left border-collapse text-xs">
+                  <thead>
+                    <tr className="bg-slate-50 border-b border-slate-200 text-slate-600 font-bold uppercase tracking-wider text-[10px]">
+                      <th className="py-3 px-4">Medida</th>
+                      <th className="py-3 px-4 text-center font-mono">Milímetros</th>
+                      <th className="py-3 px-4">Referência de Caimento</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-slate-100">
+                    {measuredRows.map((row, idx) => (
+                      <tr key={idx} className="hover:bg-slate-50/80 transition-colors">
+                        <td className="py-3 px-4 font-semibold text-slate-900">{row.name}</td>
+                        <td className="py-3 px-4 text-center font-mono font-bold text-amber-700 whitespace-nowrap">
+                          {row.valueMm} mm
+                        </td>
+                        <td className="py-3 px-4 text-slate-600">{row.usage}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
               </div>
 
-              {/* Tabela de Medidas */}
-              <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5 text-center">
-                <div className="p-2.5 bg-slate-50 rounded-xl border border-slate-200/60">
-                  <span className="text-[10px] text-slate-400 uppercase font-bold block">
-                    Largura da Lente
-                  </span>
-                  <span className="text-sm font-bold text-slate-900 font-mono">
-                    {lensMm} mm
-                  </span>
-                </div>
-                <div className="p-2.5 bg-slate-50 rounded-xl border border-slate-200/60">
-                  <span className="text-[10px] text-slate-400 uppercase font-bold block">
-                    Ponte Nasal
-                  </span>
-                  <span className="text-sm font-bold text-slate-900 font-mono">
-                    {bridgeMm} mm
-                  </span>
-                </div>
-                <div className="p-2.5 bg-slate-50 rounded-xl border border-slate-200/60">
-                  <span className="text-[10px] text-slate-400 uppercase font-bold block">
-                    Comprimento Haste
-                  </span>
-                  <span className="text-sm font-bold text-slate-900 font-mono">
-                    {templeMm} mm
-                  </span>
-                </div>
-                <div className="p-2.5 bg-slate-50 rounded-xl border border-slate-200/60">
-                  <span className="text-[10px] text-slate-400 uppercase font-bold block">
-                    Largura Total
-                  </span>
-                  <span className="text-sm font-bold text-slate-900 font-mono">
-                    ~{totalWidthMm} mm
-                  </span>
-                </div>
-              </div>
+              {/* Comparador Interativo "Compare com a sua armação" */}
+              <FrameComparator
+                currentModelName={product.name}
+                targetLensMm={lensWidthMm}
+                targetBridgeMm={bridgeMm}
+                targetTempleMm={templeMm}
+                targetHeightMm={lensHeightMm}
+              />
             </div>
           )}
         </div>
       )}
 
-      {/* 2. Indicação de Formato de Rosto (Termos estritamente neutros) */}
-      <div className="border border-slate-200 rounded-2xl overflow-hidden bg-white">
+      {/* 2. Indicação de Geometria Facial */}
+      <div className="border border-slate-200 rounded-3xl overflow-hidden bg-white shadow-sm">
         <button
           type="button"
           onClick={() => toggleSection("face_shape")}
           aria-expanded={openSection === "face_shape"}
-          className="w-full flex items-center justify-between p-4 sm:p-5 text-left font-bold text-xs uppercase tracking-wider text-slate-900 hover:bg-slate-50 transition-colors"
+          className="w-full flex items-center justify-between p-4 sm:p-6 text-left font-bold text-xs uppercase tracking-wider text-slate-900 hover:bg-slate-50 transition-colors"
         >
           <span className="flex items-center gap-2.5">
-            <Smile size={16} className="text-amber-600" />
+            <Smile size={17} className="text-amber-600" />
             Indicação de Geometria Facial
           </span>
           <ChevronDown
@@ -179,10 +205,9 @@ export function ProductAccordions({ product }: ProductAccordionsProps) {
         </button>
 
         {openSection === "face_shape" && (
-          <div className="p-4 sm:p-5 pt-0 space-y-3 text-xs text-slate-600 border-t border-slate-100">
+          <div className="p-4 sm:p-6 pt-0 space-y-3 text-xs text-slate-600 border-t border-slate-100">
             <p className="leading-relaxed">
-              O visagismo óptico analisa a harmonia das linhas do aro com o traçado
-              geométrico dos traços faciais:
+              O visagismo óptico analisa a harmonia das linhas do aro com o traçado geométrico dos traços faciais:
             </p>
 
             <div className="flex flex-wrap gap-2">
@@ -211,23 +236,22 @@ export function ProductAccordions({ product }: ProductAccordionsProps) {
             </div>
 
             <p className="text-[11px] text-slate-500 italic">
-              Dica: armações contrastantes com o traçado facial costumam proporcionar
-              excelente equilíbrio visual.
+              Dica: armações contrastantes com o traçado facial costumam proporcionar excelente equilíbrio visual.
             </p>
           </div>
         )}
       </div>
 
       {/* 3. Descrição Completa e Ficha Técnica */}
-      <div className="border border-slate-200 rounded-2xl overflow-hidden bg-white">
+      <div className="border border-slate-200 rounded-3xl overflow-hidden bg-white shadow-sm">
         <button
           type="button"
           onClick={() => toggleSection("description")}
           aria-expanded={openSection === "description"}
-          className="w-full flex items-center justify-between p-4 sm:p-5 text-left font-bold text-xs uppercase tracking-wider text-slate-900 hover:bg-slate-50 transition-colors"
+          className="w-full flex items-center justify-between p-4 sm:p-6 text-left font-bold text-xs uppercase tracking-wider text-slate-900 hover:bg-slate-50 transition-colors"
         >
           <span className="flex items-center gap-2.5">
-            <FileText size={16} className="text-amber-600" />
+            <FileText size={17} className="text-amber-600" />
             Descrição e Detalhes da Armação
           </span>
           <ChevronDown
@@ -239,18 +263,20 @@ export function ProductAccordions({ product }: ProductAccordionsProps) {
         </button>
 
         {openSection === "description" && (
-          <div className="p-4 sm:p-5 pt-0 space-y-3 text-xs text-slate-600 border-t border-slate-100 leading-relaxed">
+          <div className="p-4 sm:p-6 pt-0 space-y-3 text-xs text-slate-600 border-t border-slate-100 leading-relaxed">
             <p>
               {product.description ||
                 "Armação autoral Ótica Ventara com acabamento minucioso, peso balanceado e encaixe ergonômico. Fabricada com materiais nobres para durabilidade prolongada e máxima nitidez visual."}
             </p>
-            <div className="grid grid-cols-2 gap-2 pt-2 border-t border-slate-100">
+            <div className="grid grid-cols-2 gap-3 pt-2 border-t border-slate-100">
               <div>
                 <span className="text-slate-400 block text-[10px] uppercase font-bold">
                   Material
                 </span>
                 <span className="font-semibold text-slate-800">
-                  {product.frame_material || "Acetato de Alta Densidade"}
+                  {product.material_origin
+                    ? `${product.frame_material || "Acetato"} (${product.material_origin})`
+                    : product.frame_material || "Acetato"}
                 </span>
               </div>
               <div>
@@ -267,15 +293,15 @@ export function ProductAccordions({ product }: ProductAccordionsProps) {
       </div>
 
       {/* 4. Garantia e Política de Troca */}
-      <div className="border border-slate-200 rounded-2xl overflow-hidden bg-white">
+      <div className="border border-slate-200 rounded-3xl overflow-hidden bg-white shadow-sm">
         <button
           type="button"
           onClick={() => toggleSection("warranty")}
           aria-expanded={openSection === "warranty"}
-          className="w-full flex items-center justify-between p-4 sm:p-5 text-left font-bold text-xs uppercase tracking-wider text-slate-900 hover:bg-slate-50 transition-colors"
+          className="w-full flex items-center justify-between p-4 sm:p-6 text-left font-bold text-xs uppercase tracking-wider text-slate-900 hover:bg-slate-50 transition-colors"
         >
           <span className="flex items-center gap-2.5">
-            <ShieldAlert size={16} className="text-amber-600" />
+            <ShieldAlert size={17} className="text-amber-600" />
             Garantia e Troca Sem Burocracia
           </span>
           <ChevronDown
@@ -287,7 +313,7 @@ export function ProductAccordions({ product }: ProductAccordionsProps) {
         </button>
 
         {openSection === "warranty" && (
-          <div className="p-4 sm:p-5 pt-0 space-y-3 text-xs text-slate-600 border-t border-slate-100 leading-relaxed">
+          <div className="p-4 sm:p-6 pt-0 space-y-3 text-xs text-slate-600 border-t border-slate-100 leading-relaxed">
             <p>
               {product.warranty_text ||
                 "Todas as armações Ventara possuem 1 ano de garantia legal e contratual contra qualquer defeito de fabricação na estrutura, soldas e molas de articulação."}
@@ -301,15 +327,15 @@ export function ProductAccordions({ product }: ProductAccordionsProps) {
       </div>
 
       {/* 5. Perguntas Frequentes (FAQ Editável) */}
-      <div className="border border-slate-200 rounded-2xl overflow-hidden bg-white">
+      <div className="border border-slate-200 rounded-3xl overflow-hidden bg-white shadow-sm">
         <button
           type="button"
           onClick={() => toggleSection("faq")}
           aria-expanded={openSection === "faq"}
-          className="w-full flex items-center justify-between p-4 sm:p-5 text-left font-bold text-xs uppercase tracking-wider text-slate-900 hover:bg-slate-50 transition-colors"
+          className="w-full flex items-center justify-between p-4 sm:p-6 text-left font-bold text-xs uppercase tracking-wider text-slate-900 hover:bg-slate-50 transition-colors"
         >
           <span className="flex items-center gap-2.5">
-            <HelpCircle size={16} className="text-amber-600" />
+            <HelpCircle size={17} className="text-amber-600" />
             Dúvidas Frequentes sobre Este Modelo
           </span>
           <ChevronDown
@@ -321,7 +347,7 @@ export function ProductAccordions({ product }: ProductAccordionsProps) {
         </button>
 
         {openSection === "faq" && (
-          <div className="p-4 sm:p-5 pt-0 space-y-3 text-xs text-slate-600 border-t border-slate-100 divide-y divide-slate-100">
+          <div className="p-4 sm:p-6 pt-0 space-y-3 text-xs text-slate-600 border-t border-slate-100 divide-y divide-slate-100">
             {faqs.map((faq, index) => (
               <div key={index} className="pt-3 first:pt-0">
                 <h5 className="font-bold text-slate-900 mb-1">

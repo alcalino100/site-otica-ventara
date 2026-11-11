@@ -133,6 +133,10 @@ export async function POST(req: NextRequest) {
         dimensions_lens_mm: body.dimensions_lens_mm || null,
         dimensions_bridge_mm: body.dimensions_bridge_mm || null,
         dimensions_temple_mm: body.dimensions_temple_mm || null,
+        dimensions_frame_width_mm: body.dimensions_frame_width_mm || null,
+        dimensions_lens_height_mm: body.dimensions_lens_height_mm || null,
+        has_temple_engraving: Boolean(body.has_temple_engraving),
+        material_origin: body.material_origin || null,
       })
       .select()
       .single();
