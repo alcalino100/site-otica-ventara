@@ -139,6 +139,8 @@ export const DEFAULT_PROMOTIONAL_SHOWCASE: PromotionalShowcaseSettings = {
   subtitle:
     "Pares icônicos com design autoral, acabamento nobre, lentes certificadas e parcelamento sem juros.",
   ctaText: "Ver todos os modelos",
+  showDiscountBadge: true,
+  cardLayout: "split",
   items: [
     {
       id: "promo-1",
