@@ -44,6 +44,8 @@ interface ImageUploadItem {
   height?: number;
   isDarkWarning?: boolean;
   isLowResWarning?: boolean;
+  isVerticalWarning?: boolean;
+  aspectWarningText?: string;
 }
 
 export default function NewProductQuickFlowPage() {
@@ -87,9 +89,13 @@ export default function NewProductQuickFlowPage() {
   const [description, setDescription] = useState("");
   const [frameShape, setFrameShape] = useState<FrameShape>("Quadrado");
   const [frameMaterial, setFrameMaterial] = useState<FrameMaterial>("Acetato Premium");
-  const [lensMm, setLensMm] = useState<number>(53);
-  const [bridgeMm, setBridgeMm] = useState<number>(18);
-  const [templeMm, setTempleMm] = useState<number>(145);
+  const [lensMm, setLensMm] = useState<number | "">("");
+  const [bridgeMm, setBridgeMm] = useState<number | "">("");
+  const [templeMm, setTempleMm] = useState<number | "">("");
+  const [frameWidthMm, setFrameWidthMm] = useState<number | "">("");
+  const [lensHeightMm, setLensHeightMm] = useState<number | "">("");
+  const [hasTempleEngraving, setHasTempleEngraving] = useState<boolean>(false);
+  const [materialOrigin, setMaterialOrigin] = useState<string>("");
 
   // Carregar padrões inteligentes do último produto cadastrado
   useEffect(() => {
@@ -165,6 +171,19 @@ export default function NewProductQuickFlowPage() {
           });
 
           const isLowRes = img.naturalWidth > 0 && img.naturalWidth < 1000;
+          let isVerticalWarning = false;
+          let aspectWarningText: string | undefined;
+          if (img.naturalWidth > 0 && img.naturalHeight > 0) {
+            const ratio = img.naturalWidth / img.naturalHeight;
+            if (ratio < 0.95) {
+              isVerticalWarning = true;
+              aspectWarningText =
+                "Esta foto está em proporção vertical (retrato). Na vitrine ela será enquadrada em 4:3 com fundo neutro #F7F7F4 para evitar cortes nas pontas da armação. Recomendamos fotos horizontais em 4:3 com fundo claro.";
+            } else if (ratio < 1.15 || ratio > 1.6) {
+              aspectWarningText =
+                "Esta foto está fora da proporção 4:3 recomendada. Na vitrine será enquadrada centralizada com fundo neutro #F7F7F4 sem distorção.";
+            }
+          }
 
           newUploaded.push({
             url: resData.url,
@@ -173,6 +192,8 @@ export default function NewProductQuickFlowPage() {
             width: img.naturalWidth,
             height: img.naturalHeight,
             isLowResWarning: isLowRes,
+            isVerticalWarning,
+            aspectWarningText,
           });
         }
       }
@@ -348,9 +369,13 @@ export default function NewProductQuickFlowPage() {
         frame_shape: frameShape,
         frame_material: frameMaterial,
         gender: gender,
-        dimensions_lens_mm: lensMm,
-        dimensions_bridge_mm: bridgeMm,
-        dimensions_temple_mm: templeMm,
+        dimensions_lens_mm: typeof lensMm === "number" && lensMm > 0 ? lensMm : null,
+        dimensions_bridge_mm: typeof bridgeMm === "number" && bridgeMm > 0 ? bridgeMm : null,
+        dimensions_temple_mm: typeof templeMm === "number" && templeMm > 0 ? templeMm : null,
+        dimensions_frame_width_mm: typeof frameWidthMm === "number" && frameWidthMm > 0 ? frameWidthMm : null,
+        dimensions_lens_height_mm: typeof lensHeightMm === "number" && lensHeightMm > 0 ? lensHeightMm : null,
+        has_temple_engraving: hasTempleEngraving,
+        material_origin: materialOrigin.trim() || null,
         images: images.map((img, idx) => ({
           url: img.url,
           is_primary: img.is_primary,
@@ -642,6 +667,16 @@ export default function NewProductQuickFlowPage() {
                         <div className="p-1.5 rounded-lg bg-amber-500/10 border border-amber-500/20 text-amber-300 text-[10px] flex items-center gap-1">
                           <AlertTriangle size={12} className="shrink-0" />
                           <span>Resolução &lt; 1000px</span>
+                        </div>
+                      )}
+
+                      {img.aspectWarningText && (
+                        <div className="p-2 rounded-xl bg-amber-500/15 border border-amber-500/30 text-amber-200 text-[10px] space-y-1">
+                          <div className="flex items-center gap-1 font-bold text-amber-300">
+                            <AlertTriangle size={12} className="shrink-0" />
+                            <span>Aviso de Proporção</span>
+                          </div>
+                          <p className="leading-tight text-slate-300">{img.aspectWarningText}</p>
                         </div>
                       )}
 
@@ -1021,11 +1056,12 @@ export default function NewProductQuickFlowPage() {
                 </div>
 
                 <div>
-                  <label className="block text-slate-400 mb-1">Largura da Lente (mm)</label>
+                  <label className="block text-slate-400 mb-1">Largura da Lente / Aro (mm)</label>
                   <input
                     type="number"
+                    placeholder="ex: 52"
                     value={lensMm}
-                    onChange={(e) => setLensMm(Number(e.target.value))}
+                    onChange={(e) => setLensMm(e.target.value === "" ? "" : Number(e.target.value))}
                     className="w-full bg-[#0b1728] border border-white/15 rounded-xl px-3 py-2 text-white text-xs font-mono focus:outline-none focus:border-amber-400"
                   />
                 </div>
@@ -1034,11 +1070,70 @@ export default function NewProductQuickFlowPage() {
                   <label className="block text-slate-400 mb-1">Ponte Nasal (mm)</label>
                   <input
                     type="number"
+                    placeholder="ex: 18"
                     value={bridgeMm}
-                    onChange={(e) => setBridgeMm(Number(e.target.value))}
+                    onChange={(e) => setBridgeMm(e.target.value === "" ? "" : Number(e.target.value))}
                     className="w-full bg-[#0b1728] border border-white/15 rounded-xl px-3 py-2 text-white text-xs font-mono focus:outline-none focus:border-amber-400"
                   />
                 </div>
+
+                <div>
+                  <label className="block text-slate-400 mb-1">Comprimento da Haste (mm)</label>
+                  <input
+                    type="number"
+                    placeholder="ex: 145"
+                    value={templeMm}
+                    onChange={(e) => setTempleMm(e.target.value === "" ? "" : Number(e.target.value))}
+                    className="w-full bg-[#0b1728] border border-white/15 rounded-xl px-3 py-2 text-white text-xs font-mono focus:outline-none focus:border-amber-400"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-slate-400 mb-1">Largura Frontal Total (mm)</label>
+                  <input
+                    type="number"
+                    placeholder="ex: 138"
+                    value={frameWidthMm}
+                    onChange={(e) => setFrameWidthMm(e.target.value === "" ? "" : Number(e.target.value))}
+                    className="w-full bg-[#0b1728] border border-white/15 rounded-xl px-3 py-2 text-white text-xs font-mono focus:outline-none focus:border-amber-400"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-slate-400 mb-1">Altura da Lente (mm)</label>
+                  <input
+                    type="number"
+                    placeholder="ex: 42"
+                    value={lensHeightMm}
+                    onChange={(e) => setLensHeightMm(e.target.value === "" ? "" : Number(e.target.value))}
+                    className="w-full bg-[#0b1728] border border-white/15 rounded-xl px-3 py-2 text-white text-xs font-mono focus:outline-none focus:border-amber-400"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-slate-400 mb-1">Origem do Material (opcional)</label>
+                  <input
+                    type="text"
+                    placeholder="ex: Itália, Japão (deixe vazio se padrão)"
+                    value={materialOrigin}
+                    onChange={(e) => setMaterialOrigin(e.target.value)}
+                    className="w-full bg-[#0b1728] border border-white/15 rounded-xl px-3 py-2 text-white text-xs focus:outline-none focus:border-amber-400"
+                  />
+                </div>
+              </div>
+
+              {/* Checkbox de Gravação na Haste */}
+              <div className="pt-3 border-t border-white/10 flex items-center gap-3">
+                <input
+                  id="chk-has-engraving"
+                  type="checkbox"
+                  checked={hasTempleEngraving}
+                  onChange={(e) => setHasTempleEngraving(e.target.checked)}
+                  className="rounded border-white/20 bg-[#0b1728] text-amber-500 focus:ring-amber-400 h-4 w-4"
+                />
+                <label htmlFor="chk-has-engraving" className="text-xs text-slate-300 cursor-pointer">
+                  As medidas (lente · ponte · haste) vêm gravadas na haste deste modelo físico
+                </label>
               </div>
             </div>
           </div>

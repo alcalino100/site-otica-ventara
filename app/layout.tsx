@@ -9,7 +9,7 @@ import { CookieConsentBanner } from '@/components/legal/cookie-consent-banner';
 export const metadata: Metadata = {
   title: 'Ótica Ventara | Eyewear Boutique & Laboratório Próprio em Araçatuba',
   description:
-    'Ótica boutique em Araçatuba-SP. Armações em acetato italiano e titânio, lentes OPTiSYNC HD e montagem expressa em até 1 hora no laboratório próprio computadorizado.',
+    'Ótica boutique em Araçatuba-SP. Armações em acetato nobre e titânio, lentes OPTiSYNC HD e montagem expressa em até 1 hora no laboratório próprio computadorizado.',
   keywords: [
     'ótica em araçatuba',
     'armações de óculos',

@@ -19,6 +19,9 @@ export const DEFAULT_CATALOG: Product[] = [
     "dimensions_lens_mm": 53,
     "dimensions_bridge_mm": 18,
     "dimensions_temple_mm": 145,
+    "dimensions_frame_width_mm": 138,
+    "dimensions_lens_height_mm": 42,
+    "has_temple_engraving": true,
     "created_at": "2026-10-23T18:00:16.197574+00:00",
     "updated_at": "2026-10-24T23:14:12.837682+00:00",
     "category": {
@@ -74,6 +77,9 @@ export const DEFAULT_CATALOG: Product[] = [
     "dimensions_lens_mm": 53,
     "dimensions_bridge_mm": 18,
     "dimensions_temple_mm": 145,
+    "dimensions_frame_width_mm": 138,
+    "dimensions_lens_height_mm": 42,
+    "has_temple_engraving": true,
     "created_at": "2026-10-23T00:54:01.922839+00:00",
     "updated_at": "2026-10-23T17:47:58.823434+00:00",
     "category": {

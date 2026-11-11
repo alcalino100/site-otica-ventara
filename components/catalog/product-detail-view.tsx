@@ -63,7 +63,7 @@ export function ProductDetailView({
 
       <main className="flex-1 pt-20 sm:pt-24 pb-20">
         <div className="max-w-[1400px] mx-auto px-4 sm:px-8 lg:px-10 py-6">
-          {/* Breadcrumb de Navegação ABNT / W3C: Início / Armações / Linha ou formato / Nome do produto */}
+          {/* Breadcrumb de Navegação Estruturado: Início / Armações / Linha ou formato / Nome do produto */}
           <nav
             className="text-xs text-slate-500 mb-6 flex items-center gap-2 flex-wrap"
             aria-label="Breadcrumb"
@@ -114,6 +114,24 @@ export function ProductDetailView({
                 <h1 className="text-3xl sm:text-4xl font-semibold tracking-tight text-slate-950 leading-tight">
                   {product.name}
                 </h1>
+
+                {/* Três Números Clássicos (Lente · Ponte · Haste) */}
+                {product.dimensions_lens_mm && product.dimensions_bridge_mm && product.dimensions_temple_mm && (
+                  <div
+                    data-testid="classic-dimensions"
+                    className="mt-2.5 inline-flex items-center gap-2 px-3 py-1 bg-slate-100 rounded-xl border border-slate-200/80 text-xs font-mono text-slate-800"
+                  >
+                    <span className="text-[10px] uppercase font-bold text-slate-500 font-sans tracking-wider">Tamanho:</span>
+                    <span className="font-bold text-amber-700">
+                      {product.dimensions_lens_mm} · {product.dimensions_bridge_mm} · {product.dimensions_temple_mm}
+                    </span>
+                    {product.has_temple_engraving && (
+                      <span className="text-[10px] text-slate-500 font-sans hidden sm:inline">
+                        (gravado na haste)
+                      </span>
+                    )}
+                  </div>
+                )}
 
                 {/* Preços e Parcelamento com Fonte Única */}
                 <div className="flex items-baseline gap-3 mt-4 flex-wrap">

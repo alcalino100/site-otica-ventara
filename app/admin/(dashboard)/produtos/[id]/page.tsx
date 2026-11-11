@@ -45,9 +45,13 @@ export default function EditProductPage() {
   const [frameShape, setFrameShape] = useState<FrameShape>("Quadrado");
   const [frameMaterial, setFrameMaterial] = useState<FrameMaterial>("Acetato Premium");
   const [gender, setGender] = useState<FrameGender>("Unissex");
-  const [lensMm, setLensMm] = useState<number>(53);
-  const [bridgeMm, setBridgeMm] = useState<number>(18);
-  const [templeMm, setTempleMm] = useState<number>(145);
+  const [lensMm, setLensMm] = useState<number | "">("");
+  const [bridgeMm, setBridgeMm] = useState<number | "">("");
+  const [templeMm, setTempleMm] = useState<number | "">("");
+  const [frameWidthMm, setFrameWidthMm] = useState<number | "">("");
+  const [lensHeightMm, setLensHeightMm] = useState<number | "">("");
+  const [hasTempleEngraving, setHasTempleEngraving] = useState<boolean>(false);
+  const [materialOrigin, setMaterialOrigin] = useState<string>("");
   const [isPublished, setIsPublished] = useState(true);
   const [isFeatured, setIsFeatured] = useState(false);
 
@@ -90,9 +94,13 @@ export default function EditProductPage() {
         if (p.frame_material) setFrameMaterial(p.frame_material as FrameMaterial);
         if (p.gender) setGender(p.gender as FrameGender);
 
-        setLensMm(p.dimensions_lens_mm || 53);
-        setBridgeMm(p.dimensions_bridge_mm || 18);
-        setTempleMm(p.dimensions_temple_mm || 145);
+        setLensMm(p.dimensions_lens_mm ?? "");
+        setBridgeMm(p.dimensions_bridge_mm ?? "");
+        setTempleMm(p.dimensions_temple_mm ?? "");
+        setFrameWidthMm(p.dimensions_frame_width_mm ?? "");
+        setLensHeightMm(p.dimensions_lens_height_mm ?? "");
+        setHasTempleEngraving(Boolean(p.has_temple_engraving));
+        setMaterialOrigin(p.material_origin || "");
         setIsPublished(p.is_published ?? true);
         setIsFeatured(p.is_featured ?? false);
 
@@ -240,9 +248,13 @@ export default function EditProductPage() {
           frame_shape: frameShape,
           frame_material: frameMaterial,
           gender,
-          dimensions_lens_mm: lensMm || null,
-          dimensions_bridge_mm: bridgeMm || null,
-          dimensions_temple_mm: templeMm || null,
+          dimensions_lens_mm: typeof lensMm === "number" && lensMm > 0 ? lensMm : null,
+          dimensions_bridge_mm: typeof bridgeMm === "number" && bridgeMm > 0 ? bridgeMm : null,
+          dimensions_temple_mm: typeof templeMm === "number" && templeMm > 0 ? templeMm : null,
+          dimensions_frame_width_mm: typeof frameWidthMm === "number" && frameWidthMm > 0 ? frameWidthMm : null,
+          dimensions_lens_height_mm: typeof lensHeightMm === "number" && lensHeightMm > 0 ? lensHeightMm : null,
+          has_temple_engraving: hasTempleEngraving,
+          material_origin: materialOrigin.trim() || null,
           images: images.map((img, i) => ({
             url: img.url,
             is_primary: img.is_primary,
@@ -457,7 +469,7 @@ export default function EditProductPage() {
                 onChange={(e) => setFrameMaterial(e.target.value as FrameMaterial)}
                 className="w-full bg-[#040e17] border border-slate-700 rounded-lg px-3 py-2 text-xs text-white focus:outline-none focus:border-amber-400"
               >
-                <option value="Acetato Premium">Acetato Italiano</option>
+                <option value="Acetato Premium">Acetato Premium</option>
                 <option value="Metal Nobre">Metal / Aço Cirúrgico</option>
                 <option value="Titânio">Titânio Ultraleve</option>
                 <option value="Injetado Leve">Injetado TR-90</option>
@@ -483,17 +495,18 @@ export default function EditProductPage() {
             </div>
           </div>
 
-          <div className="grid grid-cols-3 gap-4 pt-2">
+          <div className="grid grid-cols-2 sm:grid-cols-3 gap-4 pt-2">
             <div>
               <label htmlFor="edit-lens-mm" className="block text-xs font-medium text-slate-300 mb-1">
-                Largura da Lente (mm)
+                Largura da Lente / Aro (mm)
               </label>
               <input
                 id="edit-lens-mm"
                 type="number"
+                placeholder="ex: 52"
                 value={lensMm}
-                onChange={(e) => setLensMm(parseInt(e.target.value) || 0)}
-                className="w-full bg-[#040e17] border border-slate-700 rounded-lg px-3 py-2 text-xs text-white focus:outline-none focus:border-amber-400"
+                onChange={(e) => setLensMm(e.target.value === "" ? "" : parseInt(e.target.value, 10))}
+                className="w-full bg-[#040e17] border border-slate-700 rounded-lg px-3 py-2 text-xs text-white focus:outline-none focus:border-amber-400 font-mono"
               />
             </div>
 
@@ -504,24 +517,81 @@ export default function EditProductPage() {
               <input
                 id="edit-bridge-mm"
                 type="number"
+                placeholder="ex: 18"
                 value={bridgeMm}
-                onChange={(e) => setBridgeMm(parseInt(e.target.value) || 0)}
-                className="w-full bg-[#040e17] border border-slate-700 rounded-lg px-3 py-2 text-xs text-white focus:outline-none focus:border-amber-400"
+                onChange={(e) => setBridgeMm(e.target.value === "" ? "" : parseInt(e.target.value, 10))}
+                className="w-full bg-[#040e17] border border-slate-700 rounded-lg px-3 py-2 text-xs text-white focus:outline-none focus:border-amber-400 font-mono"
               />
             </div>
 
             <div>
               <label htmlFor="edit-temple-mm" className="block text-xs font-medium text-slate-300 mb-1">
-                Haste (Comprimento mm)
+                Comprimento da Haste (mm)
               </label>
               <input
                 id="edit-temple-mm"
                 type="number"
+                placeholder="ex: 145"
                 value={templeMm}
-                onChange={(e) => setTempleMm(parseInt(e.target.value) || 0)}
+                onChange={(e) => setTempleMm(e.target.value === "" ? "" : parseInt(e.target.value, 10))}
+                className="w-full bg-[#040e17] border border-slate-700 rounded-lg px-3 py-2 text-xs text-white focus:outline-none focus:border-amber-400 font-mono"
+              />
+            </div>
+
+            <div>
+              <label htmlFor="edit-frame-width-mm" className="block text-xs font-medium text-slate-300 mb-1">
+                Largura Frontal Total (mm)
+              </label>
+              <input
+                id="edit-frame-width-mm"
+                type="number"
+                placeholder="ex: 138"
+                value={frameWidthMm}
+                onChange={(e) => setFrameWidthMm(e.target.value === "" ? "" : parseInt(e.target.value, 10))}
+                className="w-full bg-[#040e17] border border-slate-700 rounded-lg px-3 py-2 text-xs text-white focus:outline-none focus:border-amber-400 font-mono"
+              />
+            </div>
+
+            <div>
+              <label htmlFor="edit-lens-height-mm" className="block text-xs font-medium text-slate-300 mb-1">
+                Altura da Lente (mm)
+              </label>
+              <input
+                id="edit-lens-height-mm"
+                type="number"
+                placeholder="ex: 42"
+                value={lensHeightMm}
+                onChange={(e) => setLensHeightMm(e.target.value === "" ? "" : parseInt(e.target.value, 10))}
+                className="w-full bg-[#040e17] border border-slate-700 rounded-lg px-3 py-2 text-xs text-white focus:outline-none focus:border-amber-400 font-mono"
+              />
+            </div>
+
+            <div>
+              <label htmlFor="edit-material-origin" className="block text-xs font-medium text-slate-300 mb-1">
+                Origem do Material (opcional)
+              </label>
+              <input
+                id="edit-material-origin"
+                type="text"
+                placeholder="ex: Itália, Japão (vazio se padrão)"
+                value={materialOrigin}
+                onChange={(e) => setMaterialOrigin(e.target.value)}
                 className="w-full bg-[#040e17] border border-slate-700 rounded-lg px-3 py-2 text-xs text-white focus:outline-none focus:border-amber-400"
               />
             </div>
+          </div>
+
+          <div className="pt-3 border-t border-white/5 flex items-center gap-3">
+            <input
+              id="edit-has-engraving"
+              type="checkbox"
+              checked={hasTempleEngraving}
+              onChange={(e) => setHasTempleEngraving(e.target.checked)}
+              className="rounded border-slate-700 bg-[#040e17] text-amber-500 focus:ring-amber-400 h-4 w-4"
+            />
+            <label htmlFor="edit-has-engraving" className="text-xs text-slate-300 cursor-pointer">
+              As medidas vêm gravadas na haste deste modelo físico
+            </label>
           </div>
         </div>
 

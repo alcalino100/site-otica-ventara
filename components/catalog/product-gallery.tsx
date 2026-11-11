@@ -134,6 +134,9 @@ export function ProductGallery({ product, overrideImage }: ProductGalleryProps) 
             <img
               src={activeImage}
               alt={images[activeIdx]?.alt_text || product.name}
+              data-testid="pdp-main-image"
+              fetchPriority="high"
+              decoding="async"
               style={
                 isZoomed
                   ? {
