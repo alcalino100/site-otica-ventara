@@ -8,6 +8,11 @@ test.describe("Validação de Toque, Zona Morta nas Setas, Zoom Seguro e Padroni
   });
 
   test.beforeEach(async ({ page }) => {
+    await page.addInitScript(() => {
+      // Evita intercepção de ponteiros pela roleta promocional durante os testes
+      window.sessionStorage.setItem("ventara_wheel_session_default-optica-ventara-2025", "1");
+      window.localStorage.setItem("ventara_wheel_participated_default-optica-ventara-2025_v1", "1");
+    });
     await page.goto("/");
     await page.waitForLoadState("domcontentloaded");
   });
@@ -161,6 +166,9 @@ test.describe("Validação de Toque, Zona Morta nas Setas, Zoom Seguro e Padroni
   });
 
   test("T9: Área tátil das setas possui dimensão mínima de 44x44px", async ({ page }) => {
+    await page.setViewportSize({ width: 1024, height: 800 });
+    const card = page.locator("article.group, .product").first();
+    await card.hover();
     const nextBtn = page.locator("[data-testid='card-gallery-next']").first();
     if (await nextBtn.isVisible()) {
       const box = await nextBtn.boundingBox();

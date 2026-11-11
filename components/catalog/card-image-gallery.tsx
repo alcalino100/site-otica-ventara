@@ -171,15 +171,15 @@ export function CardImageGallery({
         )}
       </Link>
 
-      {/* 2. Zona Morta das Setas: Botões independentes com mínimo de 44px de área de clique */}
+      {/* 2. Setas no Desktop: Ocultas no celular (arraste por swipe sem cobrir o produto), exibidas apenas com hover no desktop */}
       {hasMultiple && (
-        <div className="pointer-events-none absolute inset-0 z-20 flex items-center justify-between p-1">
+        <div className="hidden md:flex pointer-events-none absolute inset-y-0 inset-x-1 z-20 items-center justify-between opacity-0 group-hover/gallery:opacity-100 transition-opacity duration-200">
           {/* Seta Esquerda (Anterior) */}
           <button
             type="button"
             data-testid="card-gallery-prev"
             aria-label={`Ver foto anterior de ${productName}`}
-            className="pointer-events-auto min-w-[44px] min-h-[44px] w-11 h-11 flex items-center justify-center rounded-full bg-black/45 hover:bg-black/75 active:scale-95 text-white backdrop-blur-md transition-all border border-white/20 shadow-md touch-manipulation cursor-pointer"
+            className="pointer-events-auto min-w-[44px] min-h-[44px] w-11 h-11 flex items-center justify-center rounded-full bg-black/55 hover:bg-black/85 active:scale-95 text-white backdrop-blur-md transition-all border border-white/25 shadow-md touch-manipulation cursor-pointer"
             onClick={(e) => {
               e.preventDefault();
               e.stopPropagation();
@@ -200,7 +200,7 @@ export function CardImageGallery({
             type="button"
             data-testid="card-gallery-next"
             aria-label={`Ver próxima foto de ${productName}`}
-            className="pointer-events-auto min-w-[44px] min-h-[44px] w-11 h-11 flex items-center justify-center rounded-full bg-black/45 hover:bg-black/75 active:scale-95 text-white backdrop-blur-md transition-all border border-white/20 shadow-md touch-manipulation cursor-pointer"
+            className="pointer-events-auto min-w-[44px] min-h-[44px] w-11 h-11 flex items-center justify-center rounded-full bg-black/55 hover:bg-black/85 active:scale-95 text-white backdrop-blur-md transition-all border border-white/25 shadow-md touch-manipulation cursor-pointer"
             onClick={(e) => {
               e.preventDefault();
               e.stopPropagation();
@@ -218,11 +218,11 @@ export function CardImageGallery({
         </div>
       )}
 
-      {/* 3. Indicador de Posição / Contador de Fotos */}
+      {/* 3. Indicador de Posição / Contador de Fotos (abaixo da área central da armação) */}
       {hasMultiple && (
         <div
           data-testid="card-gallery-counter"
-          className="pointer-events-none absolute bottom-2 right-2 px-2 py-0.5 rounded-full bg-black/60 backdrop-blur-md text-white text-[10px] font-mono tracking-wider z-20 border border-white/15"
+          className="pointer-events-none absolute bottom-2 right-2 px-2 py-0.5 rounded-full bg-black/60 backdrop-blur-md text-white text-[10px] font-mono tracking-wider z-10 border border-white/15"
         >
           {currentIndex + 1}/{validImages.length}
         </div>

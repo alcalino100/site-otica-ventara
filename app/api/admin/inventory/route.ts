@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
+import { revalidatePath } from "next/cache";
 import { createAdminClient } from "@/lib/supabase/admin";
 
 export async function POST(req: NextRequest) {
@@ -44,6 +45,28 @@ export async function POST(req: NextRequest) {
       });
     } catch (movErr) {
       console.warn("Aviso ao registrar histórico em inventory_movements:", movErr);
+    }
+
+    // 3. Invalidação imediata de cache público
+    try {
+      revalidatePath("/");
+      revalidatePath("/armacoes");
+      revalidatePath("/admin/estoque");
+      revalidatePath("/admin/produtos");
+      if (product_id) {
+        const { data: pData } = await adminSupabase
+          .from("products")
+          .select("slug")
+          .eq("id", product_id)
+          .maybeSingle();
+
+        if (pData?.slug) {
+          revalidatePath(`/produto/${pData.slug}`);
+          revalidatePath(`/armacoes/${pData.slug}`);
+        }
+      }
+    } catch {
+      // Ignora erro de revalidação
     }
 
     return NextResponse.json({

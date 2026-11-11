@@ -29,6 +29,39 @@ const CART_STORAGE_KEY = "ventara_cart_items_v2";
 const LEGACY_STORAGE_KEY = "ventara_selected_frames_v1";
 const CART_EXPIRATION_MS = 7 * 24 * 60 * 60 * 1000; // 7 dias
 
+/**
+ * Resolução resiliente de IDs de produto e variante a partir do item ou de IDs combinados.
+ * Previne corrupção de UUIDs (que possuem hífens internos).
+ */
+export function extractProductAndVariantIds(
+  rawId: string,
+  explicitProductId?: string,
+  explicitVariantId?: string
+): { productId: string; variantId?: string } {
+  let productId = explicitProductId || "";
+  let variantId = explicitVariantId || undefined;
+
+  if (productId && variantId) {
+    return { productId, variantId };
+  }
+
+  if (rawId) {
+    if (rawId.includes("::")) {
+      const parts = rawId.split("::");
+      if (!productId) productId = parts[0];
+      if (!variantId) variantId = parts[1];
+    } else if (rawId.length === 73 && rawId[36] === "-") {
+      // Caso de duas UUIDs (36 chars cada) unidas por hífen
+      if (!productId) productId = rawId.slice(0, 36);
+      if (!variantId) variantId = rawId.slice(37);
+    } else if (!productId) {
+      productId = rawId;
+    }
+  }
+
+  return { productId, variantId };
+}
+
 export function getStoredCart(): CartProduct[] {
   if (typeof window === "undefined") return [];
   try {
@@ -38,31 +71,39 @@ export function getStoredCart(): CartProduct[] {
     const parsed: any[] = JSON.parse(raw);
     const now = Date.now();
 
-    // Filtra itens não expirados e normaliza estrutura
+    // Filtra itens não expirados e normaliza estrutura sem truncar UUIDs
     const validItems: CartProduct[] = parsed
       .filter((it) => {
         if (!it.addedAt) return true;
         return now - it.addedAt < CART_EXPIRATION_MS;
       })
-      .map((it) => ({
-        id: it.id || `${it.slug || it.name}-${it.color || "padrao"}`,
-        productId: it.productId || it.id?.split("-")[0] || "",
-        variantId: it.variantId || undefined,
-        sku: it.sku || "",
-        name: it.name || "Armação Ventara",
-        slug: it.slug || "",
-        category: it.category || "Armação",
-        color: it.color || "Padrão",
-        colorHex: it.colorHex || "#1e293b",
-        priceInCents: typeof it.priceInCents === "number" ? it.priceInCents : (it.price || 0) * 100,
-        originalPriceInCents: it.originalPriceInCents ?? null,
-        imageUrl: it.imageUrl || "",
-        quantity: Math.max(1, Number(it.quantity || 1)),
-        stockQuantity: typeof it.stockQuantity === "number" ? it.stockQuantity : 10,
-        addedAt: it.addedAt || now,
-        isOutOfStock: Boolean(it.isOutOfStock),
-        priceChangedMessage: it.priceChangedMessage || undefined,
-      }));
+      .map((it) => {
+        const { productId, variantId } = extractProductAndVariantIds(
+          it.id || "",
+          it.productId,
+          it.variantId
+        );
+
+        return {
+          id: it.id || `${it.slug || it.name}-${it.color || "padrao"}`,
+          productId: productId || it.slug || "",
+          variantId: variantId || undefined,
+          sku: it.sku || "",
+          name: it.name || "Armação Ventara",
+          slug: it.slug || "",
+          category: it.category || "Armação",
+          color: it.color || "Padrão",
+          colorHex: it.colorHex || "#1e293b",
+          priceInCents: typeof it.priceInCents === "number" ? it.priceInCents : (it.price || 0) * 100,
+          originalPriceInCents: it.originalPriceInCents ?? null,
+          imageUrl: it.imageUrl || "",
+          quantity: Math.max(1, Number(it.quantity || 1)),
+          stockQuantity: typeof it.stockQuantity === "number" ? it.stockQuantity : 10,
+          addedAt: it.addedAt || now,
+          isOutOfStock: Boolean(it.isOutOfStock),
+          priceChangedMessage: it.priceChangedMessage || undefined,
+        };
+      });
 
     return validItems;
   } catch (err) {

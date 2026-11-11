@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getUnifiedProductBySlug } from "@/lib/products";
 import { DEFAULT_CATALOG } from "@/lib/catalog-data";
+import { extractProductAndVariantIds } from "@/lib/cart";
 
 export interface ValidateCartRequestItem {
   id: string;
@@ -20,6 +21,8 @@ export interface ValidatedCartItemResult {
   priceChanged: boolean;
   isOutOfStock: boolean;
   availableStock: number;
+  requestedQuantity: number;
+  hasInsufficientStock: boolean;
   message?: string;
 }
 
@@ -34,39 +37,55 @@ export async function POST(req: NextRequest) {
         items: [],
         hasPriceChanges: false,
         hasOutOfStock: false,
+        hasInsufficientStock: false,
       });
     }
 
     const validatedItems: ValidatedCartItemResult[] = [];
     let hasPriceChanges = false;
     let hasOutOfStock = false;
+    let hasInsufficientStock = false;
 
     for (const item of items) {
-      const prodIdentifier = item.productId || item.id.split("-")[0];
+      const { productId, variantId } = extractProductAndVariantIds(
+        item.id || "",
+        item.productId,
+        item.variantId
+      );
+
+      const prodIdentifier = productId || item.sku || item.id;
       const product =
         (await getUnifiedProductBySlug(prodIdentifier)) ||
-        DEFAULT_CATALOG.find((p) => p.id === prodIdentifier || p.slug === prodIdentifier);
+        DEFAULT_CATALOG.find(
+          (p) => p.id === prodIdentifier || p.slug === prodIdentifier || p.sku === prodIdentifier
+        ) ||
+        (item.id.includes("::")
+          ? await getUnifiedProductBySlug(item.id.split("::")[0])
+          : null);
 
       if (!product) {
-        // Se o produto foi removido ou não existe
+        // Se o produto foi removido ou não existe no catálogo
         validatedItems.push({
           id: item.id,
           productId: prodIdentifier,
-          variantId: item.variantId,
+          variantId,
           currentPriceInCents: item.priceInCents || 0,
           oldPriceInCents: item.priceInCents || 0,
           priceChanged: false,
           isOutOfStock: true,
           availableStock: 0,
+          requestedQuantity: item.quantity || 1,
+          hasInsufficientStock: true,
           message: "Este produto não está mais disponível no catálogo.",
         });
         hasOutOfStock = true;
         continue;
       }
 
-      // Procura a variante correspondente se informada
-      const variant = item.variantId
-        ? product.variants?.find((v: any) => v.id === item.variantId)
+      // Procura a variante correspondente por variantId ou SKU ou primeira variante
+      const targetVariantId = variantId || item.variantId;
+      const variant = targetVariantId
+        ? product.variants?.find((v: any) => v.id === targetVariantId || v.sku === targetVariantId)
         : product.variants?.[0];
 
       const currentPrice =
@@ -77,18 +96,30 @@ export async function POST(req: NextRequest) {
       const oldPrice = typeof item.priceInCents === "number" ? item.priceInCents : currentPrice;
       const priceChanged = oldPrice !== currentPrice;
 
+      // Fonte única de estoque da variante real
       const stockQuantity =
         variant && typeof variant.stock_quantity === "number"
           ? variant.stock_quantity
+          : typeof product.variants?.[0]?.stock_quantity === "number"
+          ? product.variants[0].stock_quantity
           : 10;
 
+      const requestedQuantity = Math.max(1, Number(item.quantity || 1));
       const isOutOfStock = stockQuantity <= 0;
+      const isInsufficient = !isOutOfStock && requestedQuantity > stockQuantity;
 
       if (priceChanged) hasPriceChanges = true;
       if (isOutOfStock) hasOutOfStock = true;
+      if (isInsufficient) hasInsufficientStock = true;
 
       let message: string | undefined = undefined;
-      if (priceChanged) {
+      if (isOutOfStock) {
+        message = "Este item está temporariamente esgotado.";
+      } else if (isInsufficient) {
+        message = `Apenas ${stockQuantity} ${
+          stockQuantity === 1 ? "unidade disponível" : "unidades disponíveis"
+        } em estoque.`;
+      } else if (priceChanged) {
         const oldFormatted = (oldPrice / 100).toLocaleString("pt-BR", {
           style: "currency",
           currency: "BRL",
@@ -98,8 +129,6 @@ export async function POST(req: NextRequest) {
           currency: "BRL",
         });
         message = `O preço deste item foi atualizado de ${oldFormatted} para ${currentFormatted}.`;
-      } else if (isOutOfStock) {
-        message = "Este item está temporariamente esgotado.";
       }
 
       validatedItems.push({
@@ -111,15 +140,18 @@ export async function POST(req: NextRequest) {
         priceChanged,
         isOutOfStock,
         availableStock: stockQuantity,
+        requestedQuantity,
+        hasInsufficientStock: isInsufficient,
         message,
       });
     }
 
     return NextResponse.json({
-      valid: !hasOutOfStock,
+      valid: !hasOutOfStock && !hasInsufficientStock,
       items: validatedItems,
       hasPriceChanges,
       hasOutOfStock,
+      hasInsufficientStock,
     });
   } catch (err: any) {
     console.error("Erro ao validar carrinho:", err);
