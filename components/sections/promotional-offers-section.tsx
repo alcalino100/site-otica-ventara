@@ -9,12 +9,15 @@ import { DEFAULT_CATALOG } from "@/lib/catalog-data";
 import { useSiteSettings } from "../providers/site-settings-provider";
 import { FrameArt } from "../catalog/frame-art";
 import { CardImageGallery, GalleryImage } from "../catalog/card-image-gallery";
+import { ProductCard } from "../catalog/product-card";
 import { formatProductPricing, FormattedProductPricing } from "@/lib/pricing";
 
 const INITIAL_LIMIT = 8;
 
 interface PromotionalOffersSectionProps {
   products?: Product[];
+  onAddToCart?: (product: Product) => void;
+  cartIds?: string[];
 }
 
 interface ResolvedPromoItem {
@@ -31,6 +34,7 @@ interface ResolvedPromoItem {
   colorHex?: string;
   extraColorsCount: number;
   description?: string | null;
+  product: Product;
 }
 
 /**
@@ -64,7 +68,11 @@ function resolveProductSlug(item: PromoProductItem): string {
   return item.slug?.trim() || "";
 }
 
-export function PromotionalOffersSection({ products = [] }: PromotionalOffersSectionProps) {
+export function PromotionalOffersSection({
+  products = [],
+  onAddToCart = () => {},
+  cartIds = [],
+}: PromotionalOffersSectionProps) {
   const { cleanWhatsAppNumber } = useSiteSettings();
   const [promoSettings, setPromoSettings] =
     useState<PromotionalShowcaseSettings>(DEFAULT_PROMOTIONAL_SHOWCASE);
@@ -130,6 +138,26 @@ export function PromotionalOffersSection({ products = [] }: PromotionalOffersSec
         const variants = matched.variants || [];
         const firstVariant = variants[0];
 
+        const productForCard: Product = {
+          ...matched,
+          images:
+            matched.images && matched.images.length > 0
+              ? matched.images
+              : primaryImg
+              ? [
+                  {
+                    id: `${matched.id}-primary`,
+                    product_id: matched.id,
+                    url: primaryImg,
+                    alt_text: matched.name,
+                    is_primary: true,
+                    sort_order: 0,
+                    created_at: new Date().toISOString(),
+                  },
+                ]
+              : [],
+        };
+
         resolved.push({
           id: matched.id,
           name: matched.name,
@@ -154,6 +182,7 @@ export function PromotionalOffersSection({ products = [] }: PromotionalOffersSec
           colorHex: firstVariant?.color_hex || item.colorHex || "#1e293b",
           extraColorsCount: Math.max(0, variants.length - 1),
           description: matched.description || item.description,
+          product: productForCard,
         });
       }
     }
@@ -228,138 +257,19 @@ export function PromotionalOffersSection({ products = [] }: PromotionalOffersSec
           </a>
         </div>
 
-        {/* Grade de Produtos Promocionais (2 colunas no mobile, 4 no desktop) */}
+        {/* Grade de Produtos Promocionais (2 colunas no mobile, 4 no desktop) - Padrão Foto Sangrada Unificado */}
         <div className="relative">
           <div className="grid grid-cols-2 lg:grid-cols-4 gap-3.5 sm:gap-6">
-            {displayedItems.map((item) => {
-              const hasError = imgErrors[item.id];
-              const hasRealImage = Boolean(item.image && item.image.trim() !== "" && !hasError);
-
-              return (
-                <article
-                  key={item.id}
-                  className="group bg-slate-50/70 hover:bg-white rounded-2xl sm:rounded-3xl p-3 sm:p-5 border border-slate-200/90 hover:border-amber-400/60 shadow-xs hover:shadow-xl transition-all duration-300 flex flex-col justify-between"
-                >
-                  <div>
-                    {/* Selos de Desconto e Categoria (Sem duplicação de 'Oferta' e '-X% OFF') */}
-                    <div className="flex items-center justify-between gap-1.5 mb-2 min-h-[22px]">
-                      {item.pricing.hasDiscount && item.pricing.discountBadgeText ? (
-                        <span className="inline-flex items-center gap-1 px-2 sm:px-2.5 py-0.5 rounded-full bg-emerald-600 text-white font-bold text-[9px] sm:text-[10px] tracking-wide shadow-xs whitespace-nowrap shrink-0">
-                          <Tag size={10} />
-                          <span>{item.pricing.discountBadgeText}</span>
-                        </span>
-                      ) : item.tag && item.tag.toLowerCase() !== "oferta" ? (
-                        <span className="text-[9px] font-semibold text-slate-600 bg-slate-200/70 px-2 py-0.5 rounded-full truncate whitespace-nowrap shrink-0">
-                          {item.tag}
-                        </span>
-                      ) : (
-                        <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-amber-50 text-amber-700 border border-amber-200/60 font-bold text-[9px] tracking-wide whitespace-nowrap shrink-0">
-                          <Sparkles size={9} className="text-amber-500" />
-                          <span>OFERTA</span>
-                        </span>
-                      )}
-
-                      <span
-                        className="text-[9px] font-semibold text-slate-500 bg-slate-100 px-2 py-0.5 rounded-full truncate text-right ml-auto min-w-0"
-                        title={item.category}
-                      >
-                        {item.category}
-                      </span>
-                    </div>
-
-                    {/* Galeria Tátil com Zona Morta Independente e Zero Zoom no Mobile */}
-                    <div className="mb-3">
-                      <CardImageGallery
-                        images={item.images}
-                        fallbackUrl={item.image}
-                        productName={item.name}
-                        productHref={`/produto/${item.slug}`}
-                        aspectRatio="aspect-[4/3]"
-                        imageFit={item.imageFit || "cover"}
-                        fallbackArt={
-                          <div className="w-full max-w-[140px]">
-                            <FrameArt
-                              solar={item.category.toLowerCase().includes("solar")}
-                              round={item.name.toLowerCase().includes("redondo") || item.name.toLowerCase().includes("onça")}
-                              amber={item.colorName?.toLowerCase().includes("âmbar")}
-                            />
-                          </div>
-                        }
-                      />
-                    </div>
-
-                    {/* Metadados e Nome */}
-                    <div className="space-y-1">
-                      <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400 block truncate">
-                        VENTARA · {item.category.toUpperCase()}
-                      </span>
-                      <h3 className="text-xs sm:text-sm font-bold text-slate-900 group-hover:text-amber-600 transition-colors line-clamp-1">
-                        {item.name}
-                      </h3>
-                      {item.description && (
-                        <p className="text-[11px] text-slate-500 line-clamp-1 hidden sm:block">
-                          {item.description}
-                        </p>
-                      )}
-                    </div>
-
-                    {/* Variação de Cores: apenas se houver 2 ou mais variantes */}
-                    {item.extraColorsCount > 0 && (
-                      <div className="flex items-center gap-1.5 my-2.5 min-h-[18px]">
-                        <span
-                          className="w-3 h-3 rounded-full border border-slate-300 shrink-0 shadow-xs"
-                          style={{ backgroundColor: item.colorHex || "#1e293b" }}
-                          title={item.colorName || "Cor principal"}
-                        />
-                        <span className="text-[10px] text-slate-500 font-medium truncate">
-                          {item.colorName || "Cor padrão"}
-                        </span>
-                        <span className="text-[9px] text-slate-400 font-mono">
-                          +{item.extraColorsCount}
-                        </span>
-                      </div>
-                    )}
-
-                    {/* Seção de Preços (Fonte Única e Matemática Pura) */}
-                    <div className="pt-2 border-t border-slate-200/70 mb-3">
-                      <div className="flex items-baseline gap-2">
-                        {item.pricing.hasDiscount && item.pricing.originalPriceFormatted && (
-                          <span className="text-[11px] text-slate-400 line-through font-mono">
-                            {item.pricing.originalPriceFormatted}
-                          </span>
-                        )}
-                        <span className="text-sm sm:text-base font-extrabold text-slate-900 font-mono">
-                          {item.pricing.isStartingFrom ? item.pricing.startingFromFormatted : item.pricing.currentPriceFormatted}
-                        </span>
-                      </div>
-                      <p className="text-[10px] sm:text-[11px] text-slate-500 mt-0.5">
-                        10x de {item.pricing.installmentFormatted} sem juros
-                      </p>
-                    </div>
-                  </div>
-
-                  {/* Ações */}
-                  <div className="flex flex-col gap-1.5 pt-1">
-                    <Link
-                      href={`/produto/${item.slug}`}
-                      className="w-full inline-flex items-center justify-center gap-1.5 py-2.5 px-3 rounded-xl bg-slate-900 hover:bg-slate-800 active:scale-95 text-white font-bold text-[11px] sm:text-xs tracking-wide shadow-sm transition-all cursor-pointer"
-                    >
-                      <span>Ver modelo</span>
-                      <ArrowRight size={13} />
-                    </Link>
-
-                    <a
-                      href={getWhatsAppBuyUrl(item)}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="w-full inline-flex items-center justify-center gap-1.5 py-2 px-3 rounded-xl bg-amber-400 hover:bg-amber-300 active:scale-95 text-slate-950 font-bold text-[10px] sm:text-[11px] tracking-wide shadow-xs transition-all cursor-pointer"
-                    >
-                      <span>Dúvidas no WhatsApp</span>
-                    </a>
-                  </div>
-                </article>
-              );
-            })}
+            {displayedItems.map((item) => (
+              <ProductCard
+                key={item.product.id}
+                product={item.product}
+                onAddToCart={onAddToCart}
+                isInCart={cartIds.includes(item.product.id)}
+                hrefPrefix="/produto"
+                as="article"
+              />
+            ))}
           </div>
 
           {/* Botão Ver Mais / Ver Menos */}

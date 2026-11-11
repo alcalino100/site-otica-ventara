@@ -9,9 +9,10 @@ test.describe("Validação de Toque, Zona Morta nas Setas, Zoom Seguro e Padroni
 
   test.beforeEach(async ({ page }) => {
     await page.addInitScript(() => {
-      // Evita intercepção de ponteiros pela roleta promocional durante os testes
+      // Evita intercepção de ponteiros pela roleta promocional e cookies durante os testes
       window.sessionStorage.setItem("ventara_wheel_session_default-optica-ventara-2025", "1");
       window.localStorage.setItem("ventara_wheel_participated_default-optica-ventara-2025_v1", "1");
+      window.localStorage.setItem("ventara_cookie_consent", "accepted");
     });
     await page.goto("/");
     await page.waitForLoadState("domcontentloaded");
@@ -141,18 +142,24 @@ test.describe("Validação de Toque, Zona Morta nas Setas, Zoom Seguro e Padroni
     }
   });
 
-  test("T7: Proporção aspect-[4/3] consistente nos cards promocionais", async ({ page }) => {
-    const cards = page.locator("article.group [class*='aspect-']");
+  test("T7: Proporção e estilo de foto sangrada consistente nos cards de produto", async ({ page }) => {
+    const cards = page.locator("article.product, .product");
     const count = await cards.count();
+    expect(count).toBeGreaterThanOrEqual(1);
 
     for (let i = 0; i < Math.min(count, 4); i++) {
-      const container = cards.nth(i);
-      if (await container.isVisible()) {
-        const box = await container.boundingBox();
+      const card = cards.nth(i);
+      if (await card.isVisible()) {
+        const box = await card.boundingBox();
         if (box) {
           const ratio = box.width / box.height;
-          // 4/3 = ~1.33 (com margem de tolerância de 5%)
-          expect(Math.abs(ratio - 1.33)).toBeLessThan(0.15);
+          // aspect-[3/4.2] = ~0.71 (com margem de tolerância)
+          expect(ratio).toBeLessThan(1.0);
+        }
+        // Confirma que a foto cobre todo o bloco (object-cover)
+        const img = card.locator("img").first();
+        if (await img.isVisible()) {
+          await expect(img).toHaveClass(/object-cover/);
         }
       }
     }

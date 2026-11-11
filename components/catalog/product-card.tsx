@@ -11,25 +11,30 @@ import { formatProductPricing } from "@/lib/pricing";
 
 interface ProductCardProps {
   product: Product;
-  onSelect: (product: Product) => void;
-  onAddToCart: (product: Product) => void;
+  onSelect?: (product: Product) => void;
+  onAddToCart?: (product: Product) => void;
   isInCart?: boolean;
   hrefPrefix?: string;
+  as?: "article" | "div";
 }
 
 export function ProductCard({
   product,
-  onSelect,
-  onAddToCart,
+  onSelect = () => {},
+  onAddToCart = () => {},
   isInCart = false,
   hrefPrefix = "/produto",
+  as = "div",
 }: ProductCardProps) {
+  const Component = as;
   const [justAdded, setJustAdded] = useState(false);
 
   const handleAdd = (e: React.MouseEvent) => {
     e.stopPropagation();
     e.preventDefault();
-    onAddToCart(product);
+    if (onAddToCart) {
+      onAddToCart(product);
+    }
     setJustAdded(true);
     setTimeout(() => setJustAdded(false), 1400);
   };
@@ -139,7 +144,7 @@ export function ProductCard({
   const whatsappUrl = buildProductWhatsAppUrl(product.name, product.slug, categoryLabel);
 
   return (
-    <div
+    <Component
       className="product group relative rounded-3xl overflow-hidden border border-slate-200/80 hover:border-amber-400/70 shadow-sm hover:shadow-2xl transition-all duration-300 flex flex-col justify-end bg-[#040d1a] aspect-[3/4.2] sm:aspect-[3/4.2] min-h-[350px] sm:min-h-[460px] touch-pan-y"
       onTouchStart={onTouchStart}
       onTouchMove={onTouchMove}
@@ -232,10 +237,10 @@ export function ProductCard({
       <div className="absolute inset-x-0 bottom-0 h-[62%] sm:h-[55%] bg-gradient-to-t from-[#02070d] via-[#02070d]/92 via-50% to-transparent pointer-events-none z-10" />
 
       {/* 4. Bloco de Informações Sobre o Degradê */}
-      <div className="relative z-20 p-3.5 sm:p-5 flex flex-col gap-1.5 sm:gap-2.5">
+      <div className="relative z-20 p-3.5 sm:p-5 flex flex-col gap-1.5 sm:gap-2.5 pointer-events-none">
         {/* Swatches de cor: só exibe se houver 2 ou mais variações cadastradas */}
         {product.variants && product.variants.length >= 2 && (
-          <div className="flex items-center gap-2" title="Opções de cor disponíveis">
+          <div className="flex items-center gap-2 pointer-events-auto" title="Opções de cor disponíveis">
             <div className="flex items-center -space-x-1">
               {swatches.slice(0, 4).map((s, idx) => (
                 <span
@@ -253,7 +258,7 @@ export function ProductCard({
         )}
 
         {/* Nome da Armação e Detalhes */}
-        <div>
+        <div className="pointer-events-auto">
           <Link
             href={`${hrefPrefix}/${product.slug}`}
             className="hover:text-amber-300 transition-colors block"
@@ -279,12 +284,12 @@ export function ProductCard({
             installmentText={`ou até 10x de ${pricing.installmentFormatted} sem juros`}
             theme="dark"
             size="md"
-            className="min-w-0"
+            className="min-w-0 pointer-events-none"
           />
 
           <button
             type="button"
-            className={`w-8 h-8 sm:w-10 sm:h-10 rounded-full border flex items-center justify-center transition-all shrink-0 cursor-pointer ${
+            className={`w-8 h-8 sm:w-10 sm:h-10 rounded-full border flex items-center justify-center transition-all shrink-0 cursor-pointer pointer-events-auto ${
               justAdded
                 ? "bg-emerald-500 border-emerald-400 text-slate-950 scale-105"
                 : isInCart
@@ -304,7 +309,7 @@ export function ProductCard({
         </div>
 
         {/* Ações Rápidas: Ver Detalhes e WhatsApp */}
-        <div className="grid grid-cols-2 gap-1.5 sm:gap-2 pt-0.5">
+        <div className="grid grid-cols-2 gap-1.5 sm:gap-2 pt-0.5 pointer-events-auto">
           <Link
             href={`${hrefPrefix}/${product.slug}`}
             className="text-center py-1.5 sm:py-2 px-2 sm:px-2.5 rounded-lg sm:rounded-xl bg-white/10 hover:bg-white/20 text-white text-[10px] sm:text-[11px] font-semibold transition-colors truncate border border-white/15 backdrop-blur-xs"
@@ -324,6 +329,6 @@ export function ProductCard({
           </a>
         </div>
       </div>
-    </div>
+    </Component>
   );
 }

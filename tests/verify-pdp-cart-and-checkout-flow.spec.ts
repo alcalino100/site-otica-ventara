@@ -38,7 +38,7 @@ test.describe("Usabilidade de Compra, PDP Acima da Dobra, Carrinho e Checkout (#
     await expect(benefitsBar).toBeVisible();
 
     // Acordeões: Apenas 1 aberto por vez
-    const sizingAccordion = page.locator("button:has-text('Tamanho e Medidas Anatômicas')");
+    const sizingAccordion = page.locator("button:has-text('Medidas Reais Aferidas')");
     await expect(sizingAccordion).toBeVisible();
 
     // Adicionar ao Carrinho

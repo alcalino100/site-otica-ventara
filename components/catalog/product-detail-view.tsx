@@ -13,6 +13,7 @@ import { ProductGallery } from "@/components/catalog/product-gallery";
 import { ProductDetailActions } from "@/components/catalog/product-detail-actions";
 import { ProductBenefitsBar } from "@/components/catalog/product-benefits-bar";
 import { ProductAccordions } from "@/components/catalog/product-accordions";
+import { ProductCard } from "@/components/catalog/product-card";
 import { Header } from "@/components/layout/header";
 import { Footer } from "@/components/layout/footer";
 import { formatProductPricing } from "@/lib/pricing";
@@ -205,79 +206,14 @@ export function ProductDetailView({
                 </h2>
               </div>
 
-              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-6">
-                {relatedProducts.map((rel) => {
-                  const relImg =
-                    rel.images?.find((img) => img.is_primary)?.url || rel.images?.[0]?.url;
-                  const relPricing = formatProductPricing({
-                    price_in_cents: rel.price_in_cents,
-                    compare_at_price_in_cents: rel.compare_at_price_in_cents,
-                  });
-                  const targetSlug = rel.slug || rel.id;
-                  const relVariants = rel.variants || [];
-
-                  return (
-                    <Link
-                      key={rel.id}
-                      href={`${hrefPrefix}/${targetSlug}`}
-                      className="group p-4 rounded-2xl bg-white border border-slate-200/90 hover:border-amber-400/80 shadow-xs hover:shadow-md space-y-3 transition-all flex flex-col justify-between"
-                    >
-                      <div className="space-y-3">
-                        <div className="relative aspect-square w-full rounded-xl bg-slate-50 p-3 flex items-center justify-center overflow-hidden border border-slate-100">
-                          {relImg ? (
-                            <Image
-                              src={relImg}
-                              alt={rel.name}
-                              fill
-                              sizes="240px"
-                              className="object-contain transform group-hover:scale-105 transition-transform"
-                            />
-                          ) : (
-                            <span className="text-xs text-slate-400">Sem foto</span>
-                          )}
-                        </div>
-
-                        <div>
-                          <span className="text-[11px] text-amber-600 font-semibold block">
-                            {rel.brand?.name || "Ventara Eyewear"}
-                          </span>
-                          <h3 className="text-sm font-bold text-slate-900 group-hover:text-amber-600 truncate">
-                            {rel.name}
-                          </h3>
-                          <div className="flex items-baseline gap-2 mt-1">
-                            <span className="text-sm font-bold text-slate-900 font-mono">
-                              {relPricing.currentPriceFormatted}
-                            </span>
-                            {relPricing.hasDiscount && relPricing.originalPriceFormatted && (
-                              <span className="text-xs text-slate-400 line-through">
-                                {relPricing.originalPriceFormatted}
-                              </span>
-                            )}
-                          </div>
-                        </div>
-                      </div>
-
-                      {/* Miniaturas de Cores do Card Relacionado */}
-                      {relVariants.length > 1 && (
-                        <div className="flex items-center gap-1.5 pt-2 border-t border-slate-100">
-                          {relVariants.slice(0, 4).map((v) => (
-                            <span
-                              key={v.id}
-                              className="w-3.5 h-3.5 rounded-full border border-black/15 shadow-2xs"
-                              style={{ backgroundColor: v.color_hex || "#1e293b" }}
-                              title={v.color_name}
-                            />
-                          ))}
-                          {relVariants.length > 4 && (
-                            <span className="text-[10px] text-slate-400 font-mono">
-                              +{relVariants.length - 4}
-                            </span>
-                          )}
-                        </div>
-                      )}
-                    </Link>
-                  );
-                })}
+              <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-4 gap-3.5 sm:gap-6">
+                {relatedProducts.map((rel) => (
+                  <ProductCard
+                    key={rel.id}
+                    product={rel}
+                    hrefPrefix={hrefPrefix}
+                  />
+                ))}
               </div>
             </div>
           )}

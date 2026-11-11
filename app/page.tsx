@@ -200,8 +200,12 @@ export default function Home() {
           isSearchOpen={isSearchOpen}
         />
 
-        {/* 5.1. Vitrine Promocional de Fundo Branco: Até X% OFF em Modelos Selecionados */}
-        <PromotionalOffersSection products={products} />
+        {/* 5.1. Vitrine Promocional: Até X% OFF em Modelos Selecionados (Padrão Foto Sangrada) */}
+        <PromotionalOffersSection
+          products={products}
+          onAddToCart={handleAddToCart}
+          cartIds={cartIds}
+        />
 
         {/* 6. Apresentação da Óticas Ventara, Responsável Técnico e Laboratório Próprio */}
         <WhyChooseSection />
