@@ -70,6 +70,13 @@ export function usePromotionEligibility({
       return true;
     }
 
+    if (
+      safeStorage.getItem("ventara_wheel_disabled") === "1" ||
+      safeStorage.getSession("ventara_wheel_disabled") === "1"
+    ) {
+      return false;
+    }
+
     // 1. Já participou desta versão da campanha?
     if (safeStorage.getItem(participatedKey)) {
       return false;
