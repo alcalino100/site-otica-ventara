@@ -497,9 +497,9 @@ export default async function OptiSyncPage() {
                   </div>
 
                   <PhotochromicSlider
-                    clearImageUrl={photochromic?.clearStateImageUrl || "/images/lenses/optisync-hd.jpg"}
-                    darkImageUrl={photochromic?.darkStateImageUrl || "/images/lenses/optisync-fotossensivel-box.jpg"}
-                    bannerImageUrl={photochromic?.halfDarkBannerUrl || "/images/lenses/optisync/arte-07-fotossensivel-banner.jpg"}
+                    clearImageUrl={photochromic?.clearStateImageUrl}
+                    darkImageUrl={photochromic?.darkStateImageUrl}
+                    bannerImageUrl={photochromic?.halfDarkBannerUrl}
                     altText="Comparação de lentes fotossensíveis límpida vs escurecida"
                     transitionSpeedText={photochromic?.transitionSpeedText || "Ativação em até 30 segundos sob radiação UV"}
                   />

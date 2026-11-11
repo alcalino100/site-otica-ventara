@@ -73,4 +73,74 @@ test.describe("Padronização Visual dos Cards de Produto com Foto Sangrada em T
       }
     }
   });
+
+  test("4. Vitrine Esportiva & Solar renderiza imagem de destaque cobrindo toda a área (full-bleed) e miniaturas preenchidas", async ({ page }) => {
+    await page.goto("/#vitrine-interativa");
+    await page.waitForLoadState("domcontentloaded");
+
+    const showcase = page.locator("#vitrine-interativa");
+    await expect(showcase).toBeVisible();
+
+    // Moldura principal da armação solar
+    const mainFrame = showcase.locator(".aspect-\\[4\\/3\\], .aspect-\\[16\\/10\\]").first();
+    await expect(mainFrame).toBeVisible();
+
+    const mainImg = mainFrame.locator("img").first();
+    if (await mainImg.isVisible()) {
+      await expect(mainImg).toHaveClass(/object-cover/);
+    }
+
+    // Miniaturas das variações
+    const thumbImages = showcase.locator(".grid button img");
+    const thumbCount = await thumbImages.count();
+    if (thumbCount > 0) {
+      await expect(thumbImages.first()).toHaveClass(/object-cover/);
+    }
+  });
+
+  test("5. Grade de armações no mobile (2 colunas) não possui sobreposição entre cards", async ({ browser }) => {
+    const mobileCtx = await browser.newContext({
+      viewport: { width: 390, height: 844 },
+      isMobile: true,
+      hasTouch: true,
+    });
+    await mobileCtx.addCookies([
+      { name: "ventara_cookie_consent", value: "accepted", domain: "localhost", path: "/" },
+      { name: "ventara_wheel_played", value: "true", domain: "localhost", path: "/" }
+    ]);
+    const mobilePage = await mobileCtx.newPage();
+    await mobilePage.goto("/armacoes", { waitUntil: "domcontentloaded" });
+    await mobilePage.evaluate(() => window.scrollTo(0, 600));
+    await mobilePage.waitForTimeout(400);
+
+    const cards = mobilePage.locator(".product.group");
+    const count = await cards.count();
+    expect(count).toBeGreaterThanOrEqual(2);
+
+    const box0 = await cards.nth(0).boundingBox();
+    const box1 = await cards.nth(1).boundingBox();
+    expect(box0).not.toBeNull();
+    expect(box1).not.toBeNull();
+
+    if (box0 && box1) {
+      // Card 0 deve terminar antes ou exatamente no início de Card 1 (sem sobreposição)
+      expect(box0.x + box0.width).toBeLessThanOrEqual(box1.x + 1);
+      // Nenhum card deve transbordar o viewport de 390px
+      expect(box1.x + box1.width).toBeLessThanOrEqual(390);
+    }
+
+    await mobileCtx.close();
+  });
+
+  test("6. Página OPTiSYNC consome fotos dinâmicas no simulador", async ({ page }) => {
+    await page.goto("/optisync");
+    await page.waitForLoadState("domcontentloaded");
+
+    const photochromicSection = page.locator("#linha-fotossensivel");
+    await expect(photochromicSection).toBeVisible();
+
+    const simImage = photochromicSection.locator("img").first();
+    await expect(simImage).toBeVisible();
+    await expect(simImage).toHaveClass(/object-cover/);
+  });
 });

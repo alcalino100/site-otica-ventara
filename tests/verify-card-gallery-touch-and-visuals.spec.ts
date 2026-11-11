@@ -57,7 +57,7 @@ test.describe("Validação de Toque, Zona Morta nas Setas, Zoom Seguro e Padroni
     await link.click();
 
     await page.waitForURL(/\/produto\//);
-    const pdpImg = page.locator("img[alt*='foto'], img[alt*='Ventara']").first();
+    const pdpImg = page.locator("[data-testid='pdp-main-image'], img[alt*='foto'], img[alt*='Ventara']").first();
     await expect(pdpImg).toBeVisible();
 
     const transform = await pdpImg.evaluate((el) => window.getComputedStyle(el).transform);
