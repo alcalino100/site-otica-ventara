@@ -44,6 +44,7 @@ export interface ContentFieldDefinition {
   help?: string; // Dica contextual para o lojista
   location?: string; // Onde aparece visualmente na página
   options?: ContentFieldOption[]; // Para campos tipo 'select'
+  toggleLabels?: { on: string; off: string }; // Rótulos do campo tipo 'toggle' (padrão: "Seção Ativada" / "Seção Desativada")
 }
 
 export interface ContentSectionDefinition {

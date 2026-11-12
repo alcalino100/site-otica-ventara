@@ -21,6 +21,7 @@ import { DEFAULT_CATALOG } from "@/lib/catalog-data";
 import { normalizeProduct } from "@/lib/products";
 import { getStoredCart, saveStoredCart, CartProduct } from "@/lib/cart";
 import { createClient, isSupabaseConfigured } from "@/lib/supabase/client";
+import type { PageBackgroundConfig } from "@/lib/content/background-presets";
 
 // Lazy loading modals to improve First Load JS and initial rendering performance
 const CartModal = dynamic(
@@ -42,12 +43,15 @@ interface HomeClientProps {
   homeContent: Record<string, any>;
   headerContent: Record<string, any>;
   footerContent: Record<string, any>;
+  /** Fundo OptiSYNC resolvido no servidor; só é enviado quando o toggle da seção da loja está ligado. */
+  storeOptisyncBackground?: PageBackgroundConfig | null;
 }
 
 export function HomeClient({
   homeContent,
   headerContent,
   footerContent,
+  storeOptisyncBackground = null,
 }: HomeClientProps) {
   const supabase = createClient();
   const [products, setProducts] = useState<Product[]>(DEFAULT_CATALOG);
@@ -254,10 +258,12 @@ export function HomeClient({
         <StoreSection
           eyebrow={homeContent.storeEyebrow}
           title={homeContent.storeTitle}
-          description={homeContent.storeDesc}
+          description={homeContent.storeDescription}
           address={homeContent.storeAddress}
           phone={homeContent.storePhone}
           hours={homeContent.storeHours}
+          useOptisyncBackground={homeContent.storeUseOptisyncBg === true}
+          optisyncBackground={storeOptisyncBackground}
         />
 
         {/* 8. Catálogo de Lentes de Grau */}

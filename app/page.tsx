@@ -1,7 +1,8 @@
 import React from "react";
 import { Metadata } from "next";
 import { getPageContent } from "@/lib/content/repository";
-import { resolveBackgroundConfig } from "@/lib/content/background-presets";
+import { resolveBackgroundConfig, type PageBackgroundConfig } from "@/lib/content/background-presets";
+import { getOptiSyncPageSettings } from "@/lib/optisync-settings";
 import { PageBackground } from "@/components/ui/page-background";
 import { DraftPreviewBanner } from "@/components/content/draft-preview-banner";
 import { FloatingEditButton } from "@/components/content/floating-edit-button";
@@ -33,6 +34,22 @@ export default async function Home({ searchParams }: HomePageProps) {
 
   const bgConfig = resolveBackgroundConfig(homeContent.backgroundPreset, homeContent);
 
+  // Fundo OptiSYNC da seção "Venha conhecer a Óticas Ventara": só busca os dados quando o toggle do admin está ligado.
+  // Usa as mesmas cores e intensidades da página /optisync (conteúdo + configurações), forçando o preset tecnológico.
+  let storeOptisyncBackground: PageBackgroundConfig | null = null;
+  if (homeContent.storeUseOptisyncBg === true) {
+    const mode = isDraft ? "draft" : "published";
+    const [optisyncSettings, optisyncContent] = await Promise.all([
+      getOptiSyncPageSettings(),
+      getPageContent("optisync", mode),
+    ]);
+    storeOptisyncBackground = {
+      ...resolveBackgroundConfig({ ...optisyncContent, backgroundPreset: "optisync" }, optisyncSettings),
+      preset: "optisync",
+      tone: "dark",
+    };
+  }
+
   return (
     <>
       <DraftPreviewBanner pageId="home" />
@@ -46,6 +63,7 @@ export default async function Home({ searchParams }: HomePageProps) {
         homeContent={homeContent}
         headerContent={headerContent}
         footerContent={footerContent}
+        storeOptisyncBackground={storeOptisyncBackground}
       />
       <FloatingEditButton pageId="home" />
     </>

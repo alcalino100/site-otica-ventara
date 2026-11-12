@@ -6,6 +6,11 @@ import { PageBackgroundConfig } from "@/lib/content/background-presets";
 interface PageBackgroundProps {
   config: PageBackgroundConfig;
   className?: string;
+  /**
+   * "page" (padrão): camada fixa que cobre a viewport inteira da página.
+   * "section": camada absoluta contida em uma seção (o pai precisa ser `relative overflow-hidden`).
+   */
+  scope?: "page" | "section";
 }
 
 /**
@@ -14,17 +19,22 @@ interface PageBackgroundProps {
  * fundos minimalistas escuro e off-white, imagens customizadas com overlay
  * e modo padrão transparente de zero overhead.
  */
-export function PageBackground({ config, className = "" }: PageBackgroundProps) {
+export function PageBackground({ config, className = "", scope = "page" }: PageBackgroundProps) {
   // Preset 'default' não adiciona nenhuma camada no DOM
   if (config.preset === "default") {
     return null;
   }
 
+  // Posicionamento: fixo na viewport (página) ou absoluto dentro da seção
+  const position = scope === "section" ? "absolute" : "fixed";
+  // Em seção, o tema tecnológico fornece os tokens da grade HUD fora das páginas OptiSYNC
+  const themeScope = scope === "section" ? "theme-futuristic-lenses" : "";
+
   // 1. Preset de Imagem Personalizada
   if (config.preset === "custom_image" && config.customBgDesktopUrl) {
     return (
       <div
-        className={`fixed inset-0 pointer-events-none z-0 overflow-hidden ${className}`}
+        className={`${position} inset-0 pointer-events-none z-0 overflow-hidden ${className}`}
         aria-hidden="true"
       >
         <div className="absolute inset-0 w-full h-full">
@@ -51,7 +61,7 @@ export function PageBackground({ config, className = "" }: PageBackgroundProps) 
   if (config.preset === "dark") {
     return (
       <div
-        className={`fixed inset-0 pointer-events-none z-0 overflow-hidden ${className}`}
+        className={`${position} inset-0 pointer-events-none z-0 overflow-hidden ${className}`}
         aria-hidden="true"
       >
         <div
@@ -71,7 +81,7 @@ export function PageBackground({ config, className = "" }: PageBackgroundProps) 
   if (config.preset === "offwhite") {
     return (
       <div
-        className={`fixed inset-0 pointer-events-none z-0 overflow-hidden ${className}`}
+        className={`${position} inset-0 pointer-events-none z-0 overflow-hidden ${className}`}
         aria-hidden="true"
       >
         <div
@@ -98,7 +108,7 @@ export function PageBackground({ config, className = "" }: PageBackgroundProps) 
 
   return (
     <div
-      className={`fixed inset-0 pointer-events-none z-0 overflow-hidden ${className}`}
+      className={`${position} inset-0 pointer-events-none z-0 overflow-hidden ${themeScope} ${className}`}
       aria-hidden="true"
     >
       <div

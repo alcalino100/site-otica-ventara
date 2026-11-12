@@ -1230,6 +1230,16 @@ export const SITE_PAGES_REGISTRY: Record<string, ContentPageDefinition> = {
             maxLength: 80,
             location: "Horários de atendimento",
           },
+          {
+            id: "home.store.useOptisyncBg",
+            key: "storeUseOptisyncBg",
+            label: "Fundo tecnológico OptiSYNC nesta seção",
+            type: "toggle",
+            default: false,
+            toggleLabels: { on: "Fundo OptiSYNC Ativado", off: "Fundo OptiSYNC Desativado" },
+            help: "Ativado: a seção ganha o fundo da página OptiSYNC (feixes violeta e azul, brilho e grade tecnológica), com as mesmas cores e intensidades definidas lá. Desativado: mantém o fundo azul-marinho atual.",
+            location: "Fundo de toda a seção \"Venha conhecer a Óticas Ventara\"",
+          },
         ],
       },
       {
