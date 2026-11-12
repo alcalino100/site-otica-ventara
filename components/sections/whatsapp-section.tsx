@@ -6,9 +6,21 @@ import { useSiteSettings } from "../providers/site-settings-provider";
 
 interface WhatsAppSectionProps {
   onNotify?: (msg: string) => void;
+  eyebrow?: string;
+  title?: string;
+  subtitle?: string;
+  buttonText?: string;
+  whatsappMessage?: string;
 }
 
-export function WhatsAppSection({ onNotify }: WhatsAppSectionProps) {
+export function WhatsAppSection({
+  onNotify,
+  eyebrow = "ATENDIMENTO PERSONALIZADO",
+  title = "Seu próximo olhar começa aqui.",
+  subtitle = "Explore nossas opções ou fale com a equipe da Ótica Ventara para encontrar o modelo ideal para você.",
+  buttonText = "Conversar com Consultor",
+  whatsappMessage = "Olá! Gostaria de consultoria sobre armações e lentes da Óticas Ventara.",
+}: WhatsAppSectionProps) {
   const [isOpening, setIsOpening] = useState(false);
   const { identity, cleanWhatsAppNumber } = useSiteSettings();
 
@@ -17,7 +29,7 @@ export function WhatsAppSection({ onNotify }: WhatsAppSectionProps) {
     if (onNotify) {
       onNotify(`Redirecionando para o WhatsApp oficial da ${identity.store_name}...`);
     }
-    const msg = encodeURIComponent(`Olá! Gostaria de consultoria sobre armações e lentes da ${identity.store_name}.`);
+    const msg = encodeURIComponent(whatsappMessage || `Olá! Gostaria de consultoria sobre armações e lentes da ${identity.store_name}.`);
     window.open(
       `https://wa.me/${cleanWhatsAppNumber}?text=${msg}`,
       "_blank",
@@ -37,14 +49,13 @@ export function WhatsAppSection({ onNotify }: WhatsAppSectionProps) {
             <div className="max-w-xl">
               <span className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-amber-400/10 border border-amber-400/20 text-amber-300 text-xs font-semibold uppercase tracking-wider mb-4">
                 <span className="w-2 h-2 rounded-full bg-amber-400 animate-ping" />
-                ATENDIMENTO PERSONALIZADO
+                {eyebrow}
               </span>
               <h2 className="text-3xl sm:text-5xl font-light text-white tracking-tight leading-tight mb-4">
-                Seu próximo olhar <br className="hidden sm:inline" />
-                <span className="font-normal text-amber-400">começa aqui.</span>
+                {title}
               </h2>
               <p className="text-xs sm:text-sm text-slate-300 leading-relaxed mb-6">
-                Explore nossas opções ou fale com a equipe da Ótica Ventara para encontrar o modelo ideal para você.
+                {subtitle}
               </p>
 
               <div className="flex flex-wrap items-center justify-center md:justify-start gap-4 text-xs text-slate-400">
@@ -66,7 +77,7 @@ export function WhatsAppSection({ onNotify }: WhatsAppSectionProps) {
                 className="w-full sm:w-auto inline-flex items-center justify-center gap-2.5 px-8 py-4 rounded-full bg-amber-400 hover:bg-amber-300 active:scale-95 text-[#06111f] text-xs font-bold uppercase tracking-wider transition-all duration-200 shadow-xl shadow-amber-400/15"
               >
                 <MessageSquare size={17} />
-                <span>{isOpening ? "Conectando..." : "Fale com a Ventara"}</span>
+                <span>{isOpening ? "Conectando..." : buttonText}</span>
                 <ArrowRight size={15} />
               </button>
 

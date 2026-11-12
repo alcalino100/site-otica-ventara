@@ -12,6 +12,8 @@ interface HeaderProps {
   onToggleSearch?: () => void;
   isSearchOpen?: boolean;
   theme?: "dark" | "light";
+  bagTooltip?: string;
+  contactBtnText?: string;
 }
 
 export function Header({
@@ -20,6 +22,8 @@ export function Header({
   onToggleSearch = () => {},
   isSearchOpen = false,
   theme = "dark",
+  bagTooltip = "Minha Sacola",
+  contactBtnText = "Falar no WhatsApp",
 }: HeaderProps) {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [isScrolled, setIsScrolled] = useState(false);
@@ -210,7 +214,7 @@ export function Header({
             aria-label={`Abrir seleção, ${cartCount} itens`}
             className="action-btn relative"
             onClick={onOpenCart}
-            title="Ver seleção de armações"
+            title={bagTooltip || "Ver seleção de armações"}
           >
             <ShoppingBag size={18} />
             {cartCount > 0 && (

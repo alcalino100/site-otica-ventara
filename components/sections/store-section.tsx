@@ -16,9 +16,31 @@ import {
 } from "lucide-react";
 import { useSiteSettings } from "../providers/site-settings-provider";
 
-export function StoreSection() {
+interface StoreSectionProps {
+  eyebrow?: string;
+  title?: string;
+  description?: string;
+  address?: string;
+  phone?: string;
+  hours?: string;
+  mapsUrl?: string;
+}
+
+export function StoreSection({
+  eyebrow = "NOSSO ESPAÇO FÍSICO EM ARAÇATUBA-SP",
+  title = "Venha conhecer a Óticas Ventara Eyewear.",
+  description = "Um ambiente acolhedor, sofisticado e moderno no Centro de Araçatuba. Prove armações exclusivas, faça ajustes anatômicos precisos e confira nosso laboratório próprio computadorizado.",
+  address,
+  phone = "(18) 3304-2808",
+  hours,
+  mapsUrl,
+}: StoreSectionProps = {}) {
   const { identity, cleanWhatsAppNumber } = useSiteSettings();
-  const googleMapsUrl = "https://maps.app.goo.gl/sXFBJrNTxQcBhwTh9?g_st=iw";
+  const googleMapsUrl = mapsUrl || "https://maps.app.goo.gl/sXFBJrNTxQcBhwTh9?g_st=iw";
+
+  const resolvedAddress =
+    address ||
+    `${identity.address_street || "Rua Princesa Isabel, 221"}, ${identity.address_neighborhood || "Centro"}, ${identity.address_city || "Araçatuba"} - ${identity.address_state || "SP"}`;
 
   return (
     <section
@@ -32,14 +54,13 @@ export function StoreSection() {
         {/* Cabeçalho Unificado da Seção */}
         <div className="max-w-3xl mb-10 sm:mb-14">
           <span className="text-xs font-semibold tracking-widest uppercase text-amber-400 mb-3 inline-flex items-center gap-1.5">
-            <Sparkles size={14} /> NOSSO ESPAÇO FÍSICO EM ARAÇATUBA-SP
+            <Sparkles size={14} /> {eyebrow}
           </span>
           <h2 className="text-3xl sm:text-5xl font-light text-white tracking-tight mb-4 leading-tight">
-            Venha conhecer a <br className="hidden sm:inline" />
-            <span className="font-semibold text-amber-400">Óticas Ventara Eyewear.</span>
+            {title}
           </h2>
           <p className="text-xs sm:text-base text-slate-300 leading-relaxed max-w-2xl font-normal">
-            Um ambiente acolhedor, sofisticado e moderno no Centro de Araçatuba. Prove armações exclusivas, faça ajustes anatômicos precisos e confira nosso laboratório próprio computadorizado.
+            {description}
           </p>
         </div>
 
@@ -65,7 +86,7 @@ export function StoreSection() {
               {/* Informação na Base da Foto */}
               <div className="absolute bottom-4 left-4 right-4 text-white">
                 <span className="text-[11px] font-bold uppercase tracking-widest text-amber-300 block">
-                  {identity.address_street}
+                  {resolvedAddress.split(",")[0] || identity.address_street}
                 </span>
                 <p className="text-xs sm:text-sm text-slate-200 font-medium">
                   Atendimento de segunda a sábado no coração da cidade.
@@ -103,7 +124,7 @@ export function StoreSection() {
                       Endereço Completo
                     </h4>
                     <p className="text-sm font-semibold text-white leading-relaxed">
-                      {identity.address_street}, {identity.address_neighborhood}, {identity.address_city} - {identity.address_state}, CEP {identity.address_postal_code}
+                      {resolvedAddress}
                     </p>
                     <span className="text-xs text-slate-400 mt-0.5 block">
                       Localização central privilegiada, fácil de estacionar.
@@ -124,10 +145,10 @@ export function StoreSection() {
                       <div>
                         <span className="text-[11px] text-slate-400 block">Telefone Fixo:</span>
                         <a
-                          href="tel:+551833042808"
+                          href={`tel:+55${phone.replace(/\D/g, "")}`}
                           className="text-base font-bold text-amber-400 hover:text-amber-300 transition-colors"
                         >
-                          (18) 3304-2808
+                          {phone}
                         </a>
                       </div>
                       <div className="border-l border-white/10 pl-4">
@@ -155,7 +176,7 @@ export function StoreSection() {
                       Horário de Funcionamento
                     </h4>
                     <p className="text-sm font-medium text-white">
-                      {identity.business_hours}
+                      {hours || identity.business_hours}
                     </p>
                     <p className="text-xs text-slate-400 mt-0.5">
                       Laboratório próprio computadorizado para montagem expressa.

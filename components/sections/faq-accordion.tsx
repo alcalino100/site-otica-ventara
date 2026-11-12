@@ -32,7 +32,17 @@ const faqs: FAQItem[] = [
   },
 ];
 
-export function FAQAccordion() {
+interface FAQAccordionProps {
+  eyebrow?: string;
+  title?: string;
+  subtitle?: string;
+}
+
+export function FAQAccordion({
+  eyebrow = "DÚVIDAS FREQUENTES",
+  title = "Vamos olhar mais de perto?",
+  subtitle = "Transparência em cada etapa. Se restar qualquer dúvida, nossa equipe está pronta para conversar.",
+}: FAQAccordionProps = {}) {
   const [openIndex, setOpenIndex] = useState<number | null>(0);
 
   const toggle = (i: number) => {
@@ -44,13 +54,10 @@ export function FAQAccordion() {
       <div className="max-w-[1400px] mx-auto px-4 sm:px-8 lg:px-10">
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-10 lg:gap-16 items-start">
           <div className="lg:col-span-5 faq-intro">
-            <p className="eyebrow">DÚVIDAS FREQUENTES</p>
-            <h2>
-              Vamos olhar<br />
-              mais de <span>perto?</span>
-            </h2>
+            <p className="eyebrow">{eyebrow}</p>
+            <h2>{title}</h2>
             <p className="faq-lead text-slate-600 mt-4 text-sm max-w-sm">
-              Transparência em cada etapa. Se restar qualquer dúvida, nossa equipe está pronta para conversar.
+              {subtitle}
             </p>
           </div>
 

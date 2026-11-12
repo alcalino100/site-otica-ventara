@@ -28,9 +28,21 @@ import { useSiteSettings } from "@/components/providers/site-settings-provider";
 
 interface HeroProps {
   products?: Product[];
+  badge?: string;
+  title?: string;
+  description?: string;
+  ctaText?: string;
+  ctaLink?: string;
 }
 
-export function Hero({ products }: HeroProps) {
+export function Hero({
+  products,
+  badge,
+  title,
+  description,
+  ctaText,
+  ctaLink,
+}: HeroProps) {
   const { identity, fullAddress } = useSiteSettings();
   const [slides, setSlides] = useState<HeroSlide[]>(DEFAULT_HERO_SLIDES);
   const [settings, setSettings] = useState<HeroCarouselSettings>(DEFAULT_HERO_SETTINGS);
@@ -336,7 +348,7 @@ export function Hero({ products }: HeroProps) {
                 >
                   <span className="w-1.5 h-1.5 rounded-full bg-[#FFD62E] animate-pulse" />
                   <span className="text-[10px] sm:text-[11px] font-bold tracking-[0.22em] uppercase text-amber-400">
-                    {currentSlide.badge_quality_text || "QUALIDADE QUE VOCÊ VÊ"}
+                    {badge || currentSlide.badge_quality_text || "QUALIDADE QUE VOCÊ VÊ"}
                   </span>
                 </div>
               )}
@@ -344,8 +356,8 @@ export function Hero({ products }: HeroProps) {
               {/* Título Principal Tipografia Óptica */}
               {currentSlide.show_title && (
                 <h1 className="text-[clamp(1.9rem,7.5vw+0.25rem,3.25rem)] lg:text-6xl font-light text-white tracking-tight leading-[1.08] lg:leading-[1.12]">
-                  {currentSlide.title_text ? (
-                    <span className="whitespace-pre-line">{currentSlide.title_text}</span>
+                  {title || currentSlide.title_text ? (
+                    <span className="whitespace-pre-line">{title || currentSlide.title_text}</span>
                   ) : (
                     <>
                       Mais que óculos,
@@ -369,7 +381,8 @@ export function Hero({ products }: HeroProps) {
               {currentSlide.show_description && (
                 <div className="hero-description my-3 sm:my-4">
                   <p className="text-[clamp(0.95rem,3.4vw,1.1rem)] lg:text-base leading-relaxed text-slate-200 font-normal max-w-[55ch] drop-shadow-sm">
-                    {currentSlide.description_text ||
+                    {description ||
+                      currentSlide.description_text ||
                       "Na Óticas Ventara, unimos tecnologia de precisão, curadoria autoral em acetato nobre e laboratório próprio para cuidar da sua visão em todos os momentos."}
                   </p>
                 </div>
@@ -379,11 +392,11 @@ export function Hero({ products }: HeroProps) {
               {currentSlide.show_buttons && (
                 <div className="hero-cta-wrapper flex flex-col sm:flex-row items-stretch sm:items-center gap-3 mt-4 sm:mt-6 w-full sm:w-auto">
                   <Link
-                    href={currentSlide.primary_button_url || "/lentes"}
+                    href={ctaLink || currentSlide.primary_button_url || "/lentes"}
                     className="inline-flex items-center justify-center gap-2.5 px-6 min-h-[48px] rounded-full bg-[#FFD62E] hover:bg-amber-300 active:scale-[0.98] text-slate-950 font-bold text-sm tracking-wide shadow-lg shadow-amber-400/20 transition-all duration-150 ease-out cursor-pointer group w-full sm:w-auto"
                     style={{ touchAction: "manipulation" }}
                   >
-                    <span>{currentSlide.primary_button_text || "Catálogo de Lentes"}</span>
+                    <span>{ctaText || currentSlide.primary_button_text || "Catálogo de Lentes"}</span>
                     <ArrowRight
                       size={16}
                       className="text-slate-950 transform group-hover:translate-x-1 transition-transform"

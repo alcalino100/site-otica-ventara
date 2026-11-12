@@ -17,6 +17,10 @@ interface PromotionalOffersSectionProps {
   products?: Product[];
   onAddToCart?: (product: Product) => void;
   cartIds?: string[];
+  offersBadge?: string;
+  offersTitle?: string;
+  offersSubtitle?: string;
+  offersAllLinkText?: string;
 }
 
 interface ResolvedPromoItem extends PromoSplitCardItem {
@@ -72,6 +76,10 @@ export function PromotionalOffersSection({
   products = [],
   onAddToCart = () => {},
   cartIds = [],
+  offersBadge,
+  offersTitle,
+  offersSubtitle,
+  offersAllLinkText,
 }: PromotionalOffersSectionProps) {
   const { cleanWhatsAppNumber } = useSiteSettings();
   const [promoSettings, setPromoSettings] =
@@ -200,16 +208,25 @@ export function PromotionalOffersSection({
   );
 
   const displayedPillText =
-    maxDiscountDisplayed > 0
+    offersBadge ||
+    (maxDiscountDisplayed > 0
       ? `ATÉ ${maxDiscountDisplayed}% OFF · CURADORIA VENTARA`
-      : promoSettings.pillText || "CURADORIA EXCLUSIVA";
+      : promoSettings.pillText || "CURADORIA EXCLUSIVA");
 
   const displayedTitle =
-    maxDiscountDisplayed > 0
+    offersTitle ||
+    (maxDiscountDisplayed > 0
       ? promoSettings.title?.includes("Até")
         ? promoSettings.title.replace(/Até\s+\d+%\s*OFF/i, `Até ${maxDiscountDisplayed}% OFF`)
         : `Até ${maxDiscountDisplayed}% OFF em modelos selecionados`
-      : promoSettings.title || "Modelos Selecionados em Destaque";
+      : promoSettings.title || "Modelos Selecionados em Destaque");
+
+  const displayedSubtitle =
+    offersSubtitle ||
+    promoSettings.subtitle ||
+    "Pares icônicos com design autoral, acabamento nobre, lentes certificadas e parcelamento sem juros.";
+
+  const displayedCtaText = offersAllLinkText || promoSettings.ctaText || "Ver todas as ofertas";
 
   const getWhatsAppBuyUrl = (item: ResolvedPromoItem) => {
     const discountText = item.pricing.hasDiscount ? ` com ${item.pricing.discountBadgeText}` : "";
@@ -245,8 +262,7 @@ export function PromotionalOffersSection({
               {displayedTitle}
             </h2>
             <p className="text-xs sm:text-sm text-slate-600 max-w-2xl mt-1.5 leading-relaxed">
-              {promoSettings.subtitle ||
-                "Pares icônicos com design autoral, acabamento nobre, lentes certificadas e parcelamento sem juros."}
+              {displayedSubtitle}
             </p>
           </div>
 
@@ -254,7 +270,7 @@ export function PromotionalOffersSection({
             href="/armacoes"
             className="inline-flex items-center gap-2 text-xs sm:text-sm font-bold text-amber-600 hover:text-amber-700 transition-colors self-start md:self-auto cursor-pointer"
           >
-            <span>{promoSettings.ctaText || "Ver todas as ofertas"}</span>
+            <span>{displayedCtaText}</span>
             <ArrowRight size={14} />
           </Link>
         </div>

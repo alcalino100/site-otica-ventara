@@ -20,9 +20,17 @@ import { buildWhatsAppUrl } from "@/lib/whatsapp";
 
 interface ColoredLensesShowcaseProps {
   initialLenses?: AdminLensItem[];
+  eyebrow?: string;
+  title?: string;
+  subtitle?: string;
 }
 
-export function ColoredLensesShowcase({ initialLenses }: ColoredLensesShowcaseProps) {
+export function ColoredLensesShowcase({
+  initialLenses,
+  eyebrow = "ENCONTRE SUA COR • PERSONALIZAÇÃO SOLAR",
+  title = "SUA COR",
+  subtitle = "Lentes solares para uma nova forma de ver. Tonalidades de alta fidelidade visual com proteção UV400 total.",
+}: ColoredLensesShowcaseProps) {
   const [isMounted, setIsMounted] = useState(false);
   const [lensList, setLensList] = useState<ColoredLensPreset[]>(COLORED_LENSES_LIST);
   // Default selected color: "Cinza Fumê" (primeira lente em destaque na referência do cliente)
@@ -180,13 +188,13 @@ export function ColoredLensesShowcase({ initialLenses }: ColoredLensesShowcasePr
 
               <div>
                 <span className="text-[11px] sm:text-xs font-semibold tracking-[0.25em] text-slate-300 uppercase block">
-                  ENCONTRE SUA COR • PERSONALIZAÇÃO SOLAR
+                  {eyebrow}
                 </span>
                 <h2 className="text-3xl sm:text-4xl md:text-5xl font-black tracking-tight text-white uppercase leading-none mt-1">
-                  SUA COR
+                  {title}
                 </h2>
                 <p className="text-xs sm:text-sm text-slate-400 mt-2 font-normal leading-relaxed">
-                  Lentes solares para uma nova forma de ver. Tonalidades de alta fidelidade visual com proteção UV400 total.
+                  {subtitle}
                 </p>
               </div>
 

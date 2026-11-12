@@ -3,14 +3,32 @@
 import React, { useState, useEffect } from "react";
 import { useSiteSettings } from "../providers/site-settings-provider";
 
-export function WarrantyBannerSection() {
+interface WarrantyBannerSectionProps {
+  desktopUrl?: string;
+  mobileUrl?: string;
+  whatsappMessage?: string;
+}
+
+export function WarrantyBannerSection({
+  desktopUrl,
+  mobileUrl,
+  whatsappMessage,
+}: WarrantyBannerSectionProps = {}) {
   const { cleanWhatsAppNumber } = useSiteSettings();
   const [bannerImages, setBannerImages] = useState({
-    desktop: "/images/banners/optisync-12-meses-garantia-desktop.jpg",
-    mobile: "/images/banners/optisync-12-meses-garantia-desktop.jpg",
+    desktop: desktopUrl || "/images/banners/optisync-12-meses-garantia-desktop.jpg",
+    mobile: mobileUrl || "/images/banners/optisync-12-meses-garantia-desktop.jpg",
   });
 
   useEffect(() => {
+    if (desktopUrl || mobileUrl) {
+      setBannerImages({
+        desktop: desktopUrl || "/images/banners/optisync-12-meses-garantia-desktop.jpg",
+        mobile: mobileUrl || "/images/banners/optisync-12-meses-garantia-desktop.jpg",
+      });
+      return;
+    }
+
     async function loadBannerSettings() {
       try {
         const res = await fetch("/api/settings");
@@ -26,10 +44,14 @@ export function WarrantyBannerSection() {
       } catch (err) {}
     }
     loadBannerSettings();
-  }, []);
+  }, [desktopUrl, mobileUrl]);
+
+  const resolvedMsg =
+    whatsappMessage ||
+    "Olá! Vi o banner de 12 meses de garantia nas Lentes OPTiSYNC HD e gostaria de consultar valores para o meu grau.";
 
   const whatsappUrl = `https://wa.me/${cleanWhatsAppNumber}?text=${encodeURIComponent(
-    "Olá! Vi o banner de 12 meses de garantia nas Lentes OPTiSYNC HD e gostaria de consultar valores para o meu grau."
+    resolvedMsg
   )}`;
 
   return (

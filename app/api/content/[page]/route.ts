@@ -16,10 +16,12 @@ export async function GET(
     );
   }
 
-  const values = await getPageContent(page, "published");
+  const isDraft = req.nextUrl.searchParams.get("preview") === "draft";
+  const values = await getPageContent(page, isDraft ? "draft" : "published");
 
   return NextResponse.json({
     page,
+    status: isDraft ? "draft" : "published",
     title: definition.title,
     values,
   });

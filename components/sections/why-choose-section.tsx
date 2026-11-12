@@ -15,7 +15,25 @@ import {
 } from "lucide-react";
 import { WordsStagger } from "@/registry/spell-ui/words-stagger";
 
-export function WhyChooseSection() {
+interface WhyChooseSectionProps {
+  eyebrow?: string;
+  title?: string;
+  subtitle?: string;
+  lensesCtaText?: string;
+  lensesCtaLink?: string;
+  medicaoCtaText?: string;
+  medicaoCtaLink?: string;
+}
+
+export function WhyChooseSection({
+  eyebrow = "POR QUE ESCOLHER",
+  title = "Óticas Ventara?",
+  subtitle = "Aqui você encontra armações exclusivas, lentes das melhores marcas e um laboratório próprio, com toda a tecnologia e precisão para garantir o melhor para a sua visão.",
+  lensesCtaText = "Ver Nossas Lentes",
+  lensesCtaLink = "#lentes",
+  medicaoCtaText = "Medição por Foto (DNP)",
+  medicaoCtaLink = "/medicao-por-foto",
+}: WhyChooseSectionProps = {}) {
   const features = [
     {
       icon: Microscope,
@@ -68,10 +86,10 @@ export function WhyChooseSection() {
           {/* Coluna Esquerda: Texto & CTA com WordsStagger */}
           <div className="lg:col-span-4 flex flex-col items-start pr-0 lg:pr-6">
             <span className="text-[11px] sm:text-xs font-bold tracking-[0.2em] uppercase text-slate-500 mb-2">
-              POR QUE ESCOLHER
+              {eyebrow}
             </span>
             <h2 className="text-2xl sm:text-4xl lg:text-5xl font-light text-slate-950 tracking-tight leading-tight mb-3 sm:mb-5">
-              Óticas Ventara?
+              {title}
             </h2>
             <div className="mb-6 sm:mb-8">
               <WordsStagger
@@ -80,23 +98,23 @@ export function WhyChooseSection() {
                 stagger={0.03}
                 className="text-xs sm:text-sm text-slate-600 leading-relaxed"
               >
-                Aqui você encontra armações exclusivas, lentes das melhores marcas e um laboratório próprio, com toda a tecnologia e precisão para garantir o melhor para a sua visão.
+                {subtitle}
               </WordsStagger>
             </div>
             <div className="flex flex-wrap items-center gap-3">
               <a
-                href="#lentes"
+                href={lensesCtaLink}
                 className="inline-flex items-center gap-2.5 px-6 sm:px-8 py-3 sm:py-3.5 rounded-full bg-[#06111f] hover:bg-[#0756b8] active:scale-95 !text-white text-xs font-bold uppercase tracking-wider transition-all duration-200 shadow-md group"
                 style={{ color: "#ffffff" }}
               >
-                <span className="text-white font-bold tracking-wider">Ver Nossas Lentes</span>
+                <span className="text-white font-bold tracking-wider">{lensesCtaText}</span>
                 <ArrowRight size={15} className="text-[#ffd62e] group-hover:translate-x-0.5 transition-transform" />
               </a>
               <a
-                href="/medicao-por-foto"
+                href={medicaoCtaLink}
                 className="inline-flex items-center gap-1.5 px-4 py-3 rounded-full text-xs font-semibold text-slate-700 hover:text-slate-950 hover:bg-slate-100 transition-colors"
               >
-                <span>Medição por Foto (DNP)</span>
+                <span>{medicaoCtaText}</span>
                 <ArrowRight size={13} className="text-amber-600" />
               </a>
             </div>

@@ -39,7 +39,21 @@ const BANNER_STRIP_PARTNERS = [
 
 const INITIAL_LIMIT = 8;
 
-export function LensesPricingSection() {
+interface LensesPricingSectionProps {
+  eyebrow?: string;
+  title?: string;
+  subtitle?: string;
+  prescriptionWhatsappMessage?: string;
+  medicaoBtnText?: string;
+}
+
+export function LensesPricingSection({
+  eyebrow = "LABORATÓRIO PRÓPRIO & CERTIFICADO",
+  title = "CATÁLOGO DE LENTES DE GRAU",
+  subtitle = "Explore marcas, tecnologias e tratamentos de alta precisão para encontrar a lente ideal para sua visão. Montagem expressa em até 1 hora no laboratório próprio de Araçatuba.",
+  prescriptionWhatsappMessage = "Olá! Gostaria de uma consultoria técnica gratuita com o técnico óptico da Ventara para escolher a melhor lente de grau para a minha receita.",
+  medicaoBtnText = "Descobrir Medidas por Foto (DNP)",
+}: LensesPricingSectionProps = {}) {
   const { cleanWhatsAppNumber } = useSiteSettings();
   const [activeCategory, setActiveCategory] = useState<LensCategory>("all");
   const [lenses, setLenses] = useState<AdminLensItem[]>(DEFAULT_LENSES);
@@ -113,7 +127,8 @@ export function LensesPricingSection() {
 
   const getWhatsAppPrescriptionUrl = () => {
     const text = encodeURIComponent(
-      "Olá! Gostaria de uma consultoria técnica gratuita com o técnico óptico da Ventara para escolher a melhor lente de grau para a minha receita."
+      prescriptionWhatsappMessage ||
+        "Olá! Gostaria de uma consultoria técnica gratuita com o técnico óptico da Ventara para escolher a melhor lente de grau para a minha receita."
     );
     return `https://wa.me/${cleanWhatsAppNumber || "5518996155748"}?text=${text}`;
   };
@@ -127,18 +142,17 @@ export function LensesPricingSection() {
             {/* Badge: Laboratório Próprio & Certificado */}
             <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-slate-100 border border-slate-200/90 text-slate-700 text-[11px] sm:text-xs font-bold uppercase tracking-wider">
               <FlaskConical size={14} className="text-slate-700" />
-              <span>LABORATÓRIO PRÓPRIO &amp; CERTIFICADO</span>
+              <span>{eyebrow}</span>
             </div>
 
-            {/* Título Principal com Destaque Âmbar */}
+            {/* Título Principal */}
             <h2 className="text-3xl sm:text-5xl lg:text-6xl font-black text-slate-900 tracking-tight leading-[1.08]">
-              CATÁLOGO DE <br />
-              <span className="text-[#f59e0b]">LENTES DE GRAU</span>
+              {title}
             </h2>
 
             {/* Subtítulo Descritivo */}
             <p className="text-sm sm:text-base text-slate-600 leading-relaxed max-w-2xl">
-              Explore marcas, tecnologias e tratamentos de alta precisão para encontrar a lente ideal para sua visão. Montagem expressa em até 1 hora no laboratório próprio de Araçatuba.
+              {subtitle}
             </p>
 
             {/* Botões de Ação Duplos */}
@@ -158,7 +172,7 @@ export function LensesPricingSection() {
                 className="inline-flex items-center gap-2 px-5 py-3.5 rounded-full bg-white hover:bg-slate-50 text-slate-900 font-semibold text-xs sm:text-sm border border-slate-800 hover:border-slate-950 transition-all active:scale-95 cursor-pointer shadow-2xs"
               >
                 <Eye size={16} className="text-slate-900" />
-                <span>Medição DNP por Foto</span>
+                <span>{medicaoBtnText}</span>
               </Link>
             </div>
           </div>
