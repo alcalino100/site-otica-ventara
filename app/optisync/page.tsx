@@ -31,6 +31,8 @@ import { OptiSyncGalleryClient } from "@/components/optisync/optisync-gallery-cl
 import { LineNavTabs } from "@/components/optisync/line-nav-tabs";
 import { FloatingEditButton } from "@/components/content/floating-edit-button";
 import { DraftPreviewBanner } from "@/components/content/draft-preview-banner";
+import { PageBackground } from "@/components/ui/page-background";
+import { resolveBackgroundConfig } from "@/lib/content/background-presets";
 
 export const revalidate = 60;
 
@@ -89,9 +91,9 @@ export default async function OptiSyncPage({ searchParams }: OptiSyncPageProps) 
     getPageContent("optisync", isDraft ? "draft" : "published"),
   ]);
 
-  const isCustomBg =
-    settings.bgMode === "custom_image" &&
-    Boolean(settings.customBgDesktopUrl && settings.customBgDesktopUrl.trim().length > 0);
+  const bgConfig = resolveBackgroundConfig(content, settings);
+  const colorBlueRight = bgConfig.colorBlueRight;
+  const colorVioletGlow = bgConfig.colorVioletGlow;
 
   const cleanPhone = "5518996155748";
   const whatsappUrl = `https://wa.me/${cleanPhone}?text=${encodeURIComponent(
@@ -100,13 +102,6 @@ export default async function OptiSyncPage({ searchParams }: OptiSyncPageProps) 
       "Olá! Gostaria de consultar um técnico óptico sobre as lentes digitais OPTiSYNC HD da Ventara e enviar minha receita médica."
   )}`;
 
-  // Default color fallbacks based on measured artwork colors
-  const colorBaseFrom = settings.gradientBaseFrom || "#000933";
-  const colorBaseTo = settings.gradientBaseTo || "#020716";
-  const colorVioletLeft = settings.colorVioletLeft || "#4C01AE";
-  const colorVioletGlow = settings.colorVioletGlow || "#7A2CFF";
-  const colorBlueRight = settings.colorBlueRight || "#0044C9";
-  const colorMagentaSpot = settings.colorMagentaSpot || "#B93DAA";
   const colorYellowAccent = settings.colorYellowAccent || "#FFC21A";
 
   const hd = settings.hdLine;
@@ -120,71 +115,9 @@ export default async function OptiSyncPage({ searchParams }: OptiSyncPageProps) 
       <Header theme="dark" />
 
       {/* ====================================================================
-          1. FUNDO TECNOLÓGICO LEVE (CSS / SVG) COM CORES MEDIDAS DAS ARTES
+          1. FUNDO TECNOLÓGICO LEVE (CSS / SVG) REUTILIZÁVEL COM SWITCHER
           ==================================================================== */}
-      <div className="fixed inset-0 pointer-events-none z-0 overflow-hidden" aria-hidden="true">
-        {isCustomBg ? (
-          <div className="absolute inset-0 w-full h-full">
-            <picture>
-              {settings.customBgMobileUrl && (
-                <source media="(max-width: 768px)" srcSet={settings.customBgMobileUrl} />
-              )}
-              <img
-                src={settings.customBgDesktopUrl}
-                alt=""
-                className={`w-full h-full object-cover object-${settings.bgFocalPoint || "center"}`}
-              />
-            </picture>
-            <div
-              className="absolute inset-0 bg-[#000933]"
-              style={{ opacity: (settings.bgOverlayOpacity ?? 70) / 100 }}
-            />
-          </div>
-        ) : (
-          <div
-            className="absolute inset-0 w-full h-full"
-            style={{
-              background: `radial-gradient(ellipse at 50% 25%, ${colorBaseFrom} 0%, ${colorBaseTo} 70%, #00051E 100%)`,
-            }}
-          >
-            {/* Feixe Esquerdo: Violeta Profundo (#4C01AE) */}
-            <div
-              className={`absolute -top-16 -left-20 sm:-top-32 sm:-left-40 w-[320px] h-[340px] sm:w-[680px] sm:h-[720px] rounded-full blur-2xl sm:blur-[140px] pointer-events-none transform -rotate-12 ${
-                settings.enableAnimation ? "sm:animate-lens-glow" : ""
-              }`}
-              style={{
-                background: `linear-gradient(135deg, ${colorVioletLeft} 0%, ${colorVioletGlow} 40%, transparent 70%)`,
-                opacity: ((settings.beamsIntensity ?? 85) / 100) * 0.6,
-              }}
-            />
-
-            {/* Feixe Direito: Azul Elétrico (#0044C9) */}
-            <div
-              className="absolute top-10 right-[-60px] sm:top-20 sm:right-[-100px] w-[280px] h-[300px] sm:w-[620px] sm:h-[650px] rounded-full blur-2xl sm:blur-[150px] pointer-events-none transform rotate-45"
-              style={{
-                background: `linear-gradient(225deg, ${colorBlueRight} 0%, transparent 65%)`,
-                opacity: ((settings.beamsIntensity ?? 85) / 100) * 0.5,
-              }}
-            />
-
-            {/* Ponto Central de Brilho Magenta (#B93DAA) */}
-            <div
-              className="absolute top-1/3 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[300px] h-[160px] sm:w-[700px] sm:h-[320px] blur-2xl sm:blur-[150px] pointer-events-none"
-              style={{
-                background: `radial-gradient(circle, ${colorMagentaSpot} 0%, ${colorVioletGlow} 35%, transparent 75%)`,
-                opacity: ((settings.glowIntensity ?? 80) / 100) * 0.35,
-              }}
-            />
-
-            {/* Grade HUD Tecnológica */}
-            <div className="absolute inset-0 lens-hud-grid opacity-20 sm:opacity-25" />
-
-            {/* Linhas Horizontais de Luz (HUD) */}
-            <div className="absolute top-[35%] inset-x-0 h-px bg-gradient-to-r from-transparent via-[#0044C9]/40 to-transparent" />
-            <div className="absolute top-[65%] inset-x-0 h-px bg-gradient-to-r from-transparent via-[#7A2CFF]/30 to-transparent" />
-          </div>
-        )}
-      </div>
+      <PageBackground config={bgConfig} />
 
       <main className="flex-1 relative z-10 isolate pt-20 sm:pt-28 pb-0 sm:pb-4 transform-gpu">
         {/* ====================================================================
