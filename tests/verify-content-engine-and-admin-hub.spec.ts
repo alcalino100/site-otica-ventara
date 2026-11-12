@@ -58,7 +58,7 @@ test.describe("Motor de Conteúdo & Hub Administrativo (CMS Fase 1)", () => {
     expect(optisyncDefaults.heroBadge).toBe("ENGENHARIA ÓPTICA DIGITAL");
     expect(optisyncDefaults.heroTitle).toBe("Lentes Digitais");
     expect(optisyncDefaults.heroTitleHighlight).toBe("OPTiSYNC HD");
-    expect(optisyncDefaults.btnPrimaryText).toBe("Falar com Técnico Óptico");
+    expect(optisyncDefaults.heroCtaWhatsapp).toBe("Consultar Óptico no WhatsApp");
 
     const homeDefaults = getPageDefaultValues("home");
     expect(homeDefaults.offersTitle).toBe("Até 57% OFF em modelos selecionados");
@@ -139,9 +139,9 @@ test.describe("Motor de Conteúdo & Hub Administrativo (CMS Fase 1)", () => {
     await expect(page.getByText("Sincronizado")).toBeVisible();
 
     // Verifica seções do acordeão
-    await expect(page.getByText("1. Cabeçalho / Hero")).toBeVisible();
-    await expect(page.getByText("2. Simulador Fotossensível")).toBeVisible();
-    await expect(page.getByText("3. Benefícios e Laboratório Próprio")).toBeVisible();
+    await expect(page.getByText("1. Hero Principal")).toBeVisible();
+    await expect(page.getByText("2. Linha OPTiSYNC HD (Adulto & Telas)")).toBeVisible();
+    await expect(page.getByText("3. Linha Fotossensível & Simulador")).toBeVisible();
 
     // Altera um campo de texto e valida detecção de alteração pendente (dirty state)
     const heroTitleHighlightInput = page.locator('input[value="OPTiSYNC HD"]').first();
