@@ -12,6 +12,36 @@ export function getContentCacheTag(page: string): string {
 }
 
 /**
+ * Detecta se o erro do Supabase decorre da ausência da tabela no schema (ex: migration pendente).
+ */
+export function isTableMissingError(err: any): boolean {
+  if (!err) return false;
+  const msg = typeof err === "string" ? err : err.message || "";
+  const code = err.code || "";
+  return (
+    code === "PGRST205" ||
+    code === "42P01" ||
+    msg.includes("Could not find the table") ||
+    msg.includes("schema cache") ||
+    (msg.includes("relation") && msg.includes("does not exist"))
+  );
+}
+
+/**
+ * Chave de armazenamento no site_settings quando a tabela site_content estiver indisponível.
+ */
+export function getSiteSettingsContentKey(page: string, mode: "published" | "draft"): string {
+  return `site_content_${page}_${mode}`;
+}
+
+/**
+ * Chave de histórico no site_settings quando site_content_history estiver indisponível.
+ */
+export function getSiteSettingsHistoryKey(page: string): string {
+  return `site_content_history_${page}`;
+}
+
+/**
  * Recupera o conteúdo de uma página no servidor com fallback garantido para defaults.
  * @param page Identificador da página (ex: "optisync", "home")
  * @param mode "published" para o site no ar; "draft" para rascunho de trabalho no admin
@@ -136,12 +166,81 @@ export async function getPageContent(
       .eq("page", page)
       .eq("status", mode);
 
+    // Fallback resiliente para site_settings caso a tabela site_content ainda não exista no banco
+    if (error && isTableMissingError(error)) {
+      const fallbackKey = getSiteSettingsContentKey(page, mode);
+      const { data: fallbackRow } = await supabase
+        .from("site_settings")
+        .select("value")
+        .eq("key", fallbackKey)
+        .maybeSingle();
+
+      if (fallbackRow?.value) {
+        const payload = fallbackRow.value as Record<string, any>;
+        const rawValues = payload.values || payload;
+        const merged: Record<string, any> = { ...defaults };
+        for (const [k, v] of Object.entries(rawValues)) {
+          if (v !== undefined && v !== null) {
+            merged[k] = typeof v === "object" && "raw" in v ? (v as any).raw : v;
+          }
+        }
+        if (payload.sectionsOrder) merged._sectionsOrder = payload.sectionsOrder;
+        if (payload.hiddenSections) merged._hiddenSections = payload.hiddenSections;
+        return merged;
+      } else if (mode === "draft") {
+        // Se ainda não há rascunho em site_settings, herda o publicado
+        const pubKey = getSiteSettingsContentKey(page, "published");
+        const { data: pubRow } = await supabase
+          .from("site_settings")
+          .select("value")
+          .eq("key", pubKey)
+          .maybeSingle();
+
+        if (pubRow?.value) {
+          const payload = pubRow.value as Record<string, any>;
+          const rawValues = payload.values || payload;
+          const merged: Record<string, any> = { ...defaults };
+          for (const [k, v] of Object.entries(rawValues)) {
+            if (v !== undefined && v !== null) {
+              merged[k] = typeof v === "object" && "raw" in v ? (v as any).raw : v;
+            }
+          }
+          if (payload.sectionsOrder) merged._sectionsOrder = payload.sectionsOrder;
+          if (payload.hiddenSections) merged._hiddenSections = payload.hiddenSections;
+          return merged;
+        }
+      }
+      return defaults;
+    }
+
     if (error) {
       console.warn(`[ContentEngine] Aviso ao buscar conteúdo (${page}/${mode}):`, error.message);
       return defaults;
     }
 
     if (!data || data.length === 0) {
+      // Verifica se há conteúdo salvo no fallback de site_settings antes de recorrer a defaults
+      const fallbackKey = getSiteSettingsContentKey(page, mode);
+      const { data: fallbackRow } = await supabase
+        .from("site_settings")
+        .select("value")
+        .eq("key", fallbackKey)
+        .maybeSingle();
+
+      if (fallbackRow?.value) {
+        const payload = fallbackRow.value as Record<string, any>;
+        const rawValues = payload.values || payload;
+        const merged: Record<string, any> = { ...defaults };
+        for (const [k, v] of Object.entries(rawValues)) {
+          if (v !== undefined && v !== null) {
+            merged[k] = typeof v === "object" && "raw" in v ? (v as any).raw : v;
+          }
+        }
+        if (payload.sectionsOrder) merged._sectionsOrder = payload.sectionsOrder;
+        if (payload.hiddenSections) merged._hiddenSections = payload.hiddenSections;
+        return merged;
+      }
+
       // Se solicitou rascunho e ainda não há rascunho salvo, herda o publicado como base
       if (mode === "draft") {
         const publishedData = await getPageContent(page, "published");
@@ -236,6 +335,36 @@ export async function saveContentDraft(
     });
 
     if (error) {
+      if (isTableMissingError(error)) {
+        console.warn(
+          `[ContentEngine] Tabela site_content ausente. Salvando rascunho de '${page}' em site_settings (fallback resiliente).`
+        );
+        const fallbackKey = getSiteSettingsContentKey(page, "draft");
+        const payload = {
+          page,
+          status: "draft",
+          values,
+          sectionsOrder: sectionsOrder || [],
+          hiddenSections: hiddenSections || [],
+          updated_by: user || "admin",
+          updated_at: now,
+        };
+        const { error: fallbackErr } = await supabase.from("site_settings").upsert(
+          {
+            key: fallbackKey,
+            value: payload,
+            description: `CMS Rascunho: ${page}`,
+            updated_at: now,
+          },
+          { onConflict: "key" }
+        );
+        if (fallbackErr) {
+          console.error("[ContentEngine] Erro ao salvar rascunho em site_settings:", fallbackErr);
+          return { success: false, error: fallbackErr.message };
+        }
+        return { success: true };
+      }
+
       console.error("[ContentEngine] Erro ao salvar rascunho:", error);
       return { success: false, error: error.message };
     }
@@ -318,6 +447,90 @@ export async function publishContent(
     });
 
     if (upsertError) {
+      if (isTableMissingError(upsertError)) {
+        console.warn(
+          `[ContentEngine] Tabela site_content ausente. Publicando '${page}' em site_settings (fallback resiliente).`
+        );
+        const fallbackKey = getSiteSettingsContentKey(page, "published");
+        const payload = {
+          page,
+          status: "published",
+          values,
+          sectionsOrder: sectionsOrder || [],
+          hiddenSections: hiddenSections || [],
+          updated_by: user || "admin",
+          updated_at: now,
+        };
+        const { error: fallbackErr } = await supabase.from("site_settings").upsert(
+          {
+            key: fallbackKey,
+            value: payload,
+            description: `CMS Publicado: ${page}`,
+            updated_at: now,
+          },
+          { onConflict: "key" }
+        );
+        if (fallbackErr) {
+          console.error("[ContentEngine] Erro ao publicar em site_settings:", fallbackErr);
+          return { success: false, error: fallbackErr.message };
+        }
+
+        // Grava histórico no fallback
+        try {
+          const histKey = getSiteSettingsHistoryKey(page);
+          const { data: histData } = await supabase
+            .from("site_settings")
+            .select("value")
+            .eq("key", histKey)
+            .maybeSingle();
+
+          const existingHistory: any[] = Array.isArray(histData?.value) ? histData.value : [];
+          const newRecord: SiteContentHistoryRecord = {
+            id: crypto.randomUUID(),
+            page,
+            snapshot: {
+              values,
+              sectionsOrder: sectionsOrder || [],
+              hiddenSections: hiddenSections || [],
+            },
+            label,
+            summary,
+            created_by: user || "admin",
+            created_at: now,
+          };
+          const updatedHistory = [newRecord, ...existingHistory].slice(0, 30);
+          await supabase.from("site_settings").upsert(
+            {
+              key: histKey,
+              value: updatedHistory,
+              description: `CMS Histórico: ${page}`,
+              updated_at: now,
+            },
+            { onConflict: "key" }
+          );
+        } catch (hErr) {
+          console.warn("[ContentEngine] Aviso ao salvar histórico no fallback:", hErr);
+        }
+
+        // Sincroniza optisync_page_settings se aplicável
+        if (page === "optisync") {
+          await syncOptisyncPageSettingsFromContent(supabase, values);
+        }
+
+        // Invalidação atômica de cache do Next.js
+        const pageDef = getPageDefinition(page);
+        try {
+          revalidateTag(getContentCacheTag(page));
+          if (pageDef?.path) {
+            revalidatePath(pageDef.path);
+          }
+        } catch {
+          // Ignora fora de request
+        }
+
+        return { success: true };
+      }
+
       console.error("[ContentEngine] Erro ao publicar conteúdo:", upsertError);
       return { success: false, error: upsertError.message };
     }
@@ -339,7 +552,46 @@ export async function publishContent(
     });
 
     if (historyError) {
-      console.warn("[ContentEngine] Aviso ao registrar histórico:", historyError.message);
+      if (isTableMissingError(historyError)) {
+        try {
+          const histKey = getSiteSettingsHistoryKey(page);
+          const { data: histData } = await supabase
+            .from("site_settings")
+            .select("value")
+            .eq("key", histKey)
+            .maybeSingle();
+
+          const existingHistory: any[] = Array.isArray(histData?.value) ? histData.value : [];
+          const newRecord: SiteContentHistoryRecord = {
+            id: crypto.randomUUID(),
+            page,
+            snapshot: snapshotPayload,
+            label,
+            summary,
+            created_by: user || "admin",
+            created_at: now,
+          };
+          const updatedHistory = [newRecord, ...existingHistory].slice(0, 30);
+          await supabase.from("site_settings").upsert(
+            {
+              key: histKey,
+              value: updatedHistory,
+              description: `CMS Histórico: ${page}`,
+              updated_at: now,
+            },
+            { onConflict: "key" }
+          );
+        } catch (hErr) {
+          console.warn("[ContentEngine] Aviso ao salvar histórico no fallback:", hErr);
+        }
+      } else {
+        console.warn("[ContentEngine] Aviso ao registrar histórico:", historyError.message);
+      }
+    }
+
+    // Sincroniza optisync_page_settings se for optisync
+    if (page === "optisync") {
+      await syncOptisyncPageSettingsFromContent(supabase, values);
     }
 
     // 3. Invalidação atômica de cache do Next.js
@@ -378,6 +630,19 @@ export async function getContentHistory(page: string): Promise<SiteContentHistor
       .limit(20);
 
     if (error) {
+      if (isTableMissingError(error)) {
+        const histKey = getSiteSettingsHistoryKey(page);
+        const { data: fallbackData } = await supabase
+          .from("site_settings")
+          .select("value")
+          .eq("key", histKey)
+          .maybeSingle();
+
+        if (Array.isArray(fallbackData?.value)) {
+          return fallbackData.value as SiteContentHistoryRecord[];
+        }
+        return [];
+      }
       console.warn(`[ContentEngine] Aviso ao buscar histórico (${page}):`, error.message);
       return [];
     }
@@ -411,6 +676,37 @@ export async function restoreContentHistory(
       .maybeSingle();
 
     if (error || !data) {
+      if (isTableMissingError(error) || !data) {
+        const histKey = getSiteSettingsHistoryKey(page);
+        const { data: fallbackData } = await supabase
+          .from("site_settings")
+          .select("value")
+          .eq("key", histKey)
+          .maybeSingle();
+
+        const historyList: any[] = Array.isArray(fallbackData?.value) ? fallbackData.value : [];
+        const record = historyList.find((r: any) => r.id === historyId);
+        if (record) {
+          const snapshot = record.snapshot as {
+            values?: Record<string, any>;
+            sectionsOrder?: string[];
+            hiddenSections?: string[];
+          };
+          const values = snapshot.values || snapshot;
+          const sectionsOrder = snapshot.sectionsOrder;
+          const hiddenSections = snapshot.hiddenSections;
+
+          const saveRes = await saveContentDraft(
+            page,
+            values,
+            sectionsOrder,
+            hiddenSections,
+            user ? `${user} (Restaurado de ${record.label || historyId})` : "Restaurado"
+          );
+          if (!saveRes.success) return saveRes;
+          return { success: true, restoredValues: values };
+        }
+      }
       return { success: false, error: "Versão do histórico não encontrada" };
     }
 
@@ -502,4 +798,74 @@ export async function searchContentInSite(query: string): Promise<
   }
 
   return results;
+}
+
+/**
+ * Mantém optisync_page_settings em site_settings perfeitamente sincronizado com os dados publicados.
+ */
+async function syncOptisyncPageSettingsFromContent(supabase: any, values: Record<string, any>) {
+  try {
+    const { data: existingData } = await supabase
+      .from("site_settings")
+      .select("value")
+      .eq("key", "optisync_page_settings")
+      .maybeSingle();
+
+    const prev = (existingData?.value as Record<string, any>) || {};
+    const updated: Record<string, any> = { ...prev };
+
+    if (values.heroBadge) updated.heroBadge = values.heroBadge;
+    if (values.heroTitle) updated.heroTitle = values.heroTitle;
+    if (values.heroTitleHighlight) updated.heroTitleHighlight = values.heroTitleHighlight;
+    if (values.heroDescription) updated.heroDescription = values.heroDescription;
+    if (values.heroPortraitUrl) updated.heroPortraitUrl = values.heroPortraitUrl;
+    if (values.productAltText) updated.productAltText = values.productAltText;
+
+    if (!updated.hdLine) updated.hdLine = {};
+    if (values.hdBadge) updated.hdLine.badge = values.hdBadge;
+    if (values.hdTitle) updated.hdLine.title = values.hdTitle;
+    if (values.hdTitleHighlight) updated.hdLine.titleHighlight = values.hdTitleHighlight;
+    if (values.hdDescription) updated.hdLine.description = values.hdDescription;
+    if (values.hdCtaText) updated.hdLine.ctaText = values.hdCtaText;
+    if (values.hdCtaLink) updated.hdLine.ctaLink = values.hdCtaLink;
+
+    if (!updated.photochromicLine) updated.photochromicLine = {};
+    if (values.photochromicBadge) updated.photochromicLine.badge = values.photochromicBadge;
+    if (values.photochromicTitle) updated.photochromicLine.title = values.photochromicTitle;
+    if (values.photochromicTitleHighlight) updated.photochromicLine.titleHighlight = values.photochromicTitleHighlight;
+    if (values.photochromicDescription) updated.photochromicLine.description = values.photochromicDescription;
+    if (values.photochromicCtaText) updated.photochromicLine.ctaText = values.photochromicCtaText;
+    if (values.photochromicCtaLink) updated.photochromicLine.ctaLink = values.photochromicCtaLink;
+
+    if (!updated.kidsLine) updated.kidsLine = {};
+    if (values.kidsBadge) updated.kidsLine.badge = values.kidsBadge;
+    if (values.kidsTitle) updated.kidsLine.title = values.kidsTitle;
+    if (values.kidsTitleHighlight) updated.kidsLine.titleHighlight = values.kidsTitleHighlight;
+    if (values.kidsDescription) updated.kidsLine.description = values.kidsDescription;
+    if (values.kidsCtaText) updated.kidsLine.ctaText = values.kidsCtaText;
+    if (values.kidsCtaLink) updated.kidsLine.ctaLink = values.kidsCtaLink;
+    if (values.kidsPosterUrl) updated.kidsLine.posterBoyUrl = values.kidsPosterUrl;
+
+    if (values.backgroundPreset) updated.backgroundPreset = values.backgroundPreset;
+    if (values.gradientBaseFrom) updated.gradientBaseFrom = values.gradientBaseFrom;
+    if (values.gradientBaseTo) updated.gradientBaseTo = values.gradientBaseTo;
+    if (values.colorVioletLeft) updated.colorVioletLeft = values.colorVioletLeft;
+    if (values.colorBlueRight) updated.colorBlueRight = values.colorBlueRight;
+    if (values.colorMagentaSpot) updated.colorMagentaSpot = values.colorMagentaSpot;
+    if (values.beamsIntensity !== undefined) updated.beamsIntensity = values.beamsIntensity;
+    if (values.glowIntensity !== undefined) updated.glowIntensity = values.glowIntensity;
+    if (values.enableAnimation !== undefined) updated.enableAnimation = values.enableAnimation;
+
+    await supabase.from("site_settings").upsert(
+      {
+        key: "optisync_page_settings",
+        value: updated,
+        description: "Configurações da Página OptiSYNC (Sincronizado via CMS)",
+        updated_at: new Date().toISOString(),
+      },
+      { onConflict: "key" }
+    );
+  } catch (err) {
+    console.warn("[ContentEngine] Aviso ao sincronizar optisync_page_settings:", err);
+  }
 }
