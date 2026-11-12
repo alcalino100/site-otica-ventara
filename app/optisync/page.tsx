@@ -28,6 +28,8 @@ import { OptiSyncBenefitItem } from "@/types/ecommerce";
 import { PhotochromicSlider } from "@/components/optisync/photochromic-slider";
 import { OptiSyncGalleryClient } from "@/components/optisync/optisync-gallery-client";
 import { LineNavTabs } from "@/components/optisync/line-nav-tabs";
+import { FloatingEditButton } from "@/components/content/floating-edit-button";
+import { DraftPreviewBanner } from "@/components/content/draft-preview-banner";
 
 export const revalidate = 60;
 
@@ -101,6 +103,7 @@ export default async function OptiSyncPage() {
 
   return (
     <div className="theme-futuristic-lenses min-h-screen bg-[#000933] text-[#F4F6FF] flex flex-col font-sans selection:bg-[#FFC21A] selection:text-slate-950 relative overflow-x-hidden">
+      <DraftPreviewBanner pageId="optisync" />
       {/* Header Oficial Ventara Integrado */}
       <Header theme="dark" />
 
@@ -964,6 +967,8 @@ export default async function OptiSyncPage() {
           </section>
         )}
       </main>
+
+      <FloatingEditButton pageId="optisync" />
 
       <Footer />
     </div>
