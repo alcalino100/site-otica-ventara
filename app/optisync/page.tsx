@@ -808,14 +808,17 @@ export default async function OptiSyncPage({ searchParams }: OptiSyncPageProps) 
             {/* Banner Oficial da Arte 2 (Seis Lentes Coloridas) */}
             {Boolean(settings.colorsBannerUrl || "/images/lenses/optisync/arte-02-cores-banner.jpg") && (
               <div className="relative rounded-2xl sm:rounded-3xl overflow-hidden border border-[#0044C9]/40 bg-[#000933]/90 shadow-2xl">
-                <div className="relative aspect-[3/2] sm:aspect-[21/9] w-full">
+                {/* O bloco acompanha a proporção real da foto (sem recorte). 1536x1024 é a proporção da arte padrão
+                    e reserva o espaço até a imagem carregar; fotos enviadas com outra proporção se ajustam sozinhas. */}
+                <div className="relative w-full">
                   <Image
                     src={settings.colorsBannerUrl || "/images/lenses/optisync/arte-02-cores-banner.jpg"}
                     alt={settings.colorsBannerAlt || "Seis lentes coloridas em exposição"}
-                    fill
+                    width={1536}
+                    height={1024}
                     loading="lazy"
                     sizes="(max-width: 1200px) 100vw, 1100px"
-                    className="object-cover"
+                    className="block h-auto w-full"
                   />
                 </div>
                 <div className="p-4 sm:p-6 bg-[#00051E]/80 backdrop-blur-md flex flex-col sm:flex-row items-center justify-between gap-4">
