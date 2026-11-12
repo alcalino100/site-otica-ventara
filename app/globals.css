@@ -620,7 +620,10 @@ header.site-header.scrolled {
   color: var(--gold);
 }
 
-h1 {
+/* Tipografia do hero do site público. Esta regra está fora de @layer e por isso vence as classes
+   do Tailwind; o painel /admin (classe .admin-area) é excluído para que os títulos dele
+   respeitem as próprias classes (antes todo h1 do admin virava até 72px). */
+h1:not(.admin-area *) {
   font-size: clamp(42px, 4.8vw, 72px);
 }
 
