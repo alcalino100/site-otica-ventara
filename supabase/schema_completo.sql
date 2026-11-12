@@ -107,6 +107,10 @@ CREATE TABLE IF NOT EXISTS public.products (
   dimensions_lens_mm INTEGER,
   dimensions_bridge_mm INTEGER,
   dimensions_temple_mm INTEGER,
+  dimensions_frame_width_mm INTEGER CHECK (dimensions_frame_width_mm IS NULL OR dimensions_frame_width_mm > 0),
+  dimensions_lens_height_mm INTEGER CHECK (dimensions_lens_height_mm IS NULL OR dimensions_lens_height_mm > 0),
+  has_temple_engraving BOOLEAN NOT NULL DEFAULT false,
+  material_origin TEXT,
 
   created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
   updated_at TIMESTAMPTZ NOT NULL DEFAULT now()
