@@ -15,6 +15,8 @@ import {
   ArrowRight,
 } from "lucide-react";
 import { useSiteSettings } from "../providers/site-settings-provider";
+import { PageBackground } from "../ui/page-background";
+import type { PageBackgroundConfig } from "@/lib/content/background-presets";
 
 interface StoreSectionProps {
   eyebrow?: string;
@@ -24,6 +26,10 @@ interface StoreSectionProps {
   phone?: string;
   hours?: string;
   mapsUrl?: string;
+  /** Liga o fundo tecnológico OptiSYNC (controlado no admin: Conteúdo > Home > Espaço Físico). */
+  useOptisyncBackground?: boolean;
+  /** Configuração resolvida do fundo OptiSYNC (mesmas cores e intensidades da página /optisync). */
+  optisyncBackground?: PageBackgroundConfig | null;
 }
 
 export function StoreSection({
@@ -34,6 +40,8 @@ export function StoreSection({
   phone = "(18) 3304-2808",
   hours,
   mapsUrl,
+  useOptisyncBackground = false,
+  optisyncBackground = null,
 }: StoreSectionProps = {}) {
   const { identity, cleanWhatsAppNumber } = useSiteSettings();
   const googleMapsUrl = mapsUrl || "https://maps.app.goo.gl/sXFBJrNTxQcBhwTh9?g_st=iw";
@@ -42,13 +50,23 @@ export function StoreSection({
     address ||
     `${identity.address_street || "Rua Princesa Isabel, 221"}, ${identity.address_neighborhood || "Centro"}, ${identity.address_city || "Araçatuba"} - ${identity.address_state || "SP"}`;
 
+  const showOptisyncBackground = Boolean(useOptisyncBackground && optisyncBackground);
+
   return (
     <section
-      className="py-16 sm:py-24 bg-[#06111f] border-t border-b border-white/5 relative overflow-hidden"
+      className={`py-16 sm:py-24 ${
+        showOptisyncBackground ? "bg-[#000933]" : "bg-[#06111f]"
+      } border-t border-b border-white/5 relative overflow-hidden`}
       id="loja-fisica"
+      data-store-bg={showOptisyncBackground ? "optisync" : "default"}
     >
-      {/* Luz ambiente suave */}
-      <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[700px] h-[350px] bg-[#0756b8]/10 blur-[140px] pointer-events-none rounded-full" />
+      {showOptisyncBackground && optisyncBackground ? (
+        /* Fundo tecnológico OptiSYNC contido apenas nesta seção */
+        <PageBackground config={optisyncBackground} scope="section" />
+      ) : (
+        /* Luz ambiente suave (fundo padrão da seção) */
+        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[700px] h-[350px] bg-[#0756b8]/10 blur-[140px] pointer-events-none rounded-full" />
+      )}
 
       <div className="max-w-[1400px] mx-auto px-4 sm:px-8 lg:px-10 relative z-10">
         {/* Cabeçalho Unificado da Seção */}

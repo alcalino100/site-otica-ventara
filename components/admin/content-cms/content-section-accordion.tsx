@@ -275,7 +275,11 @@ function renderFieldInput(
               isChecked ? "bg-emerald-400 animate-pulse" : "bg-slate-600"
             }`}
           />
-          <span>{isChecked ? "Seção Ativada" : "Seção Desativada"}</span>
+          <span>
+            {isChecked
+              ? field.toggleLabels?.on ?? "Seção Ativada"
+              : field.toggleLabels?.off ?? "Seção Desativada"}
+          </span>
         </button>
       );
 
