@@ -1,9 +1,11 @@
 "use client";
 
-import React, { useState, useMemo } from "react";
+import React, { useState } from "react";
 import Link from "next/link";
-import { ShoppingBag, Check, MessageSquare } from "lucide-react";
+import { ShoppingBag, Check, MessageSquare, Sparkles } from "lucide-react";
 import { Product } from "@/types/ecommerce";
+import { CardImageGallery } from "@/components/catalog/card-image-gallery";
+import { FrameArt } from "@/components/catalog/frame-art";
 import { DiscountBadge } from "@/components/ui/discount-badge";
 import { FormattedProductPricing } from "@/lib/pricing";
 
@@ -35,171 +37,200 @@ export function PromoSplitCard({
   showDiscountBadge = true,
   onAddToCart = () => {},
   isInCart = false,
-  priority = false,
   whatsAppUrl,
 }: PromoSplitCardProps) {
   const [justAdded, setJustAdded] = useState(false);
 
   const handleAdd = (e: React.MouseEvent) => {
     e.stopPropagation();
-    e.preventDefault();
     onAddToCart(item.product);
     setJustAdded(true);
     setTimeout(() => setJustAdded(false), 1400);
   };
 
-  // Imagens válidas para galeria e contagem
-  const validImages = useMemo(() => {
-    const list: string[] = [];
-    if (item.images && item.images.length > 0) {
-      item.images.forEach((img) => {
-        if (img?.url && !list.includes(img.url)) list.push(img.url);
-      });
-    }
-    if (list.length === 0 && item.image) {
-      list.push(item.image);
-    }
-    return list;
-  }, [item.images, item.image]);
+  // Badge da direita (Formato do Aro / Destaque / Mais Vendido / Lançamento)
+  const highlightBadge =
+    item.product.is_featured
+      ? "Destaque"
+      : item.product.gender === "Infantil"
+      ? "Linha Kids"
+      : item.product.slug.includes("safari")
+      ? "Mais Vendido"
+      : item.product.frame_shape
+      ? `Aro ${item.product.frame_shape}`
+      : item.tag || "Lançamento";
 
-  const hasMultipleImages = validImages.length > 1;
-  const currentImageUrl = validImages[0] || item.image;
-  const focalPositionY = item.focalY ? `${item.focalY}%` : "68%";
+  const categoryLabel =
+    item.product.gender === "Infantil"
+      ? item.product.frame_type === "Solar"
+        ? "Solar Infantil"
+        : "Grau Infantil"
+      : item.product.frame_type === "Solar"
+      ? "Óculos de Sol"
+      : "Armação de Grau";
+
+  const descriptionText =
+    item.description ||
+    item.product.description ||
+    `${item.product.frame_material || "Acetato Premium"} com aro ${
+      item.product.frame_shape?.toLowerCase() || "moderno"
+    } e encaixe anatômico confortável.`;
+
+  // Amostras derivadas exclusivamente de variantes cadastradas
+  const swatches =
+    item.product.variants && item.product.variants.length > 0
+      ? item.product.variants.map((v) => ({
+          name: v.color_name,
+          hex: v.color_hex || "#1e293b",
+        }))
+      : [];
+
+  const primarySwatch = swatches[0];
+  const extraColorsCount = Math.max(0, swatches.length - 1);
 
   return (
     <article
       data-testid="promo-split-card"
-      className="@container group bg-[#040d1a] border border-slate-800 hover:border-amber-400/70 rounded-2xl sm:rounded-3xl overflow-hidden shadow-lg hover:shadow-2xl transition-all duration-300 flex flex-col justify-between w-[clamp(260px,78vw,320px)] shrink-0 snap-start sm:w-auto sm:shrink"
+      className="product group bg-white rounded-2xl sm:rounded-3xl p-3 sm:p-5 border border-slate-200/90 hover:border-amber-400/80 shadow-xs hover:shadow-xl transition-all duration-300 flex flex-col justify-between h-full w-[clamp(260px,78vw,320px)] shrink-0 snap-start sm:w-auto sm:shrink"
     >
-      {/* BLOCO A: IMAGEM SUPERIOR COM ASPECT RATIO FIXO E ZERO ELEMENTOS SOBRE A ARMAÇÃO */}
-      <div className="relative w-full aspect-[4/3] bg-slate-900 overflow-hidden rounded-t-2xl sm:rounded-t-3xl">
-        <Link
-          href={`/produto/${item.slug}`}
-          className="block w-full h-full relative overflow-hidden"
-          aria-label={`Ver detalhes da armação ${item.name}`}
-        >
-          {currentImageUrl ? (
-            <img
-              src={currentImageUrl}
-              alt={item.name}
-              loading={priority ? "eager" : "lazy"}
-              decoding="async"
-              className="w-full h-full object-cover transition-transform duration-500 ease-out group-hover:scale-105"
-              style={{ objectPosition: `center ${focalPositionY}` }}
-            />
+      <div>
+        {/* 1. Header do Card com Badges */}
+        <div className="flex items-center justify-between gap-1.5 mb-2.5 min-h-[24px]">
+          {showDiscountBadge && item.pricing.hasDiscount && item.pricing.discountBadgeText ? (
+            <DiscountBadge percent={item.pricing.discountPercent} size="sm" />
           ) : (
-            <div className="w-full h-full flex items-center justify-center bg-slate-900 text-slate-500 text-xs font-medium">
-              Sem foto disponível
-            </div>
+            <span className="inline-flex items-center gap-1 px-2 sm:px-2.5 py-0.5 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200 font-bold text-[9px] sm:text-[10px] tracking-wide whitespace-nowrap shrink-0">
+              <Sparkles size={10} className="text-emerald-600" />
+              <span>EXCLUSIVO</span>
+            </span>
           )}
-        </Link>
 
-        {/* Selo Verde de Desconto no Canto Superior Esquerdo (somente se houver desconto real) */}
-        {showDiscountBadge && item.pricing.hasDiscount && (
-          <div className="absolute top-2.5 left-2.5 sm:top-3 sm:left-3 z-10 pointer-events-none">
-            <DiscountBadge percent={item.pricing.discountPercent} />
-          </div>
-        )}
-
-        {/* Contador Numérico de Fotos ("1/3", "1/4") - Sem setas invasivas sobre a armação */}
-        {hasMultipleImages && (
-          <div
-            data-testid="promo-gallery-counter"
-            className="pointer-events-none absolute top-2.5 right-2.5 sm:top-3 sm:right-3 px-2 py-0.5 rounded-full bg-black/65 backdrop-blur-md text-white text-[9px] sm:text-[10px] font-mono tracking-wider z-10 border border-white/15 shadow-xs"
+          <span
+            className="text-[9px] sm:text-[10px] font-semibold text-slate-600 bg-slate-100 border border-slate-200/80 px-2 sm:px-2.5 py-0.5 rounded-full truncate text-right ml-auto min-w-0"
+            title={highlightBadge}
           >
-            1/{validImages.length}
-          </div>
-        )}
-      </div>
-
-      {/* BLOCO C: TEXTO E CONTROLES SOBRE O FUNDO ESCURO */}
-      <div className="p-4 sm:p-5 flex flex-col justify-between flex-1 gap-3 bg-[#040d1a]">
-        <div className="space-y-1.5">
-          {/* Categoria em caixa-alta */}
-          <span className="text-[10px] sm:text-[11px] font-bold text-amber-400 uppercase tracking-wider block truncate">
-            VENTARA · {item.category.toUpperCase()}
+            {highlightBadge}
           </span>
+        </div>
 
-          {/* Nome da armação em branco */}
-          <Link
-            href={`/produto/${item.slug}`}
-            className="block group-hover:text-amber-300 transition-colors"
-          >
-            <h3 className="text-base sm:text-lg font-bold text-white tracking-tight leading-snug line-clamp-1">
+        {/* 2. Container da Foto (Aspect Ratio 4/3 e sem setas invasivas sobre a armação) */}
+        <div className="mb-3">
+          <CardImageGallery
+            images={item.product.images}
+            fallbackUrl={item.image}
+            productName={item.name}
+            productHref={`/produto/${item.slug}`}
+            aspectRatio="aspect-[4/3]"
+            imageFit="cover"
+            fallbackArt={
+              <div className="w-full max-w-[140px] sm:max-w-[160px]">
+                <FrameArt
+                  solar={item.product.frame_type === "Solar"}
+                  amber={
+                    item.product.slug.includes("safari") ||
+                    item.product.slug.includes("onca") ||
+                    item.product.slug.includes("solar")
+                  }
+                  round={item.product.frame_shape === "Redondo"}
+                  customColor={
+                    item.product.gender === "Infantil"
+                      ? item.product.frame_type === "Solar"
+                        ? "#0284c7"
+                        : "#2563eb"
+                      : undefined
+                  }
+                />
+              </div>
+            }
+          />
+        </div>
+
+        {/* 3. Metadados e Nome do Modelo */}
+        <div className="space-y-1">
+          <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400 block truncate">
+            VENTARA · {categoryLabel.toUpperCase()}
+          </span>
+          <Link href={`/produto/${item.slug}`} className="block">
+            <h3 className="text-xs sm:text-base font-bold text-slate-900 group-hover:text-amber-600 transition-colors line-clamp-1">
               {item.name}
             </h3>
           </Link>
-
-          {/* Especificação com line-clamp-2 e altura uniforme para manter alinhamento */}
-          <p className="text-xs sm:text-[13px] text-slate-300 font-normal line-clamp-2 min-h-[36px] sm:min-h-[40px] leading-relaxed">
-            {item.description || "Acetato Premium · Aro anatômico com acabamento nobre."}
+          <p className="text-[11px] sm:text-xs text-slate-500 line-clamp-1 min-h-[16px]">
+            {descriptionText}
           </p>
         </div>
 
-        {/* Bloco de Preços Alinhados + Botão da Sacola */}
-        <div className="pt-2.5 border-t border-slate-800 flex items-start justify-between gap-2">
-          <div className="min-w-0">
+        {/* 4. Variação de Cores: apenas se houver 2 ou mais variantes */}
+        {swatches.length >= 2 && primarySwatch && (
+          <div className="flex items-center gap-1.5 my-2.5 min-h-[18px]">
+            <span
+              className="w-3 h-3 rounded-full border border-slate-300 shrink-0 shadow-xs"
+              style={{ backgroundColor: primarySwatch.hex }}
+              title={primarySwatch.name}
+            />
+            <span className="text-[10px] sm:text-[11px] text-slate-600 font-medium truncate">
+              {primarySwatch.name}
+            </span>
+            <span className="text-[9px] sm:text-[10px] text-slate-400 font-mono">
+              (+{extraColorsCount})
+            </span>
+          </div>
+        )}
+
+        {/* 5. Preços e Parcelamento */}
+        <div className="pt-2 border-t border-slate-200/70 mb-3">
+          <div className="flex items-baseline gap-2">
             {item.pricing.hasDiscount && item.pricing.originalPriceFormatted && (
               <span
                 data-testid="promo-original-price"
-                className="text-xs text-slate-400 line-through font-mono block leading-tight"
+                className="text-[11px] sm:text-xs text-slate-400 line-through font-mono"
               >
                 {item.pricing.originalPriceFormatted}
               </span>
             )}
-            <div
+            <span
               data-testid="promo-current-price"
-              className="text-lg sm:text-xl font-black text-amber-400 font-mono tracking-tight leading-tight mt-0.5"
+              className="text-sm sm:text-base font-extrabold text-slate-900 font-mono"
             >
               {item.pricing.currentPriceFormatted}
-            </div>
-            <span className="text-[11px] sm:text-xs text-slate-300 block mt-1 leading-snug">
-              ou até 10x de {item.pricing.installmentFormatted} sem juros
             </span>
           </div>
-
-          {/* Botão de Adicionar à Sacola */}
-          <button
-            type="button"
-            className={`min-w-[44px] min-h-[44px] w-11 h-11 rounded-full border flex items-center justify-center transition-all shrink-0 cursor-pointer ${
-              justAdded
-                ? "bg-emerald-500 border-emerald-400 text-slate-950 scale-105"
-                : isInCart
-                ? "bg-amber-400 border-amber-300 text-slate-950"
-                : "bg-white/10 hover:bg-amber-400 hover:text-slate-950 border-white/20 text-white"
-            }`}
-            aria-label={`Adicionar ${item.name} à sacola`}
-            onClick={handleAdd}
-            title="Adicionar à sacola"
-          >
-            {justAdded ? (
-              <Check size={16} className="stroke-[3]" />
-            ) : (
-              <ShoppingBag size={16} />
-            )}
-          </button>
+          <p className="text-[10px] sm:text-[11px] text-slate-500 mt-0.5">
+            10x de {item.pricing.installmentFormatted} sem juros
+          </p>
         </div>
+      </div>
 
-        {/* Ações Rápidas: Ver Detalhes e WhatsApp com Container Query e Touch Targets >= 44px */}
-        <div className="grid grid-cols-1 @[220px]:grid-cols-2 gap-2 pt-1">
-          <Link
-            href={`/produto/${item.slug}`}
-            className="min-h-[44px] px-3 rounded-xl bg-white/10 hover:bg-white/20 text-white font-semibold text-xs tracking-wide transition-colors flex items-center justify-center border border-white/15 text-center cursor-pointer active:scale-98"
-          >
-            Ver detalhes
-          </Link>
+      {/* 6. Ações: Comprar (Escuro) + Dúvidas no WhatsApp (Amarelo) */}
+      <div className="flex flex-col gap-1.5 pt-1">
+        <Link
+          href={`/produto/${item.slug}`}
+          onClick={handleAdd}
+          className="w-full min-h-[44px] inline-flex items-center justify-center gap-1.5 py-2.5 px-3 rounded-xl bg-slate-900 hover:bg-slate-800 active:scale-95 text-white font-bold text-[11px] sm:text-xs tracking-wide shadow-sm transition-all cursor-pointer"
+        >
+          {justAdded ? (
+            <>
+              <Check size={14} className="text-emerald-400 stroke-[3]" />
+              <span>Adicionado!</span>
+            </>
+          ) : (
+            <>
+              <ShoppingBag size={14} className="shrink-0" />
+              <span>Comprar</span>
+            </>
+          )}
+        </Link>
 
-          <a
-            href={whatsAppUrl}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="min-h-[44px] px-3 rounded-xl bg-emerald-600/25 hover:bg-emerald-600/35 text-emerald-300 font-semibold text-xs tracking-wide transition-colors flex items-center justify-center gap-1.5 border border-emerald-500/30 text-center cursor-pointer active:scale-98"
-            title={`Falar sobre ${item.name} no WhatsApp`}
-          >
-            <MessageSquare size={14} className="text-emerald-400 shrink-0" />
-            <span className="truncate">WhatsApp</span>
-          </a>
-        </div>
+        <a
+          href={whatsAppUrl}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="w-full min-h-[44px] inline-flex items-center justify-center gap-1.5 py-2 px-3 rounded-xl bg-[#FFD62E] hover:bg-[#FACC15] active:scale-95 text-slate-950 font-bold text-[10px] sm:text-[11px] tracking-wide shadow-xs transition-all cursor-pointer"
+          title={`Tirar dúvidas sobre ${item.name} no WhatsApp`}
+        >
+          <MessageSquare size={13} className="shrink-0 text-slate-950" />
+          <span>Dúvidas no WhatsApp</span>
+        </a>
       </div>
     </article>
   );
