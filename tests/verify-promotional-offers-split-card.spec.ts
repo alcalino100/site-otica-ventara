@@ -71,8 +71,8 @@ test.describe("Seção de Ofertas Promocionais (Vitrine Split Card)", () => {
     const img = imgBlock.locator("img");
     await expect(img).toBeVisible();
 
-    // 2. Selo verde de desconto exclusivo em produtos com desconto
-    const discountBadge = imgBlock.locator("[data-testid='discount-badge']");
+    // 2. Selo verde de desconto exclusivo em produtos com desconto (no header do card)
+    const discountBadge = firstCard.locator("[data-testid='discount-badge']");
     if (await discountBadge.isVisible()) {
       const badgeText = await discountBadge.textContent();
       expect(badgeText).toMatch(/-\d+%\s*OFF/i);
@@ -88,25 +88,19 @@ test.describe("Seção de Ofertas Promocionais (Vitrine Split Card)", () => {
     const currentPrice = firstCard.locator("[data-testid='promo-current-price']");
     await expect(currentPrice).toBeVisible();
 
-    const installmentSpan = firstCard.locator("span", { hasText: /10x de/i });
+    const installmentSpan = firstCard.locator("p", { hasText: /10x de/i });
     await expect(installmentSpan).toBeVisible();
 
-    // 4. Botões de ação com alvos adequados
-    const detailsBtn = firstCard.locator("a", { hasText: "Ver detalhes" });
-    await expect(detailsBtn).toBeVisible();
-    const detailsBox = await detailsBtn.boundingBox();
-    expect(detailsBox?.height).toBeGreaterThanOrEqual(44);
+    // 4. Botões de ação idênticos à referência aprovada com alvos adequados >= 44px
+    const buyBtn = firstCard.locator("a", { hasText: "Comprar" });
+    await expect(buyBtn).toBeVisible();
+    const buyBox = await buyBtn.boundingBox();
+    expect(buyBox?.height).toBeGreaterThanOrEqual(44);
 
     const waBtn = firstCard.locator("a", { hasText: "WhatsApp" });
     await expect(waBtn).toBeVisible();
     const waBox = await waBtn.boundingBox();
     expect(waBox?.height).toBeGreaterThanOrEqual(44);
-
-    const cartBtn = firstCard.locator("button[aria-label*='Adicionar']");
-    await expect(cartBtn).toBeVisible();
-    const cartBox = await cartBtn.boundingBox();
-    expect(cartBox?.height).toBeGreaterThanOrEqual(44);
-    expect(cartBox?.width).toBeGreaterThanOrEqual(44);
   });
 
   const viewports = [
