@@ -1,3 +1,4 @@
+import { requireAdmin } from "@/lib/auth/require-admin";
 import { NextRequest, NextResponse } from "next/server";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { revalidatePath } from "next/cache";
@@ -75,7 +76,11 @@ async function saveSettingsToSiteSettings(
   }
 }
 
-export async function GET() {
+export async function GET(req: NextRequest) {
+  const auth = await requireAdmin(req);
+  if (!auth.authorized) {
+    return auth.response;
+  }
   try {
     if (!isLiveDatabaseConfigured()) {
       return NextResponse.json({ settings: getInMemoryHeroSettings() });
@@ -103,6 +108,10 @@ export async function GET() {
 }
 
 export async function POST(req: NextRequest) {
+  const auth = await requireAdmin(req);
+  if (!auth.authorized) {
+    return auth.response;
+  }
   try {
     const body = await req.json();
     const now = new Date().toISOString();

@@ -1,61 +1,32 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createAdminClient } from "@/lib/supabase/admin";
+import { requireAdmin } from "@/lib/auth/require-admin";
+import { validateImageFile } from "@/lib/validations/image-upload";
+
+export const dynamic = "force-dynamic";
 
 export async function POST(req: NextRequest) {
+  // 1. Verificação estrita de autorização administrativa
+  const auth = await requireAdmin(req);
+  if (!auth.authorized) {
+    return auth.response;
+  }
+
   try {
     const formData = await req.formData();
     const file = formData.get("file") as File | null;
 
-    if (!file) {
+    // 2. Validação estrita de arquivo (MIME real, extensão, até 5 MB e nome seguro)
+    const validation = await validateImageFile(file, "ship");
+    if (!validation.valid) {
       return NextResponse.json(
-        { success: false, error: "Nenhum arquivo enviado para upload." },
-        { status: 400 }
+        { success: false, error: validation.error },
+        { status: validation.status }
       );
     }
 
-    // 1. Validação de formato (JPG, PNG, WebP)
-    const validMimes = [
-      "image/jpeg",
-      "image/png",
-      "image/webp",
-      "image/jpg",
-    ];
-
-    const isExtensionValid = file.name.match(/\.(jpg|jpeg|png|webp)$/i);
-    const isMimeValid = validMimes.includes(file.type.toLowerCase());
-
-    if (!isMimeValid && !isExtensionValid) {
-      return NextResponse.json(
-        {
-          success: false,
-          error:
-            "Formato inválido. Por favor, envie uma foto nos formatos JPG, PNG ou WebP.",
-        },
-        { status: 400 }
-      );
-    }
-
-    // 2. Validação de tamanho máximo (5 MB)
-    const MAX_SIZE = 5 * 1024 * 1024;
-    if (file.size > MAX_SIZE) {
-      const sizeMb = (file.size / (1024 * 1024)).toFixed(1);
-      return NextResponse.json(
-        {
-          success: false,
-          error: `Arquivo muito grande (${sizeMb} MB). O tamanho máximo permitido é 5 MB.`,
-        },
-        { status: 400 }
-      );
-    }
-
-    const bytes = await file.arrayBuffer();
-    const buffer = Buffer.from(bytes);
-
-    const fileExt = file.name.split(".").pop()?.toLowerCase() || "jpg";
-    const cleanExt = fileExt.replace(/[^a-z0-9]/g, "").slice(0, 4) || "jpg";
-    const shortRandom = Math.random().toString(36).substring(2, 8);
-    const fileName = `ship-${Date.now().toString(36)}-${shortRandom}.${cleanExt}`;
-    const filePath = `shipping-images/${fileName}`;
+    const { buffer, safeFileName, mime } = validation;
+    const filePath = `shipping-images/${safeFileName}`;
 
     const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
     const serviceRoleKey =
@@ -68,7 +39,7 @@ export async function POST(req: NextRequest) {
 
     if (!hasLiveDb) {
       // Simulação para ambientes locais/testes sem credenciais live
-      const mockUrl = `/images/shipping/${fileName}`;
+      const mockUrl = `/images/shipping/${safeFileName}`;
       return NextResponse.json({
         success: true,
         url: mockUrl,
@@ -86,7 +57,7 @@ export async function POST(req: NextRequest) {
     const { error: uploadError } = await adminSupabase.storage
       .from("shipping-images")
       .upload(filePath, buffer, {
-        contentType: file.type || "image/jpeg",
+        contentType: mime,
         upsert: true,
       });
 
@@ -94,13 +65,13 @@ export async function POST(req: NextRequest) {
       // Fallback para bucket 'product-images' se existir
       const { error: fallbackError } = await adminSupabase.storage
         .from("product-images")
-        .upload(`shipping/${fileName}`, buffer, {
-          contentType: file.type || "image/jpeg",
+        .upload(`shipping/${safeFileName}`, buffer, {
+          contentType: mime,
           upsert: true,
         });
 
       if (fallbackError) {
-        console.error("Erro no upload storage:", uploadError, fallbackError);
+        console.error("[Shipping Upload] Erro no upload storage:", uploadError, fallbackError);
         return NextResponse.json(
           { error: `Falha ao gravar arquivo no Supabase Storage: ${uploadError.message}` },
           { status: 500 }
@@ -109,12 +80,12 @@ export async function POST(req: NextRequest) {
 
       const { data: publicData } = adminSupabase.storage
         .from("product-images")
-        .getPublicUrl(`shipping/${fileName}`);
+        .getPublicUrl(`shipping/${safeFileName}`);
 
       return NextResponse.json({
         success: true,
         url: publicData.publicUrl,
-        path: `shipping/${fileName}`,
+        path: `shipping/${safeFileName}`,
       });
     }
 

@@ -1,3 +1,4 @@
+import { requireAdmin } from "@/lib/auth/require-admin";
 import { NextRequest, NextResponse } from "next/server";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { isSupabaseConfigured } from "@/lib/supabase/server";
@@ -7,6 +8,10 @@ import { DEMO_ORDERS, resetDemoOrders } from "@/lib/orders-tracker";
 export const dynamic = "force-dynamic";
 
 export async function GET(req: NextRequest) {
+  const auth = await requireAdmin(req);
+  if (!auth.authorized) {
+    return auth.response;
+  }
   try {
     if (req.nextUrl.searchParams.get("reset") === "1" || req.nextUrl.searchParams.get("reset") === "true") {
       resetDemoOrders();
@@ -48,6 +53,10 @@ export async function GET(req: NextRequest) {
 }
 
 export async function PATCH(req: NextRequest) {
+  const auth = await requireAdmin(req);
+  if (!auth.authorized) {
+    return auth.response;
+  }
   try {
     const body = await req.json();
     const { id, status, delivery_type } = body;
@@ -225,6 +234,10 @@ export async function PATCH(req: NextRequest) {
 }
 
 export async function POST(req: NextRequest) {
+  const auth = await requireAdmin(req);
+  if (!auth.authorized) {
+    return auth.response;
+  }
   try {
     const body = await req.json();
     const {
@@ -363,6 +376,10 @@ export async function POST(req: NextRequest) {
 }
 
 export async function DELETE(req: NextRequest) {
+  const auth = await requireAdmin(req);
+  if (!auth.authorized) {
+    return auth.response;
+  }
   try {
     const searchParams = req.nextUrl.searchParams;
     let id = searchParams.get("id");

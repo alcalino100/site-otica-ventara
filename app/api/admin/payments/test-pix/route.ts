@@ -1,3 +1,4 @@
+import { requireAdmin } from "@/lib/auth/require-admin";
 import { NextRequest, NextResponse } from "next/server";
 import {
   getMercadoPagoCredentials,
@@ -13,6 +14,10 @@ export const dynamic = "force-dynamic";
  * gravando auditoria completa da transação.
  */
 export async function POST(req: NextRequest) {
+  const auth = await requireAdmin(req);
+  if (!auth.authorized) {
+    return auth.response;
+  }
   try {
     const body = await req.json().catch(() => ({}));
     const creds = await getMercadoPagoCredentials();

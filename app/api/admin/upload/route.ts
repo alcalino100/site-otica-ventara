@@ -1,50 +1,29 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createAdminClient } from "@/lib/supabase/admin";
+import { requireAdmin } from "@/lib/auth/require-admin";
+import { validateImageFile } from "@/lib/validations/image-upload";
+
+export const dynamic = "force-dynamic";
 
 export async function POST(req: NextRequest) {
+  // 1. Verificação estrita de autorização administrativa
+  const auth = await requireAdmin(req);
+  if (!auth.authorized) {
+    return auth.response;
+  }
+
   try {
     const formData = await req.formData();
     const file = formData.get("file") as File | null;
 
-    if (!file) {
-      return NextResponse.json(
-        { error: "Nenhum arquivo enviado para upload." },
-        { status: 400 }
-      );
+    // 2. Validação estrita de arquivo (MIME real, extensão, até 5 MB e nome seguro)
+    const validation = await validateImageFile(file, "product");
+    if (!validation.valid) {
+      return NextResponse.json({ error: validation.error }, { status: validation.status });
     }
 
-    // Validação de tipo de arquivo
-    const validMimes = [
-      "image/jpeg",
-      "image/png",
-      "image/webp",
-      "image/gif",
-      "image/avif",
-      "image/jpg",
-    ];
-
-    if (!validMimes.includes(file.type.toLowerCase()) && !file.name.match(/\.(jpg|jpeg|png|webp|gif|avif)$/i)) {
-      return NextResponse.json(
-        { error: "Formato de arquivo inválido. Envie uma imagem JPG, PNG ou WebP." },
-        { status: 400 }
-      );
-    }
-
-    // Validação de tamanho (máximo 15MB)
-    const MAX_SIZE = 15 * 1024 * 1024;
-    if (file.size > MAX_SIZE) {
-      return NextResponse.json(
-        { error: "Arquivo muito grande. O tamanho máximo permitido é 15MB." },
-        { status: 400 }
-      );
-    }
-
-    const bytes = await file.arrayBuffer();
-    const buffer = Buffer.from(bytes);
-
-    const fileExt = file.name.split(".").pop() || "jpg";
-    const fileName = `${Date.now()}-${Math.random().toString(36).substring(2, 8)}.${fileExt}`;
-    const filePath = `products/${fileName}`;
+    const { buffer, safeFileName, mime } = validation;
+    const filePath = `products/${safeFileName}`;
 
     const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
     const serviceRoleKey =
@@ -75,12 +54,12 @@ export async function POST(req: NextRequest) {
     const { error: uploadError } = await adminSupabase.storage
       .from("product-images")
       .upload(filePath, buffer, {
-        contentType: file.type || "image/jpeg",
+        contentType: mime,
         upsert: true,
       });
 
     if (uploadError) {
-      console.error("Erro no upload do admin:", uploadError);
+      console.error("[Upload Admin] Erro no upload do admin:", uploadError);
       return NextResponse.json(
         { error: `Falha ao gravar arquivo no Storage: ${uploadError.message}` },
         { status: 500 }
@@ -97,7 +76,7 @@ export async function POST(req: NextRequest) {
       path: filePath,
     });
   } catch (err: any) {
-    console.error("Erro interno no upload:", err);
+    console.error("[Upload Admin] Erro interno no upload:", err);
     return NextResponse.json(
       { error: err.message || "Erro interno ao processar upload de imagem." },
       { status: 500 }

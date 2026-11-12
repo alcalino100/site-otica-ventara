@@ -1,3 +1,4 @@
+import { requireAdmin } from "@/lib/auth/require-admin";
 import { NextRequest, NextResponse } from "next/server";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { getMercadoPagoCredentials } from "@/lib/mercadopago";
@@ -8,7 +9,11 @@ export const dynamic = "force-dynamic";
  * GET /api/admin/payments/config
  * Retorna configurações ativas do gateway de pagamento
  */
-export async function GET() {
+export async function GET(req: NextRequest) {
+  const auth = await requireAdmin(req);
+  if (!auth.authorized) {
+    return auth.response;
+  }
   try {
     const creds = await getMercadoPagoCredentials();
     const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://www.oticasventara.com.br";
@@ -42,6 +47,10 @@ export async function GET() {
  * Salva credenciais e configurações de pagamento no banco Supabase
  */
 export async function POST(req: NextRequest) {
+  const auth = await requireAdmin(req);
+  if (!auth.authorized) {
+    return auth.response;
+  }
   try {
     const body = await req.json();
     const adminSupabase = createAdminClient();

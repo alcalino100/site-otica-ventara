@@ -4,8 +4,11 @@ import { createServerClient } from "@supabase/ssr";
 export async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
 
-  // Intercepta exclusivamente rotas da central administrativa
-  if (!pathname.startsWith("/admin")) {
+  const isAdminApi = pathname.startsWith("/api/admin");
+  const isAdminPage = pathname.startsWith("/admin");
+
+  // Intercepta exclusivamente rotas da central administrativa e suas APIs
+  if (!isAdminApi && !isAdminPage) {
     return NextResponse.next();
   }
 
@@ -14,12 +17,24 @@ export async function middleware(request: NextRequest) {
     return NextResponse.next();
   }
 
-  // Permite execução das rotas para o runner de testes do Playwright
-  const isPlaywrightTest =
-    request.headers.get("x-playwright-test") === "true" ||
-    request.cookies.get("pw_test_session")?.value === "1";
+  // Bypass exclusivo para suíte de testes em ambiente NÃO-produção com token criptográfico seguro
+  // Em produção no Vercel (VERCEL_ENV === "production"), o bypass NUNCA é executado
+  const isVercelProd = process.env.VERCEL_ENV === "production";
+  const configuredBypassToken = process.env.PLAYWRIGHT_BYPASS_TOKEN;
+  const isDevOrTest =
+    !isVercelProd &&
+    (process.env.NODE_ENV !== "production" || Boolean(process.env.PLAYWRIGHT_TEST));
 
-  if (isPlaywrightTest) {
+  const requestBypassToken =
+    request.headers.get("x-playwright-bypass-token") ||
+    request.cookies.get("pw_bypass_token")?.value;
+
+  const isBypassAuthorized =
+    isDevOrTest &&
+    Boolean(configuredBypassToken) &&
+    requestBypassToken === configuredBypassToken;
+
+  if (isBypassAuthorized) {
     return NextResponse.next();
   }
 
@@ -28,6 +43,15 @@ export async function middleware(request: NextRequest) {
   const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
 
   if (!supabaseUrl || !supabaseAnonKey) {
+    if (isAdminApi) {
+      return NextResponse.json(
+        {
+          success: false,
+          error: "Acesso não autorizado: variáveis de autenticação ausentes.",
+        },
+        { status: 401 }
+      );
+    }
     const loginUrl = new URL("/admin/login", request.url);
     loginUrl.searchParams.set("redirect", pathname);
     return NextResponse.redirect(loginUrl);
@@ -53,8 +77,17 @@ export async function middleware(request: NextRequest) {
     data: { user },
   } = await supabase.auth.getUser();
 
-  // Se não estiver logado, redireciona compulsoriamente para o login
+  // Se não estiver logado
   if (!user) {
+    if (isAdminApi) {
+      return NextResponse.json(
+        {
+          success: false,
+          error: "Acesso não autorizado: sessão administrativa necessária.",
+        },
+        { status: 401 }
+      );
+    }
     const loginUrl = new URL("/admin/login", request.url);
     loginUrl.searchParams.set("redirect", pathname);
     return NextResponse.redirect(loginUrl);
@@ -64,5 +97,5 @@ export async function middleware(request: NextRequest) {
 }
 
 export const config = {
-  matcher: ["/admin/:path*"],
+  matcher: ["/admin/:path*", "/api/admin/:path*"],
 };

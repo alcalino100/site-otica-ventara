@@ -1,3 +1,4 @@
+import { requireAdmin } from "@/lib/auth/require-admin";
 import { NextRequest, NextResponse } from "next/server";
 import { createAdminClient } from "@/lib/supabase/admin";
 
@@ -11,7 +12,11 @@ type Role = (typeof VALID_ROLES)[number];
  * GET /api/admin/users
  * Retorna todos os usuários administrativos e operadores cadastrados no sistema.
  */
-export async function GET() {
+export async function GET(req: NextRequest) {
+  const auth = await requireAdmin(req);
+  if (!auth.authorized) {
+    return auth.response;
+  }
   try {
     const adminSupabase = createAdminClient();
 
@@ -79,6 +84,10 @@ export async function GET() {
  * Cadastra um novo operador/administrador no Supabase Auth e em admin_profiles.
  */
 export async function POST(req: NextRequest) {
+  const auth = await requireAdmin(req);
+  if (!auth.authorized) {
+    return auth.response;
+  }
   try {
     const body = await req.json();
     const email = body.email?.trim().toLowerCase();
@@ -193,6 +202,10 @@ export async function POST(req: NextRequest) {
  * Remove um usuário operador permanentemente do sistema (admin_profiles e auth.users).
  */
 export async function DELETE(req: NextRequest) {
+  const auth = await requireAdmin(req);
+  if (!auth.authorized) {
+    return auth.response;
+  }
   try {
     const { searchParams } = new URL(req.url);
     let id = searchParams.get("id");
@@ -250,6 +263,10 @@ export async function DELETE(req: NextRequest) {
  * Atualiza o nível de acesso (role), nome ou redefinição de senha do usuário.
  */
 export async function PATCH(req: NextRequest) {
+  const auth = await requireAdmin(req);
+  if (!auth.authorized) {
+    return auth.response;
+  }
   try {
     const body = await req.json();
     const { id, role, full_name, password } = body;

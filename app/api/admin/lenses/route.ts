@@ -1,3 +1,4 @@
+import { requireAdmin } from "@/lib/auth/require-admin";
 import { NextRequest, NextResponse } from "next/server";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { isSupabaseConfigured } from "@/lib/supabase/server";
@@ -77,7 +78,11 @@ async function saveLensesCatalog(adminSupabase: ReturnType<typeof createAdminCli
  * Retorna o catálogo de lentes oficial gravado no Supabase (site_settings.lenses_catalog)
  * sem reinjetar itens que foram intencionalmente excluídos pelo administrador.
  */
-export async function GET() {
+export async function GET(req: NextRequest) {
+  const auth = await requireAdmin(req);
+  if (!auth.authorized) {
+    return auth.response;
+  }
   try {
     if (isSupabaseConfigured()) {
       const adminSupabase = createAdminClient();
@@ -134,6 +139,10 @@ export async function GET() {
  * Salva a lista completa de lentes atualizada pelo administrador no Supabase
  */
 export async function POST(req: NextRequest) {
+  const auth = await requireAdmin(req);
+  if (!auth.authorized) {
+    return auth.response;
+  }
   try {
     const body = await req.json();
     if (!body || !Array.isArray(body.lenses)) {
@@ -179,6 +188,10 @@ export async function POST(req: NextRequest) {
  * Remove pontualmente uma lente do catálogo e persiste no Supabase
  */
 export async function DELETE(req: NextRequest) {
+  const auth = await requireAdmin(req);
+  if (!auth.authorized) {
+    return auth.response;
+  }
   try {
     const searchParams = req.nextUrl.searchParams;
     let lensId = searchParams.get("id");
