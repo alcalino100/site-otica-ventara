@@ -33,6 +33,7 @@ import { Toast } from "@/components/ui/toast";
 interface ArmacoesViewProps {
   initialProducts: Product[];
   heroSettings?: ArmacoesPageSettings;
+  content?: Record<string, any>;
 }
 
 export type CategoryFilterKey =
@@ -46,6 +47,7 @@ export type CategoryFilterKey =
 export function ArmacoesView({
   initialProducts,
   heroSettings = DEFAULT_ARMACOES_PAGE_SETTINGS,
+  content = {},
 }: ArmacoesViewProps) {
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -374,16 +376,22 @@ export function ArmacoesView({
             <div className="flex flex-col lg:flex-row lg:items-end justify-between gap-8">
               <div className="max-w-2xl space-y-3">
                 <span className="text-xs font-bold text-amber-400 uppercase tracking-widest flex items-center gap-1.5">
-                  <Sparkles size={14} /> {heroSettings.hero_badge_tag || "COLEÇÃO VENTARA EYEWEAR"}
+                  <Sparkles size={14} />{" "}
+                  {content.catalogHelpBadge || heroSettings.hero_badge_tag || "COLEÇÃO VENTARA EYEWEAR"}
                 </span>
                 <h1 className="text-3xl sm:text-5xl font-light text-white tracking-tight leading-tight">
-                  {heroSettings.hero_title || "Catálogo de"}{" "}
-                  <span className="font-semibold text-white">
-                    {heroSettings.hero_title_highlight || "Armações & Óculos"}
-                  </span>
+                  {content.catalogTitle || (
+                    <>
+                      {heroSettings.hero_title || "Catálogo de"}{" "}
+                      <span className="font-semibold text-white">
+                        {heroSettings.hero_title_highlight || "Armações & Óculos"}
+                      </span>
+                    </>
+                  )}
                 </h1>
                 <p className="text-xs sm:text-sm text-slate-200 leading-relaxed max-w-2xl">
-                  {heroSettings.hero_description ||
+                  {content.catalogSubtitle ||
+                    heroSettings.hero_description ||
                     "Armações desenvolvidas para alta precisão dióptrica, conforto contínuo e leveza. Escolha seu modelo e personalize com as lentes digitais OPTiSYNC HD do nosso laboratório."}
                 </p>
               </div>

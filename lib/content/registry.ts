@@ -1671,11 +1671,11 @@ export const SITE_PAGES_REGISTRY: Record<string, ContentPageDefinition> = {
   // ==========================================================================
   rastrearPedido: {
     id: "rastrearPedido",
-    path: "/rastrear-pedido",
-    title: "Rastreamento de Pedido (/rastrear-pedido)",
+    path: "/rastreio",
+    title: "Rastreamento de Pedido (/rastreio)",
     category: "page",
     description: "Instruções de busca por código, prazos de postagem e canais de atendimento.",
-    previewPath: "/rastrear-pedido?preview=draft",
+    previewPath: "/rastreio?preview=draft",
     sections: [
       {
         id: "header",
@@ -1768,11 +1768,11 @@ export const SITE_PAGES_REGISTRY: Record<string, ContentPageDefinition> = {
   // ==========================================================================
   politicas: {
     id: "politicas",
-    path: "/termos",
+    path: "/termos-de-uso",
     title: "Políticas, Termos e Privacidade",
     category: "page",
     description: "Textos institucionais longos de termos de serviço, política de privacidade (LGPD) e trocas.",
-    previewPath: "/termos?preview=draft",
+    previewPath: "/termos-de-uso?preview=draft",
     sections: [
       {
         id: "terms",

@@ -23,6 +23,7 @@ export interface ProductDetailViewProps {
   relatedProducts?: Product[];
   backLink?: { href: string; label: string };
   hrefPrefix?: "/produto" | "/armacoes";
+  templateContent?: Record<string, any>;
 }
 
 export function ProductDetailView({
@@ -30,7 +31,37 @@ export function ProductDetailView({
   relatedProducts = [],
   backLink = { href: "/armacoes", label: "Voltar ao Catálogo" },
   hrefPrefix = "/produto",
+  templateContent,
 }: ProductDetailViewProps) {
+  const dynamicBenefits = React.useMemo(() => {
+    if (!templateContent) return undefined;
+    return [
+      {
+        id: "material",
+        icon: "sparkles",
+        title: "Acetato Nobre",
+        desc: "Acabamento manual hipoalergênico",
+      },
+      {
+        id: "shipping",
+        icon: "truck",
+        title: "Frete Confiável",
+        desc: templateContent.badgeShipping || "Frete Grátis nas compras a partir de R$ 299",
+      },
+      {
+        id: "warranty",
+        icon: "shield",
+        title: "Garantia Ventara",
+        desc: templateContent.badgeWarranty || "Garantia de 1 ano contra defeitos de fabricação",
+      },
+      {
+        id: "exchange",
+        icon: "rotate",
+        title: "Troca Facilitada",
+        desc: templateContent.badgeExchange || "Primeira troca grátis em até 7 dias corridos",
+      },
+    ];
+  }, [templateContent]);
   const variants = product.variants && product.variants.length > 0 ? product.variants : [];
   const [selectedVariant, setSelectedVariant] = useState<ProductVariant | null>(variants[0] || null);
 
@@ -189,7 +220,7 @@ export function ProductDetailView({
           </div>
 
           {/* Faixa de Benefícios Dinâmica baseada no Admin */}
-          <ProductBenefitsBar tags={product.benefits_tags} />
+          <ProductBenefitsBar tags={product.benefits_tags} customBenefits={dynamicBenefits} />
 
           {/* Acordeões Acessíveis (Apenas 1 Aberto por Vez, Teclado Acessível) */}
           <ProductAccordions product={product} />
