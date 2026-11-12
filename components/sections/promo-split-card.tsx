@@ -30,6 +30,7 @@ export interface PromoSplitCardProps {
   isInCart?: boolean;
   priority?: boolean;
   whatsAppUrl: string;
+  className?: string;
 }
 
 export function PromoSplitCard({
@@ -38,6 +39,7 @@ export function PromoSplitCard({
   onAddToCart = () => {},
   isInCart = false,
   whatsAppUrl,
+  className = "",
 }: PromoSplitCardProps) {
   const [justAdded, setJustAdded] = useState(false);
 
@@ -91,7 +93,7 @@ export function PromoSplitCard({
   return (
     <article
       data-testid="promo-split-card"
-      className="product group bg-white rounded-2xl sm:rounded-3xl p-3 sm:p-5 border border-slate-200/90 hover:border-amber-400/80 shadow-xs hover:shadow-xl transition-all duration-300 flex flex-col justify-between h-full w-[clamp(260px,78vw,320px)] shrink-0 snap-start sm:w-auto sm:shrink"
+      className={`product group bg-white rounded-2xl sm:rounded-3xl p-3 sm:p-5 border border-slate-200/90 hover:border-amber-400/80 shadow-xs hover:shadow-xl transition-all duration-300 flex flex-col justify-between h-full w-full ${className}`}
     >
       <div>
         {/* 1. Header do Card com Badges */}

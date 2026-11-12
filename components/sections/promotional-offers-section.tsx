@@ -263,7 +263,8 @@ export function PromotionalOffersSection({
         <div className="relative">
           {isSplitLayout ? (
             /* Novo Layout Split (Padrão): Imagem no Topo, Texto Embaixo, Selo Verde OFF */
-            <div className="flex sm:grid overflow-x-auto sm:overflow-visible snap-x snap-mandatory gap-3.5 sm:gap-6 pb-4 sm:pb-0 sm:grid-cols-2 lg:grid-cols-4 no-scrollbar">
+            /* Mobile: Grade 2x2 com exatamente 4 itens. Desktop: Grade responsiva até 4 colunas */
+            <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-6">
               {displayedItems.map((item, idx) => (
                 <PromoSplitCard
                   key={item.product.id}
@@ -273,28 +274,41 @@ export function PromotionalOffersSection({
                   isInCart={cartIds.includes(item.product.id)}
                   priority={idx === 0}
                   whatsAppUrl={getWhatsAppBuyUrl(item)}
+                  className={idx >= 4 ? "hidden sm:flex" : "flex"}
                 />
               ))}
             </div>
           ) : (
             /* Fallback Configurável no Admin: Imagem de Fundo (Fullbleed) */
-            <div className="grid grid-cols-2 lg:grid-cols-4 gap-3.5 sm:gap-6">
-              {displayedItems.map((item) => (
-                <ProductCard
-                  key={item.product.id}
-                  product={item.product}
-                  onAddToCart={onAddToCart}
-                  isInCart={cartIds.includes(item.product.id)}
-                  hrefPrefix="/produto"
-                  as="article"
-                />
+            <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-6">
+              {displayedItems.map((item, idx) => (
+                <div key={item.product.id} className={idx >= 4 ? "hidden sm:block" : "block"}>
+                  <ProductCard
+                    product={item.product}
+                    onAddToCart={onAddToCart}
+                    isInCart={cartIds.includes(item.product.id)}
+                    hrefPrefix="/produto"
+                    as="article"
+                  />
+                </div>
               ))}
             </div>
           )}
 
-          {/* Botão Ver Mais / Ver Menos */}
+          {/* Botão Ver Mais no Mobile direcionando para /armacoes */}
+          <div className="block sm:hidden text-center mt-6">
+            <Link
+              href="/armacoes"
+              className="w-full min-h-[44px] inline-flex items-center justify-center gap-2 px-6 py-3 rounded-2xl bg-slate-900 hover:bg-slate-800 active:scale-95 text-white font-bold text-xs tracking-wide shadow-md transition-all cursor-pointer"
+            >
+              <span>Ver mais opções de armações</span>
+              <ArrowRight size={14} className="text-[#FFD62E]" />
+            </Link>
+          </div>
+
+          {/* Botão Ver Mais / Ver Menos no Desktop */}
           {resolvedItems.length > INITIAL_LIMIT && (
-            <div className="text-center mt-8 sm:mt-12">
+            <div className="hidden sm:block text-center mt-8 sm:mt-12">
               <button
                 type="button"
                 onClick={() => setIsExpanded(!isExpanded)}
