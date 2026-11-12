@@ -534,8 +534,8 @@ export function CatalogSection({
                   role="region"
                   aria-label="Carrossel linha 1 de armações"
                   tabIndex={0}
-                  className="flex flex-row flex-nowrap overflow-x-auto overflow-y-hidden snap-x snap-mandatory gap-6 py-2 pb-4 no-scrollbar -mx-4 px-6 scroll-px-6"
-                  style={{ WebkitOverflowScrolling: "touch" }}
+                  className="flex flex-row flex-nowrap overflow-x-auto overflow-y-hidden snap-x snap-mandatory gap-6 py-2 pb-4 no-scrollbar -mx-4 px-6 scroll-px-6 touch-pan-x"
+                  style={{ WebkitOverflowScrolling: "touch", touchAction: "pan-x pan-y" }}
                 >
                   {row1Products.map((product) => (
                     <div
@@ -616,8 +616,8 @@ export function CatalogSection({
                     role="region"
                     aria-label="Carrossel linha 2 de armações"
                     tabIndex={0}
-                    className="flex flex-row flex-nowrap overflow-x-auto overflow-y-hidden snap-x snap-mandatory gap-6 py-2 pb-4 no-scrollbar -mx-4 px-6 scroll-px-6"
-                    style={{ WebkitOverflowScrolling: "touch" }}
+                    className="flex flex-row flex-nowrap overflow-x-auto overflow-y-hidden snap-x snap-mandatory gap-6 py-2 pb-4 no-scrollbar -mx-4 px-6 scroll-px-6 touch-pan-x"
+                    style={{ WebkitOverflowScrolling: "touch", touchAction: "pan-x pan-y" }}
                   >
                     {row2Products.map((product) => (
                       <div
