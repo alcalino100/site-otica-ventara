@@ -168,6 +168,39 @@ test.describe("Seção de Ofertas Promocionais (Vitrine Split Card)", () => {
     });
   });
 
+  test("Mobile exibe exatamente 4 cards em grade 2x2 e botão de 'Ver mais opções' para /armacoes", async ({ page }) => {
+    await page.setViewportSize({ width: 390, height: 844 });
+    await page.goto("http://localhost:3000/");
+    await page.waitForLoadState("domcontentloaded");
+
+    const promoSection = page.locator("section[aria-label='Modelos Selecionados']");
+    await expect(promoSection).toBeVisible();
+
+    // No mobile, apenas os 4 primeiros cards devem estar visíveis
+    const allCards = promoSection.locator("[data-testid='promo-split-card']");
+    const visibleCards = [];
+    const count = await allCards.count();
+    for (let i = 0; i < count; i++) {
+      const card = allCards.nth(i);
+      if (await card.isVisible()) {
+        visibleCards.push(card);
+      }
+    }
+    expect(visibleCards.length).toBe(4);
+
+    // Botão mobile direcionando para /armacoes
+    const mobileMoreBtn = promoSection.locator("a", { hasText: /Ver mais opções/i });
+    await expect(mobileMoreBtn).toBeVisible();
+    await expect(mobileMoreBtn).toHaveAttribute("href", "/armacoes");
+
+    // Tira screenshot específico do mobile 2x2 para o cliente
+    await promoSection.scrollIntoViewIfNeeded();
+    await page.waitForTimeout(500);
+    await promoSection.screenshot({
+      path: "/Users/user/.gemini/antigravity/brain/3307d6a6-ee9f-47b4-bbf9-e090e670f231/fixed-offers-mobile-2x2-grid.png",
+    });
+  });
+
   test("Página /armacoes permanece estável com catálogo intacto", async ({ page }) => {
     await page.goto("http://localhost:3000/armacoes");
     await page.waitForLoadState("domcontentloaded");
