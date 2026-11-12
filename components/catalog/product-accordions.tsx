@@ -13,12 +13,30 @@ import {
 import { Product, ProductFaqItem } from "@/types/ecommerce";
 import { FrameMeasurementsDiagram } from "./frame-measurements-diagram";
 import { FrameComparator } from "./frame-comparator";
+import { SizingHelpGuide } from "./sizing-help-guide";
 
 interface ProductAccordionsProps {
   product: Product;
+  /** Conteúdo editável do template de produto (admin > Template de Detalhes do Produto). */
+  guideContent?: Record<string, any>;
 }
 
-export function ProductAccordions({ product }: ProductAccordionsProps) {
+const GUIDE_DEFAULTS = {
+  title: "Não sabe como usar? É simples!",
+  subtitle: "Siga os 3 passos abaixo. Leva menos de 1 minuto para saber se a armação serve no seu rosto.",
+  step1:
+    "Pegue um óculos que você já usa e olhe a parte de dentro de uma das hastes. Lá estão gravados 3 números, como 52 · 18 · 145.",
+  step2:
+    "Digite esses 3 números nos campos de \"Compare com a sua armação atual\", mais abaixo, na mesma ordem em que aparecem.",
+  step3: "Pronto! Mostramos em palavras simples se esta armação vai ficar maior, menor ou igual à sua.",
+  videoLabel: "Prefere ver em vídeo? Assista em poucos segundos",
+};
+
+function textOr(value: unknown, fallback: string): string {
+  return typeof value === "string" && value.trim() ? value : fallback;
+}
+
+export function ProductAccordions({ product, guideContent }: ProductAccordionsProps) {
   // Apenas um acordeão aberto por vez
   const [openSection, setOpenSection] = useState<string | null>("sizing");
 
@@ -123,8 +141,8 @@ export function ProductAccordions({ product }: ProductAccordionsProps) {
           </button>
 
           {openSection === "sizing" && (
-            <div className="p-4 sm:p-6 pt-0 space-y-6 text-xs text-slate-600 border-t border-slate-100">
-              <p className="leading-relaxed text-slate-700">
+            <div className="p-4 sm:p-6 pt-4 space-y-6 text-sm text-slate-600 border-t border-slate-100">
+              <p className="leading-relaxed text-slate-700 text-sm sm:text-base">
                 Todas as dimensões abaixo representam medições exatas aferidas na armação física em milímetros:
               </p>
 
@@ -138,6 +156,19 @@ export function ProductAccordions({ product }: ProductAccordionsProps) {
                 </div>
               )}
 
+              {/* Guia "como usar" em 3 passos + vídeo opcional (editável no admin) */}
+              <SizingHelpGuide
+                title={textOr(guideContent?.sizingHelpTitle, GUIDE_DEFAULTS.title)}
+                subtitle={textOr(guideContent?.sizingHelpSubtitle, GUIDE_DEFAULTS.subtitle)}
+                steps={[
+                  textOr(guideContent?.sizingStep1, GUIDE_DEFAULTS.step1),
+                  textOr(guideContent?.sizingStep2, GUIDE_DEFAULTS.step2),
+                  textOr(guideContent?.sizingStep3, GUIDE_DEFAULTS.step3),
+                ]}
+                videoUrl={typeof guideContent?.sizingVideoUrl === "string" ? guideContent.sizingVideoUrl : ""}
+                videoLabel={textOr(guideContent?.sizingVideoLabel, GUIDE_DEFAULTS.videoLabel)}
+              />
+
               {/* Diagrama Autoral SVG Ventara */}
               <FrameMeasurementsDiagram
                 frameWidthMm={frameWidthMm}
@@ -149,7 +180,7 @@ export function ProductAccordions({ product }: ProductAccordionsProps) {
 
               {/* Tabela de Medidas Técnicas (Nome, Milímetros, Para quem serve) */}
               <div className="overflow-x-auto rounded-2xl border border-slate-200 shadow-sm bg-white">
-                <table className="w-full text-left border-collapse text-xs">
+                <table className="w-full text-left border-collapse text-sm">
                   <thead>
                     <tr className="bg-slate-50 border-b border-slate-200 text-slate-600 font-bold uppercase tracking-wider text-[10px]">
                       <th className="py-3 px-4">Medida</th>

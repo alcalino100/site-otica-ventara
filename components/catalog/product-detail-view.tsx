@@ -223,7 +223,7 @@ export function ProductDetailView({
           <ProductBenefitsBar tags={product.benefits_tags} customBenefits={dynamicBenefits} />
 
           {/* Acordeões Acessíveis (Apenas 1 Aberto por Vez, Teclado Acessível) */}
-          <ProductAccordions product={product} />
+          <ProductAccordions product={product} guideContent={templateContent} />
 
           {/* Modelos Recomendados da Mesma Linha ou Formato com Swatches de Cores */}
           {relatedProducts.length > 0 && (
