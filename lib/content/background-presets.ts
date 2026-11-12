@@ -207,9 +207,15 @@ export function resolveBackgroundConfig(
     contentValues =
       fallbackSettings && typeof fallbackSettings === "object" ? fallbackSettings : {};
   } else if (presetOrContent && typeof presetOrContent === "object") {
-    contentValues = presetOrContent;
+    contentValues =
+      Object.keys(presetOrContent).length > 0
+        ? presetOrContent
+        : (fallbackSettings && typeof fallbackSettings === "object" ? fallbackSettings : presetOrContent);
+
     if (contentValues.backgroundPreset) {
       presetId = contentValues.backgroundPreset as BackgroundPresetId;
+    } else if (fallbackSettings?.backgroundPreset) {
+      presetId = fallbackSettings.backgroundPreset as BackgroundPresetId;
     } else if (fallbackSettings?.bgMode === "custom_image") {
       presetId = "custom_image";
     } else if (fallbackSettings?.bgMode === "code" || fallbackSettings?.gradientBaseFrom) {

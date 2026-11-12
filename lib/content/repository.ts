@@ -269,6 +269,74 @@ export async function getPageContent(
 }
 
 /**
+ * Constrói a lista deduplicada de registros para inserção/atualização atômica em site_content.
+ * Elimina rigorosamente o erro PostgreSQL "ON CONFLICT DO UPDATE command cannot affect row a second time"
+ * garantindo que a tupla de chave primária (page, key, status) ocorra no máximo uma única vez no lote de upsert.
+ */
+function buildRowsToUpsert(
+  page: string,
+  status: "draft" | "published",
+  values: Record<string, any>,
+  sectionsOrder?: string[],
+  hiddenSections?: string[],
+  user?: string,
+  now: string = new Date().toISOString()
+) {
+  const rowsMap = new Map<
+    string,
+    {
+      page: string;
+      key: string;
+      status: "draft" | "published";
+      value: any;
+      updated_by?: string;
+      updated_at: string;
+    }
+  >();
+
+  // 1. Empacota campos de valores, ignorando metadados internos de controle para evitar chaves duplicadas no lote
+  for (const [key, val] of Object.entries(values)) {
+    if (key === "_sectionsOrder" || key === "_hiddenSections") continue;
+    rowsMap.set(key, {
+      page,
+      key,
+      status,
+      value: typeof val === "object" && val !== null ? val : { raw: val },
+      updated_by: user || "admin",
+      updated_at: now,
+    });
+  }
+
+  // 2. Metadados de ordenação das seções (argumento explícito > valor interno em values)
+  const effectiveSectionsOrder = sectionsOrder ?? values._sectionsOrder;
+  if (effectiveSectionsOrder) {
+    rowsMap.set("_sectionsOrder", {
+      page,
+      key: "_sectionsOrder",
+      status,
+      value: effectiveSectionsOrder,
+      updated_by: user || "admin",
+      updated_at: now,
+    });
+  }
+
+  // 3. Metadados de visibilidade das seções (argumento explícito > valor interno em values)
+  const effectiveHiddenSections = hiddenSections ?? values._hiddenSections;
+  if (effectiveHiddenSections) {
+    rowsMap.set("_hiddenSections", {
+      page,
+      key: "_hiddenSections",
+      status,
+      value: effectiveHiddenSections,
+      updated_by: user || "admin",
+      updated_at: now,
+    });
+  }
+
+  return Array.from(rowsMap.values());
+}
+
+/**
  * Salva o estado de rascunho (draft) no banco de dados.
  */
 export async function saveContentDraft(
@@ -284,51 +352,16 @@ export async function saveContentDraft(
 
   try {
     const supabase = createAdminClient();
-    const rowsToUpsert: Array<{
-      page: string;
-      key: string;
-      status: string;
-      value: any;
-      updated_by?: string;
-      updated_at: string;
-    }> = [];
-
     const now = new Date().toISOString();
-
-    // Empacota campos de valores
-    for (const [key, val] of Object.entries(values)) {
-      rowsToUpsert.push({
-        page,
-        key,
-        status: "draft",
-        value: typeof val === "object" ? val : { raw: val },
-        updated_by: user || "admin",
-        updated_at: now,
-      });
-    }
-
-    // Metadados de ordenação e visibilidade
-    if (sectionsOrder) {
-      rowsToUpsert.push({
-        page,
-        key: "_sectionsOrder",
-        status: "draft",
-        value: sectionsOrder,
-        updated_by: user || "admin",
-        updated_at: now,
-      });
-    }
-
-    if (hiddenSections) {
-      rowsToUpsert.push({
-        page,
-        key: "_hiddenSections",
-        status: "draft",
-        value: hiddenSections,
-        updated_by: user || "admin",
-        updated_at: now,
-      });
-    }
+    const rowsToUpsert = buildRowsToUpsert(
+      page,
+      "draft",
+      values,
+      sectionsOrder,
+      hiddenSections,
+      user,
+      now
+    );
 
     const { error } = await supabase.from("site_content").upsert(rowsToUpsert, {
       onConflict: "page,key,status",
@@ -344,8 +377,8 @@ export async function saveContentDraft(
           page,
           status: "draft",
           values,
-          sectionsOrder: sectionsOrder || [],
-          hiddenSections: hiddenSections || [],
+          sectionsOrder: sectionsOrder ?? values._sectionsOrder ?? [],
+          hiddenSections: hiddenSections ?? values._hiddenSections ?? [],
           updated_by: user || "admin",
           updated_at: now,
         };
@@ -397,51 +430,35 @@ export async function publishContent(
 
     // Se os valores não foram fornecidos diretamente, busca o rascunho atual
     const values = valuesToPublish || (await getPageContent(page, "draft"));
-
     const now = new Date().toISOString();
-    const rowsToUpsert: Array<{
-      page: string;
-      key: string;
-      status: string;
-      value: any;
-      updated_by?: string;
-      updated_at: string;
-    }> = [];
 
-    for (const [key, val] of Object.entries(values)) {
-      rowsToUpsert.push({
-        page,
-        key,
-        status: "published",
-        value: typeof val === "object" ? val : { raw: val },
-        updated_by: user || "admin",
-        updated_at: now,
-      });
-    }
+    const effectiveSectionsOrder = sectionsOrder ?? values._sectionsOrder ?? [];
+    const effectiveHiddenSections = hiddenSections ?? values._hiddenSections ?? [];
 
-    if (sectionsOrder) {
-      rowsToUpsert.push({
-        page,
-        key: "_sectionsOrder",
-        status: "published",
-        value: sectionsOrder,
-        updated_by: user || "admin",
-        updated_at: now,
-      });
-    }
+    // Cria os registros publicados e sincroniza simultaneamente o rascunho (draft)
+    const publishedRows = buildRowsToUpsert(
+      page,
+      "published",
+      values,
+      effectiveSectionsOrder,
+      effectiveHiddenSections,
+      user,
+      now
+    );
 
-    if (hiddenSections) {
-      rowsToUpsert.push({
-        page,
-        key: "_hiddenSections",
-        status: "published",
-        value: hiddenSections,
-        updated_by: user || "admin",
-        updated_at: now,
-      });
-    }
+    const draftRows = buildRowsToUpsert(
+      page,
+      "draft",
+      values,
+      effectiveSectionsOrder,
+      effectiveHiddenSections,
+      user,
+      now
+    );
 
-    // 1. Atualiza registros publicados
+    const rowsToUpsert = [...publishedRows, ...draftRows];
+
+    // 1. Atualiza registros publicados e rascunho de forma atômica
     const { error: upsertError } = await supabase.from("site_content").upsert(rowsToUpsert, {
       onConflict: "page,key,status",
     });
@@ -456,8 +473,8 @@ export async function publishContent(
           page,
           status: "published",
           values,
-          sectionsOrder: sectionsOrder || [],
-          hiddenSections: hiddenSections || [],
+          sectionsOrder: effectiveSectionsOrder,
+          hiddenSections: effectiveHiddenSections,
           updated_by: user || "admin",
           updated_at: now,
         };
@@ -475,6 +492,22 @@ export async function publishContent(
           return { success: false, error: fallbackErr.message };
         }
 
+        // Também atualiza o rascunho no fallback para consistência do editor
+        try {
+          const draftFallbackKey = getSiteSettingsContentKey(page, "draft");
+          await supabase.from("site_settings").upsert(
+            {
+              key: draftFallbackKey,
+              value: { ...payload, status: "draft" },
+              description: `CMS Rascunho: ${page}`,
+              updated_at: now,
+            },
+            { onConflict: "key" }
+          );
+        } catch (dErr) {
+          console.warn("[ContentEngine] Aviso ao sincronizar rascunho no fallback:", dErr);
+        }
+
         // Grava histórico no fallback
         try {
           const histKey = getSiteSettingsHistoryKey(page);
@@ -490,8 +523,8 @@ export async function publishContent(
             page,
             snapshot: {
               values,
-              sectionsOrder: sectionsOrder || [],
-              hiddenSections: hiddenSections || [],
+              sectionsOrder: effectiveSectionsOrder,
+              hiddenSections: effectiveHiddenSections,
             },
             label,
             summary,
@@ -523,6 +556,7 @@ export async function publishContent(
           revalidateTag(getContentCacheTag(page));
           if (pageDef?.path) {
             revalidatePath(pageDef.path);
+            revalidatePath(pageDef.path, "page");
           }
         } catch {
           // Ignora fora de request
@@ -538,8 +572,8 @@ export async function publishContent(
     // 2. Grava snapshot completo no histórico
     const snapshotPayload = {
       values,
-      sectionsOrder: sectionsOrder || [],
-      hiddenSections: hiddenSections || [],
+      sectionsOrder: effectiveSectionsOrder,
+      hiddenSections: effectiveHiddenSections,
     };
 
     const { error: historyError } = await supabase.from("site_content_history").insert({
@@ -600,6 +634,7 @@ export async function publishContent(
       revalidateTag(getContentCacheTag(page));
       if (pageDef?.path) {
         revalidatePath(pageDef.path);
+        revalidatePath(pageDef.path, "page");
       }
     } catch (cacheErr) {
       // Ignora erro de revalidação fora do contexto de request
