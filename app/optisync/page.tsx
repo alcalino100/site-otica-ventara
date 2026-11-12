@@ -24,6 +24,7 @@ import {
 import { Header } from "@/components/layout/header";
 import { Footer } from "@/components/layout/footer";
 import { getOptiSyncPageSettings } from "@/lib/optisync-settings";
+import { getPageContent } from "@/lib/content/repository";
 import { OptiSyncBenefitItem } from "@/types/ecommerce";
 import { PhotochromicSlider } from "@/components/optisync/photochromic-slider";
 import { OptiSyncGalleryClient } from "@/components/optisync/optisync-gallery-client";
@@ -75,8 +76,18 @@ function getBenefitIcon(iconName: string) {
   }
 }
 
-export default async function OptiSyncPage() {
-  const settings = await getOptiSyncPageSettings();
+interface OptiSyncPageProps {
+  searchParams?: Promise<{ preview?: string }>;
+}
+
+export default async function OptiSyncPage({ searchParams }: OptiSyncPageProps) {
+  const resolvedSearchParams = searchParams ? await searchParams : undefined;
+  const isDraft = resolvedSearchParams?.preview === "draft";
+
+  const [settings, content] = await Promise.all([
+    getOptiSyncPageSettings(),
+    getPageContent("optisync", isDraft ? "draft" : "published"),
+  ]);
 
   const isCustomBg =
     settings.bgMode === "custom_image" &&
@@ -84,7 +95,8 @@ export default async function OptiSyncPage() {
 
   const cleanPhone = "5518996155748";
   const whatsappUrl = `https://wa.me/${cleanPhone}?text=${encodeURIComponent(
-    settings.ctaWhatsappMessage ||
+    content.ctaWhatsappMessage ||
+      settings.ctaWhatsappMessage ||
       "Olá! Gostaria de consultar um técnico óptico sobre as lentes digitais OPTiSYNC HD da Ventara e enviar minha receita médica."
   )}`;
 
@@ -188,20 +200,21 @@ export default async function OptiSyncPage() {
                   {/* Badge de Tecnologia */}
                   <div className="inline-flex items-center gap-2.5 px-3.5 py-1.5 rounded-full bg-[#0044C9]/20 border border-[#0044C9]/50 text-sky-300 text-[11px] sm:text-xs font-bold uppercase tracking-wider backdrop-blur-md shadow-sm">
                     <Sparkles size={14} className="text-[#FFC21A] animate-pulse" />
-                    <span>{settings.heroBadge || "ENGENHARIA ÓPTICA DIGITAL"}</span>
+                    <span>{content.heroBadge || settings.heroBadge || "ENGENHARIA ÓPTICA DIGITAL"}</span>
                   </div>
 
                   {/* Título Principal com Acento Amarelo da Marca */}
                   <h1 className="text-3xl sm:text-5xl lg:text-6xl font-black text-white tracking-tight leading-[1.08]">
-                    {settings.heroTitle || "Lentes Digitais"} <br />
+                    {content.heroTitle || settings.heroTitle || "Lentes Digitais"} <br />
                     <span className="text-[#FFC21A] drop-shadow-[0_0_25px_rgba(255,194,26,0.35)]">
-                      {settings.heroTitleHighlight || "OPTiSYNC HD"}
+                      {content.heroTitleHighlight || settings.heroTitleHighlight || "OPTiSYNC HD"}
                     </span>
                   </h1>
 
                   {/* Subtítulo Descritivo com Alta Legibilidade */}
                   <p className="text-xs sm:text-base text-[#B8C2E6] leading-relaxed max-w-2xl font-normal">
-                    {settings.heroDescription ||
+                    {content.heroDescription ||
+                      settings.heroDescription ||
                       "Surfaçagem digital computadorizada ponto a ponto com ampliação de campo visual útil, tratamento antirreflexo multicamadas hidrorrepelente e montagem computadorizada em laboratório próprio."}
                   </p>
 
@@ -229,7 +242,7 @@ export default async function OptiSyncPage() {
                       className="inline-flex items-center gap-2.5 px-6 sm:px-7 py-3.5 sm:py-4 rounded-full bg-[#FFC21A] hover:bg-[#ffd147] text-[#000933] font-bold text-xs sm:text-sm tracking-wide shadow-lg shadow-amber-400/25 active:scale-95 transition-all cursor-pointer"
                     >
                       <MessageCircle size={17} className="text-[#000933]" />
-                      <span>{settings.ctaButtonText || "Consultar Óptico no WhatsApp"}</span>
+                      <span>{content.heroCtaWhatsapp || content.ctaButtonText || settings.ctaButtonText || "Consultar Óptico no WhatsApp"}</span>
                       <ArrowRight size={15} />
                     </a>
 
@@ -238,7 +251,7 @@ export default async function OptiSyncPage() {
                       className="inline-flex items-center gap-2 px-4 sm:px-5 py-3.5 sm:py-4 rounded-full bg-white/[0.06] hover:bg-white/[0.12] text-white font-semibold text-xs sm:text-sm border border-[#0044C9]/40 hover:border-sky-400/50 transition-all active:scale-95 cursor-pointer backdrop-blur-md"
                     >
                       <Palette size={16} className="text-[#FFC21A]" />
-                      <span>Ver Lentes Coloridas &amp; Solares</span>
+                      <span>{content.heroCtaColors || "Ver Lentes Coloridas & Solares"}</span>
                     </Link>
                   </div>
                 </div>
@@ -259,11 +272,12 @@ export default async function OptiSyncPage() {
                     <div className="relative aspect-[4/5] w-full rounded-xl sm:rounded-2xl overflow-hidden bg-[#020716] border border-[#0044C9]/40 shadow-inner">
                       <Image
                         src={
+                          content.heroPortraitUrl ||
                           settings.heroPortraitUrl ||
                           settings.productBoxImage ||
                           "/images/lenses/optisync/arte-09-hd-hero-retrato.jpg"
                         }
-                        alt={settings.productAltText || "Lentes Digitais OPTiSYNC HD"}
+                        alt={content.productAltText || settings.productAltText || "Lentes Digitais OPTiSYNC HD"}
                         fill
                         sizes="(max-width: 768px) 100vw, 420px"
                         priority
@@ -275,11 +289,11 @@ export default async function OptiSyncPage() {
                     <div className="pt-2 border-t border-white/10 flex items-center justify-between text-xs">
                       <span className="text-[#B8C2E6] flex items-center gap-1.5 font-mono text-[10px] sm:text-[11px]">
                         <span className="w-2 h-2 rounded-full bg-emerald-400 animate-ping inline-block" />
-                        Surfaçagem Digital 3D
+                        {content.heroStatusSurfacagem || "Surfaçagem Digital 3D"}
                       </span>
                       <span className="font-bold text-[#FFC21A] flex items-center gap-1 text-[11px] sm:text-xs">
                         <Award size={13} className="text-[#FFC21A]" />
-                        Garantia 12 Meses
+                        {content.heroStatusGarantia || "Garantia 12 Meses"}
                       </span>
                     </div>
                   </div>
@@ -290,6 +304,7 @@ export default async function OptiSyncPage() {
                       <div className="relative aspect-[4/5] w-full">
                         <Image
                           src={
+                            content.heroPortraitUrl ||
                             settings.heroPortraitUrl ||
                             settings.productBoxImage ||
                             "/images/lenses/optisync/arte-09-hd-hero-retrato.jpg"
@@ -311,9 +326,9 @@ export default async function OptiSyncPage() {
               {settings.showLineSelector !== false && (
                 <div className="pt-2 sm:pt-4">
                   <LineNavTabs
-                    hdTitle={hd?.titleHighlight ? `${hd.title} ${hd.titleHighlight}` : "OPTiSYNC HD (Adulto)"}
-                    photochromicTitle={photochromic?.titleHighlight ? `${photochromic.title} ${photochromic.titleHighlight}` : "HD Fotossensível"}
-                    kidsTitle={kids?.titleHighlight ? `${kids.title} ${kids.titleHighlight}` : "Kids Adventure"}
+                    hdTitle={content.hdTitleHighlight ? `${content.hdTitle || "Lentes Digitais"} ${content.hdTitleHighlight}` : (hd?.titleHighlight ? `${hd.title} ${hd.titleHighlight}` : "OPTiSYNC HD (Adulto)")}
+                    photochromicTitle={content.photochromicTitleHighlight || (photochromic?.titleHighlight ? `${photochromic.title} ${photochromic.titleHighlight}` : "HD Fotossensível")}
+                    kidsTitle={content.kidsTitleHighlight || (kids?.titleHighlight ? `${kids.title} ${kids.titleHighlight}` : "Kids Adventure")}
                   />
                 </div>
               )}
@@ -330,24 +345,25 @@ export default async function OptiSyncPage() {
               <div className="flex flex-col lg:flex-row items-start lg:items-end justify-between gap-6">
                 <div className="max-w-2xl space-y-3">
                   <span className="text-xs font-bold text-[#38BDF8] uppercase tracking-widest block font-mono">
-                    {hd?.badge || "LINHA ADULTO & USO DIGITAL"}
+                    {content.hdBadge || hd?.badge || "LINHA ADULTO & USO DIGITAL"}
                   </span>
                   <h2 className="text-2xl sm:text-4xl font-extrabold text-white tracking-tight">
-                    {hd?.title || "Lentes Digitais"}{" "}
-                    <span className="text-[#FFC21A]">{hd?.titleHighlight || "OPTiSYNC HD"}</span>
+                    {content.hdTitle || hd?.title || "Lentes Digitais"}{" "}
+                    <span className="text-[#FFC21A]">{content.hdTitleHighlight || hd?.titleHighlight || "OPTiSYNC HD"}</span>
                   </h2>
                   <p className="text-xs sm:text-sm text-[#B8C2E6] leading-relaxed">
-                    {hd?.description ||
+                    {content.hdDescription ||
+                      hd?.description ||
                       "Desenvolvidas com cálculo de surfaçagem ponto a ponto e tratamento Blue Shield, eliminando aberrações ópticas e cansaço visual digital prolongado."}
                   </p>
                 </div>
 
-                {hd?.ctaLink && (
+                {(content.hdCtaLink || hd?.ctaLink) && (
                   <Link
-                    href={hd.ctaLink}
+                    href={content.hdCtaLink || hd?.ctaLink || "/lentes?linha=hd"}
                     className="inline-flex items-center gap-2 px-5 sm:px-6 py-2.5 sm:py-3 rounded-full bg-[#0044C9] hover:bg-[#1E5BFF] text-white font-bold text-xs sm:text-sm shadow-lg shadow-[#0044C9]/40 transition-all cursor-pointer"
                   >
-                    <span>{hd.ctaText || "Ver Catálogo HD"}</span>
+                    <span>{content.hdCtaText || hd?.ctaText || "Ver Catálogo HD"}</span>
                     <ArrowRight className="w-4 h-4" />
                   </Link>
                 )}
@@ -369,9 +385,9 @@ export default async function OptiSyncPage() {
                       />
                     </div>
                     <div className="space-y-0.5 sm:space-y-1">
-                      <span className="text-[9px] sm:text-[10px] uppercase font-mono text-[#FFC21A]">Produto Oficial</span>
-                      <h3 className="text-xs sm:text-sm font-bold text-white truncate sm:whitespace-normal">Precisão Ponto a Ponto</h3>
-                      <p className="text-[10px] sm:text-xs text-[#B8C2E6] line-clamp-2">Lapidação com corte tridimensional sob medida.</p>
+                      <span className="text-[9px] sm:text-[10px] uppercase font-mono text-[#FFC21A]">{content.hdCard1Tag || "Produto Oficial"}</span>
+                      <h3 className="text-xs sm:text-sm font-bold text-white truncate sm:whitespace-normal">{content.hdCard1Title || "Precisão Ponto a Ponto"}</h3>
+                      <p className="text-[10px] sm:text-xs text-[#B8C2E6] line-clamp-2">{content.hdCard1Desc || "Lapidação com corte tridimensional sob medida."}</p>
                     </div>
                   </article>
                 )}
@@ -390,9 +406,9 @@ export default async function OptiSyncPage() {
                       />
                     </div>
                     <div className="space-y-0.5 sm:space-y-1">
-                      <span className="text-[9px] sm:text-[10px] uppercase font-mono text-sky-400">Gamer &amp; Telas</span>
-                      <h3 className="text-xs sm:text-sm font-bold text-white truncate sm:whitespace-normal">Blue Shield Integrado</h3>
-                      <p className="text-[10px] sm:text-xs text-[#B8C2E6] line-clamp-2">Proteção ativa contra emissão de luz azul nociva.</p>
+                      <span className="text-[9px] sm:text-[10px] uppercase font-mono text-sky-400">{content.hdCard2Tag || "Gamer & Telas"}</span>
+                      <h3 className="text-xs sm:text-sm font-bold text-white truncate sm:whitespace-normal">{content.hdCard2Title || "Blue Shield Integrado"}</h3>
+                      <p className="text-[10px] sm:text-xs text-[#B8C2E6] line-clamp-2">{content.hdCard2Desc || "Proteção ativa contra emissão de luz azul nociva."}</p>
                     </div>
                   </article>
                 )}
@@ -411,9 +427,9 @@ export default async function OptiSyncPage() {
                       />
                     </div>
                     <div className="space-y-0.5 sm:space-y-1">
-                      <span className="text-[9px] sm:text-[10px] uppercase font-mono text-[#B8C2E6]">Trabalho &amp; Home Office</span>
-                      <h3 className="text-xs sm:text-sm font-bold text-white truncate sm:whitespace-normal">Conforto Contínuo</h3>
-                      <p className="text-[10px] sm:text-xs text-[#B8C2E6] line-clamp-2">Alívio do estresse visual para longas jornadas.</p>
+                      <span className="text-[9px] sm:text-[10px] uppercase font-mono text-[#B8C2E6]">{content.hdCard3Tag || "Trabalho & Home Office"}</span>
+                      <h3 className="text-xs sm:text-sm font-bold text-white truncate sm:whitespace-normal">{content.hdCard3Title || "Conforto Contínuo"}</h3>
+                      <p className="text-[10px] sm:text-xs text-[#B8C2E6] line-clamp-2">{content.hdCard3Desc || "Alívio do estresse visual para longas jornadas."}</p>
                     </div>
                   </article>
                 )}
@@ -432,9 +448,9 @@ export default async function OptiSyncPage() {
                       />
                     </div>
                     <div className="space-y-0.5 sm:space-y-1">
-                      <span className="text-[9px] sm:text-[10px] uppercase font-mono text-[#7A2CFF]">Engenharia Óptica</span>
-                      <h3 className="text-xs sm:text-sm font-bold text-white truncate sm:whitespace-normal">Corte Milimétrico</h3>
-                      <p className="text-[10px] sm:text-xs text-[#B8C2E6] line-clamp-2">Usinagem digital de altíssima fidelidade.</p>
+                      <span className="text-[9px] sm:text-[10px] uppercase font-mono text-[#7A2CFF]">{content.hdCard4Tag || "Engenharia Óptica"}</span>
+                      <h3 className="text-xs sm:text-sm font-bold text-white truncate sm:whitespace-normal">{content.hdCard4Title || "Corte Milimétrico"}</h3>
+                      <p className="text-[10px] sm:text-xs text-[#B8C2E6] line-clamp-2">{content.hdCard4Desc || "Usinagem digital de altíssima fidelidade."}</p>
                     </div>
                   </article>
                 )}
@@ -466,24 +482,25 @@ export default async function OptiSyncPage() {
               <div className="flex flex-col lg:flex-row items-start lg:items-end justify-between gap-6">
                 <div className="max-w-2xl space-y-3">
                   <span className="text-xs font-bold text-[#7A2CFF] uppercase tracking-widest block font-mono">
-                    {photochromic?.badge || "TECNOLOGIA FOTOSSENSÍVEL ADULTO"}
+                    {content.photochromicBadge || photochromic?.badge || "TECNOLOGIA FOTOSSENSÍVEL ADULTO"}
                   </span>
                   <h2 className="text-2xl sm:text-4xl font-extrabold text-white tracking-tight">
-                    {photochromic?.title || "OPTiSYNC HD"}{" "}
-                    <span className="text-[#FFC21A]">{photochromic?.titleHighlight || "Fotossensível"}</span>
+                    {content.photochromicTitle || photochromic?.title || "OPTiSYNC HD"}{" "}
+                    <span className="text-[#FFC21A]">{content.photochromicTitleHighlight || photochromic?.titleHighlight || "Fotossensível"}</span>
                   </h2>
                   <p className="text-xs sm:text-sm text-[#B8C2E6] leading-relaxed">
-                    {photochromic?.description ||
+                    {content.photochromicDescription ||
+                      photochromic?.description ||
                       "Lentes inteligentes que clareiam com rapidez em ambientes internos e escurecem sob o sol, bloqueando 100% dos raios UVA/UVB com conforto total."}
                   </p>
                 </div>
 
-                {photochromic?.ctaLink && (
+                {(content.photochromicCtaLink || photochromic?.ctaLink) && (
                   <Link
-                    href={photochromic.ctaLink}
+                    href={content.photochromicCtaLink || photochromic?.ctaLink || "/lentes?linha=fotossensivel"}
                     className="inline-flex items-center gap-2 px-5 sm:px-6 py-2.5 sm:py-3 rounded-full bg-gradient-to-r from-[#7A2CFF] to-[#0044C9] hover:from-[#9247FF] hover:to-[#1E5BFF] text-white font-bold text-xs sm:text-sm shadow-lg shadow-purple-900/40 transition-all cursor-pointer"
                   >
-                    <span>{photochromic.ctaText || "Ver Modelos Fotossensíveis"}</span>
+                    <span>{content.photochromicCtaText || photochromic?.ctaText || "Ver Modelos Fotossensíveis"}</span>
                     <ArrowRight className="w-4 h-4" />
                   </Link>
                 )}
@@ -495,8 +512,8 @@ export default async function OptiSyncPage() {
                 {/* Coluna Esquerda (7 cols): Simulador Interativo com Teclado e Touch */}
                 <div className="lg:col-span-7 space-y-3 sm:space-y-4">
                   <div className="space-y-0.5 sm:space-y-1">
-                    <span className="text-xs font-mono text-[#FFC21A] uppercase">Simulador Dinâmico</span>
-                    <h3 className="text-base sm:text-lg font-bold text-white">Transição Óptica Inteligente</h3>
+                    <span className="text-xs font-mono text-[#FFC21A] uppercase">{content.simulatorEyebrow || "Simulador Dinâmico"}</span>
+                    <h3 className="text-base sm:text-lg font-bold text-white">{content.simulatorTitle || "Transição Óptica Inteligente"}</h3>
                   </div>
 
                   <PhotochromicSlider
@@ -504,15 +521,18 @@ export default async function OptiSyncPage() {
                     darkImageUrl={photochromic?.darkStateImageUrl}
                     bannerImageUrl={photochromic?.halfDarkBannerUrl}
                     altText="Comparação de lentes fotossensíveis límpida vs escurecida"
-                    transitionSpeedText={photochromic?.transitionSpeedText || "Ativação em até 30 segundos sob radiação UV"}
+                    transitionSpeedText={content.transitionSpeedText || photochromic?.transitionSpeedText || "Ativação em até 30 segundos sob radiação UV"}
+                    indoorLabel={content.indoorLabel || "Ambiente Interno"}
+                    outdoorLabel={content.outdoorLabel || "Sol Pleno"}
+                    instructionsText={content.simulatorInstructions || "Arraste ou use as setas do teclado (← / →) para simular o escurecimento"}
                   />
                 </div>
 
                 {/* Coluna Direita (5 cols): Arte 4 (3 Estados Homem/Mulher) ou Arte 7 */}
                 <div className="lg:col-span-5 space-y-3 sm:space-y-4">
                   <div className="space-y-0.5 sm:space-y-1">
-                    <span className="text-xs font-mono text-sky-400 uppercase">Ambientes de Uso</span>
-                    <h3 className="text-base sm:text-lg font-bold text-white">3 Fases de Luminosidade</h3>
+                    <span className="text-xs font-mono text-sky-400 uppercase">{content.phasesEyebrow || "Ambientes de Uso"}</span>
+                    <h3 className="text-base sm:text-lg font-bold text-white">{content.phasesTitle || "3 Fases de Luminosidade"}</h3>
                   </div>
 
                   <div className="relative rounded-2xl overflow-hidden border border-[#7A2CFF]/40 bg-[#000933]/90 shadow-2xl">
@@ -532,10 +552,10 @@ export default async function OptiSyncPage() {
                     </div>
                     <div className="p-3 sm:p-4 space-y-1 bg-[#00051E]/90 border-t border-[#7A2CFF]/30">
                       <p className="text-xs text-[#F4F6FF] font-semibold">
-                        Ambiente Interno · Meia Luz · Sol Pleno
+                        {content.phasesSubtitle || "Ambiente Interno · Meia Luz · Sol Pleno"}
                       </p>
                       <p className="text-[10px] sm:text-[11px] text-[#B8C2E6] leading-relaxed">
-                        A molécula fotossensível reage aos fótons UV sem distorcer as cores reais.
+                        {content.phasesNote || "A molécula fotossensível reage aos fótons UV sem distorcer as cores reais."}
                       </p>
                     </div>
                   </div>
@@ -573,7 +593,7 @@ export default async function OptiSyncPage() {
                   <div className="relative w-full max-w-sm rounded-2xl sm:rounded-3xl p-3 sm:p-4 lens-gradient-border shadow-2xl">
                     <div className="relative aspect-[4/5] w-full rounded-xl sm:rounded-2xl overflow-hidden bg-[#020716] border border-[#FFC21A]/40 shadow-inner">
                       <Image
-                        src={kids?.posterBoyUrl || "/images/lenses/optisync/arte-01-kids-poster.jpg"}
+                        src={content.kidsPosterUrl || kids?.posterBoyUrl || "/images/lenses/optisync/arte-01-kids-poster.jpg"}
                         alt="Menino sorridente com óculos da linha OptiSYNC Kids Adventure"
                         fill
                         loading="lazy"
@@ -595,8 +615,8 @@ export default async function OptiSyncPage() {
                           />
                         </div>
                         <div className="text-right">
-                          <span className="text-[9px] sm:text-[10px] font-mono text-[#FFC21A] uppercase block">Linha Oficial</span>
-                          <span className="text-xs font-bold text-white">Kids Adventure 3D</span>
+                          <span className="text-[9px] sm:text-[10px] font-mono text-[#FFC21A] uppercase block">{content.kidsLogoTag || "Linha Oficial"}</span>
+                          <span className="text-xs font-bold text-white">{content.kidsLogoTitle || "Kids Adventure 3D"}</span>
                         </div>
                       </div>
                     )}
@@ -607,16 +627,17 @@ export default async function OptiSyncPage() {
                 <div className="lg:col-span-7 space-y-4 sm:space-y-6">
                   <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-[#FFC21A]/15 border border-[#FFC21A]/40 text-[#FFC21A] text-xs font-bold uppercase tracking-wider">
                     <Sparkles size={14} />
-                    <span>{kids?.badge || "LINHA INFANTIL & JUVENIL"}</span>
+                    <span>{content.kidsBadge || kids?.badge || "LINHA INFANTIL & JUVENIL"}</span>
                   </div>
 
                   <h2 className="text-2xl sm:text-4xl lg:text-5xl font-black text-white tracking-tight leading-tight">
-                    {kids?.title || "OPTiSYNC"}{" "}
-                    <span className="text-[#FFC21A]">{kids?.titleHighlight || "Kids Adventure"}</span>
+                    {content.kidsTitle || kids?.title || "OPTiSYNC"}{" "}
+                    <span className="text-[#FFC21A]">{content.kidsTitleHighlight || kids?.titleHighlight || "Kids Adventure"}</span>
                   </h2>
 
                   <p className="text-xs sm:text-base text-[#B8C2E6] leading-relaxed max-w-xl">
-                    {kids?.description ||
+                    {content.kidsDescription ||
+                      kids?.description ||
                       "Produzidas em materiais de alta tenacidade contra impactos acidentais na escola e brincadeiras, com leveza extrema e proteção contra luz azul e radiação solar."}
                   </p>
 
@@ -637,10 +658,10 @@ export default async function OptiSyncPage() {
 
                   <div className="pt-2 sm:pt-4 flex flex-wrap items-center gap-3 sm:gap-4">
                     <Link
-                      href={kids?.ctaLink || "/armacoes?categoria=infantil"}
+                      href={content.kidsCtaLink || kids?.ctaLink || "/armacoes?categoria=infantil"}
                       className="inline-flex items-center gap-2.5 px-6 sm:px-7 py-3 sm:py-3.5 rounded-full bg-[#FFC21A] hover:bg-[#ffd147] text-[#000933] font-bold text-xs sm:text-sm tracking-wide shadow-lg shadow-amber-400/20 active:scale-95 transition-all cursor-pointer"
                     >
-                      <span>{kids?.ctaText || "Ver Armações Infantis"}</span>
+                      <span>{content.kidsCtaText || kids?.ctaText || "Ver Armações Infantis"}</span>
                       <ArrowRight size={15} />
                     </Link>
 
@@ -651,7 +672,7 @@ export default async function OptiSyncPage() {
                       className="inline-flex items-center gap-2 px-5 py-3 sm:py-3.5 rounded-full bg-white/[0.06] hover:bg-white/[0.12] text-white font-semibold text-xs sm:text-sm border border-white/20 transition-all cursor-pointer backdrop-blur-md"
                     >
                       <MessageCircle size={16} className="text-[#FFC21A]" />
-                      <span>Falar com Especialista Infantil</span>
+                      <span>{content.kidsWhatsappCtaText || "Falar com Especialista Infantil"}</span>
                     </a>
                   </div>
                 </div>
@@ -684,13 +705,14 @@ export default async function OptiSyncPage() {
             <div className="max-w-7xl mx-auto space-y-8 sm:space-y-12">
               <div className="text-center max-w-2xl mx-auto space-y-2 sm:space-y-3">
                 <span className="text-xs font-bold text-sky-400 uppercase tracking-widest block font-mono">
-                  DIFERENCIAIS CONSTRUTIVOS
+                  {content.benefitsEyebrow || "DIFERENCIAIS CONSTRUTIVOS"}
                 </span>
                 <h2 className="text-2xl sm:text-4xl font-extrabold text-white tracking-tight">
-                  {settings.benefitsTitle || "Por que a OPTiSYNC HD transforma a sua visão?"}
+                  {content.benefitsTitle || settings.benefitsTitle || "Por que a OPTiSYNC HD transforma a sua visão?"}
                 </h2>
                 <p className="text-xs sm:text-sm text-[#B8C2E6] leading-relaxed">
-                  {settings.benefitsSubtitle ||
+                  {content.benefitsSubtitle ||
+                    settings.benefitsSubtitle ||
                     "Projetada para proporcionar nitidez contínua e conforto óptico com tratamentos certificados."}
                 </p>
               </div>
@@ -722,35 +744,36 @@ export default async function OptiSyncPage() {
             <div className="max-w-5xl mx-auto space-y-6 sm:space-y-10">
               <div className="text-center max-w-xl mx-auto space-y-2">
                 <span className="text-xs font-bold text-sky-400 uppercase tracking-widest block font-mono">
-                  COMPARAÇÃO TÉCNICA
+                  {content.comparisonEyebrow || "COMPARAÇÃO TÉCNICA"}
                 </span>
                 <h2 className="text-2xl sm:text-4xl font-extrabold text-white tracking-tight">
-                  {settings.comparisonTitle || "Lente Convencional vs OPTiSYNC HD"}
+                  {content.comparisonTitle || settings.comparisonTitle || "Lente Convencional vs OPTiSYNC HD"}
                 </h2>
                 <p className="text-xs sm:text-sm text-[#B8C2E6]">
-                  {settings.comparisonSubtitle ||
+                  {content.comparisonSubtitle ||
+                    settings.comparisonSubtitle ||
                     "Entenda as diferenças entre processos convencionais e o padrão digital OPTiSYNC."}
                 </p>
               </div>
 
               <div className="overflow-x-auto rounded-2xl sm:rounded-3xl border border-white/15 bg-white/[0.02] backdrop-blur-xl shadow-2xl">
                 <div className="sm:hidden px-4 pt-3 pb-1 text-[11px] font-mono text-sky-300 flex items-center justify-between border-b border-white/10">
-                  <span>← Deslize para comparar →</span>
-                  <span className="text-[#FFC21A] font-bold">OPTiSYNC HD</span>
+                  <span>{content.comparisonMobileSwipe || "← Deslize para comparar →"}</span>
+                  <span className="text-[#FFC21A] font-bold">{content.comparisonCol3Header || "OPTiSYNC HD"}</span>
                 </div>
                 <table className="w-full min-w-[540px] sm:min-w-0 text-left text-xs sm:text-sm">
                   <thead>
                     <tr className="border-b border-white/10 bg-white/[0.04]">
                       <th className="py-3 sm:py-4 px-3 sm:px-6 font-bold text-slate-300 w-1/3 uppercase text-[10px] sm:text-[11px] tracking-wider">
-                        Característica
+                        {content.comparisonCol1Header || "Característica"}
                       </th>
                       <th className="py-3 sm:py-4 px-3 sm:px-6 font-medium text-slate-400 w-1/3 uppercase text-[10px] sm:text-[11px] tracking-wider">
-                        Lentes Convencionais
+                        {content.comparisonCol2Header || "Lentes Convencionais"}
                       </th>
                       <th className="py-3 sm:py-4 px-3 sm:px-6 font-extrabold text-white bg-sky-950/40 w-1/3 border-l border-sky-500/30">
                         <div className="flex items-center gap-1.5 text-sky-300 uppercase text-[10px] sm:text-[11px] tracking-wider">
                           <Sparkles size={13} className="text-[#FFC21A]" />
-                          <span>OPTiSYNC HD</span>
+                          <span>{content.comparisonCol3Header || "OPTiSYNC HD"}</span>
                         </div>
                       </th>
                     </tr>
@@ -794,32 +817,33 @@ export default async function OptiSyncPage() {
                 <div className="relative z-10 max-w-3xl space-y-4 sm:space-y-6">
                   <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-amber-400/15 border border-amber-400/30 text-amber-300 text-xs font-bold uppercase tracking-wider">
                     <Award size={14} />
-                    <span>{settings.labBadge || "LABORATÓRIO ÓPTICO PRÓPRIO EM ARAÇATUBA"}</span>
+                    <span>{content.labBadge || settings.labBadge || "LABORATÓRIO ÓPTICO PRÓPRIO EM ARAÇATUBA"}</span>
                   </div>
 
                   <h2 className="text-2xl sm:text-4xl font-extrabold text-white tracking-tight leading-snug">
-                    {settings.labTitle || "Do cálculo computadorizado à montagem milimétrica"}{" "}
-                    <span className="text-[#FFC21A]">{settings.labTitleHighlight || "em nossa sede"}</span>
+                    {content.labTitle || settings.labTitle || "Do cálculo computadorizado à montagem milimétrica"}{" "}
+                    <span className="text-[#FFC21A]">{content.labTitleHighlight || settings.labTitleHighlight || "em nossa sede"}</span>
                   </h2>
 
                   <p className="text-xs sm:text-sm text-[#B8C2E6] leading-relaxed font-normal">
-                    {settings.labDescription ||
+                    {content.labDescription ||
+                      settings.labDescription ||
                       "Com usinagem e lensometria computadorizada na Rua Princesa Isabel, 221 em Araçatuba/SP, suas lentes OPTiSYNC HD são confeccionadas e inspecionadas por profissionais técnicos em óptica, com montagem expressa e rastreabilidade total."}
                   </p>
 
                   <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 sm:gap-4 pt-3 sm:pt-4 border-t border-white/10 text-xs font-mono">
                     <div className="p-2.5 sm:p-3 rounded-xl sm:rounded-2xl bg-white/[0.04] border border-white/10">
-                      <span className="text-slate-400 block text-[9px] sm:text-[10px] uppercase">Facetadoras</span>
-                      <span className="text-white font-bold text-xs sm:text-sm">Corte Computadorizado</span>
+                      <span className="text-slate-400 block text-[9px] sm:text-[10px] uppercase">{content.labFacetadorasLabel || "Facetadoras"}</span>
+                      <span className="text-white font-bold text-xs sm:text-sm">{content.labFacetadorasValue || "Corte Computadorizado"}</span>
                     </div>
                     <div className="p-2.5 sm:p-3 rounded-xl sm:rounded-2xl bg-white/[0.04] border border-white/10">
-                      <span className="text-slate-400 block text-[9px] sm:text-[10px] uppercase">Inspeção</span>
-                      <span className="text-white font-bold text-xs sm:text-sm">100% dos Pares Aferidos</span>
+                      <span className="text-slate-400 block text-[9px] sm:text-[10px] uppercase">{content.labInspecaoLabel || "Inspeção"}</span>
+                      <span className="text-white font-bold text-xs sm:text-sm">{content.labInspecaoValue || "100% dos Pares Aferidos"}</span>
                     </div>
                     <div className="p-2.5 sm:p-3 rounded-xl sm:rounded-2xl bg-white/[0.04] border border-white/10 col-span-2 sm:col-span-1">
-                      <span className="text-slate-400 block text-[9px] sm:text-[10px] uppercase">Origem</span>
+                      <span className="text-slate-400 block text-[9px] sm:text-[10px] uppercase">{content.labOrigemLabel || "Origem"}</span>
                       <span className="text-[#FFC21A] font-bold text-xs sm:text-sm">
-                        {settings.labOrigin || "Araçatuba · SP"}
+                        {content.labOrigemValue || settings.labOrigin || "Araçatuba · SP"}
                       </span>
                     </div>
                   </div>
@@ -836,13 +860,14 @@ export default async function OptiSyncPage() {
           <div className="max-w-6xl mx-auto space-y-6 sm:space-y-10">
             <div className="text-center max-w-2xl mx-auto space-y-2">
               <span className="text-xs font-bold text-[#FFC21A] uppercase tracking-widest block font-mono">
-                MOSTRUÁRIO EXCLUSIVO
+                {content.colorsEyebrow || "MOSTRUÁRIO EXCLUSIVO"}
               </span>
               <h2 className="text-2xl sm:text-4xl font-extrabold text-white tracking-tight">
-                {settings.colorsBannerTitle || "Lentes Coloridas & Tonalidades Solares"}
+                {content.colorsTitle || settings.colorsBannerTitle || "Lentes Coloridas & Tonalidades Solares"}
               </h2>
               <p className="text-xs sm:text-sm text-[#B8C2E6]">
-                {settings.colorsBannerSubtitle ||
+                {content.colorsSubtitle ||
+                  settings.colorsBannerSubtitle ||
                   "Personalize sua armação com lentes graduadas em tonalidades solares exclusivas, com proteção UV400 total e antirreflexo interno."}
               </p>
             </div>
@@ -862,9 +887,9 @@ export default async function OptiSyncPage() {
                 </div>
                 <div className="p-4 sm:p-6 bg-[#00051E]/80 backdrop-blur-md flex flex-col sm:flex-row items-center justify-between gap-4">
                   <div className="space-y-1 text-center sm:text-left">
-                    <span className="text-xs font-mono text-[#FFC21A] uppercase font-bold">Paleta de Tonalidades Solares</span>
+                    <span className="text-xs font-mono text-[#FFC21A] uppercase font-bold">{content.colorsBannerBadge || "Paleta de Tonalidades Solares"}</span>
                     <p className="text-xs text-[#B8C2E6]">
-                      Disponíveis com a sua graduação exata prescrita pelo oftalmologista.
+                      {content.colorsBannerText || "Disponíveis com a sua graduação exata prescrita pelo oftalmologista."}
                     </p>
                   </div>
                   <Link
@@ -872,7 +897,7 @@ export default async function OptiSyncPage() {
                     className="inline-flex items-center gap-2 px-5 sm:px-6 py-2.5 sm:py-3 rounded-full bg-[#FFC21A] hover:bg-[#ffd147] text-[#000933] font-bold text-xs sm:text-sm transition-all shadow-md active:scale-95"
                   >
                     <Palette className="w-4 h-4 text-[#000933]" />
-                    <span>Acessar Seção de Cores no Catálogo</span>
+                    <span>{content.colorsCtaButtonText || "Acessar Seção de Cores no Catálogo"}</span>
                   </Link>
                 </div>
               </div>
@@ -888,10 +913,10 @@ export default async function OptiSyncPage() {
             <div className="max-w-4xl mx-auto space-y-6 sm:space-y-10">
               <div className="text-center max-w-xl mx-auto space-y-2">
                 <span className="text-xs font-bold text-sky-400 uppercase tracking-widest block font-mono">
-                  TIRA-DÚVIDAS
+                  {content.faqEyebrow || "TIRA-DÚVIDAS"}
                 </span>
                 <h2 className="text-2xl sm:text-3xl font-extrabold text-white tracking-tight">
-                  Perguntas Frequentes sobre a OPTiSYNC HD
+                  {content.faqTitle || "Perguntas Frequentes sobre a OPTiSYNC HD"}
                 </h2>
               </div>
 
@@ -922,16 +947,17 @@ export default async function OptiSyncPage() {
           <section className="px-4 sm:px-6 lg:px-10 py-10 sm:py-16">
             <div className="max-w-4xl mx-auto text-center space-y-5 sm:space-y-6">
               <span className="text-xs font-bold text-sky-400 uppercase tracking-widest block font-mono">
-                {settings.ctaBadge || "ATENDIMENTO ESPECIALIZADO"}
+                {content.ctaBadge || settings.ctaBadge || "ATENDIMENTO ESPECIALIZADO"}
               </span>
               <h2 className="text-2xl sm:text-4xl font-extrabold text-white tracking-tight">
-                {settings.ctaTitle || "Pronto para enxergar com definição"}{" "}
+                {content.ctaTitle || settings.ctaTitle || "Pronto para enxergar com definição"}{" "}
                 <span className="text-[#FFC21A]">
-                  {settings.ctaTitleHighlight || "OPTiSYNC HD?"}
+                  {content.ctaTitleHighlight || settings.ctaTitleHighlight || "OPTiSYNC HD?"}
                 </span>
               </h2>
               <p className="text-xs sm:text-sm text-[#B8C2E6] max-w-xl mx-auto leading-relaxed">
-                {settings.ctaSubtitle ||
+                {content.ctaSubtitle ||
+                  settings.ctaSubtitle ||
                   "Envie sua receita oftálmica diretamente aos nossos ópticos em Araçatuba para uma conferência técnica completa e orçamento sob medida."}
               </p>
 
@@ -943,7 +969,7 @@ export default async function OptiSyncPage() {
                   className="inline-flex items-center gap-2.5 sm:gap-3 px-6 sm:px-8 py-3.5 sm:py-4 rounded-full bg-[#FFC21A] hover:bg-[#ffd147] text-[#000933] font-bold text-xs sm:text-sm tracking-wide transition-all shadow-xl active:scale-95 cursor-pointer"
                 >
                   <MessageCircle size={18} className="text-[#000933]" />
-                  <span>{settings.ctaButtonText || "Consultar Óptico no WhatsApp"}</span>
+                  <span>{content.ctaButtonText || settings.ctaButtonText || "Consultar Óptico no WhatsApp"}</span>
                   <ArrowRight size={16} />
                 </a>
 
@@ -953,14 +979,14 @@ export default async function OptiSyncPage() {
                     className="inline-flex items-center gap-2 px-5 sm:px-6 py-3.5 sm:py-4 rounded-full bg-white/[0.06] hover:bg-white/[0.12] text-white font-semibold text-xs sm:text-sm border border-white/20 transition-all cursor-pointer backdrop-blur-md"
                   >
                     <Palette size={16} className="text-[#FFC21A]" />
-                    <span>Ver Seção de Cores &amp; Solares</span>
+                    <span>{content.ctaColorsButtonText || "Ver Seção de Cores & Solares"}</span>
                   </Link>
                 )}
               </div>
 
-              {settings.ctaBusinessHours && (
+              {(content.ctaBusinessHours || settings.ctaBusinessHours) && (
                 <p className="text-[11px] text-slate-400 font-mono">
-                  {settings.ctaBusinessHours}
+                  {content.ctaBusinessHours || settings.ctaBusinessHours}
                 </p>
               )}
             </div>

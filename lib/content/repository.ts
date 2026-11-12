@@ -29,6 +29,67 @@ export async function getPageContent(
   try {
     const supabase = createAdminClient();
 
+    // Compatibilidade transparente: se for optisync, mescla valores de optisync_page_settings nos defaults
+    if (page === "optisync") {
+      try {
+        const { data: optSettingsData } = await supabase
+          .from("site_settings")
+          .select("value")
+          .eq("key", "optisync_page_settings")
+          .maybeSingle();
+
+        if (optSettingsData?.value) {
+          const s = optSettingsData.value as Record<string, any>;
+          if (s.heroBadge) defaults.heroBadge = s.heroBadge;
+          if (s.heroTitle) defaults.heroTitle = s.heroTitle;
+          if (s.heroTitleHighlight) defaults.heroTitleHighlight = s.heroTitleHighlight;
+          if (s.heroDescription) defaults.heroDescription = s.heroDescription;
+          if (s.heroPortraitUrl) defaults.heroPortraitUrl = s.heroPortraitUrl;
+          if (s.productAltText) defaults.productAltText = s.productAltText;
+          if (s.hdLine?.badge) defaults.hdBadge = s.hdLine.badge;
+          if (s.hdLine?.title) defaults.hdTitle = s.hdLine.title;
+          if (s.hdLine?.titleHighlight) defaults.hdTitleHighlight = s.hdLine.titleHighlight;
+          if (s.hdLine?.description) defaults.hdDescription = s.hdLine.description;
+          if (s.hdLine?.ctaText) defaults.hdCtaText = s.hdLine.ctaText;
+          if (s.hdLine?.ctaLink) defaults.hdCtaLink = s.hdLine.ctaLink;
+          if (s.photochromicLine?.badge) defaults.photochromicBadge = s.photochromicLine.badge;
+          if (s.photochromicLine?.title) defaults.photochromicTitle = s.photochromicLine.title;
+          if (s.photochromicLine?.titleHighlight) defaults.photochromicTitleHighlight = s.photochromicLine.titleHighlight;
+          if (s.photochromicLine?.description) defaults.photochromicDescription = s.photochromicLine.description;
+          if (s.photochromicLine?.ctaText) defaults.photochromicCtaText = s.photochromicLine.ctaText;
+          if (s.photochromicLine?.ctaLink) defaults.photochromicCtaLink = s.photochromicLine.ctaLink;
+          if (s.photochromicLine?.transitionSpeedText) defaults.transitionSpeedText = s.photochromicLine.transitionSpeedText;
+          if (s.kidsLine?.badge) defaults.kidsBadge = s.kidsLine.badge;
+          if (s.kidsLine?.title) defaults.kidsTitle = s.kidsLine.title;
+          if (s.kidsLine?.titleHighlight) defaults.kidsTitleHighlight = s.kidsLine.titleHighlight;
+          if (s.kidsLine?.description) defaults.kidsDescription = s.kidsLine.description;
+          if (s.kidsLine?.ctaText) defaults.kidsCtaText = s.kidsLine.ctaText;
+          if (s.kidsLine?.ctaLink) defaults.kidsCtaLink = s.kidsLine.ctaLink;
+          if (s.kidsLine?.posterBoyUrl) defaults.kidsPosterUrl = s.kidsLine.posterBoyUrl;
+          if (s.benefitsTitle) defaults.benefitsTitle = s.benefitsTitle;
+          if (s.benefitsSubtitle) defaults.benefitsSubtitle = s.benefitsSubtitle;
+          if (s.comparisonTitle) defaults.comparisonTitle = s.comparisonTitle;
+          if (s.comparisonSubtitle) defaults.comparisonSubtitle = s.comparisonSubtitle;
+          if (s.labBadge) defaults.labBadge = s.labBadge;
+          if (s.labTitle) defaults.labTitle = s.labTitle;
+          if (s.labTitleHighlight) defaults.labTitleHighlight = s.labTitleHighlight;
+          if (s.labDescription) defaults.labDescription = s.labDescription;
+          if (s.labOrigin) defaults.labOrigin = s.labOrigin;
+          if (s.colorsBannerTitle) defaults.colorsTitle = s.colorsBannerTitle;
+          if (s.colorsBannerSubtitle) defaults.colorsSubtitle = s.colorsBannerSubtitle;
+          if (s.ctaBadge) defaults.ctaBadge = s.ctaBadge;
+          if (s.ctaTitle) defaults.ctaTitle = s.ctaTitle;
+          if (s.ctaTitleHighlight) defaults.ctaTitleHighlight = s.ctaTitleHighlight;
+          if (s.ctaSubtitle) defaults.ctaSubtitle = s.ctaSubtitle;
+          if (s.ctaButtonText) defaults.ctaButtonText = s.ctaButtonText;
+          if (s.ctaWhatsappMessage) defaults.ctaWhatsappMessage = s.ctaWhatsappMessage;
+          if (s.ctaBusinessHours) defaults.ctaBusinessHours = s.ctaBusinessHours;
+        }
+      } catch (optErr) {
+        console.warn("[ContentEngine] Aviso ao sincronizar optisync_page_settings:", optErr);
+      }
+    }
+
     const { data, error } = await supabase
       .from("site_content")
       .select("key, value")

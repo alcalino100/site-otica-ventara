@@ -10,6 +10,9 @@ interface PhotochromicSliderProps {
   bannerImageUrl?: string;
   altText?: string;
   transitionSpeedText?: string;
+  indoorLabel?: string;
+  outdoorLabel?: string;
+  instructionsText?: string;
 }
 
 export function PhotochromicSlider({
@@ -18,6 +21,9 @@ export function PhotochromicSlider({
   bannerImageUrl,
   altText = "Comparação de escurecimento da lente fotossensível OPTiSYNC",
   transitionSpeedText = "Ativação em até 30 segundos sob radiação UV",
+  indoorLabel = "Ambiente Interno",
+  outdoorLabel = "Sol Pleno",
+  instructionsText = "Arraste ou use as setas do teclado (← / →) para simular o escurecimento",
 }: PhotochromicSliderProps) {
   const [position, setPosition] = useState(50);
   const [isDragging, setIsDragging] = useState(false);
@@ -122,7 +128,7 @@ export function PhotochromicSlider({
 
           <div className="absolute top-4 right-4 z-10 px-3 py-1.5 rounded-full bg-[#020716]/85 border border-[#FFC21A]/40 text-[#FFC21A] text-xs font-semibold flex items-center gap-1.5 backdrop-blur-md pointer-events-none shadow-lg">
             <Sun className="w-3.5 h-3.5 text-[#FFC21A]" />
-            <span>Sol Pleno ({100 - position}%)</span>
+            <span>{outdoorLabel} ({100 - position}%)</span>
           </div>
         </div>
 
@@ -143,7 +149,7 @@ export function PhotochromicSlider({
             )}
             <div className="absolute top-4 left-4 z-10 px-3 py-1.5 rounded-full bg-[#000933]/85 border border-[#0044C9]/40 text-[#F4F6FF] text-xs font-semibold flex items-center gap-1.5 backdrop-blur-md pointer-events-none shadow-lg">
               <Moon className="w-3.5 h-3.5 text-[#38BDF8]" />
-              <span>Ambiente Interno ({position}%)</span>
+              <span>{indoorLabel} ({position}%)</span>
             </div>
           </div>
         </div>
@@ -173,7 +179,7 @@ export function PhotochromicSlider({
           <Sparkles className="w-3.5 h-3.5" /> {transitionSpeedText}
         </span>
         <span className="text-[#8A96C2] text-[11px]">
-          Arraste ou use as setas do teclado (← / →) para simular o escurecimento
+          {instructionsText}
         </span>
       </div>
     </div>
