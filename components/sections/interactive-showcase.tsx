@@ -820,7 +820,7 @@ export function InteractiveShowcase({
                         )}
 
                         {/* Visual da Miniatura com Enquadramento Full */}
-                        <div className="w-full h-16 sm:h-20 bg-slate-900 rounded-xl flex items-center justify-center mb-2 group-hover:scale-105 transition-transform overflow-hidden relative border border-slate-200/50">
+                        <div className="w-full aspect-[4/3] min-h-[96px] sm:min-h-[104px] bg-slate-900 rounded-xl flex items-center justify-center mb-2.5 group-hover:scale-105 transition-transform overflow-hidden relative border border-slate-200/50">
                           {v.imageUrl && v.imageUrl.trim() !== "" ? (
                             <img
                               src={v.imageUrl}
@@ -831,14 +831,14 @@ export function InteractiveShowcase({
                             <SportsFrameArt
                               lensColor={v.lensColor}
                               frameColor={v.frameColor}
-                              className="w-full h-full object-contain p-1"
+                              className="w-full h-full object-contain p-2"
                             />
                           ) : (
                             <FrameArt
                               solar={selectedCategory === "solar"}
                               amber={v.isAmber}
                               round={v.isRound}
-                              className="w-full h-full object-contain p-1"
+                              className="w-full h-full object-contain p-2"
                             />
                           )}
                         </div>
