@@ -129,15 +129,15 @@ export function FrameComparator({
       {/* Título & Instrução */}
       <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-4">
         <div>
-          <span className="text-[10px] uppercase font-bold tracking-widest text-amber-700 flex items-center gap-1.5">
+          <span className="text-xs uppercase font-bold tracking-widest text-amber-700 flex items-center gap-1.5">
             <SlidersHorizontal size={12} className="text-amber-600" />
             Ferramenta Interativa
           </span>
-          <h3 className="text-base sm:text-lg font-semibold text-slate-900 tracking-tight mt-0.5">
+          <h3 className="text-lg sm:text-xl font-semibold text-slate-900 tracking-tight mt-0.5">
             Compare com a sua armação atual
           </h3>
-          <p className="text-xs text-slate-600 mt-1 max-w-xl">
-            Pegue um óculos que você já usa e confira os 3 números gravados na parte interna da haste (ex: <strong className="font-mono text-slate-800">52 · 18 · 145</strong>).
+          <p className="text-sm sm:text-base text-slate-700 mt-1 max-w-xl leading-relaxed">
+            Pegue um óculos que você já usa e confira os 3 números gravados na parte interna da haste (ex: <strong className="font-mono text-slate-900">52 · 18 · 145</strong>). Digite cada número no campo correspondente.
           </p>
         </div>
 
@@ -150,7 +150,7 @@ export function FrameComparator({
               setUserBridge("");
               setUserTemple("");
             }}
-            className="inline-flex items-center gap-1.5 text-xs text-slate-500 hover:text-amber-700 transition-colors self-start py-1"
+            className="inline-flex items-center gap-1.5 min-h-[44px] px-3 text-sm font-medium text-slate-600 hover:text-amber-700 transition-colors motion-reduce:transition-none self-start"
           >
             <RefreshCw size={12} /> Limpar
           </button>
@@ -159,10 +159,10 @@ export function FrameComparator({
 
       {/* Inputs dos 3 Números */}
       <div className="space-y-3">
-        <div className="grid grid-cols-3 gap-3">
+        <div className="grid grid-cols-1 min-[480px]:grid-cols-3 gap-3.5">
           <div>
-            <label htmlFor="user-lens" className="block text-[11px] font-bold uppercase tracking-wider text-slate-700 mb-1">
-              Lente (mm)
+            <label htmlFor="user-lens" className="block text-sm font-bold text-slate-800 mb-1.5">
+              1º número · Lente <span className="font-normal text-slate-500">(mm)</span>
             </label>
             <input
               id="user-lens"
@@ -172,13 +172,14 @@ export function FrameComparator({
               placeholder="ex: 50"
               value={userLens}
               onChange={(e) => setUserLens(e.target.value)}
-              className="w-full px-3 py-2 text-sm font-mono text-center rounded-xl bg-white border border-slate-300 focus:outline-none focus:ring-2 focus:ring-amber-500 focus:border-amber-500 shadow-sm"
+              inputMode="numeric"
+              className="w-full min-h-[52px] px-3 py-2.5 text-xl font-mono text-center rounded-xl bg-white border border-slate-300 focus:outline-none focus:ring-2 focus:ring-amber-500 focus:border-amber-500 shadow-sm"
             />
           </div>
 
           <div>
-            <label htmlFor="user-bridge" className="block text-[11px] font-bold uppercase tracking-wider text-slate-700 mb-1">
-              Ponte (mm)
+            <label htmlFor="user-bridge" className="block text-sm font-bold text-slate-800 mb-1.5">
+              2º número · Ponte <span className="font-normal text-slate-500">(mm)</span>
             </label>
             <input
               id="user-bridge"
@@ -188,13 +189,14 @@ export function FrameComparator({
               placeholder="ex: 18"
               value={userBridge}
               onChange={(e) => setUserBridge(e.target.value)}
-              className="w-full px-3 py-2 text-sm font-mono text-center rounded-xl bg-white border border-slate-300 focus:outline-none focus:ring-2 focus:ring-amber-500 focus:border-amber-500 shadow-sm"
+              inputMode="numeric"
+              className="w-full min-h-[52px] px-3 py-2.5 text-xl font-mono text-center rounded-xl bg-white border border-slate-300 focus:outline-none focus:ring-2 focus:ring-amber-500 focus:border-amber-500 shadow-sm"
             />
           </div>
 
           <div>
-            <label htmlFor="user-temple" className="block text-[11px] font-bold uppercase tracking-wider text-slate-700 mb-1">
-              Haste (mm)
+            <label htmlFor="user-temple" className="block text-sm font-bold text-slate-800 mb-1.5">
+              3º número · Haste <span className="font-normal text-slate-500">(mm)</span>
             </label>
             <input
               id="user-temple"
@@ -204,32 +206,33 @@ export function FrameComparator({
               placeholder="ex: 140"
               value={userTemple}
               onChange={(e) => setUserTemple(e.target.value)}
-              className="w-full px-3 py-2 text-sm font-mono text-center rounded-xl bg-white border border-slate-300 focus:outline-none focus:ring-2 focus:ring-amber-500 focus:border-amber-500 shadow-sm"
+              inputMode="numeric"
+              className="w-full min-h-[52px] px-3 py-2.5 text-xl font-mono text-center rounded-xl bg-white border border-slate-300 focus:outline-none focus:ring-2 focus:ring-amber-500 focus:border-amber-500 shadow-sm"
             />
           </div>
         </div>
 
         {/* Sugestões Rápidas de Presets */}
-        <div className="flex items-center gap-2 flex-wrap text-[11px] text-slate-500 pt-1">
-          <span className="font-medium text-slate-600">Modelos comuns:</span>
+        <div className="flex items-center gap-2.5 flex-wrap text-sm text-slate-600 pt-1">
+          <span className="font-medium text-slate-700 w-full sm:w-auto">Sem um óculos à mão? Toque em um tamanho comum:</span>
           <button
             type="button"
             onClick={() => applyPreset(49, 18, 140)}
-            className="px-2.5 py-1 bg-white hover:bg-amber-100/60 border border-slate-200 rounded-lg text-slate-700 font-mono transition-colors"
+            className="min-h-[44px] px-3.5 py-2 bg-white hover:bg-amber-100/60 border border-slate-300 rounded-xl text-sm text-slate-800 font-mono transition-colors motion-reduce:transition-none"
           >
             Pequeno (49 · 18 · 140)
           </button>
           <button
             type="button"
             onClick={() => applyPreset(52, 18, 145)}
-            className="px-2.5 py-1 bg-white hover:bg-amber-100/60 border border-slate-200 rounded-lg text-slate-700 font-mono transition-colors"
+            className="min-h-[44px] px-3.5 py-2 bg-white hover:bg-amber-100/60 border border-slate-300 rounded-xl text-sm text-slate-800 font-mono transition-colors motion-reduce:transition-none"
           >
             Médio (52 · 18 · 145)
           </button>
           <button
             type="button"
             onClick={() => applyPreset(55, 19, 150)}
-            className="px-2.5 py-1 bg-white hover:bg-amber-100/60 border border-slate-200 rounded-lg text-slate-700 font-mono transition-colors"
+            className="min-h-[44px] px-3.5 py-2 bg-white hover:bg-amber-100/60 border border-slate-300 rounded-xl text-sm text-slate-800 font-mono transition-colors motion-reduce:transition-none"
           >
             Grande (55 · 19 · 150)
           </button>
@@ -240,10 +243,10 @@ export function FrameComparator({
       {comparisonResults && comparisonResults.length > 0 ? (
         <div className="space-y-4 pt-3 border-t border-amber-200/80">
           <div className="flex items-center justify-between">
-            <span className="text-xs font-bold text-slate-900 uppercase tracking-wider flex items-center gap-1.5">
+            <span className="text-sm font-bold text-slate-900 uppercase tracking-wider flex items-center gap-1.5">
               <Sparkles size={14} className="text-amber-600" /> Diagnóstico de Caimento
             </span>
-            <span className="text-[11px] text-slate-500">
+            <span className="text-sm text-slate-600">
               Comparando com <strong>{currentModelName}</strong>
             </span>
           </div>
@@ -256,14 +259,14 @@ export function FrameComparator({
               >
                 <div className="mt-0.5 shrink-0">
                   {item.type === "exact" ? (
-                    <CheckCircle2 size={16} className="text-emerald-600" />
+                    <CheckCircle2 size={20} className="text-emerald-600" />
                   ) : (
-                    <Info size={16} className="text-amber-600" />
+                    <Info size={20} className="text-amber-600" />
                   )}
                 </div>
                 <div>
-                  <h4 className="text-xs font-bold text-slate-900">{item.title}</h4>
-                  <p className="text-xs text-slate-600 mt-0.5 leading-relaxed">{item.desc}</p>
+                  <h4 className="text-sm sm:text-base font-bold text-slate-900">{item.title}</h4>
+                  <p className="text-sm text-slate-700 mt-0.5 leading-relaxed">{item.desc}</p>
                 </div>
               </div>
             ))}
@@ -358,7 +361,7 @@ export function FrameComparator({
         </div>
       ) : (
         <div className="p-3.5 bg-white/70 rounded-2xl border border-dashed border-amber-300/80 text-center">
-          <p className="text-xs text-slate-600">
+          <p className="text-sm sm:text-base text-slate-700">
             Digite um ou mais números acima para ver a comparação visual de tamanho e caimento.
           </p>
         </div>

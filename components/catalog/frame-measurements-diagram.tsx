@@ -12,6 +12,42 @@ export interface FrameMeasurementsProps {
   onDimensionSelect?: (dim: "frame" | "lens" | "height" | "bridge" | "temple") => void;
 }
 
+type Dimension = "frame" | "lens" | "height" | "bridge" | "temple";
+
+// Explicações em linguagem simples (sem mudar nenhuma medida; apenas ajuda a entender o desenho)
+const DIMENSION_HELP: Record<Dimension, { name: string; text: string; dot: string; border: string }> = {
+  frame: {
+    name: "Largura Frontal",
+    text: "É o tamanho total da frente da armação, de uma ponta à outra. Mostra se ela vai ficar mais justa ou mais folgada nas laterais do rosto.",
+    dot: "bg-amber-400",
+    border: "border-amber-400/50",
+  },
+  lens: {
+    name: "Largura da Lente",
+    text: "É o tamanho de cada aro, de ponta a ponta. Quanto maior, mais espaço para enxergar.",
+    dot: "bg-sky-400",
+    border: "border-sky-400/50",
+  },
+  height: {
+    name: "Altura da Lente",
+    text: "É o tamanho do aro de cima até embaixo. É importante principalmente para quem usa lentes multifocais.",
+    dot: "bg-pink-400",
+    border: "border-pink-400/50",
+  },
+  bridge: {
+    name: "Ponte Nasal",
+    text: "É o espaço entre os dois aros, onde a armação apoia no nariz. Ajuda a evitar que os óculos escorreguem ou marquem.",
+    dot: "bg-emerald-400",
+    border: "border-emerald-400/50",
+  },
+  temple: {
+    name: "Comprimento da Haste",
+    text: "É o tamanho da \"perna\" dos óculos, até a curva que fica atrás da orelha.",
+    dot: "bg-amber-400",
+    border: "border-amber-400/50",
+  },
+};
+
 export function FrameMeasurementsDiagram({
   lensWidthMm,
   bridgeMm,
@@ -22,20 +58,31 @@ export function FrameMeasurementsDiagram({
   onDimensionSelect,
 }: FrameMeasurementsProps) {
   const [activeTab, setActiveTab] = useState<"front" | "side">("front");
+  const [selected, setSelected] = useState<Dimension | null>(null);
+
+  // A medida em destaque pode vir de fora (props) ou do toque da pessoa no próprio guia
+  const active = highlightedDimension ?? selected;
+
+  const handleSelect = (dim: Dimension) => {
+    setSelected((prev) => (prev === dim ? null : dim));
+    // Leva a pessoa para a vista onde essa medida aparece
+    setActiveTab(dim === "temple" ? "side" : "front");
+    onDimensionSelect?.(dim);
+  };
 
   return (
     <div className="w-full bg-slate-900 text-slate-100 rounded-3xl p-5 sm:p-7 border border-slate-800 shadow-xl overflow-hidden">
       {/* Cabeçalho Técnico */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-4 border-b border-slate-800">
         <div>
-          <span className="text-[10px] uppercase font-bold tracking-widest text-amber-400">
+          <span className="text-xs uppercase font-bold tracking-widest text-amber-400">
             Diagrama Técnico de Medidas
           </span>
-          <h3 className="text-base sm:text-lg font-semibold text-white tracking-tight">
+          <h3 className="text-lg sm:text-xl font-semibold text-white tracking-tight">
             Guia Visual de Medição Anatômica
           </h3>
-          <p className="text-xs text-slate-400 mt-0.5">
-            Medidas reais aferidas em milímetros para referência de caimento facial.
+          <p className="text-sm text-slate-300 mt-1 max-w-xl leading-relaxed">
+            Medidas reais em milímetros. Toque em uma medida abaixo para ver onde ela fica no desenho e o que significa.
           </p>
         </div>
 
@@ -43,25 +90,27 @@ export function FrameMeasurementsDiagram({
         <div className="inline-flex p-1 bg-slate-800/90 rounded-xl border border-slate-700/60 self-start sm:self-auto">
           <button
             type="button"
+            aria-pressed={activeTab === "front"}
             onClick={() => setActiveTab("front")}
-            className={`px-3.5 py-1.5 rounded-lg text-xs font-semibold transition-all ${
+            className={`min-h-[44px] px-4 py-2 rounded-lg text-sm font-semibold transition-all motion-reduce:transition-none ${
               activeTab === "front"
                 ? "bg-amber-400 text-slate-950 shadow-sm"
                 : "text-slate-300 hover:text-white"
             }`}
           >
-            Vista Frontal (4 cotas)
+            De frente
           </button>
           <button
             type="button"
+            aria-pressed={activeTab === "side"}
             onClick={() => setActiveTab("side")}
-            className={`px-3.5 py-1.5 rounded-lg text-xs font-semibold transition-all ${
+            className={`min-h-[44px] px-4 py-2 rounded-lg text-sm font-semibold transition-all motion-reduce:transition-none ${
               activeTab === "side"
                 ? "bg-amber-400 text-slate-950 shadow-sm"
                 : "text-slate-300 hover:text-white"
             }`}
           >
-            Vista Lateral (Haste)
+            De lado (haste)
           </button>
         </div>
       </div>
@@ -92,14 +141,14 @@ export function FrameMeasurementsDiagram({
               {frameWidthMm && (
                 <g
                   className="cursor-pointer transition-opacity"
-                  onClick={() => onDimensionSelect?.("frame")}
-                  opacity={!highlightedDimension || highlightedDimension === "frame" ? 1 : 0.4}
+                  onClick={() => handleSelect("frame")}
+                  opacity={!active || active === "frame" ? 1 : 0.4}
                 >
                   <line x1="60" y1="30" x2="440" y2="30" stroke="#FBBF24" strokeWidth="1.5" markerStart="url(#arrow)" markerEnd="url(#arrow)" />
                   <line x1="60" y1="20" x2="60" y2="60" stroke="#FBBF24" strokeWidth="1" strokeDasharray="3 3" opacity="0.6" />
                   <line x1="440" y1="20" x2="440" y2="60" stroke="#FBBF24" strokeWidth="1" strokeDasharray="3 3" opacity="0.6" />
-                  <rect x="200" y="18" width="100" height="24" rx="12" fill="#0F172A" stroke="#FBBF24" strokeWidth="1" />
-                  <text x="250" y="34" fill="#FBBF24" fontSize="11" fontWeight="bold" textAnchor="middle">
+                  <rect x="185" y="16" width="130" height="28" rx="14" fill="#0F172A" stroke="#FBBF24" strokeWidth="1" />
+                  <text x="250" y="35" fill="#FBBF24" fontSize="14" fontWeight="bold" textAnchor="middle">
                     Frontal: {frameWidthMm} mm
                   </text>
                 </g>
@@ -134,14 +183,14 @@ export function FrameMeasurementsDiagram({
               {lensWidthMm && (
                 <g
                   className="cursor-pointer transition-opacity"
-                  onClick={() => onDimensionSelect?.("lens")}
-                  opacity={!highlightedDimension || highlightedDimension === "lens" ? 1 : 0.4}
+                  onClick={() => handleSelect("lens")}
+                  opacity={!active || active === "lens" ? 1 : 0.4}
                 >
                   <line x1="300" y1="180" x2="420" y2="180" stroke="#38BDF8" strokeWidth="1.5" markerStart="url(#arrow)" markerEnd="url(#arrow)" />
                   <line x1="300" y1="155" x2="300" y2="188" stroke="#38BDF8" strokeWidth="1" strokeDasharray="2 2" opacity="0.6" />
                   <line x1="420" y1="155" x2="420" y2="188" stroke="#38BDF8" strokeWidth="1" strokeDasharray="2 2" opacity="0.6" />
-                  <rect x="315" y="192" width="90" height="22" rx="11" fill="#0F172A" stroke="#38BDF8" strokeWidth="1" />
-                  <text x="360" y="207" fill="#38BDF8" fontSize="10" fontWeight="bold" textAnchor="middle">
+                  <rect x="304" y="190" width="112" height="26" rx="13" fill="#0F172A" stroke="#38BDF8" strokeWidth="1" />
+                  <text x="360" y="208" fill="#38BDF8" fontSize="13" fontWeight="bold" textAnchor="middle">
                     Lente: {lensWidthMm} mm
                   </text>
                 </g>
@@ -151,12 +200,12 @@ export function FrameMeasurementsDiagram({
               {bridgeMm && (
                 <g
                   className="cursor-pointer transition-opacity"
-                  onClick={() => onDimensionSelect?.("bridge")}
-                  opacity={!highlightedDimension || highlightedDimension === "bridge" ? 1 : 0.4}
+                  onClick={() => handleSelect("bridge")}
+                  opacity={!active || active === "bridge" ? 1 : 0.4}
                 >
                   <line x1="210" y1="130" x2="290" y2="130" stroke="#34D399" strokeWidth="1.5" markerStart="url(#arrow)" markerEnd="url(#arrow)" />
-                  <rect x="215" y="142" width="70" height="20" rx="10" fill="#0F172A" stroke="#34D399" strokeWidth="1" />
-                  <text x="250" y="156" fill="#34D399" fontSize="10" fontWeight="bold" textAnchor="middle">
+                  <rect x="208" y="140" width="84" height="24" rx="12" fill="#0F172A" stroke="#34D399" strokeWidth="1" />
+                  <text x="250" y="157" fill="#34D399" fontSize="12" fontWeight="bold" textAnchor="middle">
                     Ponte: {bridgeMm} mm
                   </text>
                 </g>
@@ -166,14 +215,14 @@ export function FrameMeasurementsDiagram({
               {lensHeightMm && (
                 <g
                   className="cursor-pointer transition-opacity"
-                  onClick={() => onDimensionSelect?.("height")}
-                  opacity={!highlightedDimension || highlightedDimension === "height" ? 1 : 0.4}
+                  onClick={() => handleSelect("height")}
+                  opacity={!active || active === "height" ? 1 : 0.4}
                 >
                   <line x1="40" y1="80" x2="40" y2="150" stroke="#F472B6" strokeWidth="1.5" markerStart="url(#arrow)" markerEnd="url(#arrow)" />
                   <line x1="32" y1="80" x2="75" y2="80" stroke="#F472B6" strokeWidth="1" strokeDasharray="2 2" opacity="0.6" />
                   <line x1="32" y1="150" x2="75" y2="150" stroke="#F472B6" strokeWidth="1" strokeDasharray="2 2" opacity="0.6" />
-                  <rect x="2" y="103" width="76" height="22" rx="11" fill="#0F172A" stroke="#F472B6" strokeWidth="1" />
-                  <text x="40" y="118" fill="#F472B6" fontSize="9" fontWeight="bold" textAnchor="middle">
+                  <rect x="2" y="102" width="76" height="24" rx="12" fill="#0F172A" stroke="#F472B6" strokeWidth="1" />
+                  <text x="40" y="119" fill="#F472B6" fontSize="11" fontWeight="bold" textAnchor="middle">
                     Alt: {lensHeightMm} mm
                   </text>
                 </g>
@@ -223,14 +272,14 @@ export function FrameMeasurementsDiagram({
               {templeMm && (
                 <g
                   className="cursor-pointer transition-opacity"
-                  onClick={() => onDimensionSelect?.("temple")}
-                  opacity={!highlightedDimension || highlightedDimension === "temple" ? 1 : 0.4}
+                  onClick={() => handleSelect("temple")}
+                  opacity={!active || active === "temple" ? 1 : 0.4}
                 >
                   <line x1="75" y1="165" x2="435" y2="165" stroke="#FBBF24" strokeWidth="1.5" markerStart="url(#arrow)" markerEnd="url(#arrow)" />
                   <line x1="75" y1="65" x2="75" y2="175" stroke="#FBBF24" strokeWidth="1" strokeDasharray="3 3" opacity="0.6" />
                   <line x1="435" y1="140" x2="435" y2="175" stroke="#FBBF24" strokeWidth="1" strokeDasharray="3 3" opacity="0.6" />
-                  <rect x="200" y="152" width="110" height="26" rx="13" fill="#0F172A" stroke="#FBBF24" strokeWidth="1" />
-                  <text x="255" y="169" fill="#FBBF24" fontSize="11" fontWeight="bold" textAnchor="middle">
+                  <rect x="185" y="150" width="140" height="30" rx="15" fill="#0F172A" stroke="#FBBF24" strokeWidth="1" />
+                  <text x="255" y="170" fill="#FBBF24" fontSize="14" fontWeight="bold" textAnchor="middle">
                     Haste: {templeMm} mm
                   </text>
                 </g>
@@ -240,42 +289,63 @@ export function FrameMeasurementsDiagram({
         )}
       </div>
 
-      {/* Legenda Resumida das Cotas Reais */}
-      <div className="grid grid-cols-2 sm:grid-cols-5 gap-2 pt-4 border-t border-slate-800 text-center">
-        <div className={`p-2 rounded-xl border transition-colors ${frameWidthMm ? "bg-slate-800/60 border-slate-700/80" : "opacity-40 border-slate-800"}`}>
-          <span className="text-[10px] text-slate-400 block font-medium">Largura Frontal</span>
-          <span className="text-xs font-bold font-mono text-amber-300">
-            {frameWidthMm ? `${frameWidthMm} mm` : "Não aferido"}
-          </span>
-        </div>
+      {/* Explicação em linguagem simples da medida tocada */}
+      <div
+        aria-live="polite"
+        className={`mb-4 rounded-2xl border bg-slate-800/60 p-3.5 sm:p-4 text-sm sm:text-base leading-relaxed ${
+          active ? DIMENSION_HELP[active].border : "border-slate-700/70"
+        }`}
+      >
+        {active ? (
+          <p className="text-slate-100">
+            <span className="inline-flex items-center gap-2 font-bold text-white">
+              <span className={`size-2.5 rounded-full ${DIMENSION_HELP[active].dot}`} aria-hidden="true" />
+              {DIMENSION_HELP[active].name}:
+            </span>{" "}
+            {DIMENSION_HELP[active].text}
+          </p>
+        ) : (
+          <p className="text-slate-300">
+            <span aria-hidden="true">👇 </span>
+            Toque em uma das medidas abaixo para ver o que ela significa.
+          </p>
+        )}
+      </div>
 
-        <div className={`p-2 rounded-xl border transition-colors ${lensWidthMm ? "bg-slate-800/60 border-slate-700/80" : "opacity-40 border-slate-800"}`}>
-          <span className="text-[10px] text-slate-400 block font-medium">Largura da Lente</span>
-          <span className="text-xs font-bold font-mono text-sky-300">
-            {lensWidthMm ? `${lensWidthMm} mm` : "Não aferido"}
-          </span>
-        </div>
-
-        <div className={`p-2 rounded-xl border transition-colors ${lensHeightMm ? "bg-slate-800/60 border-slate-700/80" : "opacity-40 border-slate-800"}`}>
-          <span className="text-[10px] text-slate-400 block font-medium">Altura da Lente</span>
-          <span className="text-xs font-bold font-mono text-pink-300">
-            {lensHeightMm ? `${lensHeightMm} mm` : "Não aferido"}
-          </span>
-        </div>
-
-        <div className={`p-2 rounded-xl border transition-colors ${bridgeMm ? "bg-slate-800/60 border-slate-700/80" : "opacity-40 border-slate-800"}`}>
-          <span className="text-[10px] text-slate-400 block font-medium">Ponte Nasal</span>
-          <span className="text-xs font-bold font-mono text-emerald-300">
-            {bridgeMm ? `${bridgeMm} mm` : "Não aferido"}
-          </span>
-        </div>
-
-        <div className={`p-2 rounded-xl border transition-colors ${templeMm ? "bg-slate-800/60 border-slate-700/80" : "opacity-40 border-slate-800"}`}>
-          <span className="text-[10px] text-slate-400 block font-medium">Comprimento Haste</span>
-          <span className="text-xs font-bold font-mono text-amber-300">
-            {templeMm ? `${templeMm} mm` : "Não aferido"}
-          </span>
-        </div>
+      {/* Legenda Resumida das Cotas Reais (cada cartão é um botão que destaca a medida no desenho) */}
+      <div className="grid grid-cols-2 sm:grid-cols-5 gap-2.5 pt-4 border-t border-slate-800 text-center">
+        {(
+          [
+            { dim: "frame", label: "Largura Frontal", value: frameWidthMm, color: "text-amber-300" },
+            { dim: "lens", label: "Largura da Lente", value: lensWidthMm, color: "text-sky-300" },
+            { dim: "height", label: "Altura da Lente", value: lensHeightMm, color: "text-pink-300" },
+            { dim: "bridge", label: "Ponte Nasal", value: bridgeMm, color: "text-emerald-300" },
+            { dim: "temple", label: "Comprimento Haste", value: templeMm, color: "text-amber-300" },
+          ] as { dim: Dimension; label: string; value?: number | null; color: string }[]
+        ).map(({ dim, label, value, color }) => {
+          const isActive = active === dim;
+          return (
+            <button
+              key={dim}
+              type="button"
+              disabled={!value}
+              aria-pressed={isActive}
+              onClick={() => handleSelect(dim)}
+              className={`min-h-[64px] p-2.5 rounded-xl border transition-colors motion-reduce:transition-none focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-400 ${
+                value
+                  ? isActive
+                    ? "bg-slate-700 border-amber-400"
+                    : "bg-slate-800/60 border-slate-700/80 hover:bg-slate-800"
+                  : "opacity-40 border-slate-800 cursor-not-allowed"
+              } ${dim === "temple" ? "col-span-2 sm:col-span-1" : ""}`}
+            >
+              <span className="text-xs text-slate-300 block font-medium">{label}</span>
+              <span className={`text-sm sm:text-base font-bold font-mono ${color}`}>
+                {value ? `${value} mm` : "Não aferido"}
+              </span>
+            </button>
+          );
+        })}
       </div>
     </div>
   );
