@@ -27,6 +27,7 @@ import {
   Sparkles,
   Eye,
   Radio,
+  FileText,
 } from "lucide-react";
 import { BrandLogo } from "@/components/ui/brand-logo";
 import { createClient } from "../../lib/supabase/client";
@@ -106,6 +107,7 @@ export function AdminHeader() {
     { href: "/admin/pedidos", label: "Pedidos", icon: ShoppingCart, minRole: "editor", group: "store" },
     { href: "/admin/pagamentos", label: "Pagamentos", icon: CreditCard, minRole: "admin", group: "store" },
     { href: "/admin/entrega", label: "Entrega", icon: Truck, minRole: "admin", group: "store" },
+    { href: "/admin/conteudo", label: "Conteúdo do Site", icon: FileText, minRole: "editor", group: "store" },
     { href: "/admin/banners", label: "Banners", icon: ImageIcon, minRole: "admin", group: "store" },
     { href: "/admin/live", label: "Ao Vivo (Live)", icon: Radio, minRole: "editor", group: "store" },
     { href: "/admin/promocoes/roleta", label: "Roleta Promocional", icon: Sparkles, minRole: "admin", group: "store" },
