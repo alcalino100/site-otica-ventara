@@ -14,11 +14,11 @@ export default function AdminDashboardLayout({
   children: React.ReactNode;
 }) {
   return (
-    <div className="min-h-screen bg-[#030c13] text-slate-100 flex flex-col font-sans selection:bg-amber-400 selection:text-slate-950">
+    <div className="admin-area min-h-screen bg-[#030c13] text-slate-100 flex flex-col font-sans selection:bg-amber-400 selection:text-slate-950">
       <AdminHeader />
-      <main className="flex-1 max-w-[1400px] w-full mx-auto px-4 sm:px-8 lg:px-10 py-8 sm:py-10">
+      <main className="flex-1 max-w-[1400px] w-full mx-auto px-4 sm:px-8 lg:px-10 py-5 sm:py-6">
         {/* Breadcrumb de localização — oculto na raiz /admin */}
-        <AdminBreadcrumb className="mb-5" />
+        <AdminBreadcrumb className="mb-4" />
         {children}
       </main>
       <footer className="border-t border-white/5 py-6 bg-[#02070c] text-xs text-slate-400">
