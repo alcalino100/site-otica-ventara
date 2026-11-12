@@ -1,8 +1,7 @@
 "use client";
 
-import React, { useState, useRef, useCallback } from "react";
+import React, { useState } from "react";
 import Link from "next/link";
-import { ChevronLeft, ChevronRight } from "lucide-react";
 
 export interface GalleryImage {
   id?: string;
@@ -24,8 +23,10 @@ interface CardImageGalleryProps {
 }
 
 /**
- * Galeria tátil para cards de catálogo com zona morta independente nas setas,
- * gesto swipe com touch-action: pan-y e isolamento de zoom restrito a desktop.
+ * Visualizador de imagem para cards de produto:
+ * - Exibe a foto do modelo com enquadramento proporcional sem setas invasivas sobre a armação
+ * - Exibe o contador numérico de fotos ("1/3", "1/4") no canto
+ * - Preserva o scroll horizontal nativo em carrosséis no mobile (sem touch-action restritivo)
  */
 export function CardImageGallery({
   images = [],
@@ -36,7 +37,6 @@ export function CardImageGallery({
   imageFit = "cover",
   fallbackArt,
   className = "",
-  showDots = true,
 }: CardImageGalleryProps) {
   // Constrói lista única de imagens válidas
   const validImages: GalleryImage[] = React.useMemo(() => {
@@ -54,100 +54,27 @@ export function CardImageGallery({
     return list;
   }, [images, fallbackUrl, productName]);
 
-  const [currentIndex, setCurrentIndex] = useState<number>(0);
   const [imgErrors, setImgErrors] = useState<Record<string, boolean>>({});
 
-  // Gestos de toque para mobile swipe
-  const touchStartPos = useRef<{ x: number; y: number } | null>(null);
-  const isSwipingRef = useRef<boolean>(false);
-  const blockClickUntilRef = useRef<number>(0);
-
   const hasMultiple = validImages.length > 1;
-  const currentImg = validImages[currentIndex];
-
-  const handlePrev = useCallback(() => {
-    if (!hasMultiple) return;
-    setCurrentIndex((prev) => (prev > 0 ? prev - 1 : validImages.length - 1));
-  }, [hasMultiple, validImages.length]);
-
-  const handleNext = useCallback(() => {
-    if (!hasMultiple) return;
-    setCurrentIndex((prev) => (prev < validImages.length - 1 ? prev + 1 : 0));
-  }, [hasMultiple, validImages.length]);
-
-  const onTouchStart = (e: React.TouchEvent<HTMLDivElement>) => {
-    if (e.touches.length === 1) {
-      touchStartPos.current = {
-        x: e.touches[0].clientX,
-        y: e.touches[0].clientY,
-      };
-      isSwipingRef.current = false;
-    }
-  };
-
-  const onTouchMove = (e: React.TouchEvent<HTMLDivElement>) => {
-    if (!touchStartPos.current || e.touches.length !== 1) return;
-    const dx = e.touches[0].clientX - touchStartPos.current.x;
-    const dy = e.touches[0].clientY - touchStartPos.current.y;
-
-    // Se o movimento horizontal for dominante, sinaliza intenção de swipe
-    if (Math.abs(dx) > Math.abs(dy) && Math.abs(dx) > 12) {
-      isSwipingRef.current = true;
-    }
-  };
-
-  const onTouchEnd = (e: React.TouchEvent<HTMLDivElement>) => {
-    if (!touchStartPos.current) return;
-    const changedTouch = e.changedTouches[0];
-    const dx = changedTouch.clientX - touchStartPos.current.x;
-    const dy = changedTouch.clientY - touchStartPos.current.y;
-
-    const minSwipeDistance = 35;
-
-    if (isSwipingRef.current && Math.abs(dx) > minSwipeDistance && Math.abs(dx) > Math.abs(dy) * 1.2) {
-      // Bloqueia clique sintético gerado pelo fim do toque
-      blockClickUntilRef.current = Date.now() + 350;
-      if (dx < 0) {
-        handleNext();
-      } else {
-        handlePrev();
-      }
-    }
-
-    touchStartPos.current = null;
-    isSwipingRef.current = false;
-  };
-
-  const handleLinkClick = (e: React.MouseEvent<HTMLAnchorElement>) => {
-    if (Date.now() < blockClickUntilRef.current) {
-      e.preventDefault();
-      e.stopPropagation();
-    }
-  };
-
+  const currentImg = validImages[0];
   const isCurrentFailed = currentImg ? imgErrors[currentImg.url] : true;
 
   return (
     <div
-      className={`relative w-full ${aspectRatio} rounded-2xl overflow-hidden select-none touch-pan-y group/gallery ${className}`}
-      onTouchStart={onTouchStart}
-      onTouchMove={onTouchMove}
-      onTouchEnd={onTouchEnd}
-      style={{ touchAction: "pan-y" }}
+      className={`relative w-full ${aspectRatio} rounded-2xl overflow-hidden select-none group/gallery ${className}`}
     >
-      {/* 1. Área central de toque que abre o produto (sem zoom no mobile) */}
+      {/* 1. Link direto para o produto */}
       <Link
         href={productHref}
-        onClick={handleLinkClick}
         className="absolute inset-0 z-0 block w-full h-full cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-amber-400"
         aria-label={`Ver detalhes do modelo ${productName}`}
-        tabIndex={0}
       >
         {currentImg?.url && !isCurrentFailed ? (
           /* eslint-disable-next-line @next/next/no-img-element */
           <img
             src={currentImg.url}
-            alt={currentImg.alt_text || `${productName} foto ${currentIndex + 1}`}
+            alt={currentImg.alt_text || `${productName} foto`}
             onError={() => {
               if (currentImg.url) {
                 setImgErrors((prev) => ({ ...prev, [currentImg.url]: true }));
@@ -157,7 +84,7 @@ export function CardImageGallery({
             className={`w-full h-full group-hover-zoom-desktop transition-transform duration-500 ease-out ${
               imageFit === "contain"
                 ? "object-contain p-2 drop-shadow-sm"
-                : "object-cover object-[center_25%]"
+                : "object-cover object-[center_68%]"
             }`}
           />
         ) : fallbackArt ? (
@@ -171,76 +98,13 @@ export function CardImageGallery({
         )}
       </Link>
 
-      {/* 2. Setas no Desktop: Ocultas no celular (arraste por swipe sem cobrir o produto), exibidas apenas com hover no desktop */}
-      {hasMultiple && (
-        <div className="hidden md:flex pointer-events-none absolute inset-y-0 inset-x-1 z-20 items-center justify-between opacity-0 group-hover/gallery:opacity-100 transition-opacity duration-200">
-          {/* Seta Esquerda (Anterior) */}
-          <button
-            type="button"
-            data-testid="card-gallery-prev"
-            aria-label={`Ver foto anterior de ${productName}`}
-            className="pointer-events-auto min-w-[44px] min-h-[44px] w-11 h-11 flex items-center justify-center rounded-full bg-black/55 hover:bg-black/85 active:scale-95 text-white backdrop-blur-md transition-all border border-white/25 shadow-md touch-manipulation cursor-pointer"
-            onClick={(e) => {
-              e.preventDefault();
-              e.stopPropagation();
-              handlePrev();
-            }}
-            onTouchStart={(e) => e.stopPropagation()}
-            onTouchEnd={(e) => {
-              e.preventDefault();
-              e.stopPropagation();
-              handlePrev();
-            }}
-          >
-            <ChevronLeft size={18} className="text-white" />
-          </button>
-
-          {/* Seta Direita (Próxima) */}
-          <button
-            type="button"
-            data-testid="card-gallery-next"
-            aria-label={`Ver próxima foto de ${productName}`}
-            className="pointer-events-auto min-w-[44px] min-h-[44px] w-11 h-11 flex items-center justify-center rounded-full bg-black/55 hover:bg-black/85 active:scale-95 text-white backdrop-blur-md transition-all border border-white/25 shadow-md touch-manipulation cursor-pointer"
-            onClick={(e) => {
-              e.preventDefault();
-              e.stopPropagation();
-              handleNext();
-            }}
-            onTouchStart={(e) => e.stopPropagation()}
-            onTouchEnd={(e) => {
-              e.preventDefault();
-              e.stopPropagation();
-              handleNext();
-            }}
-          >
-            <ChevronRight size={18} className="text-white" />
-          </button>
-        </div>
-      )}
-
-      {/* 3. Indicador de Posição / Contador de Fotos (abaixo da área central da armação) */}
+      {/* 2. Indicador Numérico de Fotos ("1/3", "1/4") - Sem setas invasivas sobre a armação */}
       {hasMultiple && (
         <div
           data-testid="card-gallery-counter"
           className="pointer-events-none absolute bottom-2 right-2 px-2 py-0.5 rounded-full bg-black/60 backdrop-blur-md text-white text-[10px] font-mono tracking-wider z-10 border border-white/15"
         >
-          {currentIndex + 1}/{validImages.length}
-        </div>
-      )}
-
-      {/* 4. Dots discretos (opcional) */}
-      {hasMultiple && showDots && validImages.length <= 5 && (
-        <div className="pointer-events-none absolute bottom-2 left-1/2 -translate-x-1/2 z-20 flex items-center gap-1">
-          {validImages.map((_, idx) => (
-            <span
-              key={idx}
-              className={`h-1 rounded-full transition-all duration-300 ${
-                idx === currentIndex
-                  ? "w-3 bg-amber-400"
-                  : "w-1 bg-white/50"
-              }`}
-            />
-          ))}
+          1/{validImages.length}
         </div>
       )}
     </div>
