@@ -339,12 +339,18 @@ interface InteractiveShowcaseProps {
   onAddToCart?: (product: any) => void;
   onOpenCart?: (initialView?: "items" | "checkout") => void;
   onBuyNow?: (product: any) => void;
+  showcaseEyebrow?: string;
+  showcaseTitle?: string;
+  showcaseSubtitle?: string;
 }
 
 export function InteractiveShowcase({
   onAddToCart,
   onOpenCart,
   onBuyNow,
+  showcaseEyebrow,
+  showcaseTitle,
+  showcaseSubtitle,
 }: InteractiveShowcaseProps) {
   const [selectedCategory, setSelectedCategory] = useState<CategoryType>("solar");
   const [selectedGender, setSelectedGender] = useState<GenderType>("masculino");
@@ -468,19 +474,25 @@ export function InteractiveShowcase({
             {/* Tag Categoria */}
             <div className="flex items-center gap-2">
               <span className="text-[11px] font-bold tracking-[0.2em] text-[#0756b8] uppercase">
-                {currentData.heroCategoryTags}
+                {showcaseEyebrow || currentData.heroCategoryTags}
               </span>
             </div>
 
             {/* Headline com Destaque Dourado/Âmbar */}
             <h2 className="text-3xl sm:text-5xl lg:text-[3.25rem] font-bold text-[#06111f] tracking-tight leading-[1.12]">
-              {currentData.heroTitle}{" "}
-              <span className="text-amber-500 font-extrabold">{currentData.heroHighlight}</span>
+              {showcaseTitle ? (
+                showcaseTitle
+              ) : (
+                <>
+                  {currentData.heroTitle}{" "}
+                  <span className="text-amber-500 font-extrabold">{currentData.heroHighlight}</span>
+                </>
+              )}
             </h2>
 
             {/* Subtítulo Convidativo */}
             <p className="text-sm sm:text-base text-slate-600 leading-relaxed max-w-xl font-normal">
-              {currentData.heroDescription}
+              {showcaseSubtitle || currentData.heroDescription}
             </p>
 
             {/* SELETORES INTERATIVOS: LINHA (SOLAR / GRAU) & GÊNERO (MASCULINO / FEMININO) */}

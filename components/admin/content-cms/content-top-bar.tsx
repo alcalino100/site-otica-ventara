@@ -144,6 +144,7 @@ export function ContentTopBar({
             target="_blank"
             rel="noopener noreferrer"
             title="Abrir pré-visualização do rascunho em nova aba"
+            aria-label="Pré-visualizar rascunho"
             className="p-2 sm:px-3 sm:py-2 rounded-xl bg-sky-950/40 hover:bg-sky-900/50 border border-sky-500/30 text-sky-300 hover:text-sky-200 text-xs font-semibold flex items-center gap-1.5 transition-colors cursor-pointer"
           >
             <Eye size={14} />

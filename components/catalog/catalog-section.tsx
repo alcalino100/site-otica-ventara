@@ -26,6 +26,10 @@ interface CatalogSectionProps {
   onAddToCart: (product: Product) => void;
   cartIds: string[];
   isSearchOpen: boolean;
+  catalogEyebrow?: string;
+  catalogTitle?: string;
+  catalogTitleHighlight?: string;
+  catalogDescription?: string;
 }
 
 export function CatalogSection({
@@ -34,6 +38,10 @@ export function CatalogSection({
   onAddToCart,
   cartIds,
   isSearchOpen,
+  catalogEyebrow = "SELEÇÃO EDITORIAL VENTARA",
+  catalogTitle = "Escolhas que",
+  catalogTitleHighlight = "combinam com você.",
+  catalogDescription = "Explore nossa curadoria com modelos selecionados da loja física e catálogo digital. Experimente o equilíbrio ideal entre leveza, precisão e design atemporal.",
 }: CatalogSectionProps) {
   // Filtros de Estado
   const [filter, setFilter] = useState<string>("Todos");
@@ -251,13 +259,13 @@ export function CatalogSection({
         <div className="section-heading mb-10 flex flex-col md:flex-row md:items-end justify-between gap-6">
           <div>
             <p className="eyebrow text-xs font-semibold tracking-widest uppercase text-amber-600 mb-2 flex items-center gap-1.5">
-              <Sparkles size={14} /> SELEÇÃO EDITORIAL VENTARA
+              <Sparkles size={14} /> {catalogEyebrow}
             </p>
             <h2 className="text-3xl sm:text-5xl font-light text-slate-950 tracking-tight leading-tight">
-              Escolhas que <span className="font-semibold text-amber-500">combinam com você.</span>
+              {catalogTitle} <span className="font-semibold text-amber-500">{catalogTitleHighlight}</span>
             </h2>
             <p className="section-description text-xs sm:text-sm text-slate-600 max-w-xl mt-3 leading-relaxed">
-              Explore nossa curadoria com modelos selecionados da loja física e catálogo digital. Experimente o equilíbrio ideal entre leveza, precisão e design atemporal.
+              {catalogDescription}
             </p>
           </div>
           <span className="demo-label text-[11px] font-semibold tracking-wider uppercase text-slate-600 bg-white border border-slate-200 px-3.5 py-2 rounded-full shadow-xs self-start md:self-auto">

@@ -9,9 +9,13 @@ import { useSiteSettings } from "../providers/site-settings-provider";
 
 interface FooterProps {
   onOpenLegal?: (tab: "terms" | "privacy") => void;
+  cnpj?: string;
+  address?: string;
+  hours?: string;
+  copyright?: string;
 }
 
-export function Footer({ onOpenLegal }: FooterProps) {
+export function Footer({ onOpenLegal, cnpj, address, hours, copyright }: FooterProps) {
   const currentYear = new Date().getFullYear();
   const { identity, cleanWhatsAppNumber, paymentMethods } = useSiteSettings();
   const instaUrl = `https://instagram.com/${identity.instagram_handle.replace("@", "")}`;
@@ -147,7 +151,7 @@ export function Footer({ onOpenLegal }: FooterProps) {
               <p className="flex items-start gap-2">
                 <Clock size={15} className="text-amber-400 mt-0.5 flex-shrink-0" />
                 <span>
-                  {identity.business_hours}
+                  {hours || identity.business_hours}
                 </span>
               </p>
             </div>
@@ -162,10 +166,10 @@ export function Footer({ onOpenLegal }: FooterProps) {
                 <span>Atendimento Óptico Certificado</span>
               </p>
               <p className="text-[11px] text-slate-400 font-mono">
-                CNPJ: {identity.cnpj || "54.892.147/0001-30"}
+                CNPJ: {cnpj || identity.cnpj || "54.892.147/0001-30"}
               </p>
               <p className="text-[10px] text-slate-500">
-                Araçatuba-SP · Laboratório Óptico &amp; Técnico Responsável
+                {address || "Araçatuba-SP · Laboratório Óptico & Técnico Responsável"}
               </p>
               <div className="pt-2 flex flex-col gap-2">
                 <Link
@@ -250,7 +254,7 @@ export function Footer({ onOpenLegal }: FooterProps) {
 
         {/* Rodapé inferior com Copyright */}
         <div className="pt-8 flex flex-col sm:flex-row items-center justify-between text-xs text-slate-500 gap-4 text-center sm:text-left pr-14 sm:pr-0">
-          <p>© {currentYear} Ótica Ventara. Todos os direitos reservados.</p>
+          <p>{copyright || `© ${currentYear} Ótica Ventara. Todos os direitos reservados.`}</p>
           <p className="text-[11px] text-slate-500">
             Rua Princesa Isabel, 221, Centro, Araçatuba-SP · Presença Digital &amp; Loja Física
           </p>

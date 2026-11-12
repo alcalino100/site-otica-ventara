@@ -90,6 +90,46 @@ export async function getPageContent(
       }
     }
 
+    // Compatibilidade transparente: se for home, sincroniza valores existentes de site_settings
+    if (page === "home") {
+      try {
+        const { data: homeSettingsData } = await supabase
+          .from("site_settings")
+          .select("key, value")
+          .in("key", ["promotional_showcase", "interactive_showcase", "showcase_media", "identity"]);
+
+        if (homeSettingsData && homeSettingsData.length > 0) {
+          for (const row of homeSettingsData) {
+            if (row.key === "promotional_showcase" && row.value) {
+              const p = row.value as Record<string, any>;
+              if (p.pillText) defaults.offersBadge = p.pillText;
+              if (p.title) defaults.offersTitle = p.title;
+              if (p.subtitle) defaults.offersSubtitle = p.subtitle;
+              if (p.ctaText) defaults.offersAllLinkText = p.ctaText;
+            }
+            if (row.key === "interactive_showcase" && row.value) {
+              const it = row.value as Record<string, any>;
+              if (it.heroTitle) defaults.showcaseTitle = it.heroTitle;
+              if (it.heroDescription) defaults.showcaseSubtitle = it.heroDescription;
+            }
+            if (row.key === "showcase_media" && row.value) {
+              const m = row.value as Record<string, any>;
+              if (m.warrantyBannerDesktop) defaults.warrantyBannerDesktop = m.warrantyBannerDesktop;
+              if (m.warrantyBannerMobile) defaults.warrantyBannerMobile = m.warrantyBannerMobile;
+            }
+            if (row.key === "identity" && row.value) {
+              const idn = row.value as Record<string, any>;
+              if (idn.address_street) defaults.storeAddress = `${idn.address_street}, ${idn.address_number || ""} - ${idn.address_neighborhood || ""}, Araçatuba - SP`;
+              if (idn.contact_phone) defaults.storePhone = idn.contact_phone;
+              if (idn.business_hours) defaults.storeHours = idn.business_hours;
+            }
+          }
+        }
+      } catch (homeErr) {
+        console.warn("[ContentEngine] Aviso ao sincronizar configurações da Home:", homeErr);
+      }
+    }
+
     const { data, error } = await supabase
       .from("site_content")
       .select("key, value")
