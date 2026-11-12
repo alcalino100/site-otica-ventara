@@ -195,18 +195,26 @@ export function getBackgroundPreset(id?: string): BackgroundPresetMeta {
  * de configurações legadas (`optisync_page_settings`) ou padrões do preset.
  */
 export function resolveBackgroundConfig(
-  contentValues: Record<string, any> = {},
+  presetOrContent: string | Record<string, any> = {},
   fallbackSettings?: any
 ): PageBackgroundConfig {
-  // Determina o ID do preset
+  // Determina o ID do preset e os valores de conteúdo
   let presetId: BackgroundPresetId = "default";
+  let contentValues: Record<string, any> = {};
 
-  if (contentValues.backgroundPreset) {
-    presetId = contentValues.backgroundPreset as BackgroundPresetId;
-  } else if (fallbackSettings?.bgMode === "custom_image") {
-    presetId = "custom_image";
-  } else if (fallbackSettings?.bgMode === "code" || fallbackSettings?.gradientBaseFrom) {
-    presetId = "optisync";
+  if (typeof presetOrContent === "string") {
+    presetId = (presetOrContent as BackgroundPresetId) || "default";
+    contentValues =
+      fallbackSettings && typeof fallbackSettings === "object" ? fallbackSettings : {};
+  } else if (presetOrContent && typeof presetOrContent === "object") {
+    contentValues = presetOrContent;
+    if (contentValues.backgroundPreset) {
+      presetId = contentValues.backgroundPreset as BackgroundPresetId;
+    } else if (fallbackSettings?.bgMode === "custom_image") {
+      presetId = "custom_image";
+    } else if (fallbackSettings?.bgMode === "code" || fallbackSettings?.gradientBaseFrom) {
+      presetId = "optisync";
+    }
   }
 
   // Base com os defaults do preset escolhido
