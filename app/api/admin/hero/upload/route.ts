@@ -1,57 +1,29 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createAdminClient } from "@/lib/supabase/admin";
+import { requireAdmin } from "@/lib/auth/require-admin";
+import { validateImageFile } from "@/lib/validations/image-upload";
+
+export const dynamic = "force-dynamic";
 
 export async function POST(req: NextRequest) {
+  // 1. Verificação estrita de autorização administrativa
+  const auth = await requireAdmin(req);
+  if (!auth.authorized) {
+    return auth.response;
+  }
+
   try {
     const formData = await req.formData();
     const file = formData.get("file") as File | null;
 
-    if (!file) {
-      return NextResponse.json(
-        { error: "Nenhum arquivo enviado para upload." },
-        { status: 400 }
-      );
+    // 2. Validação estrita de arquivo (MIME real, extensão, até 5 MB e nome seguro)
+    const validation = await validateImageFile(file, "hero");
+    if (!validation.valid) {
+      return NextResponse.json({ error: validation.error }, { status: validation.status });
     }
 
-    // 1. Validação estrita de tipo de imagem (JPG, PNG, WebP)
-    const validMimes = [
-      "image/jpeg",
-      "image/png",
-      "image/webp",
-      "image/jpg",
-    ];
-
-    const isExtensionValid = file.name.match(/\.(jpg|jpeg|png|webp)$/i);
-    const isMimeValid = validMimes.includes(file.type.toLowerCase());
-
-    if (!isMimeValid && !isExtensionValid) {
-      return NextResponse.json(
-        {
-          error:
-            "Formato de arquivo inválido. Por favor, envie uma foto nos formatos JPG, PNG ou WebP.",
-        },
-        { status: 400 }
-      );
-    }
-
-    // 2. Validação estrita de tamanho máximo (5 MB)
-    const MAX_SIZE = 5 * 1024 * 1024;
-    if (file.size > MAX_SIZE) {
-      const sizeMb = (file.size / (1024 * 1024)).toFixed(1);
-      return NextResponse.json(
-        {
-          error: `Arquivo muito grande (${sizeMb} MB). O tamanho máximo permitido para o Hero é 5 MB.`,
-        },
-        { status: 400 }
-      );
-    }
-
-    const bytes = await file.arrayBuffer();
-    const buffer = Buffer.from(bytes);
-
-    const fileExt = file.name.split(".").pop()?.toLowerCase() || "jpg";
-    const fileName = `hero-${Date.now()}-${Math.random().toString(36).substring(2, 8)}.${fileExt}`;
-    const filePath = `hero-banners/${fileName}`;
+    const { buffer, safeFileName, mime } = validation;
+    const filePath = `hero-banners/${safeFileName}`;
 
     const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
     const serviceRoleKey =
@@ -82,12 +54,12 @@ export async function POST(req: NextRequest) {
     const { error: uploadError } = await adminSupabase.storage
       .from("hero-images")
       .upload(filePath, buffer, {
-        contentType: file.type || "image/jpeg",
+        contentType: mime,
         upsert: true,
       });
 
     if (uploadError) {
-      console.error("Erro no upload para hero-images:", uploadError);
+      console.error("[Hero Upload] Erro no upload para hero-images:", uploadError);
       return NextResponse.json(
         { error: `Falha ao gravar arquivo no Supabase Storage: ${uploadError.message}` },
         { status: 500 }
@@ -104,7 +76,7 @@ export async function POST(req: NextRequest) {
       path: filePath,
     });
   } catch (err: any) {
-    console.error("Erro interno no upload do hero:", err);
+    console.error("[Hero Upload] Erro interno no upload do hero:", err);
     return NextResponse.json(
       { error: err.message || "Erro interno ao processar upload da foto de fundo." },
       { status: 500 }

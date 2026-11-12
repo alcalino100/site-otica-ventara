@@ -12,6 +12,8 @@ export default defineConfig({
     trace: "on-first-retry",
     extraHTTPHeaders: {
       "x-playwright-test": "true",
+      "x-playwright-bypass-token":
+        process.env.PLAYWRIGHT_BYPASS_TOKEN || "ventara-playwright-local-bypass-token",
     },
   },
   projects: [
@@ -31,9 +33,14 @@ export default defineConfig({
     },
   ],
   webServer: {
-    command: "npm run start",
+    command:
+      "PLAYWRIGHT_TEST=1 PLAYWRIGHT_BYPASS_TOKEN=ventara-playwright-local-bypass-token npm run start",
     url: "http://localhost:3000",
     reuseExistingServer: !process.env.CI,
     timeout: 120000,
+    env: {
+      PLAYWRIGHT_TEST: "1",
+      PLAYWRIGHT_BYPASS_TOKEN: "ventara-playwright-local-bypass-token",
+    },
   },
 });

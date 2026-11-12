@@ -1,9 +1,14 @@
+import { requireAdmin } from "@/lib/auth/require-admin";
 import { NextRequest, NextResponse } from "next/server";
 import { listPaymentTransactions } from "@/lib/payment-audit";
 
 export const dynamic = "force-dynamic";
 
 export async function GET(req: NextRequest) {
+  const auth = await requireAdmin(req);
+  if (!auth.authorized) {
+    return auth.response;
+  }
   try {
     const searchParams = req.nextUrl.searchParams;
     const status = searchParams.get("status") || "all";

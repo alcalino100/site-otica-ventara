@@ -1,10 +1,15 @@
-import { NextResponse } from "next/server";
+import { requireAdmin } from "@/lib/auth/require-admin";
+import { NextRequest, NextResponse } from "next/server";
 import fs from "fs";
 import path from "path";
 
 export const dynamic = "force-dynamic";
 
-export async function GET() {
+export async function GET(req: NextRequest) {
+  const auth = await requireAdmin(req);
+  if (!auth.authorized) {
+    return auth.response;
+  }
   try {
     const csvPath = path.join(process.cwd(), "auditoria-produtos-ventara.csv");
     if (!fs.existsSync(csvPath)) {

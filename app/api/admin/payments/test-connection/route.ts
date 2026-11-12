@@ -1,3 +1,4 @@
+import { requireAdmin } from "@/lib/auth/require-admin";
 import { NextRequest, NextResponse } from "next/server";
 import { testMercadoPagoConnection } from "@/lib/mercadopago";
 
@@ -8,6 +9,10 @@ export const dynamic = "force-dynamic";
  * Testa a validade do Access Token do Mercado Pago via API oficial /users/me
  */
 export async function POST(req: NextRequest) {
+  const auth = await requireAdmin(req);
+  if (!auth.authorized) {
+    return auth.response;
+  }
   try {
     const body = await req.json().catch(() => ({}));
     const tokenToTest = body.access_token || body.accessToken;

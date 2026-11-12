@@ -1,9 +1,14 @@
-import { NextResponse } from "next/server";
+import { requireAdmin } from "@/lib/auth/require-admin";
+import { NextRequest, NextResponse } from "next/server";
 import { PromotionService } from "@/lib/promotions/promotion-service";
 
 export const dynamic = "force-dynamic";
 
-export async function GET() {
+export async function GET(req: NextRequest) {
+  const auth = await requireAdmin(req);
+  if (!auth.authorized) {
+    return auth.response;
+  }
   try {
     const csvContent = await PromotionService.exportParticipationsCsv();
 
