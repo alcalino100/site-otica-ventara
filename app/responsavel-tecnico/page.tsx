@@ -18,6 +18,7 @@ import {
 import { BrandLogo } from "@/components/ui/brand-logo";
 import { buildWhatsAppUrl } from "@/lib/whatsapp";
 import { getPageContent } from "@/lib/content/repository";
+import { getPageDefaultValues } from "@/lib/content/registry";
 import { PageBackground } from "@/components/ui/page-background";
 import { resolveBackgroundConfig } from "@/lib/content/background-presets";
 import { DraftPreviewBanner } from "@/components/content/draft-preview-banner";
@@ -50,9 +51,27 @@ export default async function ResponsavelTecnicoPage({ searchParams }: Responsav
     content.backgroundConfig
   );
 
-  const whatsappUrl = buildWhatsAppUrl(
-    "Olá, Gustavo! Gostaria de tirar uma dúvida técnica sobre minha receita de óculos."
-  );
+  // Textos e fotos editáveis no admin. Campo vazio volta ao texto padrão (nunca deixa a página em branco).
+  const defaults = getPageDefaultValues("responsavelTecnico");
+  const t = (key: string): string => {
+    const value = content[key];
+    return typeof value === "string" && value.trim() ? value : String(defaults[key] ?? "");
+  };
+  const img = (key: string): { url: string; alt: string } => {
+    const value = content[key];
+    const url = typeof value === "string" ? value : value?.url;
+    const alt = typeof value === "object" && value ? value.alt : "";
+    const fallback = String(defaults[key] ?? "");
+    return { url: typeof url === "string" && url.trim() ? url : fallback, alt: alt || "" };
+  };
+
+  const nameWords = t("techName").trim().split(/\s+/);
+  const nameHighlight = nameWords.length > 1 ? nameWords.pop() : null;
+  const nameMain = nameWords.join(" ");
+  const techPhoto = img("techPhoto");
+  const labPhoto = img("labPhoto");
+
+  const whatsappUrl = buildWhatsAppUrl(t("whatsappMessage"));
 
   return (
     <>
@@ -85,7 +104,7 @@ export default async function ResponsavelTecnicoPage({ searchParams }: Responsav
               className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full bg-emerald-500/15 border border-emerald-500/30 text-emerald-300 hover:bg-emerald-500/25 transition-all"
             >
               <MessageCircle size={14} className="text-emerald-400" />
-              <span>Falar com o Técnico</span>
+              <span>{t("headerWhatsappText")}</span>
             </a>
           </div>
         </div>
@@ -115,25 +134,25 @@ export default async function ResponsavelTecnicoPage({ searchParams }: Responsav
                   <div className="p-3 sm:p-0 sm:absolute sm:top-4 sm:left-4 z-20 flex flex-col gap-1.5 bg-[#040d1a] sm:bg-transparent">
                     <div className="bg-[#06111f]/95 sm:bg-[#06111f]/90 backdrop-blur-md border border-amber-400/40 text-amber-300 text-[10px] sm:text-xs font-bold uppercase tracking-wider px-3.5 py-1.5 rounded-full shadow-lg flex items-center gap-1.5 w-fit">
                       <Award size={14} className="text-amber-400" />
-                      <span>Técnico Óptico Formado</span>
+                      <span>{t("photoBadge")}</span>
                     </div>
                     <div className="bg-[#040d1a]/95 sm:bg-[#040d1a]/90 backdrop-blur-md border border-white/20 text-slate-200 text-[10px] font-mono font-medium px-3 py-1 rounded-full shadow-md flex items-center gap-1.5 w-fit">
                       <ShieldCheck size={12} className="text-emerald-400" />
-                      <span>{content.councilRegistry || "Registro Nacional Responsável Técnico"}</span>
+                      <span>{t("councilRegistry")}</span>
                     </div>
                   </div>
 
                   <div className="aspect-[3/4] sm:aspect-[4/5] relative overflow-hidden flex-1">
                     <img
-                      src="/images/team/gustavo-tecnico-optico.jpg"
-                      alt={`${content.techName || "Gustavo Guimarães Cordeiro"} - Técnico Óptico Formado e Responsável Técnico da Óticas Ventara`}
+                      src={techPhoto.url}
+                      alt={techPhoto.alt || `${t("techName")} - ${t("techRole")}`}
                       className="w-full h-full object-cover object-top group-hover:scale-105 transition-transform duration-700"
                     />
                   </div>
 
                   <div className="absolute bottom-4 inset-x-4 p-4 rounded-2xl bg-[#040d1a]/95 backdrop-blur-md border border-white/10 text-xs">
-                    <p className="font-semibold text-white">Óticas Ventara Eyewear</p>
-                    <p className="text-[11px] text-slate-400">{content.labLocation || "Araçatuba-SP · Laboratório Próprio com Facetadora"}</p>
+                    <p className="font-semibold text-white">{t("photoCaptionTitle")}</p>
+                    <p className="text-[11px] text-slate-400">{t("labLocation")}</p>
                   </div>
                 </div>
               </div>
@@ -143,28 +162,28 @@ export default async function ResponsavelTecnicoPage({ searchParams }: Responsav
                 <div>
                   <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-amber-400/10 border border-amber-400/30 text-amber-300 text-xs font-semibold uppercase tracking-wider mb-4">
                     <ShieldCheck size={14} className="text-amber-400" />
-                    <span>Responsabilidade Técnica &amp; Saúde Visual</span>
+                    <span>{t("heroBadge")}</span>
                   </div>
                   <h1 className="text-3xl sm:text-5xl font-light text-white tracking-tight leading-tight">
-                    {content.techName ? (
-                      content.techName
-                    ) : (
+                    {nameMain}
+                    {nameHighlight && (
                       <>
-                        Gustavo Guimarães <span className="font-normal text-amber-400">Cordeiro</span>
+                        {" "}
+                        <span className="font-normal text-amber-400">{nameHighlight}</span>
                       </>
                     )}
                   </h1>
                   <p className="text-base sm:text-lg text-slate-300 font-medium mt-2">
-                    Técnico Óptico Formado e Responsável Técnico da Óticas Ventara
+                    {t("techRole")}
                   </p>
                 </div>
 
                 <p className="text-sm sm:text-base text-slate-300 leading-relaxed">
-                  Diferente de marketplaces genéricos e óticas que terceirizam a produção, a Óticas Ventara opera sob rigorosa supervisão técnica. Cada grau prescrito pelo seu médico oftalmologista é avaliado, conferido e montado com tecnologia digital e precisão milimétrica.
+                  {t("heroIntro")}
                 </p>
 
                 <p className="text-sm sm:text-base text-slate-400 leading-relaxed">
-                  "Na óptica, um milímetro de desvio na altura ou no eixo do astigmatismo é a diferença entre um conforto visual perfeito e uma lente que causa dores de cabeça. Minha missão é garantir que você enxergue o mundo com nitidez absoluta."
+                  {`"${t("heroQuote")}"`}
                 </p>
 
                 {/* Métricas e Pilares */}
@@ -173,24 +192,24 @@ export default async function ResponsavelTecnicoPage({ searchParams }: Responsav
                     <div className="w-8 h-8 rounded-xl bg-amber-400/10 text-amber-400 flex items-center justify-center mb-2">
                       <Award size={18} />
                     </div>
-                    <p className="text-xs font-bold text-white">Formação Especializada</p>
-                    <p className="text-[11px] text-slate-400 mt-0.5">Técnico Óptico capacitado</p>
+                    <p className="text-xs font-bold text-white">{t("chip1Title")}</p>
+                    <p className="text-[11px] text-slate-400 mt-0.5">{t("chip1Text")}</p>
                   </div>
 
                   <div className="p-4 rounded-2xl bg-white/[0.03] border border-white/10">
                     <div className="w-8 h-8 rounded-xl bg-blue-400/10 text-blue-400 flex items-center justify-center mb-2">
                       <Cpu size={18} />
                     </div>
-                    <p className="text-xs font-bold text-white">Facetadora Digital</p>
-                    <p className="text-[11px] text-slate-400 mt-0.5">Corte computadorizado</p>
+                    <p className="text-xs font-bold text-white">{t("chip2Title")}</p>
+                    <p className="text-[11px] text-slate-400 mt-0.5">{t("chip2Text")}</p>
                   </div>
 
                   <div className="p-4 rounded-2xl bg-white/[0.03] border border-white/10 col-span-2 sm:col-span-1">
                     <div className="w-8 h-8 rounded-xl bg-emerald-400/10 text-emerald-400 flex items-center justify-center mb-2">
                       <CheckCircle2 size={18} />
                     </div>
-                    <p className="text-xs font-bold text-white">Garantia de Adaptação</p>
-                    <p className="text-[11px] text-slate-400 mt-0.5">Conferência com lensômetro</p>
+                    <p className="text-xs font-bold text-white">{t("chip3Title")}</p>
+                    <p className="text-[11px] text-slate-400 mt-0.5">{t("chip3Text")}</p>
                   </div>
                 </div>
 
@@ -203,14 +222,14 @@ export default async function ResponsavelTecnicoPage({ searchParams }: Responsav
                     className="inline-flex items-center gap-2.5 px-6 py-3.5 rounded-full bg-gradient-to-r from-emerald-500 to-emerald-600 hover:from-emerald-400 hover:to-emerald-500 text-slate-950 font-bold text-xs uppercase tracking-wider shadow-[0_0_25px_rgba(16,185,129,0.3)] transition-all active:scale-95"
                   >
                     <MessageCircle size={16} />
-                    <span>Falar com o Gustavo no WhatsApp</span>
+                    <span>{t("ctaWhatsappText")}</span>
                   </a>
 
                   <Link
                     href="/medicao-por-foto"
                     className="inline-flex items-center gap-2 px-5 py-3.5 rounded-full bg-white/5 hover:bg-white/10 text-slate-300 hover:text-white border border-white/10 text-xs font-semibold transition-all"
                   >
-                    <span>Como Medimos sua DNP</span>
+                    <span>{t("ctaMeasureText")}</span>
                     <ArrowRight size={13} className="text-amber-400" />
                   </Link>
                 </div>
@@ -224,10 +243,10 @@ export default async function ResponsavelTecnicoPage({ searchParams }: Responsav
           <div className="max-w-[1200px] mx-auto px-4 sm:px-8">
             <div className="text-center max-w-2xl mx-auto mb-12">
               <span className="text-[11px] font-bold uppercase tracking-widest text-amber-400">
-                RIGOR &amp; CIÊNCIA
+                {t("pillarsEyebrow")}
               </span>
               <h2 className="text-2xl sm:text-4xl font-light text-white tracking-tight mt-1">
-                Por que a supervisão de um Técnico Óptico protege sua visão?
+                {t("pillarsTitle")}
               </h2>
             </div>
 
@@ -239,14 +258,14 @@ export default async function ResponsavelTecnicoPage({ searchParams }: Responsav
                     <FileText size={20} />
                   </div>
                   <h3 className="text-base font-bold text-white mb-2">
-                    Leitura Fiel da Receita Oftalmológica
+                    {t("pillar1Title")}
                   </h3>
                   <p className="text-xs text-slate-300 leading-relaxed">
-                    A interpretação correta de graus cilíndricos, eixos, adições para perto e dioptrias esféricas. O técnico óptico confere cada parâmetro antes de solicitar o bloco da lente.
+                    {t("pillar1Text")}
                   </p>
                 </div>
                 <div className="pt-4 mt-4 border-t border-white/5 text-[11px] text-amber-300 font-medium">
-                  ✓ Sem erros de conversão ou digitação
+                  ✓ {t("pillar1Highlight")}
                 </div>
               </div>
 
@@ -257,14 +276,14 @@ export default async function ResponsavelTecnicoPage({ searchParams }: Responsav
                     <Eye size={20} />
                   </div>
                   <h3 className="text-base font-bold text-white mb-2">
-                    Centralização Óptica &amp; DNP Milimétrica
+                    {t("pillar2Title")}
                   </h3>
                   <p className="text-xs text-slate-300 leading-relaxed">
-                    O centro óptico da lente precisa ficar exatamente em frente ao centro da sua pupila. Essa precisão evita o efeito de prisma indesejado, tontura e desconforto visual.
+                    {t("pillar2Text")}
                   </p>
                 </div>
                 <div className="pt-4 mt-4 border-t border-white/5 text-[11px] text-cyan-300 font-medium">
-                  ✓ Medição digital com calibração assistida
+                  ✓ {t("pillar2Highlight")}
                 </div>
               </div>
 
@@ -275,14 +294,14 @@ export default async function ResponsavelTecnicoPage({ searchParams }: Responsav
                     <Microscope size={20} />
                   </div>
                   <h3 className="text-base font-bold text-white mb-2">
-                    Montagem na Facetadora &amp; Lensometria
+                    {t("pillar3Title")}
                   </h3>
                   <p className="text-xs text-slate-300 leading-relaxed">
-                    O corte milimétrico do bisel da lente é feito em maquinário próprio. Antes de entregar os óculos, fazemos a leitura completa no lensômetro digital para emissão do certificado.
+                    {t("pillar3Text")}
                   </p>
                 </div>
                 <div className="pt-4 mt-4 border-t border-white/5 text-[11px] text-emerald-300 font-medium">
-                  ✓ Conferência 100% rigorosa antes da entrega
+                  ✓ {t("pillar3Highlight")}
                 </div>
               </div>
             </div>
@@ -295,13 +314,13 @@ export default async function ResponsavelTecnicoPage({ searchParams }: Responsav
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-10 items-center">
               <div>
                 <span className="text-[11px] font-bold uppercase tracking-widest text-cyan-400">
-                  ESTRUTURA FÍSICA PRÓPRIA
+                  {t("labEyebrow")}
                 </span>
                 <h2 className="text-2xl sm:text-4xl font-light text-white tracking-tight mt-1 mb-4">
-                  Tecnologia digital aplicada à sua visão diária
+                  {t("labTitle")}
                 </h2>
                 <p className="text-xs sm:text-sm text-slate-300 leading-relaxed mb-6">
-                  Em nosso laboratório localizado na Rua Princesa Isabel, 221 em Araçatuba-SP, combinamos o conhecimento técnico artesanal com as ferramentas mais avançadas da óptica moderna:
+                  {t("labIntro")}
                 </p>
 
                 <ul className="space-y-3.5 text-xs sm:text-sm text-slate-300">
@@ -310,7 +329,7 @@ export default async function ResponsavelTecnicoPage({ searchParams }: Responsav
                       ✓
                     </div>
                     <span>
-                      <strong className="text-white">Facetadora Automática Computadorizada:</strong> corte de alta precisão com bisel personalizado para armações em acetato, metal e parafusadas (três peças).
+                      <strong className="text-white">{t("labItem1Title")}:</strong> {t("labItem1Text")}
                     </span>
                   </li>
 
@@ -319,7 +338,7 @@ export default async function ResponsavelTecnicoPage({ searchParams }: Responsav
                       ✓
                     </div>
                     <span>
-                      <strong className="text-white">Lensômetro Digital de Alta Resolução:</strong> aferição instantânea do poder esférico, cilíndrico, eixo e proteção UV antes de qualquer envio.
+                      <strong className="text-white">{t("labItem2Title")}:</strong> {t("labItem2Text")}
                     </span>
                   </li>
 
@@ -328,7 +347,7 @@ export default async function ResponsavelTecnicoPage({ searchParams }: Responsav
                       ✓
                     </div>
                     <span>
-                      <strong className="text-white">Consultoria de Índice de Refração:</strong> orientação técnica transparente se você realmente precisa de uma lente 1.67 ou se uma 1.56 já proporciona estética perfeita sem custos extras desnecessários.
+                      <strong className="text-white">{t("labItem3Title")}:</strong> {t("labItem3Text")}
                     </span>
                   </li>
                 </ul>
@@ -337,14 +356,14 @@ export default async function ResponsavelTecnicoPage({ searchParams }: Responsav
               {/* Card Visual do Laboratório */}
               <div className="rounded-3xl overflow-hidden border border-white/10 shadow-2xl relative">
                 <img
-                  src="/images/laboratory/laboratorio-ventara.jpg"
-                  alt="Laboratório Próprio da Óticas Ventara em Araçatuba"
+                  src={labPhoto.url}
+                  alt={labPhoto.alt || "Laboratório Próprio da Óticas Ventara em Araçatuba"}
                   className="w-full h-full object-cover"
                 />
                 <div className="absolute inset-0 bg-gradient-to-t from-[#02070d] via-transparent to-transparent" />
                 <div className="absolute bottom-6 left-6 right-6 p-4 rounded-2xl bg-[#040d1a]/90 backdrop-blur-md border border-white/10">
-                  <p className="text-xs font-bold text-white">Laboratório Óticas Ventara</p>
-                  <p className="text-[11px] text-slate-400">Montagem expressa para visão simples e calibração de multifocais</p>
+                  <p className="text-xs font-bold text-white">{t("labCaptionTitle")}</p>
+                  <p className="text-[11px] text-slate-400">{t("labCaptionText")}</p>
                 </div>
               </div>
             </div>
@@ -359,10 +378,10 @@ export default async function ResponsavelTecnicoPage({ searchParams }: Responsav
             </div>
 
             <h2 className="text-2xl sm:text-3xl font-light text-white tracking-tight mb-3">
-              Tem alguma dúvida sobre sua receita de óculos?
+              {t("finalTitle")}
             </h2>
             <p className="text-xs sm:text-sm text-slate-300 leading-relaxed mb-6">
-              Envie uma foto da sua receita no WhatsApp. O técnico Gustavo Guimarães Cordeiro e nossa equipe técnica farão a leitura, explicarão as opções ideais de lentes e passarão um orçamento transparente sem compromisso.
+              {t("finalText")}
             </p>
 
             <a
@@ -372,7 +391,7 @@ export default async function ResponsavelTecnicoPage({ searchParams }: Responsav
               className="inline-flex items-center gap-2.5 px-8 py-4 rounded-full bg-gradient-to-r from-emerald-500 to-emerald-600 hover:from-emerald-400 hover:to-emerald-500 text-slate-950 font-bold text-xs uppercase tracking-wider shadow-[0_0_25px_rgba(16,185,129,0.3)] transition-all active:scale-95"
             >
               <MessageCircle size={16} />
-              <span>Enviar Minha Receita no WhatsApp</span>
+              <span>{t("finalButtonText")}</span>
             </a>
           </div>
         </section>
@@ -390,7 +409,7 @@ export default async function ResponsavelTecnicoPage({ searchParams }: Responsav
 
       {/* Footer Simples */}
       <footer className="py-8 bg-[#010408] border-t border-white/10 text-center text-xs text-slate-500">
-        <p>Óticas Ventara Eyewear · Responsável Técnico: {content.techName || "Gustavo Guimarães Cordeiro"} · Araçatuba-SP</p>
+        <p>{t("footerText")} {t("techName")} · Araçatuba-SP</p>
       </footer>
       <FloatingEditButton pageId="responsavelTecnico" />
     </div>

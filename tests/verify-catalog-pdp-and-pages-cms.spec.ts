@@ -78,7 +78,7 @@ test.describe("Integração de Conteúdo Dinâmico do Catálogo, PDP e Páginas 
     const respTecDef = SITE_PAGES_REGISTRY["responsavelTecnico"];
     expect(respTecDef).toBeDefined();
     const respTecDefaults = getPageDefaultValues("responsavelTecnico");
-    expect(respTecDefaults.techName).toContain("Técnico Óptico");
+    expect(respTecDefaults.techName).toContain("Gustavo Guimarães Cordeiro");
 
     // 1.8 Políticas e Termos (/termos-de-uso)
     const politicasDef = SITE_PAGES_REGISTRY["politicas"];
