@@ -4,9 +4,15 @@ import { notFound } from "next/navigation";
 import { DEFAULT_CATALOG } from "@/lib/catalog-data";
 import { getProductByIdOrSlug } from "@/lib/catalog-server";
 import { ProductDetailView } from "@/components/catalog/product-detail-view";
+import { getPageContent } from "@/lib/content/repository";
+import { PageBackground } from "@/components/ui/page-background";
+import { resolveBackgroundConfig } from "@/lib/content/background-presets";
+import { DraftPreviewBanner } from "@/components/content/draft-preview-banner";
+import { FloatingEditButton } from "@/components/content/floating-edit-button";
 
 interface ProductPageProps {
   params: Promise<{ slug: string }>;
+  searchParams?: Promise<{ preview?: string }>;
 }
 
 export async function generateStaticParams() {
@@ -40,24 +46,41 @@ export async function generateMetadata({ params }: ProductPageProps): Promise<Me
   };
 }
 
-export default async function ProductDetailPage({ params }: ProductPageProps) {
+export default async function ProductDetailPage({ params, searchParams }: ProductPageProps) {
   const { slug } = await params;
-  const product = await getProductByIdOrSlug(slug);
+  const resolvedSearchParams = searchParams ? await searchParams : {};
+  const isDraft = resolvedSearchParams.preview === "draft";
+
+  const [product, templateContent] = await Promise.all([
+    getProductByIdOrSlug(slug),
+    getPageContent("produtoTemplate", isDraft ? "draft" : "published"),
+  ]);
 
   if (!product) {
     notFound();
   }
+
+  const bgConfig = resolveBackgroundConfig(
+    templateContent.backgroundPreset || "default",
+    templateContent.backgroundConfig
+  );
 
   const relatedProducts = DEFAULT_CATALOG.filter(
     (p) => p.slug !== product.slug && p.id !== product.id
   ).slice(0, 4);
 
   return (
-    <ProductDetailView
-      product={product}
-      relatedProducts={relatedProducts}
-      backLink={{ href: "/armacoes", label: "Voltar ao Catálogo" }}
-      hrefPrefix="/produto"
-    />
+    <>
+      <DraftPreviewBanner pageId="produtoTemplate" isDraft={isDraft} />
+      <PageBackground config={bgConfig} />
+      <ProductDetailView
+        product={product}
+        relatedProducts={relatedProducts}
+        backLink={{ href: "/armacoes", label: "Voltar ao Catálogo" }}
+        hrefPrefix="/produto"
+        templateContent={templateContent}
+      />
+      <FloatingEditButton pageId="produtoTemplate" />
+    </>
   );
 }

@@ -206,6 +206,7 @@ function renderFieldInput(
     case "text":
       return (
         <input
+          id={field.key}
           type="text"
           value={value ?? ""}
           maxLength={field.maxLength}
@@ -218,6 +219,7 @@ function renderFieldInput(
     case "textarea":
       return (
         <textarea
+          id={field.key}
           rows={3}
           value={value ?? ""}
           maxLength={field.maxLength}

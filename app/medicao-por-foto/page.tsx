@@ -18,6 +18,11 @@ import {
 import { BrandLogo } from "@/components/ui/brand-logo";
 import { buildWhatsAppUrl } from "@/lib/whatsapp";
 import { Footer } from "@/components/layout/footer";
+import { getPageContent } from "@/lib/content/repository";
+import { PageBackground } from "@/components/ui/page-background";
+import { resolveBackgroundConfig } from "@/lib/content/background-presets";
+import { DraftPreviewBanner } from "@/components/content/draft-preview-banner";
+import { FloatingEditButton } from "@/components/content/floating-edit-button";
 
 export const metadata: Metadata = {
   title: "Medição de DNP por Foto | Ótica Ventara Araçatuba",
@@ -25,65 +30,83 @@ export const metadata: Metadata = {
     "Entenda como funciona o serviço em estruturação de medição digital de DNP (Distância Nasopupilar) por foto da Ótica Ventara. Alinhamento óptico milimétrico com tecnologia internacional.",
 };
 
-export default function MedicaoPorFotoPage() {
+export const revalidate = 60;
+
+interface MedicaoPorFotoPageProps {
+  searchParams?: Promise<{ preview?: string }>;
+}
+
+export default async function MedicaoPorFotoPage({ searchParams }: MedicaoPorFotoPageProps) {
+  const resolvedParams = searchParams ? await searchParams : {};
+  const isDraft = resolvedParams.preview === "draft";
+
+  const content = await getPageContent("medicaoPorFoto", isDraft ? "draft" : "published");
+  const bgConfig = resolveBackgroundConfig(content.backgroundPreset, content);
+
   const whatsappUrl = buildWhatsAppUrl(
     "Olá! Li sobre o serviço de medição de DNP por foto e gostaria de tirar dúvidas sobre minha receita."
   );
 
   return (
-    <div className="min-h-screen bg-[#06111f] text-slate-100 flex flex-col selection:bg-amber-400 selection:text-slate-950">
-      {/* Header Fixo Simplificado */}
-      <header className="sticky top-0 z-50 bg-[#06111f]/90 backdrop-blur-md border-b border-white/10 px-4 sm:px-8 py-3.5">
-        <div className="max-w-[1300px] mx-auto flex items-center justify-between">
-          <Link
-            href="/"
-            className="flex items-center gap-2 group hover:opacity-90 transition-opacity"
-            aria-label="Voltar para a página inicial da Óticas Ventara"
-          >
-            <BrandLogo size="sm" />
-          </Link>
-
-          <div className="flex items-center gap-3">
+    <>
+      <DraftPreviewBanner pageId="medicaoPorFoto" isDraft={isDraft} />
+      <PageBackground config={bgConfig} />
+      <div className="min-h-screen bg-[#06111f] text-slate-100 flex flex-col selection:bg-amber-400 selection:text-slate-950">
+        {/* Header Fixo Simplificado */}
+        <header className="sticky top-0 z-50 bg-[#06111f]/90 backdrop-blur-md border-b border-white/10 px-4 sm:px-8 py-3.5">
+          <div className="max-w-[1300px] mx-auto flex items-center justify-between">
             <Link
               href="/"
-              className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full text-xs font-semibold text-slate-300 hover:text-white hover:bg-white/5 transition-all"
+              className="flex items-center gap-2 group hover:opacity-90 transition-opacity"
+              aria-label="Voltar para a página inicial da Óticas Ventara"
             >
-              <ArrowLeft size={14} />
-              <span>Voltar ao Início</span>
+              <BrandLogo size="sm" />
             </Link>
 
-            <a
-              href="/#armacoes"
-              className="hidden sm:inline-flex items-center gap-1.5 px-4 py-1.5 rounded-full bg-amber-400 hover:bg-amber-300 text-slate-950 text-xs font-bold uppercase tracking-wider transition-all shadow-sm"
-            >
-              <span>Ver Catálogo</span>
-            </a>
-          </div>
-        </div>
-      </header>
+            <div className="flex items-center gap-3">
+              <Link
+                href="/"
+                className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full text-xs font-semibold text-slate-300 hover:text-white hover:bg-white/5 transition-all"
+              >
+                <ArrowLeft size={14} />
+                <span>Voltar ao Início</span>
+              </Link>
 
-      <main className="flex-1">
-        {/* HERO SECTION */}
-        <section className="relative py-16 sm:py-24 overflow-hidden border-b border-white/10">
-          <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[300px] bg-[#0756b8]/20 blur-[130px] rounded-full pointer-events-none" />
-
-          <div className="max-w-[1100px] mx-auto px-4 sm:px-8 relative z-10 text-center">
-            {/* Badge de Status do Serviço */}
-            <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-amber-400/10 border border-amber-400/25 text-amber-300 text-xs font-semibold tracking-wider uppercase mb-6">
-              <Sparkles size={14} className="text-amber-400" />
-              <span>Em Estruturação com Parceiro Internacional</span>
+              <a
+                href="/#armacoes"
+                className="hidden sm:inline-flex items-center gap-1.5 px-4 py-1.5 rounded-full bg-amber-400 hover:bg-amber-300 text-slate-950 text-xs font-bold uppercase tracking-wider transition-all shadow-sm"
+              >
+                <span>Ver Catálogo</span>
+              </a>
             </div>
+          </div>
+        </header>
 
-            <h1 className="text-3xl sm:text-5xl lg:text-6xl font-light text-white tracking-tight leading-tight max-w-4xl mx-auto">
-              Medição Digital de <br className="hidden sm:inline" />
-              <strong className="font-bold text-amber-400">DNP por Foto</strong>
-            </h1>
+        <main className="flex-1">
+          {/* HERO SECTION */}
+          <section className="relative py-16 sm:py-24 overflow-hidden border-b border-white/10">
+            <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[300px] bg-[#0756b8]/20 blur-[130px] rounded-full pointer-events-none" />
 
-            <p className="text-sm sm:text-lg text-slate-300 leading-relaxed max-w-2xl mx-auto mt-4 font-normal">
-              Entenda como a tecnologia de visão computacional da Óticas Ventara
-              irá calcular a centralização milimétrica das suas lentes a partir de
-              uma foto padrão.
-            </p>
+            <div className="max-w-[1100px] mx-auto px-4 sm:px-8 relative z-10 text-center">
+              {/* Badge de Status do Serviço */}
+              <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-amber-400/10 border border-amber-400/25 text-amber-300 text-xs font-semibold tracking-wider uppercase mb-6">
+                <Sparkles size={14} className="text-amber-400" />
+                <span>Em Estruturação com Parceiro Internacional</span>
+              </div>
+
+              <h1 className="text-3xl sm:text-5xl lg:text-6xl font-light text-white tracking-tight leading-tight max-w-4xl mx-auto">
+                {content.medicaoTitle || (
+                  <>
+                    Medição Digital de <br className="hidden sm:inline" />
+                    <strong className="font-bold text-amber-400">DNP por Foto</strong>
+                  </>
+                )}
+              </h1>
+
+              <p className="text-sm sm:text-lg text-slate-300 leading-relaxed max-w-2xl mx-auto mt-4 font-normal">
+                {content.medicaoSubtitle ||
+                  "Entenda como a tecnologia de visão computacional da Óticas Ventara irá calcular a centralização milimétrica das suas lentes a partir de uma foto padrão."}
+              </p>
 
             {/* Aviso de Transparência Importante */}
             <div className="mt-8 max-w-2xl mx-auto p-4 sm:p-5 rounded-2xl bg-amber-500/10 border border-amber-400/30 text-amber-200 text-xs sm:text-sm text-left flex items-start gap-3">
@@ -348,8 +371,10 @@ export default function MedicaoPorFotoPage() {
         </section>
       </main>
 
-      {/* Footer Oficial */}
-      <Footer />
-    </div>
+        {/* Footer Oficial */}
+        <Footer />
+      </div>
+      <FloatingEditButton pageId="medicaoPorFoto" />
+    </>
   );
 }

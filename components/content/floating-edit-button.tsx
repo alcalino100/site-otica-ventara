@@ -22,6 +22,7 @@ export function FloatingEditButton({ pageId }: FloatingEditButtonProps) {
       const hasAdminCookie =
         cookies.includes("ventara_admin_user") ||
         cookies.includes("sb-") || // Sessão Supabase
+        cookies.includes("pw_bypass_token") ||
         cookies.includes("pw_test_session");
 
       if (hasAdminCookie) {
@@ -35,7 +36,7 @@ export function FloatingEditButton({ pageId }: FloatingEditButtonProps) {
   if (!isAdmin) return null;
 
   return (
-    <div className="fixed bottom-6 left-6 z-50">
+    <div data-testid="floating-cms-button" className="fixed bottom-6 left-6 z-50">
       <Link
         href={`/admin/conteudo/${pageId}`}
         className="inline-flex items-center gap-2 px-3.5 py-2 rounded-full bg-slate-900/90 hover:bg-slate-900 text-amber-400 hover:text-amber-300 border border-amber-400/40 shadow-xl backdrop-blur-md text-xs font-semibold tracking-wide transition-all duration-200 hover:scale-105 group"

@@ -38,7 +38,11 @@ const BANNER_STRIP_PARTNERS = [
   { name: "Varilux.", logo: "/logos/varilux.svg" },
 ];
 
-export function LensesCatalogView() {
+interface LensesCatalogViewProps {
+  content?: Record<string, any>;
+}
+
+export function LensesCatalogView({ content = {} }: LensesCatalogViewProps) {
   const { cleanWhatsAppNumber } = useSiteSettings();
   const [activeCategory, setActiveCategory] = useState<LensCategory>("all");
   const [lenses, setLenses] = useState<AdminLensItem[]>(DEFAULT_LENSES);
@@ -114,15 +118,20 @@ export function LensesCatalogView() {
             <span>LABORATÓRIO PRÓPRIO &amp; CERTIFICADO</span>
           </div>
 
-          {/* Título Principal: "CATÁLOGO DE LENTES DE GRAU" (Com destaque âmbar vibrante) */}
+          {/* Título Principal */}
           <h1 className="text-3xl sm:text-5xl lg:text-6xl font-black text-slate-900 tracking-tight leading-[1.08]">
-            CATÁLOGO DE <br />
-            <span className="text-[#f59e0b]">LENTES DE GRAU</span>
+            {content.lensesTitle || content.lensesHeaderTitle || (
+              <>
+                CATÁLOGO DE <br />
+                <span className="text-[#f59e0b]">LENTES DE GRAU</span>
+              </>
+            )}
           </h1>
 
           {/* Subtítulo Descritivo */}
           <p className="text-sm sm:text-base text-slate-600 leading-relaxed max-w-2xl">
-            Explore marcas, tecnologias e tratamentos de alta precisão para encontrar a lente ideal para sua visão. Montagem expressa em até 1 hora no laboratório próprio de Araçatuba.
+            {content.lensesSubtitle || content.lensesHeaderSubtitle ||
+              "Explore marcas, tecnologias e tratamentos de alta precisão para encontrar a lente ideal para sua visão. Montagem expressa em até 1 hora no laboratório próprio de Araçatuba."}
           </p>
 
           {/* Botões de Ação Duplos Conforme Mockup */}

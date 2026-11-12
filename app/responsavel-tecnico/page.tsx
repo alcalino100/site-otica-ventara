@@ -17,6 +17,11 @@ import {
 } from "lucide-react";
 import { BrandLogo } from "@/components/ui/brand-logo";
 import { buildWhatsAppUrl } from "@/lib/whatsapp";
+import { getPageContent } from "@/lib/content/repository";
+import { PageBackground } from "@/components/ui/page-background";
+import { resolveBackgroundConfig } from "@/lib/content/background-presets";
+import { DraftPreviewBanner } from "@/components/content/draft-preview-banner";
+import { FloatingEditButton } from "@/components/content/floating-edit-button";
 
 export const metadata: Metadata = {
   title: "Responsável Técnico | Gustavo Guimarães Cordeiro | Óticas Ventara",
@@ -30,13 +35,30 @@ export const metadata: Metadata = {
   },
 };
 
-export default function ResponsavelTecnicoPage() {
+interface ResponsavelTecnicoPageProps {
+  searchParams?: Promise<{ preview?: string }>;
+}
+
+export default async function ResponsavelTecnicoPage({ searchParams }: ResponsavelTecnicoPageProps) {
+  const resolvedSearchParams = searchParams ? await searchParams : {};
+  const isDraft = resolvedSearchParams.preview === "draft";
+
+  const content = await getPageContent("responsavelTecnico", isDraft ? "draft" : "published");
+
+  const bgConfig = resolveBackgroundConfig(
+    content.backgroundPreset || "default",
+    content.backgroundConfig
+  );
+
   const whatsappUrl = buildWhatsAppUrl(
     "Olá, Gustavo! Gostaria de tirar uma dúvida técnica sobre minha receita de óculos."
   );
 
   return (
-    <div className="min-h-screen bg-[#02070d] text-slate-100 selection:bg-amber-400 selection:text-slate-950 font-sans">
+    <>
+      <DraftPreviewBanner pageId="responsavelTecnico" isDraft={isDraft} />
+      <PageBackground config={bgConfig} />
+      <div className="min-h-screen bg-[#02070d] text-slate-100 selection:bg-amber-400 selection:text-slate-950 font-sans">
       {/* Top Bar / Header Compacto */}
       <header className="sticky top-0 z-50 bg-[#040d1a]/90 backdrop-blur-md border-b border-white/10">
         <div className="max-w-[1300px] mx-auto px-4 sm:px-8 py-3.5 flex items-center justify-between">
@@ -97,21 +119,21 @@ export default function ResponsavelTecnicoPage() {
                     </div>
                     <div className="bg-[#040d1a]/95 sm:bg-[#040d1a]/90 backdrop-blur-md border border-white/20 text-slate-200 text-[10px] font-mono font-medium px-3 py-1 rounded-full shadow-md flex items-center gap-1.5 w-fit">
                       <ShieldCheck size={12} className="text-emerald-400" />
-                      <span>Registro Nacional Responsável Técnico</span>
+                      <span>{content.councilRegistry || "Registro Nacional Responsável Técnico"}</span>
                     </div>
                   </div>
 
                   <div className="aspect-[3/4] sm:aspect-[4/5] relative overflow-hidden flex-1">
                     <img
                       src="/images/team/gustavo-tecnico-optico.jpg"
-                      alt="Gustavo Guimarães Cordeiro - Técnico Óptico Formado e Responsável Técnico da Óticas Ventara"
+                      alt={`${content.techName || "Gustavo Guimarães Cordeiro"} - Técnico Óptico Formado e Responsável Técnico da Óticas Ventara`}
                       className="w-full h-full object-cover object-top group-hover:scale-105 transition-transform duration-700"
                     />
                   </div>
 
                   <div className="absolute bottom-4 inset-x-4 p-4 rounded-2xl bg-[#040d1a]/95 backdrop-blur-md border border-white/10 text-xs">
                     <p className="font-semibold text-white">Óticas Ventara Eyewear</p>
-                    <p className="text-[11px] text-slate-400">Araçatuba-SP · Laboratório Próprio com Facetadora</p>
+                    <p className="text-[11px] text-slate-400">{content.labLocation || "Araçatuba-SP · Laboratório Próprio com Facetadora"}</p>
                   </div>
                 </div>
               </div>
@@ -124,7 +146,13 @@ export default function ResponsavelTecnicoPage() {
                     <span>Responsabilidade Técnica &amp; Saúde Visual</span>
                   </div>
                   <h1 className="text-3xl sm:text-5xl font-light text-white tracking-tight leading-tight">
-                    Gustavo Guimarães <span className="font-normal text-amber-400">Cordeiro</span>
+                    {content.techName ? (
+                      content.techName
+                    ) : (
+                      <>
+                        Gustavo Guimarães <span className="font-normal text-amber-400">Cordeiro</span>
+                      </>
+                    )}
                   </h1>
                   <p className="text-base sm:text-lg text-slate-300 font-medium mt-2">
                     Técnico Óptico Formado e Responsável Técnico da Óticas Ventara
@@ -348,12 +376,24 @@ export default function ResponsavelTecnicoPage() {
             </a>
           </div>
         </section>
+        {/* Aviso Legal & Regulatório do CMS */}
+        {content.legalNotice && (
+          <section className="py-8 bg-[#040d1a] border-t border-white/10 text-center">
+            <div className="max-w-[800px] mx-auto px-4">
+              <p className="text-xs text-slate-400 leading-relaxed">
+                {content.legalNotice}
+              </p>
+            </div>
+          </section>
+        )}
       </main>
 
       {/* Footer Simples */}
       <footer className="py-8 bg-[#010408] border-t border-white/10 text-center text-xs text-slate-500">
-        <p>Óticas Ventara Eyewear · Responsável Técnico: Gustavo Guimarães Cordeiro · Araçatuba-SP</p>
+        <p>Óticas Ventara Eyewear · Responsável Técnico: {content.techName || "Gustavo Guimarães Cordeiro"} · Araçatuba-SP</p>
       </footer>
+      <FloatingEditButton pageId="responsavelTecnico" />
     </div>
+    </>
   );
 }
