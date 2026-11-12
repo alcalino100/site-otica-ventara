@@ -7,7 +7,7 @@ import {
   getContentHistory,
   restoreContentHistory,
 } from "@/lib/content/repository";
-import { getPageDefinition, getPageDefaultValues } from "@/lib/content/registry";
+import { getPageDefinition, getPageDefaultValues, SITE_PAGES_LIST } from "@/lib/content/registry";
 import {
   SaveContentDraftSchema,
   PublishContentSchema,
@@ -38,6 +38,12 @@ export async function GET(
   const published = await getPageContent(page, "published");
   const history = await getContentHistory(page);
 
+  const availablePages = SITE_PAGES_LIST.map((p) => ({
+    id: p.id,
+    title: p.title,
+    path: p.path,
+  }));
+
   return NextResponse.json({
     page,
     definition,
@@ -45,6 +51,7 @@ export async function GET(
     draft,
     published,
     history,
+    availablePages,
   });
 }
 

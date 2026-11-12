@@ -7,6 +7,7 @@ import { ContentTopBar } from "@/components/admin/content-cms/content-top-bar";
 import { ContentSectionAccordion } from "@/components/admin/content-cms/content-section-accordion";
 import { ContentPublishModal } from "@/components/admin/content-cms/content-publish-modal";
 import { ContentHistoryModal } from "@/components/admin/content-cms/content-history-modal";
+import { ContentBackgroundSwitcher } from "@/components/admin/content-cms/content-background-switcher";
 import {
   ContentPageDefinition,
   ContentSectionDefinition,
@@ -25,6 +26,7 @@ export default function PageContentEditorPage() {
   const [sectionsOrder, setSectionsOrder] = useState<string[]>([]);
   const [hiddenSections, setHiddenSections] = useState<string[]>([]);
   const [history, setHistory] = useState<SiteContentHistoryRecord[]>([]);
+  const [availablePages, setAvailablePages] = useState<Array<{ id: string; title: string; path: string }>>([]);
 
   const [isDirty, setIsDirty] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
@@ -50,6 +52,7 @@ export default function PageContentEditorPage() {
       const data = await res.json();
       setDefinition(data.definition);
       setHistory(data.history || []);
+      setAvailablePages(data.availablePages || []);
 
       const loadedValues = data.draft || data.defaults || {};
       setValues(loadedValues);
@@ -240,6 +243,23 @@ export default function PageContentEditorPage() {
     }
   };
 
+  // Aplicação do Fundo em Outras Páginas
+  const handleApplyBackgroundToOtherPages = async (
+    targetPages: string[],
+    bgConfig: Record<string, any>
+  ) => {
+    const res = await fetch("/api/admin/content/batch-background", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ targetPages, backgroundConfig: bgConfig }),
+    });
+
+    if (!res.ok) {
+      const err = await res.json().catch(() => ({}));
+      throw new Error(err.error || "Falha ao aplicar fundo nas páginas selecionadas");
+    }
+  };
+
   if (isLoading) {
     return (
       <div className="py-24 flex flex-col items-center justify-center text-slate-400 gap-3">
@@ -312,6 +332,18 @@ export default function PageContentEditorPage() {
             Fechar
           </button>
         </div>
+      )}
+
+      {/* Switcher Visual de Fundo de Página (Presets & Estilos) */}
+      {definition.category === "page" && (
+        <ContentBackgroundSwitcher
+          pageId={pageId}
+          pageTitle={definition.title}
+          values={values}
+          onFieldChange={handleFieldChange}
+          onApplyToOtherPages={handleApplyBackgroundToOtherPages}
+          availablePages={availablePages.filter((p) => p.id !== pageId)}
+        />
       )}
 
       {/* Lista de Acordeões na Ordem Visual da Página */}
