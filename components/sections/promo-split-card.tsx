@@ -122,8 +122,9 @@ export function PromoSplitCard({
             fallbackUrl={item.image}
             productName={item.name}
             productHref={`/produto/${item.slug}`}
-            aspectRatio="aspect-[4/3]"
+            aspectRatio="aspect-[5/4] sm:aspect-[4/3]"
             imageFit="cover"
+            centerOnMobile
             fallbackArt={
               <div className="w-full max-w-[140px] sm:max-w-[160px]">
                 <FrameArt

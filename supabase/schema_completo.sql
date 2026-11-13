@@ -134,6 +134,8 @@ CREATE TABLE IF NOT EXISTS public.product_images (
   alt_text TEXT,
   is_primary BOOLEAN NOT NULL DEFAULT false,
   sort_order INTEGER NOT NULL DEFAULT 0,
+  focus_x NUMERIC(5,2) CHECK (focus_x IS NULL OR (focus_x >= 0 AND focus_x <= 100)),
+  focus_y NUMERIC(5,2) CHECK (focus_y IS NULL OR (focus_y >= 0 AND focus_y <= 100)),
   created_at TIMESTAMPTZ NOT NULL DEFAULT now()
 );
 

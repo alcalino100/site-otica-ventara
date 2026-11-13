@@ -51,6 +51,9 @@ export interface ProductImage {
   alt_text: string | null;
   is_primary: boolean;
   sort_order: number;
+  /** Posição da foto nos cards (% do object-position); null = enquadramento automático. */
+  focus_x?: number | null;
+  focus_y?: number | null;
   created_at: string;
 }
 

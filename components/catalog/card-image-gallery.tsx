@@ -2,12 +2,16 @@
 
 import React, { useState } from "react";
 import Link from "next/link";
+import { focusObjectPosition } from "@/lib/image-focus";
 
 export interface GalleryImage {
   id?: string;
   url: string;
   alt_text?: string | null;
   is_primary?: boolean;
+  /** Posição ajustada no admin (% do object-position). Sem valor = enquadramento automático. */
+  focus_x?: number | null;
+  focus_y?: number | null;
 }
 
 interface CardImageGalleryProps {
@@ -65,6 +69,8 @@ export function CardImageGallery({
   const hasMultiple = validImages.length > 1;
   const currentImg = validImages[0];
   const isCurrentFailed = currentImg ? imgErrors[currentImg.url] : true;
+  // Posição salva no admin tem prioridade sobre o enquadramento automático (mobile e desktop)
+  const customPosition = focusObjectPosition(currentImg);
 
   return (
     <div
@@ -87,6 +93,7 @@ export function CardImageGallery({
               }
             }}
             loading="lazy"
+            style={customPosition ? { objectPosition: customPosition } : undefined}
             className={`w-full h-full group-hover-zoom-desktop transition-transform duration-500 ease-out ${
               imageFit === "contain"
                 ? "object-contain p-2 drop-shadow-sm"
