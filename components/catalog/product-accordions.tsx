@@ -141,8 +141,8 @@ export function ProductAccordions({ product, guideContent }: ProductAccordionsPr
           </button>
 
           {openSection === "sizing" && (
-            <div className="p-4 sm:p-6 pt-4 space-y-6 text-sm text-slate-600 border-t border-slate-100">
-              <p className="leading-relaxed text-slate-700 text-sm sm:text-base">
+            <div className="p-4 sm:p-6 pt-4 space-y-5 sm:space-y-6 text-[13px] sm:text-sm text-slate-600 border-t border-slate-100">
+              <p className="leading-relaxed text-slate-700 text-[13px] sm:text-base">
                 Todas as dimensões abaixo representam medições exatas aferidas na armação física em milímetros:
               </p>
 
@@ -180,7 +180,7 @@ export function ProductAccordions({ product, guideContent }: ProductAccordionsPr
 
               {/* Tabela de Medidas Técnicas (Nome, Milímetros, Para quem serve) */}
               <div className="overflow-x-auto rounded-2xl border border-slate-200 shadow-sm bg-white">
-                <table className="w-full text-left border-collapse text-sm">
+                <table className="w-full text-left border-collapse text-[13px] sm:text-sm">
                   <thead>
                     <tr className="bg-slate-50 border-b border-slate-200 text-slate-600 font-bold uppercase tracking-wider text-[10px]">
                       <th className="py-3 px-4">Medida</th>

@@ -80,12 +80,12 @@ test.describe("P1 & P2: Medidas Completas em mm, Diagrama Autoral, Comparador e 
       await expect(lensInput).toHaveValue("49");
 
       // Diagnóstico de caimento deve surgir instantaneamente
-      const diagnosis = page.locator("h4:has-text('Lente 4 mm mais larga')");
+      const diagnosis = page.locator("h5:has-text('Lente 4 mm mais larga')");
       await expect(diagnosis).toBeVisible();
-      await expect(page.locator("text=Proporcionará um campo de visão ligeiramente mais aberto")).toBeVisible();
+      await expect(page.locator("text=Proporcionará um campo de visão ligeiramente maior")).toBeVisible();
 
       // Gráfico visual de barras sobrepostas
-      await expect(page.locator("text=Comparação Visual de Aro")).toBeVisible();
+      await expect(page.getByRole("heading", { name: "Comparação Visual" })).toBeVisible();
     });
 
     test("P1-E: Imagem principal da PDP carrega com fetchPriority high", async ({ page }) => {

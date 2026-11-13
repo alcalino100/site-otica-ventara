@@ -71,17 +71,17 @@ export function FrameMeasurementsDiagram({
   };
 
   return (
-    <div className="w-full bg-slate-900 text-slate-100 rounded-3xl p-5 sm:p-7 border border-slate-800 shadow-xl overflow-hidden">
+    <div className="w-full bg-slate-900 text-slate-100 rounded-3xl p-4 sm:p-7 border border-slate-800 shadow-xl overflow-hidden">
       {/* Cabeçalho Técnico */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-4 border-b border-slate-800">
         <div>
           <span className="text-xs uppercase font-bold tracking-widest text-amber-400">
             Diagrama Técnico de Medidas
           </span>
-          <h3 className="text-lg sm:text-xl font-semibold text-white tracking-tight">
+          <h3 className="text-base sm:text-xl font-semibold text-white tracking-tight">
             Guia Visual de Medição Anatômica
           </h3>
-          <p className="text-sm text-slate-300 mt-1 max-w-xl leading-relaxed">
+          <p className="text-[13px] sm:text-sm text-slate-300 mt-1 max-w-xl leading-relaxed">
             Medidas reais em milímetros. Toque em uma medida abaixo para ver onde ela fica no desenho e o que significa.
           </p>
         </div>
@@ -116,7 +116,7 @@ export function FrameMeasurementsDiagram({
       </div>
 
       {/* Área da Ilustração Técnica Vetorial */}
-      <div className="py-6 flex items-center justify-center relative min-h-[220px]">
+      <div className="py-4 sm:py-6 flex items-center justify-center relative min-h-[190px] sm:min-h-[220px]">
         {activeTab === "front" ? (
           <div className="w-full max-w-[460px] mx-auto select-none">
             <svg
@@ -292,7 +292,7 @@ export function FrameMeasurementsDiagram({
       {/* Explicação em linguagem simples da medida tocada */}
       <div
         aria-live="polite"
-        className={`mb-4 rounded-2xl border bg-slate-800/60 p-3.5 sm:p-4 text-sm sm:text-base leading-relaxed ${
+        className={`mb-4 rounded-2xl border bg-slate-800/60 p-3 sm:p-4 text-[13px] sm:text-base leading-relaxed ${
           active ? DIMENSION_HELP[active].border : "border-slate-700/70"
         }`}
       >
@@ -331,7 +331,7 @@ export function FrameMeasurementsDiagram({
               disabled={!value}
               aria-pressed={isActive}
               onClick={() => handleSelect(dim)}
-              className={`min-h-[64px] p-2.5 rounded-xl border transition-colors motion-reduce:transition-none focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-400 ${
+              className={`min-h-[56px] sm:min-h-[64px] p-2 sm:p-2.5 rounded-xl border transition-colors motion-reduce:transition-none focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-400 ${
                 value
                   ? isActive
                     ? "bg-slate-700 border-amber-400"

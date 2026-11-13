@@ -17,6 +17,11 @@ interface CardImageGalleryProps {
   productHref: string;
   aspectRatio?: string;
   imageFit?: "cover" | "contain";
+  /**
+   * No mobile, centraliza a armação na foto (object-position 50%/50%) em vez do
+   * enquadramento mais baixo usado no desktop. Não altera o desktop.
+   */
+  centerOnMobile?: boolean;
   fallbackArt?: React.ReactNode;
   className?: string;
   showDots?: boolean;
@@ -35,6 +40,7 @@ export function CardImageGallery({
   productHref,
   aspectRatio = "aspect-[4/3]",
   imageFit = "cover",
+  centerOnMobile = false,
   fallbackArt,
   className = "",
 }: CardImageGalleryProps) {
@@ -84,7 +90,9 @@ export function CardImageGallery({
             className={`w-full h-full group-hover-zoom-desktop transition-transform duration-500 ease-out ${
               imageFit === "contain"
                 ? "object-contain p-2 drop-shadow-sm"
-                : "object-cover object-[center_68%]"
+                : centerOnMobile
+                  ? "object-cover object-center sm:object-[center_68%]"
+                  : "object-cover object-[center_68%]"
             }`}
           />
         ) : fallbackArt ? (

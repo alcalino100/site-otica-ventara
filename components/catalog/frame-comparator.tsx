@@ -1,7 +1,8 @@
 "use client";
 
-import React, { useState, useMemo } from "react";
-import { SlidersHorizontal, CheckCircle2, AlertCircle, Info, Sparkles, RefreshCw } from "lucide-react";
+import React, { useMemo, useState } from "react";
+import { Activity, CheckCircle2, Info, RefreshCw, Ruler, Scale } from "lucide-react";
+import { BridgeIllustration, LensIllustration, TempleIllustration } from "./comparator-illustrations";
 
 export interface FrameComparatorProps {
   currentModelName: string;
@@ -11,361 +12,415 @@ export interface FrameComparatorProps {
   targetHeightMm?: number | null;
 }
 
+type Dim = "lens" | "bridge" | "temple";
+type Tone = "exact" | "more" | "less";
+
+interface Feedback {
+  dim: Dim;
+  tone: Tone;
+  title: string;
+  desc: string;
+}
+
+interface FieldConfig {
+  dim: Dim;
+  id: string;
+  ordinal: string;
+  name: string;
+  hint: string;
+  chartLabel: string;
+  min: number;
+  max: number;
+  /** Valor máximo usado só para dimensionar as barras da comparação visual. */
+  scale: number;
+  placeholder: string;
+  accent: string;
+  Illustration: React.ComponentType<{ accent: string; className?: string }>;
+}
+
+const FIELDS: FieldConfig[] = [
+  {
+    dim: "lens",
+    id: "user-lens",
+    ordinal: "1º número",
+    name: "Lente",
+    hint: "Largura de cada lente",
+    chartLabel: "Largura da Lente",
+    min: 40,
+    max: 70,
+    scale: 70,
+    placeholder: "ex: 50",
+    accent: "#059669",
+    Illustration: LensIllustration,
+  },
+  {
+    dim: "bridge",
+    id: "user-bridge",
+    ordinal: "2º número",
+    name: "Ponte",
+    hint: "Distância entre as lentes",
+    chartLabel: "Ponte Nasal",
+    min: 10,
+    max: 26,
+    scale: 26,
+    placeholder: "ex: 18",
+    accent: "#2563EB",
+    Illustration: BridgeIllustration,
+  },
+  {
+    dim: "temple",
+    id: "user-temple",
+    ordinal: "3º número",
+    name: "Haste",
+    hint: "Comprimento da haste",
+    chartLabel: "Comprimento da Haste",
+    min: 120,
+    max: 160,
+    scale: 160,
+    placeholder: "ex: 140",
+    accent: "#D97706",
+    Illustration: TempleIllustration,
+  },
+];
+
+// Cada medida tem a sua cor, para o olho ligar a linha do campo ao cartão do diagnóstico
+const DIM_THEME: Record<Dim, { card: string; badge: string }> = {
+  lens: { card: "bg-emerald-50 border-emerald-200", badge: "bg-emerald-600" },
+  bridge: { card: "bg-blue-50 border-blue-200", badge: "bg-blue-700" },
+  temple: { card: "bg-amber-50 border-amber-200", badge: "bg-amber-500" },
+};
+
+const PRESETS = [
+  { label: "Pequeno", lens: 49, bridge: 18, temple: 140 },
+  { label: "Médio", lens: 52, bridge: 18, temple: 145 },
+  { label: "Grande", lens: 55, bridge: 19, temple: 150 },
+] as const;
+
+type Values = Record<Dim, string>;
+const EMPTY: Values = { lens: "", bridge: "", temple: "" };
+
+function toNumber(value: string): number | null {
+  const n = parseInt(value, 10);
+  return Number.isNaN(n) || n <= 0 ? null : n;
+}
+
 export function FrameComparator({
   currentModelName,
   targetLensMm,
   targetBridgeMm,
   targetTempleMm,
-  targetHeightMm,
 }: FrameComparatorProps) {
-  // Valores padrão de referência (ou inputs do usuário)
-  const [userLens, setUserLens] = useState<string>("");
-  const [userBridge, setUserBridge] = useState<string>("");
-  const [userTemple, setUserTemple] = useState<string>("");
+  const [values, setValues] = useState<Values>(EMPTY);
 
-  // Presets rápidos para facilitar no mobile
-  const applyPreset = (lens: number, bridge: number, temple: number) => {
-    setUserLens(String(lens));
-    setUserBridge(String(bridge));
-    setUserTemple(String(temple));
+  const targets: Record<Dim, number | null> = {
+    lens: targetLensMm,
+    bridge: targetBridgeMm,
+    temple: targetTempleMm,
   };
 
-  const parsedUser = useMemo(() => {
-    const l = parseInt(userLens, 10);
-    const b = parseInt(userBridge, 10);
-    const t = parseInt(userTemple, 10);
-    return {
-      lens: isNaN(l) ? null : l,
-      bridge: isNaN(b) ? null : b,
-      temple: isNaN(t) ? null : t,
-    };
-  }, [userLens, userBridge, userTemple]);
+  const parsedUser = useMemo<Record<Dim, number | null>>(
+    () => ({
+      lens: toNumber(values.lens),
+      bridge: toNumber(values.bridge),
+      temple: toNumber(values.temple),
+    }),
+    [values]
+  );
+
+  const hasAnyValue = Boolean(values.lens || values.bridge || values.temple);
+
+  const applyPreset = (p: (typeof PRESETS)[number]) =>
+    setValues({ lens: String(p.lens), bridge: String(p.bridge), temple: String(p.temple) });
+
+  const activePreset = PRESETS.find(
+    (p) => values.lens === String(p.lens) && values.bridge === String(p.bridge) && values.temple === String(p.temple)
+  )?.label;
 
   // Cálculos de comparação com linguagem humana
-  const comparisonResults = useMemo(() => {
-    if (!parsedUser.lens && !parsedUser.bridge && !parsedUser.temple) {
-      return null;
-    }
+  const feedbacks = useMemo<Feedback[]>(() => {
+    const list: Feedback[] = [];
 
-    const feedbacks: { title: string; desc: string; type: "exact" | "wider" | "narrower" | "longer" | "shorter" }[] = [];
-
-    // 1. Comparação de Lente (Aro)
+    // 1. Lente (aro)
     if (parsedUser.lens && targetLensMm) {
       const diff = targetLensMm - parsedUser.lens;
       if (Math.abs(diff) <= 1) {
-        feedbacks.push({
+        list.push({
+          dim: "lens",
+          tone: "exact",
           title: "Largura da lente praticamente idêntica",
           desc: `${Math.abs(diff)} mm de diferença — vai vestir quase exatamente igual aos seus óculos atuais no campo de visão.`,
-          type: "exact",
         });
       } else if (diff > 1) {
-        feedbacks.push({
+        list.push({
+          dim: "lens",
+          tone: "more",
           title: `Lente ${diff} mm mais larga`,
-          desc: "Proporcionará um campo de visão ligeiramente mais aberto e visual mais expressivo no rosto.",
-          type: "wider",
+          desc: "Proporcionará um campo de visão ligeiramente maior e mais conforto visual.",
         });
       } else {
-        feedbacks.push({
+        list.push({
+          dim: "lens",
+          tone: "less",
           title: `Lente ${Math.abs(diff)} mm mais compacta`,
-          desc: "Ideal para rostos finos ou para reduzir o peso e espessura das lentes em graus mais altos.",
-          type: "narrower",
+          desc: "Ideal para rostos finos ou para reduzir o peso e a espessura das lentes em graus mais altos.",
         });
       }
     }
 
-    // 2. Comparação de Ponte Nasal
+    // 2. Ponte nasal
     if (parsedUser.bridge && targetBridgeMm) {
       const diff = targetBridgeMm - parsedUser.bridge;
       if (Math.abs(diff) <= 1) {
-        feedbacks.push({
+        list.push({
+          dim: "bridge",
+          tone: "exact",
           title: "Ponte nasal perfeita",
-          desc: `${Math.abs(diff)} mm de diferença — encaixe sobre o nariz sem folgas ou marcas de pressão.`,
-          type: "exact",
+          desc: "Melhor encaixe e conforto sobre o nariz, sem espaços e sem pressão.",
         });
       } else if (diff > 1) {
-        feedbacks.push({
+        list.push({
+          dim: "bridge",
+          tone: "more",
           title: `Ponte ${diff} mm mais espaçada`,
           desc: "Indicada para pontes nasais mais largas ou para armações que você prefira ligeiramente mais baixas.",
-          type: "wider",
         });
       } else {
-        feedbacks.push({
+        list.push({
+          dim: "bridge",
+          tone: "less",
           title: `Ponte ${Math.abs(diff)} mm mais fechada`,
           desc: "Oferece sustentação mais firme para quem tem dorso nasal fino, evitando que os óculos escorreguem.",
-          type: "narrower",
         });
       }
     }
 
-    // 3. Comparação de Haste
+    // 3. Haste
     if (parsedUser.temple && targetTempleMm) {
       const diff = targetTempleMm - parsedUser.temple;
       if (Math.abs(diff) <= 2) {
-        feedbacks.push({
+        list.push({
+          dim: "temple",
+          tone: "exact",
           title: "Comprimento de haste ideal",
           desc: `${Math.abs(diff)} mm de variação — encaixe atrás da orelha seguro e confortável.`,
-          type: "exact",
         });
       } else if (diff > 2) {
-        feedbacks.push({
+        list.push({
+          dim: "temple",
+          tone: "more",
           title: `Haste ${diff} mm mais longa`,
-          desc: "Mais folga atrás da orelha; pode ser facilmente curvada pelo nosso laboratório óptico no ajuste final.",
-          type: "longer",
+          desc: "Mais estabilidade e conforto, ideal para quem tem rosto maior.",
         });
       } else {
-        feedbacks.push({
+        list.push({
+          dim: "temple",
+          tone: "less",
           title: `Haste ${Math.abs(diff)} mm mais curta`,
           desc: "Pode puxar atrás da orelha se você tiver distância têmpora-orelha mais longa. Avalie seu conforto.",
-          type: "shorter",
         });
       }
     }
 
-    return feedbacks;
+    return list;
   }, [parsedUser, targetLensMm, targetBridgeMm, targetTempleMm]);
 
   return (
-    <div className="w-full bg-amber-50/40 border border-amber-200/80 rounded-3xl p-5 sm:p-7 space-y-6">
-      {/* Título & Instrução */}
-      <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-4">
+    <div className="w-full bg-[#F3F6FC] border border-slate-200 rounded-3xl p-4 sm:p-7 space-y-4 sm:space-y-6">
+      {/* Título e instrução */}
+      <div className="flex items-start justify-between gap-3">
         <div>
-          <span className="text-xs uppercase font-bold tracking-widest text-amber-700 flex items-center gap-1.5">
-            <SlidersHorizontal size={12} className="text-amber-600" />
+          <span className="text-[11px] sm:text-xs uppercase font-bold tracking-widest text-blue-800 flex items-center gap-1.5">
+            <Ruler size={12} aria-hidden="true" />
             Ferramenta Interativa
           </span>
-          <h3 className="text-lg sm:text-xl font-semibold text-slate-900 tracking-tight mt-0.5">
+          <h3 className="text-base sm:text-xl font-semibold text-slate-900 tracking-tight mt-0.5">
             Compare com a sua armação atual
           </h3>
-          <p className="text-sm sm:text-base text-slate-700 mt-1 max-w-xl leading-relaxed">
-            Pegue um óculos que você já usa e confira os 3 números gravados na parte interna da haste (ex: <strong className="font-mono text-slate-900">52 · 18 · 145</strong>). Digite cada número no campo correspondente.
+          <p className="text-[13px] sm:text-base text-slate-700 mt-1 max-w-xl leading-relaxed">
+            Pegue um óculos que você já usa e confira os 3 números gravados na parte interna da haste (ex:{" "}
+            <strong className="font-mono text-slate-900">52 · 18 · 145</strong>). Digite cada número no campo
+            correspondente.
           </p>
         </div>
 
-        {/* Botão de Limpar */}
-        {(userLens || userBridge || userTemple) && (
+        {hasAnyValue && (
           <button
             type="button"
-            onClick={() => {
-              setUserLens("");
-              setUserBridge("");
-              setUserTemple("");
-            }}
-            className="inline-flex items-center gap-1.5 min-h-[44px] px-3 text-sm font-medium text-slate-600 hover:text-amber-700 transition-colors motion-reduce:transition-none self-start"
+            onClick={() => setValues(EMPTY)}
+            className="inline-flex items-center gap-1.5 min-h-[44px] px-2 sm:px-3 text-sm font-medium text-slate-600 hover:text-blue-800 transition-colors motion-reduce:transition-none shrink-0"
           >
-            <RefreshCw size={12} /> Limpar
+            <RefreshCw size={12} aria-hidden="true" /> Limpar
           </button>
         )}
       </div>
 
-      {/* Inputs dos 3 Números */}
-      <div className="space-y-3">
-        <div className="grid grid-cols-1 min-[480px]:grid-cols-3 gap-3.5">
-          <div>
-            <label htmlFor="user-lens" className="block text-sm font-bold text-slate-800 mb-1.5">
-              1º número · Lente <span className="font-normal text-slate-500">(mm)</span>
+      {/* Os 3 números: ilustração, explicação e campo */}
+      <div className="space-y-2.5 sm:space-y-3">
+        {FIELDS.map(({ dim, id, ordinal, name, hint, min, max, placeholder, accent, Illustration }) => (
+          <div
+            key={dim}
+            className="flex items-center gap-2.5 sm:gap-4 rounded-2xl bg-white border border-slate-200/90 p-2.5 sm:p-3.5 shadow-sm"
+          >
+            <Illustration accent={accent} className="w-14 sm:w-24 h-auto shrink-0" />
+            <span aria-hidden="true" className="self-stretch w-px bg-slate-200 shrink-0" />
+            <label htmlFor={id} className="flex-1 min-w-0 cursor-pointer">
+              <span className="block text-[11px] sm:text-xs text-slate-500">{ordinal}</span>
+              <span className="block text-[15px] sm:text-lg font-bold text-slate-900 leading-tight">
+                {name} <span className="font-normal text-slate-500 text-xs sm:text-sm">(mm)</span>
+              </span>
+              <span className="block text-[11px] sm:text-sm text-slate-500 leading-snug">{hint}</span>
             </label>
             <input
-              id="user-lens"
+              id={id}
               type="number"
-              min="40"
-              max="70"
-              placeholder="ex: 50"
-              value={userLens}
-              onChange={(e) => setUserLens(e.target.value)}
+              min={min}
+              max={max}
+              placeholder={placeholder}
+              value={values[dim]}
+              onChange={(e) => setValues((prev) => ({ ...prev, [dim]: e.target.value }))}
               inputMode="numeric"
-              className="w-full min-h-[52px] px-3 py-2.5 text-xl font-mono text-center rounded-xl bg-white border border-slate-300 focus:outline-none focus:ring-2 focus:ring-amber-500 focus:border-amber-500 shadow-sm"
+              className="w-[78px] sm:w-28 min-h-[46px] sm:min-h-[56px] px-1.5 text-lg sm:text-2xl font-bold font-mono text-center text-slate-900 rounded-xl sm:rounded-2xl bg-white border border-slate-300 placeholder:text-xs sm:placeholder:text-sm placeholder:font-normal placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-600 focus:border-blue-600 shadow-sm"
             />
           </div>
+        ))}
+      </div>
 
-          <div>
-            <label htmlFor="user-bridge" className="block text-sm font-bold text-slate-800 mb-1.5">
-              2º número · Ponte <span className="font-normal text-slate-500">(mm)</span>
-            </label>
-            <input
-              id="user-bridge"
-              type="number"
-              min="10"
-              max="26"
-              placeholder="ex: 18"
-              value={userBridge}
-              onChange={(e) => setUserBridge(e.target.value)}
-              inputMode="numeric"
-              className="w-full min-h-[52px] px-3 py-2.5 text-xl font-mono text-center rounded-xl bg-white border border-slate-300 focus:outline-none focus:ring-2 focus:ring-amber-500 focus:border-amber-500 shadow-sm"
-            />
-          </div>
-
-          <div>
-            <label htmlFor="user-temple" className="block text-sm font-bold text-slate-800 mb-1.5">
-              3º número · Haste <span className="font-normal text-slate-500">(mm)</span>
-            </label>
-            <input
-              id="user-temple"
-              type="number"
-              min="120"
-              max="160"
-              placeholder="ex: 140"
-              value={userTemple}
-              onChange={(e) => setUserTemple(e.target.value)}
-              inputMode="numeric"
-              className="w-full min-h-[52px] px-3 py-2.5 text-xl font-mono text-center rounded-xl bg-white border border-slate-300 focus:outline-none focus:ring-2 focus:ring-amber-500 focus:border-amber-500 shadow-sm"
-            />
-          </div>
-        </div>
-
-        {/* Sugestões Rápidas de Presets */}
-        <div className="flex items-center gap-2.5 flex-wrap text-sm text-slate-600 pt-1">
-          <span className="font-medium text-slate-700 w-full sm:w-auto">Sem um óculos à mão? Toque em um tamanho comum:</span>
-          <button
-            type="button"
-            onClick={() => applyPreset(49, 18, 140)}
-            className="min-h-[44px] px-3.5 py-2 bg-white hover:bg-amber-100/60 border border-slate-300 rounded-xl text-sm text-slate-800 font-mono transition-colors motion-reduce:transition-none"
-          >
-            Pequeno (49 · 18 · 140)
-          </button>
-          <button
-            type="button"
-            onClick={() => applyPreset(52, 18, 145)}
-            className="min-h-[44px] px-3.5 py-2 bg-white hover:bg-amber-100/60 border border-slate-300 rounded-xl text-sm text-slate-800 font-mono transition-colors motion-reduce:transition-none"
-          >
-            Médio (52 · 18 · 145)
-          </button>
-          <button
-            type="button"
-            onClick={() => applyPreset(55, 19, 150)}
-            className="min-h-[44px] px-3.5 py-2 bg-white hover:bg-amber-100/60 border border-slate-300 rounded-xl text-sm text-slate-800 font-mono transition-colors motion-reduce:transition-none"
-          >
-            Grande (55 · 19 · 150)
-          </button>
+      {/* Tamanhos comuns */}
+      <div className="space-y-2">
+        <p className="flex items-center gap-2 text-[13px] sm:text-base font-medium text-slate-800">
+          <Ruler size={16} className="text-blue-700 shrink-0" aria-hidden="true" />
+          Sem um óculos à mão? Toque em um tamanho comum:
+        </p>
+        <div className="grid grid-cols-3 gap-2 sm:gap-3">
+          {PRESETS.map((p) => {
+            const selected = activePreset === p.label;
+            return (
+              <button
+                key={p.label}
+                type="button"
+                aria-pressed={selected}
+                onClick={() => applyPreset(p)}
+                className={`min-h-[56px] px-1.5 py-2 rounded-2xl border text-center transition-colors motion-reduce:transition-none focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-600 focus-visible:ring-offset-2 ${
+                  selected
+                    ? "bg-blue-800 border-blue-800 text-white shadow-md"
+                    : "bg-white border-slate-300 text-slate-900 hover:bg-blue-50"
+                }`}
+              >
+                <span className="block text-sm sm:text-base font-bold">{p.label}</span>{" "}
+                <span className={`block text-[11px] sm:text-sm tabular-nums ${selected ? "text-blue-100" : "text-slate-500"}`}>
+                  ({p.lens} · {p.bridge} · {p.temple})
+                </span>
+              </button>
+            );
+          })}
         </div>
       </div>
 
-      {/* Resultados da Comparação */}
-      {comparisonResults && comparisonResults.length > 0 ? (
-        <div className="space-y-4 pt-3 border-t border-amber-200/80">
-          <div className="flex items-center justify-between">
-            <span className="text-sm font-bold text-slate-900 uppercase tracking-wider flex items-center gap-1.5">
-              <Sparkles size={14} className="text-amber-600" /> Diagnóstico de Caimento
-            </span>
-            <span className="text-sm text-slate-600">
-              Comparando com <strong>{currentModelName}</strong>
-            </span>
-          </div>
-
-          <div className="space-y-2.5">
-            {comparisonResults.map((item, idx) => (
-              <div
-                key={idx}
-                className="bg-white rounded-2xl p-3.5 border border-slate-200 shadow-sm flex items-start gap-3"
-              >
-                <div className="mt-0.5 shrink-0">
-                  {item.type === "exact" ? (
-                    <CheckCircle2 size={20} className="text-emerald-600" />
-                  ) : (
-                    <Info size={20} className="text-amber-600" />
-                  )}
-                </div>
-                <div>
-                  <h4 className="text-sm sm:text-base font-bold text-slate-900">{item.title}</h4>
-                  <p className="text-sm text-slate-700 mt-0.5 leading-relaxed">{item.desc}</p>
-                </div>
-              </div>
-            ))}
-          </div>
-
-          {/* Gráfico Comparativo Visual de Silhuetas Sobrepostas */}
-          <div className="bg-white border border-slate-200 rounded-2xl p-4 space-y-3">
-            <div className="flex items-center justify-between text-xs text-slate-700 font-medium">
-              <span>Comparação Visual de Aro</span>
-              <div className="flex items-center gap-3 text-[11px]">
-                <span className="flex items-center gap-1 text-slate-500">
-                  <span className="w-2.5 h-2.5 rounded-full bg-slate-300 inline-block" /> Sua armação atual
-                </span>
-                <span className="flex items-center gap-1 text-amber-700 font-semibold">
-                  <span className="w-2.5 h-2.5 rounded-full bg-amber-500 inline-block" /> {currentModelName}
-                </span>
-              </div>
+      {/* Resultado */}
+      <div aria-live="polite">
+        {feedbacks.length > 0 ? (
+          <div className="space-y-4 pt-4 border-t border-slate-200">
+            <div className="flex flex-wrap items-center justify-between gap-x-3 gap-y-0.5">
+              <h4 className="text-base sm:text-xl font-bold text-slate-900 flex items-center gap-2">
+                <Activity size={20} className="text-blue-700" aria-hidden="true" />
+                Diagnóstico de Caimento
+              </h4>
+              <span className="text-[13px] sm:text-base text-slate-600">
+                Comparando com <strong className="text-blue-800">{currentModelName}</strong>
+              </span>
             </div>
 
-            {/* Barras de Comparação Relativa */}
-            <div className="space-y-2 pt-1">
-              <div>
-                <div className="flex justify-between text-[11px] text-slate-600 mb-1">
-                  <span>Largura da Lente</span>
-                  <span className="font-mono">
-                    {parsedUser.lens || "—"} mm vs {targetLensMm || "—"} mm
+            <div className="space-y-2.5">
+              {feedbacks.map((item) => {
+                const field = FIELDS.find((f) => f.dim === item.dim)!;
+                const theme = DIM_THEME[item.dim];
+                const Icon = item.tone === "exact" ? CheckCircle2 : Info;
+                return (
+                  <div
+                    key={item.dim}
+                    className={`rounded-2xl border p-3 sm:p-4 flex items-center gap-2.5 sm:gap-4 ${theme.card}`}
+                  >
+                    <span
+                      className={`shrink-0 size-7 sm:size-9 rounded-full flex items-center justify-center text-white ${theme.badge}`}
+                    >
+                      <Icon size={18} aria-hidden="true" />
+                    </span>
+                    <div className="flex-1 min-w-0">
+                      <h5 className="text-[15px] sm:text-lg font-bold text-slate-900 leading-snug">{item.title}</h5>
+                      <p className="text-[13px] sm:text-base text-slate-700 mt-0.5 leading-relaxed">{item.desc}</p>
+                    </div>
+                    <span aria-hidden="true" className="self-stretch w-px bg-slate-300/60 shrink-0" />
+                    <field.Illustration
+                      accent={field.accent}
+                      className="w-12 min-[400px]:w-14 sm:w-24 h-auto shrink-0"
+                    />
+                  </div>
+                );
+              })}
+            </div>
+
+            {/* Comparação visual com barras */}
+            <div className="bg-white border border-slate-200 rounded-2xl p-3.5 sm:p-5 space-y-3.5">
+              <div className="flex flex-wrap items-center justify-between gap-x-4 gap-y-1.5">
+                <h4 className="text-base sm:text-lg font-bold text-slate-900 flex items-center gap-2">
+                  <Scale size={18} className="text-blue-700" aria-hidden="true" />
+                  Comparação Visual
+                </h4>
+                <div className="flex flex-wrap items-center gap-x-3.5 gap-y-1 text-xs sm:text-sm text-slate-600">
+                  <span className="inline-flex items-center gap-1.5">
+                    <span className="size-2.5 rounded-full bg-blue-700" aria-hidden="true" /> Sua armação atual
                   </span>
-                </div>
-                <div className="h-3 w-full bg-slate-100 rounded-full overflow-hidden relative flex">
-                  {parsedUser.lens && (
-                    <div
-                      className="h-full bg-slate-300 rounded-full transition-all duration-300"
-                      style={{ width: `${Math.min(100, (parsedUser.lens / 70) * 100)}%` }}
-                    />
-                  )}
-                  {targetLensMm && (
-                    <div
-                      className="h-full bg-amber-500/80 rounded-full absolute top-0 left-0 transition-all duration-300 mix-blend-multiply"
-                      style={{ width: `${Math.min(100, (targetLensMm / 70) * 100)}%` }}
-                    />
-                  )}
+                  <span className="inline-flex items-center gap-1.5 font-semibold text-slate-800">
+                    <span className="size-2.5 rounded-full bg-[#FFD62E]" aria-hidden="true" /> {currentModelName}
+                  </span>
                 </div>
               </div>
 
-              <div>
-                <div className="flex justify-between text-[11px] text-slate-600 mb-1">
-                  <span>Ponte Nasal</span>
-                  <span className="font-mono">
-                    {parsedUser.bridge || "—"} mm vs {targetBridgeMm || "—"} mm
-                  </span>
-                </div>
-                <div className="h-3 w-full bg-slate-100 rounded-full overflow-hidden relative flex">
-                  {parsedUser.bridge && (
+              <div className="space-y-3.5">
+                {FIELDS.map(({ dim, chartLabel, scale }) => {
+                  const user = parsedUser[dim];
+                  const target = targets[dim];
+                  return (
                     <div
-                      className="h-full bg-slate-300 rounded-full transition-all duration-300"
-                      style={{ width: `${Math.min(100, (parsedUser.bridge / 26) * 100)}%` }}
-                    />
-                  )}
-                  {targetBridgeMm && (
-                    <div
-                      className="h-full bg-amber-500/80 rounded-full absolute top-0 left-0 transition-all duration-300 mix-blend-multiply"
-                      style={{ width: `${Math.min(100, (targetBridgeMm / 26) * 100)}%` }}
-                    />
-                  )}
-                </div>
-              </div>
-
-              <div>
-                <div className="flex justify-between text-[11px] text-slate-600 mb-1">
-                  <span>Comprimento da Haste</span>
-                  <span className="font-mono">
-                    {parsedUser.temple || "—"} mm vs {targetTempleMm || "—"} mm
-                  </span>
-                </div>
-                <div className="h-3 w-full bg-slate-100 rounded-full overflow-hidden relative flex">
-                  {parsedUser.temple && (
-                    <div
-                      className="h-full bg-slate-300 rounded-full transition-all duration-300"
-                      style={{ width: `${Math.min(100, (parsedUser.temple / 160) * 100)}%` }}
-                    />
-                  )}
-                  {targetTempleMm && (
-                    <div
-                      className="h-full bg-amber-500/80 rounded-full absolute top-0 left-0 transition-all duration-300 mix-blend-multiply"
-                      style={{ width: `${Math.min(100, (targetTempleMm / 160) * 100)}%` }}
-                    />
-                  )}
-                </div>
+                      key={dim}
+                      className="grid grid-cols-[1fr_auto] sm:grid-cols-[170px_1fr_140px] items-center gap-x-4 gap-y-1.5"
+                    >
+                      <span className="text-[13px] sm:text-base font-medium text-slate-800">{chartLabel}</span>
+                      <span className="text-xs sm:text-sm font-mono text-slate-700 text-right sm:col-start-3 sm:row-start-1 whitespace-nowrap">
+                        {user ?? "—"} mm <span className="text-slate-400">vs</span> {target ?? "—"} mm
+                      </span>
+                      <div className="col-span-2 sm:col-span-1 sm:col-start-2 sm:row-start-1 space-y-1">
+                        <div className="h-2.5 w-full rounded-full bg-slate-100 overflow-hidden">
+                          {user && (
+                            <div
+                              className="h-full rounded-full bg-blue-700 transition-[width] duration-300 motion-reduce:transition-none"
+                              style={{ width: `${Math.min(100, (user / scale) * 100)}%` }}
+                            />
+                          )}
+                        </div>
+                        <div className="h-2.5 w-full rounded-full bg-slate-100 overflow-hidden">
+                          {target && (
+                            <div
+                              className="h-full rounded-full bg-[#FFD62E] transition-[width] duration-300 motion-reduce:transition-none"
+                              style={{ width: `${Math.min(100, (target / scale) * 100)}%` }}
+                            />
+                          )}
+                        </div>
+                      </div>
+                    </div>
+                  );
+                })}
               </div>
             </div>
           </div>
-        </div>
-      ) : (
-        <div className="p-3.5 bg-white/70 rounded-2xl border border-dashed border-amber-300/80 text-center">
-          <p className="text-sm sm:text-base text-slate-700">
-            Digite um ou mais números acima para ver a comparação visual de tamanho e caimento.
-          </p>
-        </div>
-      )}
+        ) : (
+          <div className="p-3.5 bg-white/70 rounded-2xl border border-dashed border-blue-300/80 text-center">
+            <p className="text-[13px] sm:text-base text-slate-700">
+              Digite um ou mais números acima para ver a comparação visual de tamanho e caimento.
+            </p>
+          </div>
+        )}
+      </div>
     </div>
   );
 }
