@@ -61,31 +61,31 @@ export function SizingHelpGuide({ title, subtitle, steps, videoUrl, videoLabel }
   return (
     <section
       aria-labelledby="sizing-help-title"
-      className="rounded-3xl border border-amber-200 bg-gradient-to-br from-amber-50 via-white to-white p-5 sm:p-7 space-y-5"
+      className="rounded-3xl border border-amber-200 bg-gradient-to-br from-amber-50 via-white to-white p-4 sm:p-7 space-y-4 sm:space-y-5"
     >
       <div className="flex items-start gap-3">
-        <span className="shrink-0 size-11 rounded-2xl bg-amber-400 text-slate-950 flex items-center justify-center shadow-sm">
+        <span className="shrink-0 size-9 sm:size-11 rounded-2xl bg-amber-400 text-slate-950 flex items-center justify-center shadow-sm">
           <Lightbulb size={22} aria-hidden="true" />
         </span>
         <div>
-          <h4 id="sizing-help-title" className="text-lg sm:text-xl font-bold text-slate-900 tracking-tight">
+          <h4 id="sizing-help-title" className="text-base sm:text-xl font-bold text-slate-900 tracking-tight">
             {title}
           </h4>
-          <p className="text-sm sm:text-base text-slate-700 mt-1 leading-relaxed">{subtitle}</p>
+          <p className="text-[13px] sm:text-base text-slate-700 mt-1 leading-relaxed">{subtitle}</p>
         </div>
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-5 items-center">
-        <ol className="space-y-4">
+        <ol className="space-y-3 sm:space-y-4">
           {steps.map((text, index) => (
-            <li key={index} className="flex items-start gap-3.5">
+            <li key={index} className="flex items-start gap-3 sm:gap-3.5">
               <span
                 aria-hidden="true"
-                className="shrink-0 size-10 rounded-full bg-amber-500 text-white text-lg font-bold flex items-center justify-center shadow-sm"
+                className="shrink-0 size-8 sm:size-10 rounded-full bg-amber-500 text-white text-base sm:text-lg font-bold flex items-center justify-center shadow-sm"
               >
                 {index + 1}
               </span>
-              <p className="text-sm sm:text-base text-slate-800 leading-relaxed pt-1.5">
+              <p className="text-[13px] sm:text-base text-slate-800 leading-relaxed pt-1 sm:pt-1.5">
                 <span className="sr-only">{`Passo ${index + 1}: `}</span>
                 {text}
               </p>
@@ -93,7 +93,7 @@ export function SizingHelpGuide({ title, subtitle, steps, videoUrl, videoLabel }
           ))}
         </ol>
 
-        <div className="max-w-[420px] w-full mx-auto lg:mx-0 lg:justify-self-end">
+        <div className="max-w-[340px] sm:max-w-[420px] w-full mx-auto lg:mx-0 lg:justify-self-end">
           <TempleNumbersIllustration />
         </div>
       </div>
@@ -104,7 +104,7 @@ export function SizingHelpGuide({ title, subtitle, steps, videoUrl, videoLabel }
             <button
               type="button"
               onClick={() => setPlaying(true)}
-              className="w-full sm:w-auto min-h-[52px] inline-flex items-center justify-center gap-3 px-6 py-3 rounded-2xl bg-slate-900 hover:bg-slate-800 text-white text-sm sm:text-base font-semibold shadow-md transition-colors motion-reduce:transition-none focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-500 focus-visible:ring-offset-2"
+              className="w-full sm:w-auto min-h-[48px] sm:min-h-[52px] inline-flex items-center justify-center gap-3 px-6 py-3 rounded-2xl bg-slate-900 hover:bg-slate-800 text-white text-sm sm:text-base font-semibold shadow-md transition-colors motion-reduce:transition-none focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-500 focus-visible:ring-offset-2"
             >
               <PlayCircle size={24} className="text-amber-400 shrink-0" aria-hidden="true" />
               <span>{videoLabel}</span>
