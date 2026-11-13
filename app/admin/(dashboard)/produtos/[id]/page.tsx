@@ -15,14 +15,20 @@ import {
   Star,
   Plus,
   Loader2,
+  Move,
 } from "lucide-react";
 import { FrameType, FrameShape, FrameMaterial, FrameGender, Product } from "@/types/ecommerce";
+import { ImageFocusEditor } from "@/components/admin/image-focus-editor";
+import { focusForSave, focusObjectPosition, normalizeFocusValue } from "@/lib/image-focus";
 
 interface ImageItem {
   id?: string;
   url: string;
   is_primary: boolean;
   alt_text?: string | null;
+  /** Posição da foto nos cards (% do object-position); vazio = automático. */
+  focus_x?: number | null;
+  focus_y?: number | null;
 }
 
 export default function EditProductPage() {
@@ -59,6 +65,7 @@ export default function EditProductPage() {
   const [images, setImages] = useState<ImageItem[]>([]);
   const [urlInput, setUrlInput] = useState("");
   const [isUploading, setIsUploading] = useState(false);
+  const [focusEditIdx, setFocusEditIdx] = useState<number | null>(null);
 
   // Variant / Estoque
   const [colorName, setColorName] = useState("Padrão");
@@ -112,6 +119,8 @@ export default function EditProductPage() {
               url: img.url,
               is_primary: img.is_primary ?? idx === 0,
               alt_text: img.alt_text,
+              focus_x: normalizeFocusValue(img.focus_x),
+              focus_y: normalizeFocusValue(img.focus_y),
             }))
           );
         }
@@ -260,6 +269,7 @@ export default function EditProductPage() {
             is_primary: img.is_primary,
             sort_order: i,
             alt_text: img.alt_text || `${name} foto ${i + 1}`,
+            ...(focusForSave(img) ?? {}),
           })),
           color_name: colorName,
           stock_quantity: stockQuantity,
@@ -269,6 +279,12 @@ export default function EditProductPage() {
       const resData = await res.json();
       if (!res.ok || resData.error) {
         throw new Error(resData.error || "Erro ao atualizar armação.");
+      }
+
+      if (resData.warning) {
+        // Salvou, mas o banco ainda não tem as colunas da posição da foto: não redireciona para o aviso ser lido
+        setErrorMessage(resData.warning);
+        return;
       }
 
       setSuccessMessage("Armação atualizada com sucesso! Redirecionando...");
@@ -679,7 +695,18 @@ export default function EditProductPage() {
                     />
                   </div>
 
-                  <div className="p-2 bg-[#06111f] border-t border-white/5 flex items-center justify-between text-[10px]">
+                  <div className="px-2 pt-2 bg-[#06111f] border-t border-white/5">
+                    <button
+                      type="button"
+                      onClick={() => setFocusEditIdx(idx)}
+                      className="w-full inline-flex min-h-[36px] items-center justify-center gap-1.5 rounded-lg border border-slate-700 text-[11px] font-semibold text-slate-200 transition-colors hover:border-amber-400/60 hover:text-white"
+                    >
+                      <Move size={12} aria-hidden="true" />
+                      {focusObjectPosition(img) ? "Posição ajustada" : "Ajustar posição"}
+                    </button>
+                  </div>
+
+                  <div className="p-2 bg-[#06111f] flex items-center justify-between text-[10px]">
                     <button
                       type="button"
                       onClick={() => handleSetPrimary(idx)}
@@ -707,6 +734,24 @@ export default function EditProductPage() {
             <div className="py-6 text-center text-xs text-slate-400 border border-dashed border-slate-800 rounded-xl">
               Nenhuma foto cadastrada ainda. Adicione fotos acima para que o cliente veja todos os ângulos da peça.
             </div>
+          )}
+
+          {focusEditIdx !== null && images[focusEditIdx] && (
+            <ImageFocusEditor
+              imageUrl={images[focusEditIdx].url}
+              productName={name || undefined}
+              initialX={images[focusEditIdx].focus_x}
+              initialY={images[focusEditIdx].focus_y}
+              onClose={() => setFocusEditIdx(null)}
+              onApply={(focus) => {
+                setImages((prev) =>
+                  prev.map((img, i) =>
+                    i === focusEditIdx ? { ...img, focus_x: focus?.x ?? null, focus_y: focus?.y ?? null } : img
+                  )
+                );
+                setFocusEditIdx(null);
+              }}
+            />
           )}
 
           {/* Estoque e Publicação */}

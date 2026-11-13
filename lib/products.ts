@@ -2,6 +2,7 @@ import { cache } from "react";
 import { Product } from "@/types/ecommerce";
 import { DEFAULT_CATALOG } from "@/lib/catalog-data";
 import { createStaticSupabaseClient, isSupabaseConfigured } from "@/lib/supabase/static";
+import { normalizeFocusValue } from "@/lib/image-focus";
 
 export interface FetchProductsOptions {
   limit?: number;
@@ -59,6 +60,8 @@ export function normalizeProduct(raw: any): Product {
         alt_text: img.alt_text || raw.name || "Armação Ventara",
         is_primary: Boolean(img.is_primary ?? idx === 0),
         sort_order: Number(img.sort_order ?? idx),
+        focus_x: normalizeFocusValue(img.focus_x),
+        focus_y: normalizeFocusValue(img.focus_y),
         created_at: img.created_at || new Date().toISOString(),
       }))
     : [];

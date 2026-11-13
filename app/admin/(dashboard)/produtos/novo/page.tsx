@@ -21,9 +21,12 @@ import {
   Check,
   Tag,
   Layers,
+  Move,
 } from "lucide-react";
 import { FrameType, FrameShape, FrameMaterial, FrameGender, Product } from "@/types/ecommerce";
 import { formatCurrencyBRL, formatProductPricing } from "@/lib/pricing";
+import { ImageFocusEditor } from "@/components/admin/image-focus-editor";
+import { focusForSave, focusObjectPosition } from "@/lib/image-focus";
 
 interface VariantFormItem {
   id: string;
@@ -46,6 +49,9 @@ interface ImageUploadItem {
   isLowResWarning?: boolean;
   isVerticalWarning?: boolean;
   aspectWarningText?: string;
+  /** Posição da foto nos cards (% do object-position); vazio = automático. */
+  focus_x?: number | null;
+  focus_y?: number | null;
 }
 
 export default function NewProductQuickFlowPage() {
@@ -59,6 +65,7 @@ export default function NewProductQuickFlowPage() {
 
   // --- Passo 1: Fotos ---
   const [images, setImages] = useState<ImageUploadItem[]>([]);
+  const [focusEditIdx, setFocusEditIdx] = useState<number | null>(null);
   const [isUploading, setIsUploading] = useState(false);
   const [urlInput, setUrlInput] = useState("");
 
@@ -381,6 +388,7 @@ export default function NewProductQuickFlowPage() {
           is_primary: img.is_primary,
           alt_text: img.alt_text || `${name} - Foto ${idx + 1}`,
           sort_order: idx,
+          ...(focusForSave(img) ?? {}),
         })),
         variants: variants.map((v, idx) => {
           const varPriceNum = v.price_real
@@ -416,8 +424,12 @@ export default function NewProductQuickFlowPage() {
         throw new Error(data.error || "Erro ao salvar produto.");
       }
 
+      // Cadastrou, mas o banco ainda não tem as colunas da posição da foto: mostra o aviso por mais tempo
+      const warn = data.warning ? ` Atenção: ${data.warning}` : "";
+      const messageTime = warn ? 9000 : 4000;
+
       if (andCreateAnother) {
-        setSuccessMessage(`Produto "${name}" cadastrado com sucesso! Formulário pronto para o próximo.`);
+        setSuccessMessage(`Produto "${name}" cadastrado com sucesso! Formulário pronto para o próximo.${warn}`);
         // Reseta formulário mantendo tipo, material e linha
         setName("");
         setSlug("");
@@ -436,13 +448,13 @@ export default function NewProductQuickFlowPage() {
           },
         ]);
         setCurrentStep(1);
-        setTimeout(() => setSuccessMessage(null), 4000);
+        setTimeout(() => setSuccessMessage(null), messageTime);
       } else {
-        setSuccessMessage(`Produto "${name}" cadastrado com sucesso! Redirecionando...`);
+        setSuccessMessage(`Produto "${name}" cadastrado com sucesso! Redirecionando...${warn}`);
         setTimeout(() => {
           router.push("/admin/produtos");
           router.refresh();
-        }, 1200);
+        }, warn ? 7000 : 1200);
       }
     } catch (err: any) {
       setErrorMessage(err.message || "Erro inesperado ao cadastrar produto.");
@@ -680,6 +692,15 @@ export default function NewProductQuickFlowPage() {
                         </div>
                       )}
 
+                      <button
+                        type="button"
+                        onClick={() => setFocusEditIdx(idx)}
+                        className="w-full inline-flex min-h-[36px] items-center justify-center gap-1.5 rounded-lg border border-white/15 text-[11px] font-semibold text-slate-200 transition-colors hover:border-amber-400/60 hover:text-white"
+                      >
+                        <Move size={12} aria-hidden="true" />
+                        {focusObjectPosition(img) ? "Posição ajustada" : "Ajustar posição"}
+                      </button>
+
                       <div className="flex items-center justify-between text-[11px] pt-1">
                         <button
                           type="button"
@@ -718,6 +739,24 @@ export default function NewProductQuickFlowPage() {
                     </div>
                   ))}
                 </div>
+
+                {focusEditIdx !== null && images[focusEditIdx] && (
+                  <ImageFocusEditor
+                    imageUrl={images[focusEditIdx].url}
+                    productName={name || undefined}
+                    initialX={images[focusEditIdx].focus_x}
+                    initialY={images[focusEditIdx].focus_y}
+                    onClose={() => setFocusEditIdx(null)}
+                    onApply={(focus) => {
+                      setImages((prev) =>
+                        prev.map((img, i) =>
+                          i === focusEditIdx ? { ...img, focus_x: focus?.x ?? null, focus_y: focus?.y ?? null } : img
+                        )
+                      );
+                      setFocusEditIdx(null);
+                    }}
+                  />
+                )}
               </div>
             )}
           </div>

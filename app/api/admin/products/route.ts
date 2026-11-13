@@ -3,8 +3,47 @@ import { NextRequest, NextResponse } from "next/server";
 import { revalidatePath } from "next/cache";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { DEFAULT_CATALOG } from "@/lib/catalog-data";
+import { focusForSave } from "@/lib/image-focus";
 
 export const dynamic = "force-dynamic";
+
+type ProductImageRow = {
+  product_id: string;
+  url: string;
+  alt_text: string;
+  is_primary: boolean;
+  sort_order: number;
+  focus_x?: number;
+  focus_y?: number;
+};
+
+const FOCUS_COLUMN_ERROR = /focus_[xy]/i;
+const FOCUS_SQL_WARNING =
+  "As fotos foram salvas, mas a posição ajustada NÃO foi gravada: falta rodar o SQL das colunas focus_x/focus_y no Supabase.";
+
+/**
+ * Insere as fotos do produto. Se o banco ainda não tem as colunas focus_x/focus_y,
+ * grava as fotos sem a posição (nunca perde foto) e devolve focusDropped=true.
+ */
+async function insertProductImages(
+  client: ReturnType<typeof createAdminClient>,
+  rows: ProductImageRow[]
+): Promise<{ ok: boolean; focusDropped: boolean; error?: string }> {
+  if (rows.length === 0) return { ok: true, focusDropped: false };
+
+  const first = await client.from("product_images").insert(rows);
+  if (!first.error) return { ok: true, focusDropped: false };
+
+  if (FOCUS_COLUMN_ERROR.test(first.error.message)) {
+    const withoutFocus = rows.map(({ focus_x: _x, focus_y: _y, ...rest }) => rest);
+    const retry = await client.from("product_images").insert(withoutFocus);
+    if (!retry.error) {
+      return { ok: true, focusDropped: rows.some((r) => r.focus_x !== undefined) };
+    }
+    return { ok: false, focusDropped: false, error: retry.error.message };
+  }
+  return { ok: false, focusDropped: false, error: first.error.message };
+}
 
 export async function GET(req: NextRequest) {
   const auth = await requireAdmin(req);
@@ -23,7 +62,7 @@ export async function GET(req: NextRequest) {
         .select(`
           *,
           category:categories(name, slug),
-          images:product_images(id, url, is_primary, alt_text, sort_order),
+          images:product_images(*),
           variants:product_variants(id, stock_quantity, sku, color_name, color_hex, size, price_in_cents, compare_at_price_in_cents, image_url, is_available, sort_order)
         `)
         .eq("id", id)
@@ -47,7 +86,7 @@ export async function GET(req: NextRequest) {
       .select(`
         *,
         category:categories(name, slug),
-        images:product_images(id, url, is_primary, alt_text, sort_order),
+        images:product_images(*),
         variants:product_variants(id, stock_quantity, sku, color_name, color_hex, size, price_in_cents, compare_at_price_in_cents, image_url, is_available, sort_order)
       `)
       .order("created_at", { ascending: false });
@@ -161,13 +200,7 @@ export async function POST(req: NextRequest) {
     const productId = productData.id;
 
     // 2. Normaliza lista de fotos múltiplas (suporte a 1, 2, 3, 4, 5+ fotos)
-    const imagesToInsert: Array<{
-      product_id: string;
-      url: string;
-      alt_text: string;
-      is_primary: boolean;
-      sort_order: number;
-    }> = [];
+    const imagesToInsert: ProductImageRow[] = [];
 
     if (Array.isArray(body.images) && body.images.length > 0) {
       body.images.forEach((img: any, idx: number) => {
@@ -179,6 +212,7 @@ export async function POST(req: NextRequest) {
             alt_text: img.alt_text || `${body.name.trim()} - Foto ${idx + 1}`,
             is_primary: img.is_primary ?? idx === 0,
             sort_order: idx,
+            ...(focusForSave(img) ?? {}),
           });
         }
       });
@@ -204,13 +238,13 @@ export async function POST(req: NextRequest) {
       });
     }
 
+    let postWarning: string | undefined;
     if (imagesToInsert.length > 0) {
-      const { error: imgError } = await adminSupabase
-        .from("product_images")
-        .insert(imagesToInsert);
-
-      if (imgError) {
-        console.warn("Aviso ao vincular imagens do produto:", imgError);
+      const imgResult = await insertProductImages(adminSupabase, imagesToInsert);
+      if (!imgResult.ok) {
+        console.warn("Aviso ao vincular imagens do produto:", imgResult.error);
+      } else if (imgResult.focusDropped) {
+        postWarning = FOCUS_SQL_WARNING;
       }
     }
 
@@ -273,6 +307,7 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({
       success: true,
       product: productData,
+      ...(postWarning ? { warning: postWarning } : {}),
     });
   } catch (err: any) {
     console.error("Erro interno no cadastro de produtos:", err);
@@ -321,13 +356,7 @@ export async function PATCH(req: NextRequest) {
     }
 
     // 2. Se fornecido conjunto de imagens, substitui na tabela 'product_images'
-    const newImages: Array<{
-      product_id: string;
-      url: string;
-      alt_text: string;
-      is_primary: boolean;
-      sort_order: number;
-    }> = [];
+    const newImages: ProductImageRow[] = [];
 
     if (Array.isArray(images)) {
       images.forEach((img: any, idx: number) => {
@@ -339,6 +368,7 @@ export async function PATCH(req: NextRequest) {
             alt_text: img.alt_text || `${updatedProduct?.name || "Armação"} - Foto ${idx + 1}`,
             is_primary: img.is_primary ?? idx === 0,
             sort_order: idx,
+            ...(focusForSave(img) ?? {}),
           });
         }
       });
@@ -356,10 +386,28 @@ export async function PATCH(req: NextRequest) {
       });
     }
 
+    let patchWarning: string | undefined;
     if (newImages.length > 0) {
+      // Guarda as fotos atuais: se a gravação das novas falhar, elas são restauradas
+      const { data: previousImages } = await adminSupabase
+        .from("product_images")
+        .select("*")
+        .eq("product_id", id);
+
       // Remove imagens antigas e insere as novas organizadas
       await adminSupabase.from("product_images").delete().eq("product_id", id);
-      await adminSupabase.from("product_images").insert(newImages);
+      const imgResult = await insertProductImages(adminSupabase, newImages);
+
+      if (!imgResult.ok) {
+        if (previousImages && previousImages.length > 0) {
+          await adminSupabase.from("product_images").insert(previousImages);
+        }
+        return NextResponse.json(
+          { error: `Não foi possível salvar as fotos (nada foi perdido): ${imgResult.error}` },
+          { status: 500 }
+        );
+      }
+      if (imgResult.focusDropped) patchWarning = FOCUS_SQL_WARNING;
     }
 
     // 3. Se fornecido estoque ou cor, atualiza variantes de estoque
@@ -409,6 +457,7 @@ export async function PATCH(req: NextRequest) {
     return NextResponse.json({
       success: true,
       product: updatedProduct,
+      ...(patchWarning ? { warning: patchWarning } : {}),
     });
   } catch (err: any) {
     console.error("Erro interno ao atualizar produto:", err);

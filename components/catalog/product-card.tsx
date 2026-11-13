@@ -8,6 +8,7 @@ import { FrameArt } from "./frame-art";
 import { PricePromo } from "@/components/ui/price-promo";
 import { buildProductWhatsAppUrl } from "@/lib/whatsapp";
 import { formatProductPricing } from "@/lib/pricing";
+import { focusObjectPosition } from "@/lib/image-focus";
 
 interface ProductCardProps {
   product: Product;
@@ -55,6 +56,7 @@ export function ProductCard({
 
   const hasMultipleImages = validImages.length > 1;
   const currentImageUrl = validImages[0] || primaryImage;
+  const customPosition = focusObjectPosition(product.images?.find((img) => img.url === currentImageUrl));
 
   const pricing = formatProductPricing(product);
 
@@ -94,6 +96,7 @@ export function ProductCard({
             alt={product.name}
             loading="lazy"
             decoding="async"
+            style={customPosition ? { objectPosition: customPosition } : undefined}
             className="w-full h-full object-cover object-[center_25%] group-hover-zoom-desktop transition-transform duration-700 ease-out"
           />
         ) : (
