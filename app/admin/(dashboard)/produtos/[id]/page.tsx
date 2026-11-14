@@ -19,6 +19,8 @@ import {
 } from "lucide-react";
 import { FrameType, FrameShape, FrameMaterial, FrameGender, Product } from "@/types/ecommerce";
 import { ImageFocusEditor } from "@/components/admin/image-focus-editor";
+import { FaceFitEditor } from "@/components/admin/face-fit-editor";
+import { normalizeFaceFit, type FaceShapeFit } from "@/lib/face-shapes";
 import { focusForSave, focusObjectPosition, normalizeFocusValue } from "@/lib/image-focus";
 
 interface ImageItem {
@@ -58,6 +60,7 @@ export default function EditProductPage() {
   const [lensHeightMm, setLensHeightMm] = useState<number | "">("");
   const [hasTempleEngraving, setHasTempleEngraving] = useState<boolean>(false);
   const [materialOrigin, setMaterialOrigin] = useState<string>("");
+  const [faceFit, setFaceFit] = useState<FaceShapeFit>({});
   const [isPublished, setIsPublished] = useState(true);
   const [isFeatured, setIsFeatured] = useState(false);
 
@@ -108,6 +111,7 @@ export default function EditProductPage() {
         setLensHeightMm(p.dimensions_lens_height_mm ?? "");
         setHasTempleEngraving(Boolean(p.has_temple_engraving));
         setMaterialOrigin(p.material_origin || "");
+        setFaceFit(normalizeFaceFit(p.face_shape_fit));
         setIsPublished(p.is_published ?? true);
         setIsFeatured(p.is_featured ?? false);
 
@@ -264,6 +268,7 @@ export default function EditProductPage() {
           dimensions_lens_height_mm: typeof lensHeightMm === "number" && lensHeightMm > 0 ? lensHeightMm : null,
           has_temple_engraving: hasTempleEngraving,
           material_origin: materialOrigin.trim() || null,
+          face_shape_fit: faceFit,
           images: images.map((img, i) => ({
             url: img.url,
             is_primary: img.is_primary,
@@ -753,6 +758,9 @@ export default function EditProductPage() {
               }}
             />
           )}
+
+          {/* Indicação por formato de rosto */}
+          <FaceFitEditor value={faceFit} onChange={setFaceFit} frameShape={frameShape} />
 
           {/* Estoque e Publicação */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pt-4 border-t border-white/5">

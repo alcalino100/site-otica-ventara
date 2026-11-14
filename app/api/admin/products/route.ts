@@ -3,6 +3,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { revalidatePath } from "next/cache";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { DEFAULT_CATALOG } from "@/lib/catalog-data";
+import { normalizeFaceFit, idealFaceLabels, hasFaceFit } from "@/lib/face-shapes";
 import { focusForSave } from "@/lib/image-focus";
 
 export const dynamic = "force-dynamic";
@@ -102,6 +103,25 @@ export async function GET(req: NextRequest) {
   }
 }
 
+
+const FACE_COLUMN_ERROR = /face_shape/i;
+const FACE_SQL_WARNING =
+  "As armações foram salvas, mas a indicação por formato de rosto NÃO foi gravada: falta rodar o SQL da coluna face_shape_fit no Supabase.";
+
+/** Grava a indicação por rosto à parte: se a coluna ainda não existir, o resto do cadastro não é perdido. */
+async function saveFaceFit(client: any, productId: string, raw: unknown): Promise<string | undefined> {
+  const fit = normalizeFaceFit(raw);
+  const { error } = await client
+    .from("products")
+    .update({ face_shape_fit: fit, face_shape_recommendations: idealFaceLabels(fit) })
+    .eq("id", productId);
+  if (!error) return undefined;
+  // Sem nada para gravar e coluna ausente: não vale alarmar
+  if (FACE_COLUMN_ERROR.test(error.message || "")) return hasFaceFit(fit) ? FACE_SQL_WARNING : undefined;
+  console.warn("Aviso ao salvar indicação por rosto:", error.message);
+  return undefined;
+}
+
 export async function POST(req: NextRequest) {
   const auth = await requireAdmin(req);
   if (!auth.authorized) {
@@ -199,6 +219,10 @@ export async function POST(req: NextRequest) {
 
     const productId = productData.id;
 
+    const faceWarning = Object.prototype.hasOwnProperty.call(body, "face_shape_fit")
+      ? await saveFaceFit(adminSupabase, productId, body.face_shape_fit)
+      : undefined;
+
     // 2. Normaliza lista de fotos múltiplas (suporte a 1, 2, 3, 4, 5+ fotos)
     const imagesToInsert: ProductImageRow[] = [];
 
@@ -238,13 +262,13 @@ export async function POST(req: NextRequest) {
       });
     }
 
-    let postWarning: string | undefined;
+    let postWarning: string | undefined = faceWarning;
     if (imagesToInsert.length > 0) {
       const imgResult = await insertProductImages(adminSupabase, imagesToInsert);
       if (!imgResult.ok) {
         console.warn("Aviso ao vincular imagens do produto:", imgResult.error);
       } else if (imgResult.focusDropped) {
-        postWarning = FOCUS_SQL_WARNING;
+        postWarning = [postWarning, FOCUS_SQL_WARNING].filter(Boolean).join(" ");
       }
     }
 
@@ -325,7 +349,7 @@ export async function PATCH(req: NextRequest) {
   }
   try {
     const body = await req.json();
-    const { id, images, imageUrls, imageUrl, stock_quantity, color_name, ...updates } = body;
+    const { id, images, imageUrls, imageUrl, stock_quantity, color_name, face_shape_fit, ...updates } = body;
 
     if (!id) {
       return NextResponse.json(
@@ -354,6 +378,9 @@ export async function PATCH(req: NextRequest) {
         { status: 400 }
       );
     }
+
+    const faceWarning =
+      face_shape_fit !== undefined ? await saveFaceFit(adminSupabase, id, face_shape_fit) : undefined;
 
     // 2. Se fornecido conjunto de imagens, substitui na tabela 'product_images'
     const newImages: ProductImageRow[] = [];
@@ -386,7 +413,7 @@ export async function PATCH(req: NextRequest) {
       });
     }
 
-    let patchWarning: string | undefined;
+    let patchWarning: string | undefined = faceWarning;
     if (newImages.length > 0) {
       // Guarda as fotos atuais: se a gravação das novas falhar, elas são restauradas
       const { data: previousImages } = await adminSupabase
@@ -407,7 +434,7 @@ export async function PATCH(req: NextRequest) {
           { status: 500 }
         );
       }
-      if (imgResult.focusDropped) patchWarning = FOCUS_SQL_WARNING;
+      if (imgResult.focusDropped) patchWarning = [patchWarning, FOCUS_SQL_WARNING].filter(Boolean).join(" ");
     }
 
     // 3. Se fornecido estoque ou cor, atualiza variantes de estoque
