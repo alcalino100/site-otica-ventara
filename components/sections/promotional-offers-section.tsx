@@ -125,11 +125,6 @@ export function PromotionalOffersSection({
             (targetSlug && p.slug === targetSlug) ||
             p.id === item.id ||
             (item.name && p.name.toLowerCase().trim() === item.name.toLowerCase().trim())
-        ) ||
-        DEFAULT_CATALOG.find(
-          (p) =>
-            (targetSlug && p.slug === targetSlug) ||
-            (item.name && p.name.toLowerCase().trim() === item.name.toLowerCase().trim())
         );
 
       if (matched) {
