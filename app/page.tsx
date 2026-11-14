@@ -8,6 +8,7 @@ import { DraftPreviewBanner } from "@/components/content/draft-preview-banner";
 import { FloatingEditButton } from "@/components/content/floating-edit-button";
 import { AnnouncementBar } from "@/components/layout/announcement-bar";
 import { HomeClient } from "@/components/home/home-client";
+import type { OptiSyncPageSettings } from "@/types/ecommerce";
 
 export const revalidate = 60;
 
@@ -50,6 +51,19 @@ export default async function Home({ searchParams }: HomePageProps) {
     };
   }
 
+  // Seção OPTiSYNC Fotossensível da home: mesmos dados da página /optisync (só busca se estiver ligada).
+  let photochromicSection: { photochromic: OptiSyncPageSettings["photochromicLine"]; content: Record<string, any> } | null = null;
+  if (homeContent.showPhotochromicSection !== false) {
+    const mode = isDraft ? "draft" : "published";
+    const [optisyncSettings, optisyncContent] = await Promise.all([
+      getOptiSyncPageSettings(),
+      getPageContent("optisync", mode),
+    ]);
+    if (optisyncSettings.photochromicLine?.enabled !== false) {
+      photochromicSection = { photochromic: optisyncSettings.photochromicLine, content: optisyncContent };
+    }
+  }
+
   return (
     <>
       <DraftPreviewBanner pageId="home" />
@@ -64,6 +78,7 @@ export default async function Home({ searchParams }: HomePageProps) {
         headerContent={headerContent}
         footerContent={footerContent}
         storeOptisyncBackground={storeOptisyncBackground}
+        photochromicSection={photochromicSection}
       />
       <FloatingEditButton pageId="home" />
     </>

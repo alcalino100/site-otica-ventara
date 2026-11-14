@@ -1295,6 +1295,24 @@ export const SITE_PAGES_REGISTRY: Record<string, ContentPageDefinition> = {
         ],
       },
       {
+        id: "photochromicHome",
+        label: "8.1. OPTiSYNC HD Fotossensível",
+        description:
+          "Bloco com simulador de transição e as 3 fases de luminosidade. Os textos e as imagens são os mesmos da página OPTiSYNC (edite lá).",
+        fields: [
+          {
+            id: "home.photochromic.show",
+            key: "showPhotochromicSection",
+            label: "Exibir esta seção na página inicial",
+            type: "toggle",
+            default: true,
+            toggleLabels: { on: "Seção Visível", off: "Seção Oculta" },
+            help: "Mostra o simulador de lentes fotossensíveis entre o catálogo de lentes de grau e as lentes solares.",
+            location: "Seção \"OPTiSYNC HD Fotossensível\" da página inicial",
+          },
+        ],
+      },
+      {
         id: "coloredLenses",
         label: "9. Lentes Solares & Performance",
         description: "Coleção de lentes coloridas, solares e tratamentos estéticos.",
