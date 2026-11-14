@@ -12,11 +12,12 @@ import { CatalogSection } from "../catalog/catalog-section";
 import { PromotionalOffersSection } from "../sections/promotional-offers-section";
 import { LensesPricingSection } from "../sections/lenses-pricing-section";
 import { ColoredLensesShowcase } from "../sections/colored-lenses-showcase";
+import { PhotochromicSection } from "../optisync/photochromic-section";
 import { StoreSection } from "../sections/store-section";
 import { WhatsAppSection } from "../sections/whatsapp-section";
 import { FAQAccordion } from "../sections/faq-accordion";
 import { Toast } from "../ui/toast";
-import { Product } from "@/types/ecommerce";
+import { Product, OptiSyncPageSettings } from "@/types/ecommerce";
 import { DEFAULT_CATALOG } from "@/lib/catalog-data";
 import { normalizeProduct } from "@/lib/products";
 import { getStoredCart, saveStoredCart, CartProduct } from "@/lib/cart";
@@ -45,6 +46,11 @@ interface HomeClientProps {
   footerContent: Record<string, any>;
   /** Fundo OptiSYNC resolvido no servidor; só é enviado quando o toggle da seção da loja está ligado. */
   storeOptisyncBackground?: PageBackgroundConfig | null;
+  /** Dados da seção OPTiSYNC Fotossensível (mesmos da página /optisync); null = seção oculta. */
+  photochromicSection?: {
+    photochromic: OptiSyncPageSettings["photochromicLine"];
+    content: Record<string, any>;
+  } | null;
 }
 
 export function HomeClient({
@@ -52,6 +58,7 @@ export function HomeClient({
   headerContent,
   footerContent,
   storeOptisyncBackground = null,
+  photochromicSection = null,
 }: HomeClientProps) {
   const supabase = createClient();
   // Com banco configurado, não parte do catálogo de demonstração (evita piscar produtos já removidos).
@@ -275,6 +282,26 @@ export function HomeClient({
           prescriptionWhatsappMessage={homeContent.lensesPrescriptionWhatsapp}
           medicaoBtnText={homeContent.lensesMedicaoBtnText}
         />
+
+        {/* 8.1. OPTiSYNC HD Fotossensível (mesma seção da página /optisync) */}
+        {photochromicSection && (
+          <div className="theme-futuristic-lenses relative isolate overflow-hidden bg-[#000933] text-[#F4F6FF]">
+            <div
+              aria-hidden="true"
+              className="pointer-events-none absolute inset-0 -z-10"
+              style={{
+                background:
+                  "radial-gradient(60% 50% at 8% 0%, rgba(122,44,255,0.28), transparent 70%), radial-gradient(50% 45% at 100% 100%, rgba(0,68,201,0.25), transparent 70%)",
+              }}
+            />
+            <PhotochromicSection
+              id="fotossensivel"
+              photochromic={photochromicSection.photochromic}
+              content={photochromicSection.content}
+              className="scroll-mt-24 px-4 sm:px-6 lg:px-10 py-12 sm:py-20 relative"
+            />
+          </div>
+        )}
 
         {/* 9. Lentes Solares & Performance */}
         <ColoredLensesShowcase
