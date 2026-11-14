@@ -177,7 +177,9 @@ export async function getUnifiedProducts(options: FetchProductsOptions = {}): Pr
 
       const { data, error } = await query;
 
-      if (!error && data && data.length > 0) {
+      // Banco respondeu (mesmo vazio): ele é a fonte da verdade. O catálogo de demonstração
+      // só entra quando o banco não está configurado ou falha, senão produtos já removidos reaparecem.
+      if (!error && Array.isArray(data)) {
         let products = data.map(normalizeProduct);
 
         // Filtro em memória para regras avançadas
@@ -272,8 +274,9 @@ export const getUnifiedProductBySlug = cache(async (idOrSlug: string): Promise<P
 
       const { data, error } = await query.maybeSingle();
 
-      if (!error && data) {
-        return normalizeProduct(data);
+      if (!error) {
+        // Respondeu sem erro: se não achou, o produto não está (mais) publicado — não usar demonstração.
+        return data ? normalizeProduct(data) : null;
       }
     } catch (err) {
       console.error("[getUnifiedProductBySlug] Falha na consulta do produto:", err);
@@ -284,6 +287,25 @@ export const getUnifiedProductBySlug = cache(async (idOrSlug: string): Promise<P
   const found = DEFAULT_CATALOG.find((p) => p.slug === idOrSlug || p.id === idOrSlug);
   return found ? normalizeProduct(found) : null;
 });
+
+/**
+ * Armações recomendadas para a página do produto, sempre vindas do catálogo publicado (banco).
+ * Prioriza o mesmo tipo (Grau/Solar), depois mesmo público e mesmo formato.
+ */
+export async function getRelatedProducts(product: Product, limit = 4): Promise<Product[]> {
+  const all = await getUnifiedProducts({ limit: 100 });
+  const score = (p: Product) =>
+    (p.frame_type === product.frame_type ? 4 : 0) +
+    (p.gender === product.gender ? 2 : p.gender === "Unissex" || product.gender === "Unissex" ? 1 : 0) +
+    (p.frame_shape && p.frame_shape === product.frame_shape ? 1 : 0);
+
+  return all
+    .filter((p) => p.id !== product.id && p.slug !== product.slug)
+    .map((p, index) => ({ p, index, s: score(p) }))
+    .sort((a, b) => b.s - a.s || a.index - b.index)
+    .slice(0, limit)
+    .map((x) => x.p);
+}
 
 /**
  * Busca produtos em promoção/desconto real para a vitrine promocional da Home.

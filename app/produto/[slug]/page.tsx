@@ -1,7 +1,7 @@
 import React from "react";
 import { Metadata } from "next";
 import { notFound } from "next/navigation";
-import { DEFAULT_CATALOG } from "@/lib/catalog-data";
+import { getRelatedProducts, getUnifiedProducts } from "@/lib/products";
 import { getProductByIdOrSlug } from "@/lib/catalog-server";
 import { ProductDetailView } from "@/components/catalog/product-detail-view";
 import { getPageContent } from "@/lib/content/repository";
@@ -15,10 +15,12 @@ interface ProductPageProps {
   searchParams?: Promise<{ preview?: string }>;
 }
 
+// Atualiza a página periodicamente: produto removido/alterado no admin reflete sem novo deploy.
+export const revalidate = 60;
+
 export async function generateStaticParams() {
-  return DEFAULT_CATALOG.map((product) => ({
-    slug: product.slug,
-  }));
+  const products = await getUnifiedProducts({ limit: 100 });
+  return products.map((product) => ({ slug: product.slug }));
 }
 
 export async function generateMetadata({ params }: ProductPageProps): Promise<Metadata> {
@@ -65,9 +67,7 @@ export default async function ProductDetailPage({ params, searchParams }: Produc
     templateContent.backgroundConfig
   );
 
-  const relatedProducts = DEFAULT_CATALOG.filter(
-    (p) => p.slug !== product.slug && p.id !== product.id
-  ).slice(0, 4);
+  const relatedProducts = await getRelatedProducts(product, 4);
 
   return (
     <>

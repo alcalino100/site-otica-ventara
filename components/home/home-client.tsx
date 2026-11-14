@@ -54,7 +54,8 @@ export function HomeClient({
   storeOptisyncBackground = null,
 }: HomeClientProps) {
   const supabase = createClient();
-  const [products, setProducts] = useState<Product[]>(DEFAULT_CATALOG);
+  // Com banco configurado, não parte do catálogo de demonstração (evita piscar produtos já removidos).
+  const [products, setProducts] = useState<Product[]>(isSupabaseConfigured() ? [] : DEFAULT_CATALOG);
   const [isSearchOpen, setIsSearchOpen] = useState(false);
   const [isCartOpen, setIsCartOpen] = useState(false);
   const [cartInitialView, setCartInitialView] = useState<"items" | "checkout">("items");
@@ -89,7 +90,7 @@ export function HomeClient({
           .order("id", { ascending: true })
           .range(0, 99);
 
-        if (!error && data && data.length > 0) {
+        if (!error && Array.isArray(data)) {
           setProducts(data.map(normalizeProduct));
         }
       } catch (err) {
