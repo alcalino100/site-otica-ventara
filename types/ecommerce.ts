@@ -1,3 +1,5 @@
+import type { FaceShapeFit } from "@/lib/face-shapes";
+
 export type FrameType = "Grau" | "Solar" | "Clip-on";
 
 export type FrameShape =
@@ -102,6 +104,8 @@ export interface Product {
   material_origin?: string | null;
   low_stock_threshold?: number;
   face_shape_recommendations?: string[];
+  /** Compatibilidade da armação por formato de rosto (avaliada no admin). */
+  face_shape_fit?: FaceShapeFit | null;
   warranty_text?: string | null;
   exchange_text?: string | null;
   faq_items?: ProductFaqItem[];

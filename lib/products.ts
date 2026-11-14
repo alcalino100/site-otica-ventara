@@ -3,6 +3,7 @@ import { Product } from "@/types/ecommerce";
 import { DEFAULT_CATALOG } from "@/lib/catalog-data";
 import { createStaticSupabaseClient, isSupabaseConfigured } from "@/lib/supabase/static";
 import { normalizeFocusValue } from "@/lib/image-focus";
+import { normalizeFaceFit } from "@/lib/face-shapes";
 
 export interface FetchProductsOptions {
   limit?: number;
@@ -117,6 +118,7 @@ export function normalizeProduct(raw: any): Product {
       : typeof raw.face_shape_recommendations === "string"
       ? raw.face_shape_recommendations.split(",").map((s: string) => s.trim()).filter(Boolean)
       : [],
+    face_shape_fit: normalizeFaceFit(raw.face_shape_fit),
     warranty_text: raw.warranty_text ? String(raw.warranty_text).trim() : null,
     exchange_text: raw.exchange_text ? String(raw.exchange_text).trim() : null,
     faq_items: Array.isArray(raw.faq_items) ? raw.faq_items : [],

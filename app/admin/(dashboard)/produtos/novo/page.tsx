@@ -27,6 +27,8 @@ import { FrameType, FrameShape, FrameMaterial, FrameGender, Product } from "@/ty
 import { formatCurrencyBRL, formatProductPricing } from "@/lib/pricing";
 import { ImageFocusEditor } from "@/components/admin/image-focus-editor";
 import { focusForSave, focusObjectPosition } from "@/lib/image-focus";
+import { FaceFitEditor } from "@/components/admin/face-fit-editor";
+import type { FaceShapeFit } from "@/lib/face-shapes";
 
 interface VariantFormItem {
   id: string;
@@ -103,6 +105,7 @@ export default function NewProductQuickFlowPage() {
   const [lensHeightMm, setLensHeightMm] = useState<number | "">("");
   const [hasTempleEngraving, setHasTempleEngraving] = useState<boolean>(false);
   const [materialOrigin, setMaterialOrigin] = useState<string>("");
+  const [faceFit, setFaceFit] = useState<FaceShapeFit>({});
 
   // Carregar padrões inteligentes do último produto cadastrado
   useEffect(() => {
@@ -383,6 +386,7 @@ export default function NewProductQuickFlowPage() {
         dimensions_lens_height_mm: typeof lensHeightMm === "number" && lensHeightMm > 0 ? lensHeightMm : null,
         has_temple_engraving: hasTempleEngraving,
         material_origin: materialOrigin.trim() || null,
+        face_shape_fit: faceFit,
         images: images.map((img, idx) => ({
           url: img.url,
           is_primary: img.is_primary,
@@ -435,6 +439,7 @@ export default function NewProductQuickFlowPage() {
         setSlug("");
         setSku("");
         setImages([]);
+        setFaceFit({});
         setDescription("");
         setPriceReal("389,00");
         setComparePriceReal("");
@@ -1174,6 +1179,8 @@ export default function NewProductQuickFlowPage() {
                   As medidas (lente · ponte · haste) vêm gravadas na haste deste modelo físico
                 </label>
               </div>
+
+              <FaceFitEditor value={faceFit} onChange={setFaceFit} frameShape={frameShape} />
             </div>
           </div>
         )}

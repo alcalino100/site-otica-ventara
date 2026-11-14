@@ -14,6 +14,8 @@ import { Product, ProductFaqItem } from "@/types/ecommerce";
 import { FrameMeasurementsDiagram } from "./frame-measurements-diagram";
 import { FrameComparator } from "./frame-comparator";
 import { SizingHelpGuide } from "./sizing-help-guide";
+import { FaceShapeGuide } from "./face-shape-guide";
+import { useSiteSettings } from "@/components/providers/site-settings-provider";
 
 interface ProductAccordionsProps {
   product: Product;
@@ -92,7 +94,10 @@ export function ProductAccordions({ product, guideContent }: ProductAccordionsPr
     });
   }
 
-  const faceShapes = product.face_shape_recommendations || [];
+  const { cleanWhatsAppNumber } = useSiteSettings();
+  const whatsappHref = cleanWhatsAppNumber
+    ? `https://wa.me/${cleanWhatsAppNumber}?text=${encodeURIComponent(`Olá! Quero ajuda para saber se a armação ${product.name} combina com o formato do meu rosto.`)}`
+    : undefined;
 
   const defaultFaqs: ProductFaqItem[] = [
     {
@@ -236,39 +241,12 @@ export function ProductAccordions({ product, guideContent }: ProductAccordionsPr
         </button>
 
         {openSection === "face_shape" && (
-          <div className="p-4 sm:p-6 pt-0 space-y-3 text-xs text-slate-600 border-t border-slate-100">
+          <div className="p-4 sm:p-6 pt-4 space-y-3 text-xs text-slate-600 border-t border-slate-100">
             <p className="leading-relaxed">
-              O visagismo óptico analisa a harmonia das linhas do aro com o traçado geométrico dos traços faciais:
+              O visagismo óptico analisa a harmonia das linhas do aro com o formato do rosto. Descubra o seu e veja se
+              esta armação é indicada para você:
             </p>
-
-            <div className="flex flex-wrap gap-2">
-              {faceShapes.length > 0 ? (
-                faceShapes.map((shape, i) => (
-                  <span
-                    key={i}
-                    className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-amber-50 text-amber-900 border border-amber-200 font-medium"
-                  >
-                    ✓ {shape}
-                  </span>
-                ))
-              ) : (
-                <>
-                  <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-slate-100 text-slate-800 border border-slate-200 font-medium">
-                    Formato Oval
-                  </span>
-                  <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-slate-100 text-slate-800 border border-slate-200 font-medium">
-                    Formato Redondo
-                  </span>
-                  <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-slate-100 text-slate-800 border border-slate-200 font-medium">
-                    Formato Quadrado
-                  </span>
-                </>
-              )}
-            </div>
-
-            <p className="text-[11px] text-slate-500 italic">
-              Dica: armações contrastantes com o traçado facial costumam proporcionar excelente equilíbrio visual.
-            </p>
+            <FaceShapeGuide fit={product.face_shape_fit} productName={product.name} whatsappHref={whatsappHref} />
           </div>
         )}
       </div>

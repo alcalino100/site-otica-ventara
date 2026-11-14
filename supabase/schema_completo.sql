@@ -111,6 +111,8 @@ CREATE TABLE IF NOT EXISTS public.products (
   dimensions_lens_height_mm INTEGER CHECK (dimensions_lens_height_mm IS NULL OR dimensions_lens_height_mm > 0),
   has_temple_engraving BOOLEAN NOT NULL DEFAULT false,
   material_origin TEXT,
+  face_shape_fit JSONB NOT NULL DEFAULT '{}'::jsonb,
+  face_shape_recommendations TEXT[] DEFAULT '{}',
 
   created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
   updated_at TIMESTAMPTZ NOT NULL DEFAULT now()
