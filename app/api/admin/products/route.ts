@@ -3,6 +3,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { revalidatePath } from "next/cache";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { isSupabaseConfigured } from "@/lib/supabase/server";
+import { createStaticSupabaseClient } from "@/lib/supabase/static";
 import { DEFAULT_CATALOG } from "@/lib/catalog-data";
 import { normalizeFaceFit, idealFaceLabels, hasFaceFit } from "@/lib/face-shapes";
 import { focusForSave } from "@/lib/image-focus";
@@ -155,6 +156,66 @@ async function saveFaceFit(client: any, productId: string, raw: unknown): Promis
 }
 
 
+/**
+ * Mantém `status` (usado pelas regras de acesso do banco) coerente com `is_published` (gravado pelo admin).
+ * Sem isso, o banco pode esconder cores e fotos do visitante mesmo com o produto aparecendo.
+ * Se a coluna ainda não existe (migração antiga), ignora.
+ */
+async function syncPublishStatus(client: any, productId: string, isPublished: boolean): Promise<void> {
+  const { error } = await client
+    .from("products")
+    .update({ status: isPublished ? "publicado" : "rascunho" })
+    .eq("id", productId);
+  if (error && !/status/i.test(error.message || "")) {
+    console.warn("Aviso ao sincronizar status de publicação:", error.message);
+  }
+}
+
+/**
+ * Depois de salvar, lê o produto COMO VISITANTE (mesma leitura do site) e confere se produto, cores e fotos
+ * estão visíveis. Se não estiverem, devolve um aviso claro para o admin em vez de falhar em silêncio.
+ */
+async function verifyPublicVisibility(
+  productId: string,
+  expected: { published: boolean; colors?: string[]; images?: number }
+): Promise<string | undefined> {
+  if (!expected.published || !isSupabaseConfigured()) return undefined;
+  try {
+    const pub = createStaticSupabaseClient();
+    const { data, error } = await pub
+      .from("products")
+      .select("id, images:product_images(id), variants:product_variants(color_name)")
+      .eq("id", productId)
+      .eq("is_published", true)
+      .maybeSingle();
+
+    if (error) return undefined; // não deu para conferir: não alarma à toa
+
+    if (!data) {
+      return "ATENÇÃO: o produto foi salvo, mas o site NÃO está conseguindo exibi-lo para os visitantes (regra de publicação do banco desalinhada). Avise o suporte técnico para rodar o SQL de visibilidade.";
+    }
+
+    const problems: string[] = [];
+    const publicColors = new Set<string>(
+      ((data as any).variants || []).map((v: { color_name: string }) => String(v.color_name || "").trim().toLowerCase())
+    );
+    const missingColors = (expected.colors || []).filter((c) => !publicColors.has(c.trim().toLowerCase()));
+    if (missingColors.length > 0) {
+      problems.push(`as cores ${missingColors.join(", ")} NÃO aparecem para os visitantes`);
+    }
+    if (typeof expected.images === "number" && expected.images > 0 && ((data as any).images || []).length < expected.images) {
+      problems.push("as fotos NÃO aparecem para os visitantes");
+    }
+
+    return problems.length > 0
+      ? `ATENÇÃO: o produto foi salvo, mas no site ${problems.join(" e ")} (regra de acesso do banco). Avise o suporte técnico para rodar o SQL de visibilidade.`
+      : undefined;
+  } catch (err: any) {
+    console.warn("Não foi possível conferir a visibilidade pública:", err?.message);
+    return undefined;
+  }
+}
+
 /** Procura um slug livre: base, base-2, base-3... */
 async function uniqueProductSlug(client: any, base: string): Promise<string> {
   const { data } = await client.from("products").select("slug").like("slug", `${base}%`);
@@ -280,6 +341,9 @@ export async function POST(req: NextRequest) {
 
     const productId = productData.id;
 
+    // Status coerente com is_published (o banco usa 'status' nas regras de acesso do visitante)
+    await syncPublishStatus(adminSupabase, productId, body.is_published ?? true);
+
     const faceWarning = Object.prototype.hasOwnProperty.call(body, "face_shape_fit")
       ? await saveFaceFit(adminSupabase, productId, body.face_shape_fit)
       : undefined;
@@ -399,6 +463,18 @@ export async function POST(req: NextRequest) {
       revalidatePath("/admin/produtos");
     } catch {
       // Ignora erro de revalidação
+    }
+
+    {
+      const postVariantNames: string[] = Array.isArray(body.variants) && body.variants.length > 0
+        ? body.variants.map((v: any) => String(v.color_name || v.name || "Padrão"))
+        : [String(body.color_name || "Padrão")];
+      const visibilityWarning = await verifyPublicVisibility(productId, {
+        published: (body.is_published ?? true) === true,
+        colors: postVariantNames,
+        images: imagesToInsert.length,
+      });
+      if (visibilityWarning) postWarning = [postWarning, visibilityWarning].filter(Boolean).join(" ");
     }
 
     if (slugAdjusted) {
@@ -601,6 +677,11 @@ export async function PATCH(req: NextRequest) {
       if (imgResult.focusDropped) patchWarning = [patchWarning, FOCUS_SQL_WARNING].filter(Boolean).join(" ");
     }
 
+    // Status coerente com is_published
+    if (typeof updates.is_published === "boolean") {
+      await syncPublishStatus(adminSupabase, id, updates.is_published);
+    }
+
     // 3a. Lista completa de cores/variações enviada pelo editor: sincroniza (atualiza, cria e remove)
     const hasVariantsPayload = Array.isArray(variantsPayload) && variantsPayload.length > 0;
     if (hasVariantsPayload) {
@@ -650,6 +731,20 @@ export async function PATCH(req: NextRequest) {
       revalidatePath("/admin/produtos");
     } catch {
       // Ignora erro de revalidação
+    }
+
+    {
+      const visibilityWarning = await verifyPublicVisibility(id, {
+        published: (typeof updates.is_published === "boolean" ? updates.is_published : updatedProduct?.is_published) === true,
+        colors: hasVariantsPayload
+          ? variantsPayload
+              .filter((v: any) => v?.is_available !== false)
+              .map((v: any) => String(v.color_name || "").trim())
+              .filter(Boolean)
+          : undefined,
+        images: newImages.length > 0 ? newImages.length : undefined,
+      });
+      if (visibilityWarning) patchWarning = [patchWarning, visibilityWarning].filter(Boolean).join(" ");
     }
 
     return NextResponse.json({
