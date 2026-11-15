@@ -23,6 +23,7 @@ import { FaceFitEditor } from "@/components/admin/face-fit-editor";
 import { ColorPresetPicker } from "@/components/admin/color-preset-picker";
 import type { FrameColorPreset } from "@/lib/frame-color-presets";
 import { adminRequest } from "@/lib/admin-fetch";
+import { uploadProductImage } from "@/lib/admin-upload";
 import { normalizeFaceFit, type FaceShapeFit } from "@/lib/face-shapes";
 import { focusForSave, focusObjectPosition, normalizeFocusValue } from "@/lib/image-focus";
 
@@ -81,6 +82,7 @@ export default function EditProductPage() {
   const [images, setImages] = useState<ImageItem[]>([]);
   const [urlInput, setUrlInput] = useState("");
   const [isUploading, setIsUploading] = useState(false);
+  const [uploadError, setUploadError] = useState<string | null>(null);
   const [focusEditIdx, setFocusEditIdx] = useState<number | null>(null);
 
   // Variant / Estoque
@@ -175,48 +177,45 @@ export default function EditProductPage() {
   }, [productId]);
 
   const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const files = e.target.files;
-    if (!files || files.length === 0) return;
+    const input = e.target;
+    const files = input.files ? Array.from(input.files) : [];
+    if (files.length === 0) return;
 
     setErrorMessage(null);
+    setUploadError(null);
     setIsUploading(true);
-    setSuccessMessage(`Enviando ${files.length} foto(s) para o Storage...`);
+    setSuccessMessage(`Enviando ${files.length} foto(s)...`);
 
-    try {
-      const newUploaded: ImageItem[] = [];
+    const newUploaded: ImageItem[] = [];
+    const failures: string[] = [];
 
-      for (let i = 0; i < files.length; i++) {
-        const file = files[i];
-        const formData = new FormData();
-        formData.append("file", file);
-
-        const res = await fetch("/api/admin/upload", {
-          method: "POST",
-          body: formData,
+    for (const file of files) {
+      const result = await uploadProductImage(file);
+      if (result.ok) {
+        newUploaded.push({
+          url: result.url,
+          is_primary: images.length === 0 && newUploaded.length === 0,
+          alt_text: `${name || "Armação"} - Foto ${images.length + newUploaded.length + 1}`,
         });
-
-        const resData = await res.json();
-        if (res.ok && resData.url) {
-          newUploaded.push({
-            url: resData.url,
-            is_primary: images.length === 0 && newUploaded.length === 0,
-            alt_text: `${name || "Armação"} - Foto ${images.length + newUploaded.length + 1}`,
-          });
-        }
-      }
-
-      if (newUploaded.length > 0) {
-        setImages((prev) => [...prev, ...newUploaded]);
-        setSuccessMessage(`${newUploaded.length} foto(s) carregada(s) com sucesso!`);
       } else {
-        throw new Error("Não foi possível enviar as fotos.");
+        failures.push(result.error);
       }
-    } catch (err: any) {
-      console.error(err);
-      setErrorMessage(`Falha no upload: ${err.message}. Você também pode colar a URL direta da imagem abaixo.`);
-    } finally {
-      setIsUploading(false);
     }
+
+    if (newUploaded.length > 0) {
+      setImages((prev) => [...prev, ...newUploaded]);
+      setSuccessMessage(
+        `${newUploaded.length} foto(s) enviada(s). Falta clicar em "Salvar" para ela aparecer no site.`
+      );
+    } else {
+      setSuccessMessage(null);
+    }
+    if (failures.length > 0) {
+      setUploadError(failures.join(" "));
+    }
+
+    setIsUploading(false);
+    input.value = "";
   };
 
   const handleAddUrl = () => {
@@ -701,6 +700,12 @@ export default function EditProductPage() {
               Recomendado: 2 a 4 fotos (Frontal, Lateral, Ângulo interno)
             </span>
           </div>
+
+          {uploadError && (
+            <div role="alert" className="rounded-xl border border-rose-400/50 bg-rose-500/10 p-3 text-xs leading-relaxed text-rose-100">
+              <strong className="text-white">A foto NÃO foi enviada.</strong> {uploadError}
+            </div>
+          )}
 
           {/* Upload de Múltiplos Arquivos */}
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">

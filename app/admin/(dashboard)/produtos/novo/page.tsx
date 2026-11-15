@@ -29,6 +29,7 @@ import { ImageFocusEditor } from "@/components/admin/image-focus-editor";
 import { focusForSave, focusObjectPosition } from "@/lib/image-focus";
 import { FaceFitEditor } from "@/components/admin/face-fit-editor";
 import { adminRequest } from "@/lib/admin-fetch";
+import { uploadProductImage } from "@/lib/admin-upload";
 import { ColorPresetPicker } from "@/components/admin/color-preset-picker";
 import type { FrameColorPreset } from "@/lib/frame-color-presets";
 import type { FaceShapeFit } from "@/lib/face-shapes";
@@ -162,19 +163,17 @@ export default function NewProductQuickFlowPage() {
 
     try {
       const newUploaded: ImageUploadItem[] = [];
+      const uploadFailures: string[] = [];
 
       for (let i = 0; i < files.length; i++) {
         const file = files[i];
-        const formData = new FormData();
-        formData.append("file", file);
-
-        const res = await fetch("/api/admin/upload", {
-          method: "POST",
-          body: formData,
-        });
-
-        const resData = await res.json();
-        if (res.ok && resData.url) {
+        const up = await uploadProductImage(file);
+        if (!up.ok) {
+          uploadFailures.push(up.error);
+          continue;
+        }
+        const resData = { url: up.url };
+        {
           // Analisar dimensões da imagem no cliente
           const img = new window.Image();
           img.src = resData.url;
@@ -215,8 +214,9 @@ export default function NewProductQuickFlowPage() {
         setImages((prev) => [...prev, ...newUploaded]);
         setSuccessMessage(`${newUploaded.length} foto(s) enviada(s) com sucesso.`);
         setTimeout(() => setSuccessMessage(null), 3500);
-      } else {
-        throw new Error("Não foi possível processar o envio das fotos.");
+      }
+      if (uploadFailures.length > 0) {
+        setErrorMessage(`A foto NÃO foi enviada. ${uploadFailures.join(" ")}`);
       }
     } catch (err: any) {
       setErrorMessage(err.message || "Falha ao enviar fotos. Tente novamente.");
