@@ -1,6 +1,6 @@
 import { requireAdmin } from "@/lib/auth/require-admin";
 import { NextRequest, NextResponse } from "next/server";
-import { revalidatePath } from "next/cache";
+import { revalidateProductPages } from "@/lib/revalidate-products";
 import { createAdminClient } from "@/lib/supabase/admin";
 
 export const dynamic = "force-dynamic";
@@ -121,13 +121,7 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    try {
-      revalidatePath("/");
-      revalidatePath("/armacoes");
-      revalidatePath("/admin/produtos");
-    } catch {
-      // Ignora erro de revalidação
-    }
+    revalidateProductPages();
 
     return NextResponse.json({
       success: true,
