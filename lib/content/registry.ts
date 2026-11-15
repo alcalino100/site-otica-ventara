@@ -1310,6 +1310,23 @@ export const SITE_PAGES_REGISTRY: Record<string, ContentPageDefinition> = {
             help: "Mostra o simulador de lentes fotossensíveis entre o catálogo de lentes de grau e as lentes solares.",
             location: "Seção \"OPTiSYNC HD Fotossensível\" da página inicial",
           },
+          {
+            id: "home.photochromic.ctaText",
+            key: "photochromicHomeCtaText",
+            label: "Texto do botão",
+            type: "text",
+            default: "Conheça as lentes OPTiSYNC",
+            maxLength: 40,
+            location: "Botão roxo/azul no topo da seção, à direita do título",
+          },
+          {
+            id: "home.photochromic.ctaLink",
+            key: "photochromicHomeCtaLink",
+            label: "Link do botão",
+            type: "link",
+            default: "/lentes",
+            location: "Destino do botão (página de lentes)",
+          },
         ],
       },
       {

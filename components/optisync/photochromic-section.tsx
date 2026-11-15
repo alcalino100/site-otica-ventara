@@ -12,6 +12,9 @@ interface PhotochromicSectionProps {
   content: Record<string, any>;
   id?: string;
   className?: string;
+  /** Texto/destino do botão, quando a página que usa o bloco quer o seu próprio (ex.: home). */
+  ctaText?: string;
+  ctaHref?: string;
 }
 
 /**
@@ -23,8 +26,13 @@ export function PhotochromicSection({
   content,
   id = "linha-fotossensivel",
   className = "scroll-mt-24 sm:scroll-mt-28 px-4 sm:px-6 lg:px-10 py-10 sm:py-20 lg:py-24 border-b border-white/10 relative",
+  ctaText,
+  ctaHref,
 }: PhotochromicSectionProps) {
   if (photochromic?.enabled === false) return null;
+
+  const buttonHref = ctaHref || content.photochromicCtaLink || photochromic?.ctaLink;
+  const buttonText = ctaText || content.photochromicCtaText || photochromic?.ctaText || "Ver Modelos Fotossensíveis";
 
   return (
     <section id={id} className={className}>
@@ -45,12 +53,12 @@ export function PhotochromicSection({
             </p>
           </div>
 
-          {(content.photochromicCtaLink || photochromic?.ctaLink) && (
+          {buttonHref && (
             <Link
-              href={content.photochromicCtaLink || photochromic?.ctaLink || "/lentes?linha=fotossensivel"}
+              href={buttonHref}
               className="inline-flex items-center gap-2 px-5 sm:px-6 py-2.5 sm:py-3 rounded-full bg-gradient-to-r from-[#7A2CFF] to-[#0044C9] hover:from-[#9247FF] hover:to-[#1E5BFF] text-white font-bold text-xs sm:text-sm shadow-lg shadow-purple-900/40 transition-all cursor-pointer"
             >
-              <span>{content.photochromicCtaText || photochromic?.ctaText || "Ver Modelos Fotossensíveis"}</span>
+              <span>{buttonText}</span>
               <ArrowRight className="w-4 h-4" />
             </Link>
           )}

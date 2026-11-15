@@ -13,10 +13,19 @@ test.describe("Home: seção OPTiSYNC HD Fotossensível", () => {
     await expect(section.getByAltText(/Três estados da lente fotossensível/i)).toBeVisible();
   });
 
+  test("botão da home é \"Conheça as lentes OPTiSYNC\" e leva para /lentes", async ({ page }) => {
+    await page.goto("/");
+    const cta = page.locator("#fotossensivel").getByRole("link", { name: /Conheça as lentes OPTiSYNC/ });
+    await expect(cta).toBeVisible();
+    await expect(cta).toHaveAttribute("href", "/lentes");
+  });
+
   test("a página /optisync continua com a mesma seção", async ({ page }) => {
     await page.goto("/optisync");
     const section = page.locator("#linha-fotossensivel");
     await expect(section.getByRole("heading", { level: 2 })).toContainText("Fotossensível");
     await expect(section.getByText("Transição Óptica Inteligente")).toBeVisible();
+    // O botão da /optisync mantém o texto próprio (não herda o da home)
+    await expect(section.getByRole("link", { name: /Conheça as lentes OPTiSYNC/ })).toHaveCount(0);
   });
 });
