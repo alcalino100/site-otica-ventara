@@ -300,7 +300,7 @@ export function HomeClient({
               content={photochromicSection.content}
               className="scroll-mt-24 px-4 sm:px-6 lg:px-10 py-12 sm:py-20 relative"
               ctaText={homeContent.photochromicHomeCtaText || "Conheça as lentes OPTiSYNC"}
-              ctaHref={homeContent.photochromicHomeCtaLink || "/lentes"}
+              ctaHref={homeContent.photochromicHomeCtaLink || "/optisync"}
             />
           </div>
         )}

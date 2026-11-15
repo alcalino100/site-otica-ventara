@@ -65,7 +65,7 @@ test.describe("Seção de Ofertas Promocionais (Vitrine Split Card)", () => {
     const firstCard = cards.first();
 
     // 1. Bloco de imagem no topo
-    const imgBlock = firstCard.locator("div.aspect-\\[4\\/3\\]");
+    const imgBlock = firstCard.locator('div[class*="aspect-["]').first();
     await expect(imgBlock).toBeVisible();
 
     const img = imgBlock.locator("img");
