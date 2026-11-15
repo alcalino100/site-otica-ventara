@@ -29,6 +29,8 @@ import { ImageFocusEditor } from "@/components/admin/image-focus-editor";
 import { focusForSave, focusObjectPosition } from "@/lib/image-focus";
 import { FaceFitEditor } from "@/components/admin/face-fit-editor";
 import { adminRequest } from "@/lib/admin-fetch";
+import { ColorPresetPicker } from "@/components/admin/color-preset-picker";
+import type { FrameColorPreset } from "@/lib/frame-color-presets";
 import type { FaceShapeFit } from "@/lib/face-shapes";
 
 interface VariantFormItem {
@@ -270,6 +272,25 @@ export default function NewProductQuickFlowPage() {
         is_available: true,
       },
     ]);
+  };
+
+  /** Cor pronta: preenche uma variação em branco/padrão ainda sem uso ou cria uma nova. */
+  const handleAddPresetColor = (preset: FrameColorPreset) => {
+    setVariants((prev) => {
+      if (prev.some((v) => v.name.trim().toLowerCase() === preset.name.toLowerCase())) return prev;
+      const nextIdx = prev.length + 1;
+      const baseSkuClean = sku || `VEN-${slug.toUpperCase().slice(0, 6) || "ITEM"}`;
+      return [
+        ...prev,
+        {
+          id: `var-${Date.now()}`,
+          name: preset.name,
+          sku: `${baseSkuClean}-${String(nextIdx).padStart(2, "0")}`,
+          color_hex: preset.hex,
+          is_available: true,
+        },
+      ];
+    });
   };
 
   const handleRemoveVariant = (id: string) => {
@@ -945,6 +966,8 @@ export default function NewProductQuickFlowPage() {
                 <span>Adicionar Mais uma Cor</span>
               </button>
             </div>
+
+            <ColorPresetPicker usedNames={variants.map((v) => v.name)} onPick={handleAddPresetColor} />
 
             <div className="space-y-3">
               {variants.map((v, idx) => (

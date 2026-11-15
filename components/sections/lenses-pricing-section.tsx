@@ -65,7 +65,7 @@ export function LensesPricingSection({
     async function loadData() {
       try {
         const [lensesRes, settingsRes] = await Promise.all([
-          fetch(`/api/admin/lenses?t=${Date.now()}`, { cache: "no-store" }),
+          fetch(`/api/lenses?t=${Date.now()}`, { cache: "no-store" }),
           fetch(`/api/settings?t=${Date.now()}`, { cache: "no-store" }),
         ]);
 

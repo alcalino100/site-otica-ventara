@@ -20,9 +20,21 @@ import {
 import { FrameType, FrameShape, FrameMaterial, FrameGender, Product } from "@/types/ecommerce";
 import { ImageFocusEditor } from "@/components/admin/image-focus-editor";
 import { FaceFitEditor } from "@/components/admin/face-fit-editor";
+import { ColorPresetPicker } from "@/components/admin/color-preset-picker";
+import type { FrameColorPreset } from "@/lib/frame-color-presets";
 import { adminRequest } from "@/lib/admin-fetch";
 import { normalizeFaceFit, type FaceShapeFit } from "@/lib/face-shapes";
 import { focusForSave, focusObjectPosition, normalizeFocusValue } from "@/lib/image-focus";
+
+interface VariantRow {
+  /** id do banco (ausente em cor recém-adicionada) */
+  id?: string;
+  key: string;
+  name: string;
+  color_hex: string;
+  stock: number;
+  is_available: boolean;
+}
 
 interface ImageItem {
   id?: string;
@@ -74,6 +86,9 @@ export default function EditProductPage() {
   // Variant / Estoque
   const [colorName, setColorName] = useState("Padrão");
   const [stockQuantity, setStockQuantity] = useState(5);
+  const [variantRows, setVariantRows] = useState<VariantRow[]>([
+    { key: "v-new-0", name: "Padrão", color_hex: "#0f172a", stock: 5, is_available: true },
+  ]);
 
   useEffect(() => {
     async function fetchProduct() {
@@ -134,6 +149,19 @@ export default function EditProductPage() {
         if (p.variants && p.variants.length > 0) {
           setColorName(p.variants[0].color_name || "Padrão");
           setStockQuantity(p.variants[0].stock_quantity ?? 5);
+          const sorted = [...p.variants].sort(
+            (a: any, b: any) => (a.sort_order ?? 0) - (b.sort_order ?? 0)
+          );
+          setVariantRows(
+            sorted.map((v: any, i: number) => ({
+              id: v.id,
+              key: v.id || `v-${i}`,
+              name: v.color_name || "Padrão",
+              color_hex: v.color_hex || "#0f172a",
+              stock: typeof v.stock_quantity === "number" ? v.stock_quantity : 0,
+              is_available: v.is_available !== false,
+            }))
+          );
         }
       } catch (err: any) {
         console.error(err);
@@ -224,6 +252,32 @@ export default function EditProductPage() {
     });
   };
 
+  const updateVariantRow = (key: string, patch: Partial<VariantRow>) =>
+    setVariantRows((prev) => prev.map((v) => (v.key === key ? { ...v, ...patch } : v)));
+
+  /** Cor pronta: preenche a linha em branco (se houver) ou cria uma nova. */
+  const addPresetColor = (preset: FrameColorPreset) =>
+    setVariantRows((prev) => {
+      if (prev.some((v) => v.name.trim().toLowerCase() === preset.name.toLowerCase())) return prev;
+      const blankIdx = prev.findIndex((v) => !v.name.trim());
+      if (blankIdx >= 0) {
+        return prev.map((v, i) => (i === blankIdx ? { ...v, name: preset.name, color_hex: preset.hex } : v));
+      }
+      return [
+        ...prev,
+        { key: `v-new-${Date.now()}`, name: preset.name, color_hex: preset.hex, stock: 5, is_available: true },
+      ];
+    });
+
+  const addVariantRow = () =>
+    setVariantRows((prev) => [
+      ...prev,
+      { key: `v-new-${Date.now()}`, name: "", color_hex: "#475569", stock: 5, is_available: true },
+    ]);
+
+  const removeVariantRow = (key: string) =>
+    setVariantRows((prev) => (prev.length <= 1 ? prev : prev.filter((v) => v.key !== key)));
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setErrorMessage(null);
@@ -236,6 +290,18 @@ export default function EditProductPage() {
 
       if (isNaN(priceInCents) || priceInCents < 0) {
         setErrorMessage("Por favor, informe um preço de venda válido.");
+        setIsSubmitting(false);
+        return;
+      }
+
+      const colorNames = variantRows.map((v) => v.name.trim().toLowerCase());
+      if (colorNames.some((n) => !n)) {
+        setErrorMessage("Dê um nome para cada cor (ex.: Preto Fosco) ou remova a cor em branco.");
+        setIsSubmitting(false);
+        return;
+      }
+      if (new Set(colorNames).size !== colorNames.length) {
+        setErrorMessage("Há duas cores com o mesmo nome. Use nomes diferentes para cada cor.");
         setIsSubmitting(false);
         return;
       }
@@ -277,8 +343,15 @@ export default function EditProductPage() {
             alt_text: img.alt_text || `${name} foto ${i + 1}`,
             ...(focusForSave(img) ?? {}),
           })),
-          color_name: colorName,
-          stock_quantity: stockQuantity,
+          color_name: variantRows[0]?.name.trim() || colorName,
+          stock_quantity: variantRows[0]?.stock ?? stockQuantity,
+          variants: variantRows.map((v) => ({
+            id: v.id,
+            color_name: v.name.trim(),
+            color_hex: v.color_hex,
+            stock_quantity: v.stock,
+            is_available: v.is_available,
+          })),
         }),
       });
 
@@ -763,34 +836,89 @@ export default function EditProductPage() {
           {/* Indicação por formato de rosto */}
           <FaceFitEditor value={faceFit} onChange={setFaceFit} frameShape={frameShape} />
 
-          {/* Estoque e Publicação */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pt-4 border-t border-white/5">
-            <div>
-              <label htmlFor="edit-color-name" className="block text-xs font-medium text-slate-300 mb-1">
-                Cor Principal da Armação
-              </label>
-              <input
-                id="edit-color-name"
-                type="text"
-                value={colorName}
-                onChange={(e) => setColorName(e.target.value)}
-                className="w-full bg-[#040e17] border border-slate-700 rounded-lg px-3 py-2 text-xs text-white focus:outline-none focus:border-amber-400"
-              />
+          {/* Cores e estoque */}
+          <div className="space-y-3 pt-4 border-t border-white/5" data-testid="variants-editor">
+            <div className="flex items-center justify-between gap-3">
+              <div>
+                <h3 className="text-xs font-bold text-white">Cores e estoque</h3>
+                <p className="text-[11px] text-slate-400">
+                  Cada cor aparece como opção na página do produto. Para uma cor nova, use &quot;Adicionar cor&quot; e salve.
+                </p>
+              </div>
+              <button
+                type="button"
+                onClick={addVariantRow}
+                className="inline-flex shrink-0 items-center gap-1.5 rounded-lg border border-amber-400/30 bg-amber-400/10 px-3 py-2 text-xs font-semibold text-amber-300 transition-colors hover:bg-amber-400/20"
+              >
+                <Plus size={14} /> Adicionar cor
+              </button>
             </div>
 
-            <div>
-              <label htmlFor="edit-stock-quantity" className="block text-xs font-medium text-slate-300 mb-1">
-                Estoque Disponível (unidades)
-              </label>
-              <input
-                id="edit-stock-quantity"
-                type="number"
-                min="0"
-                value={stockQuantity}
-                onChange={(e) => setStockQuantity(parseInt(e.target.value) || 0)}
-                className="w-full bg-[#040e17] border border-slate-700 rounded-lg px-3 py-2 text-xs text-white focus:outline-none focus:border-amber-400"
-              />
-            </div>
+            <ColorPresetPicker usedNames={variantRows.map((v) => v.name)} onPick={addPresetColor} />
+
+            {variantRows.map((v, idx) => (
+              <div
+                key={v.key}
+                data-testid="variant-row"
+                className="grid grid-cols-12 items-end gap-2 rounded-xl border border-white/10 bg-[#040e17] p-3"
+              >
+                <div className="col-span-2 sm:col-span-1">
+                  <label className="mb-1 block text-[10px] text-slate-400">Cor</label>
+                  <input
+                    type="color"
+                    value={v.color_hex}
+                    onChange={(e) => updateVariantRow(v.key, { color_hex: e.target.value })}
+                    className="h-9 w-full cursor-pointer rounded-lg border-0 bg-transparent"
+                    aria-label={`Amostra da cor ${idx + 1}`}
+                  />
+                </div>
+                <div className="col-span-10 sm:col-span-5">
+                  <label htmlFor={`variant-name-${v.key}`} className="mb-1 block text-[10px] text-slate-400">
+                    Nome da cor
+                  </label>
+                  <input
+                    id={`variant-name-${v.key}`}
+                    type="text"
+                    value={v.name}
+                    onChange={(e) => updateVariantRow(v.key, { name: e.target.value })}
+                    placeholder="Ex: Preto Fosco"
+                    className="w-full rounded-lg border border-slate-700 bg-[#06111f] px-3 py-2 text-xs text-white focus:border-amber-400 focus:outline-none"
+                  />
+                </div>
+                <div className="col-span-5 sm:col-span-2">
+                  <label htmlFor={`variant-stock-${v.key}`} className="mb-1 block text-[10px] text-slate-400">
+                    Estoque
+                  </label>
+                  <input
+                    id={`variant-stock-${v.key}`}
+                    type="number"
+                    min="0"
+                    value={v.stock}
+                    onChange={(e) => updateVariantRow(v.key, { stock: Math.max(0, parseInt(e.target.value) || 0) })}
+                    className="w-full rounded-lg border border-slate-700 bg-[#06111f] px-3 py-2 text-xs text-white focus:border-amber-400 focus:outline-none"
+                  />
+                </div>
+                <label className="col-span-5 flex items-center gap-2 pb-2 text-[11px] text-slate-300 sm:col-span-3">
+                  <input
+                    type="checkbox"
+                    checked={v.is_available}
+                    onChange={(e) => updateVariantRow(v.key, { is_available: e.target.checked })}
+                    className="accent-amber-400"
+                  />
+                  Disponível
+                </label>
+                <button
+                  type="button"
+                  onClick={() => removeVariantRow(v.key)}
+                  disabled={variantRows.length <= 1}
+                  className="col-span-2 mb-0.5 rounded-lg p-2 text-rose-400 transition-colors hover:bg-rose-500/20 disabled:opacity-30 sm:col-span-1"
+                  title="Remover cor"
+                  aria-label={`Remover cor ${v.name || idx + 1}`}
+                >
+                  <Trash2 size={14} />
+                </button>
+              </div>
+            ))}
           </div>
 
           <div className="flex flex-col sm:flex-row gap-4 pt-3 border-t border-white/5">

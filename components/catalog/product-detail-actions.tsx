@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
+import { swatchBackground } from "@/lib/frame-color-presets";
 import {
   ShoppingBag,
   MessageCircle,
@@ -292,7 +293,50 @@ export function ProductDetailActions({
     <div className="space-y-6 pt-2">
       {/* 1. Seletor de Cores com Miniaturas e Nome Escrito ao Lado */}
       {variants.length > 0 && (
-        <div className="space-y-2.5">
+        <div className="md:hidden space-y-3" data-testid="color-selector-mobile">
+          <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-slate-700">
+            Selecione a cor <span className="font-normal normal-case tracking-normal text-slate-500">— {currentVariant.color_name}</span>
+          </p>
+          <div className="flex flex-wrap items-center gap-3" role="radiogroup" aria-label="Cores disponíveis para esta armação">
+            {variants.map((v) => {
+              const isSelected = currentVariant.id === v.id;
+              const unavailable = v.is_available === false || (typeof v.stock_quantity === "number" && v.stock_quantity <= 0);
+              return (
+                <button
+                  key={v.id}
+                  type="button"
+                  role="radio"
+                  aria-checked={isSelected}
+                  aria-label={`${v.color_name}${unavailable ? " (indisponível)" : ""}`}
+                  title={v.color_name}
+                  onClick={() => handleVariantChange(v)}
+                  className={`relative h-12 w-12 shrink-0 cursor-pointer rounded-full p-[3px] transition-all active:scale-95 ${
+                    isSelected ? "ring-2 ring-slate-900" : "ring-1 ring-slate-300"
+                  }`}
+                >
+                  <span
+                    className="relative block h-full w-full overflow-hidden rounded-full border border-black/10"
+                    style={{ background: swatchBackground(v.color_name, v.color_hex) }}
+                  >
+                    {v.image_url && (
+                      <img src={v.image_url} alt="" className="h-full w-full object-cover object-center" />
+                    )}
+                    {unavailable && (
+                      <span
+                        aria-hidden="true"
+                        className="absolute left-1/2 top-1/2 h-[2px] w-[140%] -translate-x-1/2 -translate-y-1/2 -rotate-45 bg-slate-900/80"
+                      />
+                    )}
+                  </span>
+                </button>
+              );
+            })}
+          </div>
+        </div>
+      )}
+
+      {variants.length > 0 && (
+        <div className="hidden md:block space-y-2.5">
           <div className="flex items-center justify-between text-xs">
             <span className="font-semibold text-slate-800 uppercase tracking-wider">
               Selecione a cor:
