@@ -2,6 +2,7 @@ import { requireAdmin } from "@/lib/auth/require-admin";
 import { NextRequest, NextResponse } from "next/server";
 import { revalidatePath } from "next/cache";
 import { createAdminClient } from "@/lib/supabase/admin";
+import { isSupabaseConfigured } from "@/lib/supabase/server";
 import { DEFAULT_CATALOG } from "@/lib/catalog-data";
 import { normalizeFaceFit, idealFaceLabels, hasFaceFit } from "@/lib/face-shapes";
 import { focusForSave } from "@/lib/image-focus";
@@ -69,9 +70,19 @@ export async function GET(req: NextRequest) {
         .eq("id", id)
         .maybeSingle();
 
-      if (error || !data) {
-        // Fallback para DEFAULT_CATALOG se offline ou não encontrado no Supabase
-        const fallback = DEFAULT_CATALOG.find((p) => p.id === id || p.slug === id);
+      if (error) {
+        console.error("Erro ao carregar produto no admin:", error.message);
+        return NextResponse.json(
+          { error: "Não foi possível carregar o produto agora. Tente novamente em instantes." },
+          { status: 503 }
+        );
+      }
+
+      if (!data) {
+        // Catálogo de demonstração só existe sem banco configurado (nunca mascara produto real ausente)
+        const fallback = !isSupabaseConfigured()
+          ? DEFAULT_CATALOG.find((p) => p.id === id || p.slug === id)
+          : undefined;
         if (fallback) {
           return NextResponse.json({ success: true, product: fallback });
         }
@@ -81,25 +92,46 @@ export async function GET(req: NextRequest) {
       return NextResponse.json({ success: true, product: data });
     }
 
-    // Busca lista de todos os produtos
-    const { data, error } = await adminSupabase
-      .from("products")
-      .select(`
-        *,
-        category:categories(name, slug),
-        images:product_images(*),
-        variants:product_variants(id, stock_quantity, sku, color_name, color_hex, size, price_in_cents, compare_at_price_in_cents, image_url, is_available, sort_order)
-      `)
-      .order("created_at", { ascending: false });
-
-    if (error || !data || data.length === 0) {
+    // Sem banco configurado (desenvolvimento): catálogo de demonstração
+    if (!isSupabaseConfigured()) {
       return NextResponse.json({ success: true, products: DEFAULT_CATALOG });
     }
 
-    return NextResponse.json({ success: true, products: data });
+    // Busca lista de todos os produtos (uma nova tentativa se falhar: erros de conexão costumam ser passageiros)
+    const loadList = () =>
+      adminSupabase
+        .from("products")
+        .select(`
+          *,
+          category:categories(name, slug),
+          images:product_images(*),
+          variants:product_variants(id, stock_quantity, sku, color_name, color_hex, size, price_in_cents, compare_at_price_in_cents, image_url, is_available, sort_order)
+        `)
+        .order("created_at", { ascending: false })
+        .order("id", { ascending: true });
+
+    let { data, error } = await loadList();
+    if (error) {
+      console.warn("Falha ao listar produtos, tentando de novo:", error.message);
+      ({ data, error } = await loadList());
+    }
+
+    if (error) {
+      // NUNCA devolver o catálogo de demonstração aqui: os produtos reais "sumiriam" do painel
+      console.error("Erro ao listar produtos no admin:", error.message);
+      return NextResponse.json(
+        { error: "Não foi possível carregar os produtos agora. Seus produtos continuam salvos; tente de novo em instantes." },
+        { status: 503 }
+      );
+    }
+
+    return NextResponse.json({ success: true, products: data || [] });
   } catch (err: any) {
-    console.warn("Fallback de consulta para DEFAULT_CATALOG:", err.message);
-    return NextResponse.json({ success: true, products: DEFAULT_CATALOG });
+    console.error("Erro inesperado ao listar produtos no admin:", err?.message);
+    return NextResponse.json(
+      { error: "Não foi possível carregar os produtos agora. Seus produtos continuam salvos; tente de novo em instantes." },
+      { status: 503 }
+    );
   }
 }
 
@@ -120,6 +152,33 @@ async function saveFaceFit(client: any, productId: string, raw: unknown): Promis
   if (FACE_COLUMN_ERROR.test(error.message || "")) return hasFaceFit(fit) ? FACE_SQL_WARNING : undefined;
   console.warn("Aviso ao salvar indicação por rosto:", error.message);
   return undefined;
+}
+
+
+/** Procura um slug livre: base, base-2, base-3... */
+async function uniqueProductSlug(client: any, base: string): Promise<string> {
+  const { data } = await client.from("products").select("slug").like("slug", `${base}%`);
+  const taken = new Set<string>((data || []).map((r: { slug: string }) => r.slug));
+  if (!taken.has(base)) return base;
+  for (let i = 2; i < 200; i++) {
+    if (!taken.has(`${base}-${i}`)) return `${base}-${i}`;
+  }
+  return `${base}-${Date.now()}`;
+}
+
+/** Erros do banco em português (o cliente vê isto na tela do admin). */
+function friendlyProductError(error: { message?: string; code?: string }): string {
+  const msg = error.message || "";
+  if (error.code === "23505" || /duplicate key/i.test(msg)) {
+    return "Já existe um produto com esses dados (nome ou código repetido). Mude o nome e tente de novo.";
+  }
+  if (error.code === "23502" || /null value in column/i.test(msg)) {
+    return "Falta preencher um campo obrigatório do produto. Confira o nome e o preço.";
+  }
+  if (/row-level security|permission denied/i.test(msg)) {
+    return "O banco recusou o cadastro por permissão. Avise o suporte técnico.";
+  }
+  return `Não foi possível cadastrar o produto agora. Tente de novo; se repetir, avise o suporte. (Detalhe técnico: ${msg || "sem detalhe"})`;
 }
 
 export async function POST(req: NextRequest) {
@@ -181,6 +240,11 @@ export async function POST(req: NextRequest) {
       }
     }
 
+    // Slug único: se já existe produto com o mesmo nome, salva como "nome-2", "nome-3"... em vez de falhar
+    const requestedSlug = String(body.slug).trim();
+    const finalSlug = await uniqueProductSlug(adminSupabase, requestedSlug);
+    const slugAdjusted = finalSlug !== requestedSlug;
+
     // 1. Cadastrar produto na tabela 'products'
     const { data: productData, error: productError } = await adminSupabase
       .from("products")
@@ -188,7 +252,7 @@ export async function POST(req: NextRequest) {
         category_id: categoryId,
         brand_id: brandId,
         name: body.name.trim(),
-        slug: body.slug.trim(),
+        slug: finalSlug,
         description: body.description ? body.description.trim() : null,
         price_in_cents: body.price_in_cents,
         compare_at_price_in_cents: body.compare_at_price_in_cents || null,
@@ -211,10 +275,7 @@ export async function POST(req: NextRequest) {
 
     if (productError) {
       console.error("Erro ao inserir produto:", productError);
-      return NextResponse.json(
-        { error: `Erro ao cadastrar produto: ${productError.message}` },
-        { status: 400 }
-      );
+      return NextResponse.json({ error: friendlyProductError(productError) }, { status: 400 });
     }
 
     const productId = productData.id;
@@ -294,12 +355,24 @@ export async function POST(req: NextRequest) {
         };
       });
 
-      const { error: variantError } = await adminSupabase
-        .from("product_variants")
-        .insert(variantsToInsert);
+      let { error: variantError } = await adminSupabase.from("product_variants").insert(variantsToInsert);
+
+      // SKU repetido (ex.: mesmo código gerado em outro produto): tenta de novo com sufixo único
+      if (variantError && (variantError.code === "23505" || /duplicate key/i.test(variantError.message || ""))) {
+        const stamp = Date.now().toString(36).slice(-4).toUpperCase();
+        const retryRows = variantsToInsert.map((row: any, idx: number) => ({ ...row, sku: `${row.sku}-${stamp}${idx}` }));
+        ({ error: variantError } = await adminSupabase.from("product_variants").insert(retryRows));
+      }
 
       if (variantError) {
-        console.warn("Aviso ao criar variantes estruturadas:", variantError);
+        // O produto foi criado, mas sem cores/estoque: avisa em vez de falhar em silêncio
+        console.error("Erro ao criar variações do produto:", variantError);
+        postWarning = [
+          postWarning,
+          "O produto foi salvo, mas as cores/estoque NÃO foram gravados. Abra o produto na lista, confira as cores e salve de novo.",
+        ]
+          .filter(Boolean)
+          .join(" ");
       }
     } else {
       const cleanSlug = body.slug.toUpperCase().replace(/[^A-Z0-9]/g, "").slice(0, 8);
@@ -328,6 +401,15 @@ export async function POST(req: NextRequest) {
       // Ignora erro de revalidação
     }
 
+    if (slugAdjusted) {
+      postWarning = [
+        postWarning,
+        `Já existia um produto com esse nome, então este foi salvo com o endereço "${finalSlug}".`,
+      ]
+        .filter(Boolean)
+        .join(" ");
+    }
+
     return NextResponse.json({
       success: true,
       product: productData,
@@ -336,7 +418,7 @@ export async function POST(req: NextRequest) {
   } catch (err: any) {
     console.error("Erro interno no cadastro de produtos:", err);
     return NextResponse.json(
-      { error: err.message || "Erro interno ao cadastrar produto." },
+      { error: "Erro interno ao cadastrar o produto. Tente de novo; se repetir, avise o suporte." },
       { status: 500 }
     );
   }
