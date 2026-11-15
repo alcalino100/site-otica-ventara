@@ -20,6 +20,7 @@ import {
 import { FrameType, FrameShape, FrameMaterial, FrameGender, Product } from "@/types/ecommerce";
 import { ImageFocusEditor } from "@/components/admin/image-focus-editor";
 import { FaceFitEditor } from "@/components/admin/face-fit-editor";
+import { adminRequest } from "@/lib/admin-fetch";
 import { normalizeFaceFit, type FaceShapeFit } from "@/lib/face-shapes";
 import { focusForSave, focusObjectPosition, normalizeFocusValue } from "@/lib/image-focus";
 
@@ -245,7 +246,7 @@ export default function EditProductPage() {
         compareAtPriceInCents = Math.round(parseFloat(cleanCompare) * 100);
       }
 
-      const res = await fetch("/api/admin/products", {
+      const saveResult = await adminRequest("/api/admin/products", {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -281,10 +282,10 @@ export default function EditProductPage() {
         }),
       });
 
-      const resData = await res.json();
-      if (!res.ok || resData.error) {
-        throw new Error(resData.error || "Erro ao atualizar armação.");
+      if (!saveResult.ok) {
+        throw new Error(saveResult.error || "Erro ao atualizar armação.");
       }
+      const resData = saveResult.data;
 
       if (resData.warning) {
         // Salvou, mas o banco ainda não tem as colunas da posição da foto: não redireciona para o aviso ser lido

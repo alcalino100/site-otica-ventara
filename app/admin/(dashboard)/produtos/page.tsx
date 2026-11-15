@@ -31,6 +31,7 @@ import {
 import { Product } from "@/types/ecommerce";
 import { createClient, isSupabaseConfigured } from "@/lib/supabase/client";
 import { DEFAULT_CATALOG } from "@/lib/catalog-data";
+import { adminRequest } from "@/lib/admin-fetch";
 import { Skeleton } from "@/components/ui/skeleton";
 
 function getProductIssues(p: Product): string[] {
@@ -69,6 +70,8 @@ function ProductsContent() {
   const [batchPriceType, setBatchPriceType] = useState<"percentage" | "fixed">("percentage");
   const [batchPriceValue, setBatchPriceValue] = useState<string>("-10");
 
+  const [loadError, setLoadError] = useState<string | null>(null);
+
   const fetchProducts = async () => {
     if (!isSupabaseConfigured()) {
       setProducts(DEFAULT_CATALOG);
@@ -77,38 +80,16 @@ function ProductsContent() {
     }
 
     setIsLoading(true);
+    setLoadError(null);
     try {
-      const timeoutPromise = new Promise((_, reject) =>
-        setTimeout(() => reject(new Error("Supabase timeout")), 2500)
-      );
-
-      const fetchPromise = supabase
-        .from("products")
-        .select(`
-          *,
-          category:categories(name, slug),
-          images:product_images(url, is_primary, alt_text),
-          variants:product_variants(stock_quantity, sku, color_name, price_in_cents, compare_at_price_in_cents)
-        `)
-        .order("created_at", { ascending: false })
-        .order("id", { ascending: true });
-
-      const { data, error } = (await Promise.race([
-        fetchPromise,
-        timeoutPromise,
-      ])) as any;
-
-      if (error) {
-        console.warn("Aviso ao consultar Supabase, utilizando catálogo estruturado:", error.message);
-        setProducts(DEFAULT_CATALOG);
-      } else if (data && data.length > 0) {
-        setProducts(data as Product[]);
+      // Pela API do admin (sem limite de 2,5 s). Se falhar, MANTÉM a lista que já estava na tela
+      // e avisa: nunca troca os produtos reais pelo catálogo de demonstração.
+      const result = await adminRequest("/api/admin/products");
+      if (!result.ok) {
+        setLoadError(result.error || "Não foi possível carregar os produtos agora.");
       } else {
-        setProducts(DEFAULT_CATALOG);
+        setProducts((result.data?.products || []) as Product[]);
       }
-    } catch (err) {
-      console.warn("Utilizando catálogo padrão estruturado:", err);
-      setProducts(DEFAULT_CATALOG);
     } finally {
       setIsLoading(false);
     }
@@ -351,6 +332,26 @@ function ProductsContent() {
         <div className="fixed top-20 right-6 z-50 bg-amber-400 text-[#06111f] font-bold text-xs px-4 py-2.5 rounded-xl shadow-xl animate-fade-in flex items-center gap-2 border border-amber-300">
           <CheckCircle2 size={16} />
           <span>{feedbackMessage}</span>
+        </div>
+      )}
+
+      {/* Falha ao carregar: mantém a lista na tela e oferece tentar de novo */}
+      {loadError && (
+        <div
+          role="alert"
+          className="flex flex-col gap-3 rounded-2xl border border-rose-400/40 bg-rose-500/10 p-4 sm:flex-row sm:items-center sm:justify-between"
+        >
+          <p className="text-xs leading-relaxed text-rose-100">
+            <strong className="text-white">A lista pode estar desatualizada.</strong> {loadError}
+          </p>
+          <button
+            type="button"
+            onClick={fetchProducts}
+            disabled={isLoading}
+            className="min-h-[40px] shrink-0 rounded-lg bg-amber-400 px-4 text-xs font-bold text-slate-950 transition-colors hover:bg-amber-300 disabled:opacity-60"
+          >
+            {isLoading ? "Carregando..." : "Tentar de novo"}
+          </button>
         </div>
       )}
 

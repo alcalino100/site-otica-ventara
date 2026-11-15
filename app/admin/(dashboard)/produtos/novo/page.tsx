@@ -28,6 +28,7 @@ import { formatCurrencyBRL, formatProductPricing } from "@/lib/pricing";
 import { ImageFocusEditor } from "@/components/admin/image-focus-editor";
 import { focusForSave, focusObjectPosition } from "@/lib/image-focus";
 import { FaceFitEditor } from "@/components/admin/face-fit-editor";
+import { adminRequest } from "@/lib/admin-fetch";
 import type { FaceShapeFit } from "@/lib/face-shapes";
 
 interface VariantFormItem {
@@ -417,18 +418,18 @@ export default function NewProductQuickFlowPage() {
         }),
       };
 
-      const res = await fetch("/api/admin/products", {
+      const result = await adminRequest("/api/admin/products", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(payload),
       });
 
-      const data = await res.json();
-      if (!res.ok || data.error) {
-        throw new Error(data.error || "Erro ao salvar produto.");
+      if (!result.ok) {
+        throw new Error(result.error || "Erro ao salvar produto.");
       }
+      const data = result.data;
 
-      // Cadastrou, mas o banco ainda não tem as colunas da posição da foto: mostra o aviso por mais tempo
+      // Avisos do servidor (ex.: banco sem colunas novas, nome repetido) ficam visíveis por mais tempo
       const warn = data.warning ? ` Atenção: ${data.warning}` : "";
       const messageTime = warn ? 9000 : 4000;
 
