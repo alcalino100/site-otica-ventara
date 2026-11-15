@@ -41,7 +41,7 @@ export function ColoredLensesShowcase({
     setIsMounted(true);
     async function fetchLenses() {
       try {
-        const res = await fetch("/api/admin/lenses");
+        const res = await fetch("/api/lenses", { cache: "no-store" });
         if (res.ok) {
           const data = await res.json();
           if (data.lenses && Array.isArray(data.lenses)) {

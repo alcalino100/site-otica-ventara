@@ -424,6 +424,88 @@ export async function POST(req: NextRequest) {
   }
 }
 
+/**
+ * Sincroniza as cores (variações) do produto com a lista enviada pelo admin:
+ * atualiza as existentes (por id), cria as novas e remove as retiradas.
+ * Variação já usada em pedido/estoque não pode ser apagada: fica indisponível.
+ */
+async function syncProductVariants(client: any, productId: string, product: any, list: any[]): Promise<string | undefined> {
+  const problems: string[] = [];
+  const now = new Date().toISOString();
+
+  const { data: existing, error: loadError } = await client
+    .from("product_variants")
+    .select("id, sku")
+    .eq("product_id", productId);
+  if (loadError) {
+    console.error("Erro ao carregar variações para sincronizar:", loadError.message);
+    return "O produto foi salvo, mas as cores NÃO foram atualizadas (falha ao ler as cores atuais). Tente salvar de novo.";
+  }
+
+  const existingIds = new Set<string>((existing || []).map((v: { id: string }) => v.id));
+  const keptIds = new Set<string>();
+  const baseSku = String(product?.sku || `VEN-${productId.slice(0, 6).toUpperCase()}`).toUpperCase();
+
+  for (let idx = 0; idx < list.length; idx++) {
+    const v = list[idx] || {};
+    const row = {
+      color_name: String(v.color_name || "").trim() || "Padrão",
+      color_hex: typeof v.color_hex === "string" && v.color_hex ? v.color_hex : "#0f172a",
+      stock_quantity: typeof v.stock_quantity === "number" && v.stock_quantity >= 0 ? Math.floor(v.stock_quantity) : 0,
+      is_available: v.is_available !== false,
+      sort_order: idx,
+      updated_at: now,
+    };
+
+    if (v.id && existingIds.has(v.id)) {
+      keptIds.add(v.id);
+      const { error } = await client.from("product_variants").update(row).eq("id", v.id);
+      if (error) problems.push(`"${row.color_name}"`);
+      continue;
+    }
+
+    // Nova cor: SKU único (tenta de novo com sufixo se já existir)
+    const stamp = Date.now().toString(36).slice(-4).toUpperCase();
+    const baseNewSku = `${baseSku}-${idx + 1}`;
+    let { error } = await client.from("product_variants").insert({
+      ...row,
+      product_id: productId,
+      sku: baseNewSku,
+      size: "Único",
+      price_in_cents: product?.price_in_cents ?? null,
+      compare_at_price_in_cents: product?.compare_at_price_in_cents ?? null,
+    });
+    if (error && (error.code === "23505" || /duplicate key/i.test(error.message || ""))) {
+      ({ error } = await client.from("product_variants").insert({
+        ...row,
+        product_id: productId,
+        sku: `${baseNewSku}-${stamp}`,
+        size: "Único",
+        price_in_cents: product?.price_in_cents ?? null,
+        compare_at_price_in_cents: product?.compare_at_price_in_cents ?? null,
+      }));
+    }
+    if (error) {
+      console.error("Erro ao criar variação:", error.message);
+      problems.push(`"${row.color_name}"`);
+    }
+  }
+
+  // Cores retiradas da lista
+  for (const old of existingIds) {
+    if (keptIds.has(old)) continue;
+    const { error } = await client.from("product_variants").delete().eq("id", old);
+    if (error) {
+      // Já usada em pedido/estoque: mantém o histórico e tira da vitrine
+      await client.from("product_variants").update({ is_available: false, stock_quantity: 0, updated_at: now }).eq("id", old);
+    }
+  }
+
+  return problems.length > 0
+    ? `O produto foi salvo, mas estas cores NÃO foram gravadas: ${problems.join(", ")}. Salve de novo ou avise o suporte.`
+    : undefined;
+}
+
 export async function PATCH(req: NextRequest) {
   const auth = await requireAdmin(req);
   if (!auth.authorized) {
@@ -431,7 +513,7 @@ export async function PATCH(req: NextRequest) {
   }
   try {
     const body = await req.json();
-    const { id, images, imageUrls, imageUrl, stock_quantity, color_name, face_shape_fit, ...updates } = body;
+    const { id, images, imageUrls, imageUrl, stock_quantity, color_name, face_shape_fit, variants: variantsPayload, ...updates } = body;
 
     if (!id) {
       return NextResponse.json(
@@ -519,8 +601,15 @@ export async function PATCH(req: NextRequest) {
       if (imgResult.focusDropped) patchWarning = [patchWarning, FOCUS_SQL_WARNING].filter(Boolean).join(" ");
     }
 
-    // 3. Se fornecido estoque ou cor, atualiza variantes de estoque
-    if (typeof stock_quantity === "number" || color_name) {
+    // 3a. Lista completa de cores/variações enviada pelo editor: sincroniza (atualiza, cria e remove)
+    const hasVariantsPayload = Array.isArray(variantsPayload) && variantsPayload.length > 0;
+    if (hasVariantsPayload) {
+      const variantWarning = await syncProductVariants(adminSupabase, id, updatedProduct, variantsPayload);
+      if (variantWarning) patchWarning = [patchWarning, variantWarning].filter(Boolean).join(" ");
+    }
+
+    // 3b. Estoque/cor únicos (formulários antigos sem lista de variações)
+    if (!hasVariantsPayload && (typeof stock_quantity === "number" || color_name)) {
       const { data: existingVariants } = await adminSupabase
         .from("product_variants")
         .select("id, color_name")

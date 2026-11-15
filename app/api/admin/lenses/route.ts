@@ -3,18 +3,18 @@ import { NextRequest, NextResponse } from "next/server";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { isSupabaseConfigured } from "@/lib/supabase/server";
 import { revalidatePath } from "next/cache";
-import { DEFAULT_LENSES, AdminLensItem } from "@/lib/lenses-data";
+import { AdminLensItem } from "@/lib/lenses-data";
+import { getMemoryLenses, setMemoryLenses } from "@/lib/lenses-catalog-store";
 
 export const dynamic = "force-dynamic";
 
-let inMemoryLensesCatalog: AdminLensItem[] = [...DEFAULT_LENSES];
 
 /**
  * Salva com segurança o catálogo de lentes na tabela site_settings,
  * verificando existência do registro por ID para evitar falhas silenciosas de upsert.
  */
 async function saveLensesCatalog(adminSupabase: ReturnType<typeof createAdminClient>, lenses: AdminLensItem[]) {
-  inMemoryLensesCatalog = lenses;
+  setMemoryLenses(lenses);
 
   if (!isSupabaseConfigured()) {
     return;
@@ -100,9 +100,9 @@ export async function GET(req: NextRequest) {
           } catch {}
         }
         if (Array.isArray(list)) {
-          inMemoryLensesCatalog = list as AdminLensItem[];
+          setMemoryLenses(list as AdminLensItem[]);
           return NextResponse.json(
-            { success: true, lenses: inMemoryLensesCatalog },
+            { success: true, lenses: getMemoryLenses() },
             {
               headers: {
                 "Cache-Control": "no-store, no-cache, must-revalidate, proxy-revalidate",
@@ -114,7 +114,7 @@ export async function GET(req: NextRequest) {
     }
 
     return NextResponse.json(
-      { success: true, lenses: inMemoryLensesCatalog },
+      { success: true, lenses: getMemoryLenses() },
       {
         headers: {
           "Cache-Control": "no-store, no-cache, must-revalidate, proxy-revalidate",
@@ -124,7 +124,7 @@ export async function GET(req: NextRequest) {
   } catch (err: any) {
     console.warn("Fallback local de lentes:", err.message);
     return NextResponse.json(
-      { success: true, lenses: inMemoryLensesCatalog },
+      { success: true, lenses: getMemoryLenses() },
       {
         headers: {
           "Cache-Control": "no-store, no-cache, must-revalidate, proxy-revalidate",
@@ -166,7 +166,7 @@ export async function POST(req: NextRequest) {
       {
         success: true,
         message: "Catálogo de lentes e valores atualizado com sucesso!",
-        lenses: inMemoryLensesCatalog,
+        lenses: getMemoryLenses(),
       },
       {
         headers: {
@@ -208,7 +208,7 @@ export async function DELETE(req: NextRequest) {
       );
     }
 
-    let currentList = inMemoryLensesCatalog;
+    let currentList = getMemoryLenses();
 
     if (isSupabaseConfigured()) {
       const adminSupabase = createAdminClient();
