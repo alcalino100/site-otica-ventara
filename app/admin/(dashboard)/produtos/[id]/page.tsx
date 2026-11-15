@@ -365,10 +365,14 @@ export default function EditProductPage() {
         return;
       }
 
-      setSuccessMessage("Armação atualizada com sucesso! Redirecionando...");
+      const photosInfo =
+        typeof resData.images_in_db === "number"
+          ? ` Fotos: ${images.length} enviadas, ${resData.images_in_db} gravadas no banco.`
+          : "";
+      setSuccessMessage(`Armação atualizada com sucesso!${photosInfo} Redirecionando...`);
       setTimeout(() => {
         router.push("/admin/produtos");
-      }, 1200);
+      }, photosInfo ? 3500 : 1200);
     } catch (err: any) {
       console.error(err);
       setErrorMessage(err.message || "Erro inesperado ao salvar alterações.");

@@ -646,6 +646,7 @@ export async function PATCH(req: NextRequest) {
     }
 
     let patchWarning: string | undefined = faceWarning;
+    let imagesInDb: number | undefined;
     if (newImages.length > 0) {
       // Guarda as fotos atuais: se a gravação das novas falhar, elas são restauradas
       const { data: previousImages } = await adminSupabase
@@ -667,6 +668,23 @@ export async function PATCH(req: NextRequest) {
         );
       }
       if (imgResult.focusDropped) patchWarning = [patchWarning, FOCUS_SQL_WARNING].filter(Boolean).join(" ");
+
+      // Conferência: quantas fotos realmente ficaram gravadas
+      const { count } = await adminSupabase
+        .from("product_images")
+        .select("id", { count: "exact", head: true })
+        .eq("product_id", id);
+      if (typeof count === "number") {
+        imagesInDb = count;
+        if (count !== newImages.length) {
+          patchWarning = [
+            patchWarning,
+            `ATENÇÃO: foram enviadas ${newImages.length} foto(s), mas o banco ficou com ${count}.`,
+          ]
+            .filter(Boolean)
+            .join(" ");
+        }
+      }
     }
 
     // Status coerente com is_published
@@ -732,6 +750,8 @@ export async function PATCH(req: NextRequest) {
     return NextResponse.json({
       success: true,
       product: updatedProduct,
+      images_received: Array.isArray(images) ? images.length : 0,
+      images_in_db: imagesInDb,
       ...(patchWarning ? { warning: patchWarning } : {}),
     });
   } catch (err: any) {

@@ -53,7 +53,7 @@ test.describe("Admin: envio de foto no produto", () => {
       if (req.method() === "GET") return route.fulfill({ json: { success: true, product: PRODUCT } });
       if (req.method() === "PATCH") {
         patchBody = req.postDataJSON();
-        return route.fulfill({ json: { success: true, product: PRODUCT } });
+        return route.fulfill({ json: { success: true, product: PRODUCT, images_received: 2, images_in_db: 2 } });
       }
       return route.continue();
     });
@@ -72,6 +72,7 @@ test.describe("Admin: envio de foto no produto", () => {
     await expect.poll(() => patchBody).not.toBeNull();
     expect(patchBody.images).toHaveLength(2);
     expect(patchBody.images[1].url).toContain("nova=1");
+    await expect(page.getByText(/Fotos: 2 enviadas, 2 gravadas no banco/).first()).toBeVisible();
   });
 
   test("servidor recusa a foto (413 em HTML) → aviso claro e em português junto do envio", async ({ page, context }) => {
