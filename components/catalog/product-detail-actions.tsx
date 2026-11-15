@@ -291,9 +291,9 @@ export function ProductDetailActions({
 
   return (
     <div className="space-y-6 pt-2">
-      {/* 1. Seletor de Cores com Miniaturas e Nome Escrito ao Lado */}
+      {/* 1. Seletor de cores em bolinhas (celular e computador), com foto da cor e nome ao lado do título */}
       {variants.length > 0 && (
-        <div className="md:hidden space-y-3" data-testid="color-selector-mobile">
+        <div className="space-y-3" data-testid="color-selector">
           <p className="text-[12px] font-normal uppercase tracking-[0.32em] text-slate-800">
             Selecione a cor <span className="font-normal normal-case tracking-normal text-slate-900">— {currentVariant.color_name}</span>
           </p>
@@ -328,61 +328,6 @@ export function ProductDetailActions({
                       />
                     )}
                   </span>
-                </button>
-              );
-            })}
-          </div>
-        </div>
-      )}
-
-      {variants.length > 0 && (
-        <div className="hidden md:block space-y-2.5">
-          <div className="flex items-center justify-between text-xs">
-            <span className="font-semibold text-slate-800 uppercase tracking-wider">
-              Selecione a cor:
-            </span>
-            <span className="font-bold text-amber-700 bg-amber-50 px-2 py-0.5 rounded-md border border-amber-200">
-              {currentVariant.color_name}
-            </span>
-          </div>
-
-          <div
-            className="flex items-center gap-3 flex-wrap"
-            role="radiogroup"
-            aria-label="Cores disponíveis para esta armação"
-          >
-            {variants.map((v) => {
-              const isSelected = currentVariant.id === v.id;
-              const hasPhoto = Boolean(v.image_url);
-              return (
-                <button
-                  key={v.id}
-                  type="button"
-                  role="radio"
-                  aria-checked={isSelected}
-                  onClick={() => handleVariantChange(v)}
-                  className={`flex items-center gap-2 p-1.5 pr-3 rounded-xl text-xs font-medium border transition-all active:scale-95 cursor-pointer ${
-                    isSelected
-                      ? "bg-amber-50 text-amber-950 border-amber-500 shadow-xs ring-2 ring-amber-400 font-bold"
-                      : "bg-white text-slate-700 border-slate-200 hover:border-slate-300"
-                  }`}
-                >
-                  {/* Miniatura com foto da cor ou swatch */}
-                  {hasPhoto ? (
-                    <div className="w-7 h-7 rounded-lg overflow-hidden border border-black/10 shrink-0 bg-slate-100">
-                      <img
-                        src={v.image_url!}
-                        alt={v.color_name}
-                        className="w-full h-full object-cover object-center"
-                      />
-                    </div>
-                  ) : (
-                    <span
-                      className="w-5 h-5 rounded-full border border-black/15 shadow-2xs shrink-0 ml-1"
-                      style={{ backgroundColor: v.color_hex || "#1e293b" }}
-                    />
-                  )}
-                  <span>{v.color_name}</span>
                 </button>
               );
             })}

@@ -101,22 +101,23 @@ test.describe("Cores do produto", () => {
     await expect(page.getByText(/duas cores com o mesmo nome/).first()).toBeVisible();
   });
 
-  test("mobile: cores em bolinhas com nome ao lado do título; desktop mantém o seletor atual", async ({ page }) => {
-    await page.setViewportSize({ width: 390, height: 844 });
-    await page.goto("/produto/ventara-safari");
-    await page.addStyleTag({ content: '[aria-label*="Consentimento"]{display:none !important}' });
-    const mobile = page.getByTestId("color-selector-mobile");
-    await expect(mobile).toBeVisible();
-    await expect(mobile.getByText(/Selecione a cor/i)).toBeVisible();
-    const swatch = mobile.getByRole("radio").first();
-    await expect(swatch).toBeVisible();
-    const box = await swatch.boundingBox();
-    expect(box!.width).toBeGreaterThanOrEqual(44);
-    expect(Math.abs(box!.width - box!.height)).toBeLessThan(1);
-
-    await page.setViewportSize({ width: 1280, height: 900 });
-    await expect(mobile).toBeHidden();
-  });
+  for (const [label, size] of [["mobile", { width: 390, height: 844 }], ["desktop", { width: 1280, height: 900 }]] as const) {
+    test(`${label}: cores em bolinhas com nome ao lado do título`, async ({ page }) => {
+      await page.setViewportSize(size);
+      await page.goto("/produto/ventara-safari");
+      await page.addStyleTag({ content: '[aria-label*="Consentimento"]{display:none !important}' });
+      const sel = page.getByTestId("color-selector");
+      await expect(sel).toBeVisible();
+      await expect(sel.getByText(/Selecione a cor/i)).toBeVisible();
+      const swatch = sel.getByRole("radio").first();
+      await expect(swatch).toBeVisible();
+      const box = await swatch.boundingBox();
+      expect(box!.width).toBeGreaterThanOrEqual(44);
+      expect(Math.abs(box!.width - box!.height)).toBeLessThan(1);
+      // Só um seletor de cor na página (sem versão duplicada escondida)
+      await expect(page.getByRole("radiogroup", { name: /Cores disponíveis/ })).toHaveCount(1);
+    });
+  }
 
   test("admin: cores prontas (Onça etc.) entram com um clique e seguem no envio", async ({ page, context }) => {
     await context.addCookies([
