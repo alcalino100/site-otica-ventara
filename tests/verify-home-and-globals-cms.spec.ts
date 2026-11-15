@@ -34,11 +34,11 @@ test.describe("Integração de Conteúdo Dinâmico da Home e Elementos Globais (
   // ========================================================================
   // 1. TESTES UNITÁRIOS DE REGISTRO E DEFAULTS (RESILIÊNCIA TOTAL)
   // ========================================================================
-  test("1. Registro de conteúdo cobre as 11 seções da Home e todos os elementos globais", () => {
+  test("1. Registro de conteúdo cobre as 12 seções da Home e todos os elementos globais", () => {
     // 1.1 Home Registry
     const homeDef = SITE_PAGES_REGISTRY["home"];
     expect(homeDef).toBeDefined();
-    expect(homeDef.sections.length).toBe(11);
+    expect(homeDef.sections.length).toBe(12);
 
     const homeDefaults = getPageDefaultValues("home");
     expect(homeDefaults.heroBadge).toBe("CURADORIA EXCLUSIVA · ÓTICAS VENTARA");
