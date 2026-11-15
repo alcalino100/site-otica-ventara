@@ -24,8 +24,12 @@ export function ProductGallery({ product, overrideImage }: ProductGalleryProps) 
   const touchStartXRef = useRef<number | null>(null);
   const touchEndXRef = useRef<number | null>(null);
 
-  // Sincroniza índice se overrideImage mudar
+  // A foto da cor escolhida só vale quando a COR muda; depois disso, miniaturas, setas e deslize mandam.
+  // (Antes a foto da cor travava a imagem principal e os cliques nas miniaturas não faziam nada.)
+  const [colorImage, setColorImage] = useState<string | null>(overrideImage || null);
+
   useEffect(() => {
+    setColorImage(overrideImage || null);
     if (overrideImage) {
       const matchIdx = images.findIndex((img) => img.url === overrideImage);
       if (matchIdx >= 0) {
@@ -34,7 +38,13 @@ export function ProductGallery({ product, overrideImage }: ProductGalleryProps) 
     }
   }, [overrideImage, images]);
 
-  const activeImage = overrideImage || images[activeIdx]?.url;
+  /** Escolha do visitante (miniatura, seta, deslize): passa a valer no lugar da foto da cor. */
+  const selectImage = (next: number | ((prev: number) => number)) => {
+    setColorImage(null);
+    setActiveIdx(next);
+  };
+
+  const activeImage = colorImage || images[activeIdx]?.url;
 
   const handleMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {
     // Zoom por coordenadas ativo exclusivamente em Desktop com mouse
@@ -69,10 +79,10 @@ export function ProductGallery({ product, overrideImage }: ProductGalleryProps) 
 
     if (diff > minSwipeDistance && activeIdx < images.length - 1) {
       // Próxima imagem (arraste para a esquerda)
-      setActiveIdx((prev) => prev + 1);
+      selectImage((prev) => prev + 1);
     } else if (diff < -minSwipeDistance && activeIdx > 0) {
       // Imagem anterior (arraste para a direita)
-      setActiveIdx((prev) => prev - 1);
+      selectImage((prev) => prev - 1);
     }
 
     touchStartXRef.current = null;
@@ -80,11 +90,11 @@ export function ProductGallery({ product, overrideImage }: ProductGalleryProps) 
   };
 
   const handlePrev = () => {
-    setActiveIdx((prev) => (prev > 0 ? prev - 1 : images.length - 1));
+    selectImage((prev) => (prev > 0 ? prev - 1 : images.length - 1));
   };
 
   const handleNext = () => {
-    setActiveIdx((prev) => (prev < images.length - 1 ? prev + 1 : 0));
+    selectImage((prev) => (prev < images.length - 1 ? prev + 1 : 0));
   };
 
   return (
@@ -98,7 +108,7 @@ export function ProductGallery({ product, overrideImage }: ProductGalleryProps) 
               <button
                 key={img.id || idx}
                 type="button"
-                onClick={() => setActiveIdx(idx)}
+                onClick={() => selectImage(idx)}
                 className={`relative w-20 h-20 rounded-2xl overflow-hidden border-2 transition-all cursor-pointer ${
                   isCurrent
                     ? "border-amber-400 shadow-md ring-1 ring-amber-400"
@@ -273,7 +283,7 @@ export function ProductGallery({ product, overrideImage }: ProductGalleryProps) 
               <button
                 key={img.id || idx}
                 type="button"
-                onClick={() => setActiveIdx(idx)}
+                onClick={() => selectImage(idx)}
                 className={`w-14 h-14 rounded-xl overflow-hidden border-2 transition-all flex-shrink-0 ${
                   activeIdx === idx
                     ? "border-amber-400 shadow-md ring-1 ring-amber-400"
