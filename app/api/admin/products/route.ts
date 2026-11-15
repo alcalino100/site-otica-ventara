@@ -1,6 +1,6 @@
 import { requireAdmin } from "@/lib/auth/require-admin";
 import { NextRequest, NextResponse } from "next/server";
-import { revalidatePath } from "next/cache";
+import { revalidateProductPages } from "@/lib/revalidate-products";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { isSupabaseConfigured } from "@/lib/supabase/server";
 import { createStaticSupabaseClient } from "@/lib/supabase/static";
@@ -455,15 +455,7 @@ export async function POST(req: NextRequest) {
       }
     }
 
-    try {
-      revalidatePath("/");
-      revalidatePath("/armacoes");
-      revalidatePath(`/produto/${productData.slug}`);
-      revalidatePath(`/armacoes/${productData.slug}`);
-      revalidatePath("/admin/produtos");
-    } catch {
-      // Ignora erro de revalidação
-    }
+    revalidateProductPages(productData.slug);
 
     {
       const postVariantNames: string[] = Array.isArray(body.variants) && body.variants.length > 0
@@ -721,17 +713,7 @@ export async function PATCH(req: NextRequest) {
       }
     }
 
-    try {
-      revalidatePath("/");
-      revalidatePath("/armacoes");
-      if (updatedProduct?.slug) {
-        revalidatePath(`/produto/${updatedProduct.slug}`);
-        revalidatePath(`/armacoes/${updatedProduct.slug}`);
-      }
-      revalidatePath("/admin/produtos");
-    } catch {
-      // Ignora erro de revalidação
-    }
+    revalidateProductPages(updatedProduct?.slug);
 
     {
       const visibilityWarning = await verifyPublicVisibility(id, {
@@ -809,13 +791,7 @@ export async function DELETE(req: NextRequest) {
       );
     }
 
-    try {
-      revalidatePath("/");
-      revalidatePath("/armacoes");
-      revalidatePath("/admin/produtos");
-    } catch {
-      // Ignora erro de revalidação
-    }
+    revalidateProductPages();
 
     return NextResponse.json({
       success: true,

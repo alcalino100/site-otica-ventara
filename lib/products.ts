@@ -65,6 +65,8 @@ export function normalizeProduct(raw: any): Product {
         focus_y: normalizeFocusValue(img.focus_y),
         created_at: img.created_at || new Date().toISOString(),
       }))
+        // Ordem estável: foto principal primeiro, depois a ordem definida no admin
+        .sort((a: any, b: any) => Number(b.is_primary) - Number(a.is_primary) || a.sort_order - b.sort_order)
     : [];
 
   const variants = Array.isArray(raw.variants)
@@ -84,6 +86,7 @@ export function normalizeProduct(raw: any): Product {
         created_at: v.created_at || new Date().toISOString(),
         updated_at: v.updated_at || new Date().toISOString(),
       }))
+        .sort((a: any, b: any) => a.sort_order - b.sort_order)
     : [];
 
   return {
