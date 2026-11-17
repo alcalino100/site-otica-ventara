@@ -51,6 +51,7 @@ const DNP_TUTORIAL_STEPS: DnpTutorialStep[] = [
     image: "/images/dnp/passo-2-envio.webp",
     alt: "Pessoa fotografando o próprio rosto com o celular enquanto o sistema marca os olhos",
     badge: "Captura no celular",
+    objectPosition: "object-right",
   },
   {
     title: "Calibração submilimétrica da DNP",
@@ -106,7 +107,7 @@ export default async function MedicaoPorFotoPage({ searchParams }: MedicaoPorFot
               className="flex items-center gap-2 group hover:opacity-90 transition-opacity"
               aria-label="Voltar para a página inicial da Óticas Ventara"
             >
-              <BrandLogo size="sm" />
+              <BrandLogo size="md" />
             </Link>
 
             <div className="flex items-center gap-3">
@@ -130,7 +131,7 @@ export default async function MedicaoPorFotoPage({ searchParams }: MedicaoPorFot
 
         <main className="flex-1">
           {/* HERO SECTION */}
-          <section className="relative py-16 sm:py-24 overflow-hidden border-b border-white/10">
+          <section className="relative py-12 sm:py-16 overflow-hidden border-b border-white/10">
             <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[300px] bg-[#0756b8]/20 blur-[130px] rounded-full pointer-events-none" />
 
             <div className="max-w-[1100px] mx-auto px-4 sm:px-8 relative z-10 text-center">
@@ -170,7 +171,7 @@ export default async function MedicaoPorFotoPage({ searchParams }: MedicaoPorFot
         </section>
 
         {/* TUTORIAL VISUAL: COMO FUNCIONARÁ O PROCESSO */}
-        <section className="py-16 sm:py-24 border-b border-white/10" data-testid="dnp-tutorial">
+        <section className="py-12 sm:py-16 border-b border-white/10" data-testid="dnp-tutorial">
           <div className="max-w-[1200px] mx-auto px-4 sm:px-8">
             <div className="text-center max-w-2xl mx-auto mb-12 sm:mb-14">
               <span className="text-[11px] font-bold uppercase tracking-widest text-amber-400">
@@ -196,7 +197,7 @@ export default async function MedicaoPorFotoPage({ searchParams }: MedicaoPorFot
                   {step.image ? (
                     <div
                       className={`relative bg-black overflow-hidden ${
-                        step.wide ? "aspect-[16/9] md:max-h-[640px]" : "aspect-[4/3]"
+                        step.wide ? "aspect-[16/9] md:aspect-[2/1]" : "aspect-[16/10]"
                       }`}
                     >
                       <Image

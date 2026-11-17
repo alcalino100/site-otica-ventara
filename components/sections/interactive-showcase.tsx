@@ -271,30 +271,21 @@ export function InteractiveShowcase({
                 <span className="text-[11px] text-amber-600 font-bold">Linha esportiva</span>
               </div>
 
-              <div className="grid grid-cols-2 gap-2">
-                <div
-                  aria-current="true"
-                  className="flex items-center justify-center gap-2 py-2.5 px-4 rounded-xl text-xs sm:text-sm font-bold bg-[#06111f] text-white shadow-md shadow-slate-900/20 border border-[#06111f]"
-                >
-                  <Sun size={16} className="text-amber-400" />
-                  <span>Óculos Solar</span>
-                </div>
-                <div
-                  aria-current="true"
-                  className="flex items-center justify-center gap-2 py-2.5 px-4 rounded-xl text-xs sm:text-sm font-bold bg-[#06111f] text-white shadow-md shadow-slate-900/20 border border-[#06111f]"
-                >
-                  <Zap size={16} className="text-amber-400" />
-                  <span>Esportivo</span>
-                </div>
-              </div>
-
-              <div
-                aria-current="true"
-                className="flex items-center justify-center gap-2 py-2 px-3 rounded-lg text-xs font-bold bg-amber-400 text-slate-950 shadow-xs border border-amber-400"
-              >
-                <User size={14} />
-                <span>Coleção Masculina</span>
-              </div>
+              <ul className="flex flex-wrap gap-2" aria-label="Linha exibida">
+                {[
+                  { icon: Sun, label: "Óculos Solar" },
+                  { icon: Zap, label: "Esportivo" },
+                  { icon: User, label: "Coleção Masculina" },
+                ].map(({ icon: Icon, label }) => (
+                  <li
+                    key={label}
+                    className="inline-flex items-center gap-1.5 rounded-full border border-amber-300/70 bg-amber-50 px-3.5 py-1.5 text-xs font-semibold text-slate-800"
+                  >
+                    <Icon size={14} className="text-amber-600" aria-hidden="true" />
+                    {label}
+                  </li>
+                ))}
+              </ul>
             </div>
 
             {/* CTAs no Formato Pill Exato da Referência */}
@@ -414,20 +405,20 @@ export function InteractiveShowcase({
               </div>
 
               {/* Botões de Ação: Compra Direta, Adicionar à Sacola e Ver Opções */}
-              <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2.5 pt-2">
+              <div className="grid grid-cols-2 gap-2.5 pt-2">
                 <button
                   type="button"
                   onClick={handleBuyNow}
-                  className="inline-flex items-center justify-center gap-2 px-6 py-3.5 rounded-full bg-amber-400 hover:bg-amber-300 active:scale-95 text-slate-950 font-extrabold text-xs sm:text-sm tracking-wider uppercase transition-all duration-200 shadow-md shadow-amber-400/20 group cursor-pointer"
+                  className="col-span-2 inline-flex min-h-[52px] items-center justify-center gap-2 whitespace-nowrap px-6 rounded-full bg-amber-400 hover:bg-amber-300 active:scale-[0.98] text-slate-950 font-extrabold text-sm tracking-wider uppercase transition-all duration-200 shadow-md shadow-amber-400/20 cursor-pointer"
                 >
                   <CreditCard size={16} className="text-slate-950" />
-                  <span>COMPRAR AGORA</span>
+                  <span>Comprar agora</span>
                 </button>
 
                 <button
                   type="button"
                   onClick={handleAddCurrentToCart}
-                  className="inline-flex items-center justify-center gap-2 px-5 py-3.5 rounded-full bg-[#06111f] hover:bg-slate-800 active:scale-95 text-white font-bold text-xs sm:text-sm tracking-wider uppercase transition-all cursor-pointer shadow-sm"
+                  className="inline-flex min-h-[46px] items-center justify-center gap-2 whitespace-nowrap px-4 rounded-full bg-[#06111f] hover:bg-slate-800 active:scale-[0.98] text-white font-bold text-xs tracking-wider uppercase transition-all cursor-pointer shadow-sm"
                 >
                   {addedItemSku === activeVariation.sku ? (
                     <>
@@ -437,19 +428,33 @@ export function InteractiveShowcase({
                   ) : (
                     <>
                       <ShoppingBag size={15} className="text-amber-400" />
-                      <span>Salvar na Sacola</span>
+                      <span>Salvar na sacola</span>
                     </>
                   )}
                 </button>
 
                 <Link
                   href={`/produto/${currentData.featuredProductSlug}`}
-                  className="inline-flex items-center justify-center gap-1 px-4 py-3.5 rounded-full border border-slate-300 bg-white hover:bg-slate-50 active:scale-95 text-slate-700 font-semibold text-xs tracking-wider uppercase transition-all cursor-pointer group"
+                  className="group inline-flex min-h-[46px] items-center justify-center gap-1.5 whitespace-nowrap px-4 rounded-full border border-slate-300 bg-white hover:bg-slate-50 active:scale-[0.98] text-slate-700 font-semibold text-xs tracking-wider uppercase transition-all cursor-pointer"
                 >
-                  <span>Opções</span>
+                  <span>Ver opções</span>
                   <ArrowRight size={14} className="group-hover:translate-x-1 transition-transform text-amber-600" />
                 </Link>
               </div>
+
+              {/* Garantias: preenche a coluna e reforça a decisão de compra */}
+              <ul className="grid grid-cols-3 gap-2 pt-3 text-[11px] font-medium text-slate-600">
+                {[
+                  { icon: ShieldCheck, label: "Proteção UV400" },
+                  { icon: Check, label: "Garantia de 1 ano" },
+                  { icon: Sparkles, label: "Lentes polarizadas" },
+                ].map(({ icon: Icon, label }) => (
+                  <li key={label} className="flex flex-col items-center gap-1 rounded-xl border border-slate-200/80 bg-white/70 px-2 py-2.5 text-center">
+                    <Icon size={15} className="text-amber-600" aria-hidden="true" />
+                    <span className="leading-tight">{label}</span>
+                  </li>
+                ))}
+              </ul>
             </div>
 
             {/* Coluna da Foto e Miniaturas: No mobile aparece PRIMEIRO (order-1) */}

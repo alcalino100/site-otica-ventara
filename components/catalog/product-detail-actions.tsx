@@ -464,25 +464,6 @@ export function ProductDetailActions({
               )}
             </button>
 
-            {/* Botão-banner: explica a medição de DNP (só na compra com grau) */}
-            {purchaseMode === "with_lenses" && (
-              <Link
-                href="/medicao-por-foto"
-                data-testid="pdp-dnp-banner"
-                aria-label="Saiba como é feita a medição da sua visão. Entenda o que é DNP."
-                className="block w-[92%] mx-auto rounded-full transition-transform duration-200 hover:scale-[1.02] active:scale-95"
-              >
-                <Image
-                  src="/images/dnp/botao-saiba-dnp.webp"
-                  alt="Saiba como é feita a medição da sua visão. Entenda o que é DNP."
-                  width={1380}
-                  height={320}
-                  sizes="(min-width: 1024px) 420px, 92vw"
-                  className="w-full h-auto rounded-full"
-                />
-              </Link>
-            )}
-
             {/* Linha com Botão Secundário WhatsApp + Favoritos */}
             <div className="flex items-center gap-2">
               <a
@@ -509,6 +490,25 @@ export function ProductDetailActions({
                 <Heart size={18} className={isWishlist ? "fill-red-500 text-red-500" : ""} />
               </button>
             </div>
+
+            {/* Botão-banner: explica a medição de DNP (só na compra com grau) */}
+            {purchaseMode === "with_lenses" && (
+              <Link
+                href="/medicao-por-foto"
+                data-testid="pdp-dnp-banner"
+                aria-label="Saiba como é feita a medição da sua visão. Entenda o que é DNP."
+                className="block w-[94%] max-w-[420px] mx-auto rounded-full shadow-md shadow-sky-900/15 ring-1 ring-sky-400/30 transition-all duration-200 hover:shadow-lg hover:shadow-sky-500/25 hover:-translate-y-0.5 active:scale-[0.98] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-sky-500"
+              >
+                <Image
+                  src="/images/dnp/botao-saiba-dnp.webp"
+                  alt="Saiba como é feita a medição da sua visão. Entenda o que é DNP."
+                  width={1380}
+                  height={320}
+                  sizes="(min-width: 1024px) 420px, 92vw"
+                  className="w-full h-auto rounded-full"
+                />
+              </Link>
+            )}
           </>
         )}
       </div>
