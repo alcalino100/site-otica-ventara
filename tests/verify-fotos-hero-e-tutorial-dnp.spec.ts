@@ -9,9 +9,9 @@ test.describe("Tutorial visual da medição de DNP por foto", () => {
       await expect(page.getByTestId(`dnp-step-${n}`)).toBeVisible();
     }
     const imgs = tutorial.locator("img");
-    await expect(imgs).toHaveCount(3);
+    await expect(imgs).toHaveCount(4);
     // Imagens abaixo da dobra carregam sob demanda: rola até cada uma antes de conferir
-    for (let i = 0; i < 3; i++) {
+    for (let i = 0; i < 4; i++) {
       const img = imgs.nth(i);
       await img.scrollIntoViewIfNeeded();
       await expect
@@ -92,4 +92,11 @@ test("DNP por foto: tutorial visual vem logo depois do título, antes da compara
     return { tutIndex: secs.findIndex((s) => s === tut), total: secs.length };
   });
   expect(ordem.tutIndex).toBe(1); // 0 = título/hero, 1 = tutorial
+});
+
+test("PDP: botão-banner da DNP aparece na compra com grau e leva a /medicao-por-foto", async ({ page }) => {
+  await page.goto("/produto/ventara-safari");
+  const banner = page.getByTestId("pdp-dnp-banner");
+  await expect(banner).toHaveCount(1);
+  await expect(banner).toHaveAttribute("href", "/medicao-por-foto");
 });

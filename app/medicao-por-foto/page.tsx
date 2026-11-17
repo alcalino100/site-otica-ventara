@@ -63,6 +63,9 @@ const DNP_TUTORIAL_STEPS: DnpTutorialStep[] = [
   {
     title: "Montagem na facetadora",
     text: "Os dados milimétricos são enviados ao nosso laboratório próprio em Araçatuba. A lente é biselada no centro óptico correto para o seu máximo conforto.",
+    image: "/images/dnp/passo-4-facetadora.webp",
+    alt: "Máquina facetadora lapidando uma lente com jato d'água de refrigeração",
+    badge: "Laboratório próprio",
     wide: true,
   },
 ];
