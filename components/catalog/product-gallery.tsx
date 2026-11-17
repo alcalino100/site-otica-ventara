@@ -10,8 +10,16 @@ interface ProductGalleryProps {
   overrideImage?: string | null;
 }
 
-export function ProductGallery({ product, overrideImage }: ProductGalleryProps) {
-  const images = product.images && product.images.length > 0 ? product.images : [];
+export function ProductGallery({ product, overrideImage: rawOverrideImage }: ProductGalleryProps) {
+  const images = React.useMemo(
+    () => (product.images && product.images.length > 0 ? product.images : []),
+    [product.images]
+  );
+  // Foto de cor que não está mais na galeria (já removida no admin) é ignorada
+  const overrideImage =
+    rawOverrideImage && (images.length === 0 || images.some((img) => img.url === rawOverrideImage))
+      ? rawOverrideImage
+      : null;
   const primaryIdx = Math.max(
     0,
     images.findIndex((img) => img.is_primary)

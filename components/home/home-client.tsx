@@ -17,7 +17,7 @@ import { StoreSection } from "../sections/store-section";
 import { WhatsAppSection } from "../sections/whatsapp-section";
 import { FAQAccordion } from "../sections/faq-accordion";
 import { Toast } from "../ui/toast";
-import { Product, OptiSyncPageSettings } from "@/types/ecommerce";
+import { Product, OptiSyncPageSettings, HeroSlide, HeroCarouselSettings } from "@/types/ecommerce";
 import { DEFAULT_CATALOG } from "@/lib/catalog-data";
 import { normalizeProduct } from "@/lib/products";
 import { getStoredCart, saveStoredCart, CartProduct } from "@/lib/cart";
@@ -51,6 +51,8 @@ interface HomeClientProps {
     photochromic: OptiSyncPageSettings["photochromicLine"];
     content: Record<string, any>;
   } | null;
+  /** Slides do carrossel já resolvidos no servidor (evita piscar os slides antigos ao abrir o site). */
+  heroData?: { slides: HeroSlide[]; settings: HeroCarouselSettings };
 }
 
 export function HomeClient({
@@ -59,6 +61,7 @@ export function HomeClient({
   footerContent,
   storeOptisyncBackground = null,
   photochromicSection = null,
+  heroData,
 }: HomeClientProps) {
   const supabase = createClient();
   // Com banco configurado, não parte do catálogo de demonstração (evita piscar produtos já removidos).
@@ -210,6 +213,8 @@ export function HomeClient({
           description={homeContent.heroDescription}
           ctaText={homeContent.heroCtaText}
           ctaLink={homeContent.heroCtaLink}
+          initialSlides={heroData?.slides}
+          initialSettings={heroData?.settings}
         />
 
         {/* 3. Banner Oficial 12 Meses de Garantia OPTiSYNC HD */}

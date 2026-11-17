@@ -669,6 +669,23 @@ export async function PATCH(req: NextRequest) {
       }
       if (imgResult.focusDropped) patchWarning = [patchWarning, FOCUS_SQL_WARNING].filter(Boolean).join(" ");
 
+      // Cores que apontavam para uma foto removida deixam de apontar (senão a foto antiga continua aparecendo)
+      try {
+        const keptUrls = new Set(newImages.map((img) => img.url));
+        const { data: colorRows } = await adminSupabase
+          .from("product_variants")
+          .select("id, image_url")
+          .eq("product_id", id);
+        const staleIds = (colorRows || [])
+          .filter((row: { id: string; image_url: string | null }) => row.image_url && !keptUrls.has(row.image_url))
+          .map((row: { id: string }) => row.id);
+        if (staleIds.length > 0) {
+          await adminSupabase.from("product_variants").update({ image_url: null }).in("id", staleIds);
+        }
+      } catch (err) {
+        console.warn("Não foi possível limpar fotos antigas das cores:", err);
+      }
+
       // Conferência: quantas fotos realmente ficaram gravadas
       const { count } = await adminSupabase
         .from("product_images")
