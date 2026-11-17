@@ -65,3 +65,21 @@ test.describe("Vitrine da Home enxuta", () => {
     await expect(link).toHaveAttribute("href", "/armacoes");
   });
 });
+
+test.describe("Vitrine interativa só com Solar Esportivo masculino", () => {
+  test("sem Armações de Grau / Coleção Feminina e com o título fora da foto", async ({ page }) => {
+    await page.goto("/");
+    const vitrine = page.locator("#vitrine-interativa");
+    await vitrine.scrollIntoViewIfNeeded();
+    await expect(vitrine.getByText("Óculos Solar", { exact: true })).toBeVisible();
+    await expect(vitrine.getByText("Esportivo", { exact: true })).toBeVisible();
+    await expect(vitrine.getByText("Coleção Masculina")).toBeVisible();
+    await expect(vitrine.getByText("Armações de Grau")).toHaveCount(0);
+    await expect(vitrine.getByText("Coleção Feminina")).toHaveCount(0);
+    // O título "Óculos Solares & Esportivos" fica fora da foto (legenda), não sobreposto a ela
+    const caption = vitrine.getByTestId("showcase-caption");
+    await expect(caption).toContainText(/Óculos Solares/i);
+    const insideImage = await vitrine.locator(".aspect-\\[4\\/3\\] >> text=/Óculos Solares/i").count();
+    expect(insideImage).toBe(0);
+  });
+});
