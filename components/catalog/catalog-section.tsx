@@ -32,6 +32,10 @@ interface CatalogSectionProps {
   catalogDescription?: string;
 }
 
+/** Quantos modelos a Home mostra (o restante fica em /armacoes). */
+const DESKTOP_LIMIT = 12; // 3 filas de 4
+const MOBILE_LIMIT = 8; // 2 carrosséis de 4
+
 export function CatalogSection({
   products,
   onSelectProduct,
@@ -190,15 +194,21 @@ export function CatalogSection({
     return result;
   }, [products, filter, selectedShape, selectedMaterial, selectedPriceRange, query, sortBy]);
 
+  // Vitrine enxuta da Home: poucas filas e o resto fica no catálogo completo (/armacoes).
+  // Desktop: 3 filas de 4 modelos. Mobile: 2 carrosséis de 4 modelos.
+  const desktopProducts = useMemo(() => filteredProducts.slice(0, DESKTOP_LIMIT), [filteredProducts]);
+  const mobileProducts = useMemo(() => filteredProducts.slice(0, MOBILE_LIMIT), [filteredProducts]);
+  const hiddenCount = Math.max(0, filteredProducts.length - DESKTOP_LIMIT);
+
   const row1Products = useMemo(() => {
-    if (filteredProducts.length <= 4) return filteredProducts;
-    return filteredProducts.slice(0, Math.ceil(filteredProducts.length / 2));
-  }, [filteredProducts]);
+    if (mobileProducts.length <= 4) return mobileProducts;
+    return mobileProducts.slice(0, Math.ceil(mobileProducts.length / 2));
+  }, [mobileProducts]);
 
   const row2Products = useMemo(() => {
-    if (filteredProducts.length <= 4) return [];
-    return filteredProducts.slice(Math.ceil(filteredProducts.length / 2));
-  }, [filteredProducts]);
+    if (mobileProducts.length <= 4) return [];
+    return mobileProducts.slice(Math.ceil(mobileProducts.length / 2));
+  }, [mobileProducts]);
 
   const handleCarouselScroll1 = () => {
     if (!carouselRef1.current) return;
@@ -487,10 +497,10 @@ export function CatalogSection({
           <ProductGridSkeleton />
         ) : filteredProducts.length > 0 ? (
           <div className="relative">
-            {/* 1. VISÃO DESKTOP: Grade com todos os modelos em 4 colunas */}
+            {/* 1. VISÃO DESKTOP: 3 filas de 4 modelos (tablet: 3 filas de 2) */}
             <div className="hidden sm:grid sm:grid-cols-2 lg:grid-cols-4 sm:gap-6">
-              {filteredProducts.map((product) => (
-                <div key={product.id} className="flex flex-col">
+              {desktopProducts.map((product, idx) => (
+                <div key={product.id} className={`${idx >= 6 ? "hidden lg:flex" : "flex"} flex-col`}>
                   <ProductCard
                     product={product}
                     onSelect={onSelectProduct}
@@ -694,15 +704,21 @@ export function CatalogSection({
           </div>
         )}
 
-        {/* Botão de Acesso ao Catálogo Completo de Armações */}
-        <div className="mt-12 text-center">
+        {/* Ver mais: leva ao catálogo completo de armações */}
+        <div className="mt-10 sm:mt-12 text-center">
           <Link
             href="/armacoes"
+            data-testid="home-ver-mais-armacoes"
             className="inline-flex items-center gap-2.5 px-8 py-3.5 rounded-full bg-[#06111f] hover:bg-amber-400 hover:text-slate-950 text-white font-bold text-xs uppercase tracking-widest border border-white/10 hover:border-amber-400 transition-all duration-200 shadow-md group"
           >
-            <span>Ver Catálogo Completo de Armações com Filtros</span>
+            <span>
+              {hiddenCount > 0
+                ? `Ver mais ${hiddenCount} modelo${hiddenCount > 1 ? "s" : ""} no catálogo`
+                : "Ver catálogo completo de armações"}
+            </span>
             <ArrowRight size={15} className="group-hover:translate-x-1 transition-transform" />
           </Link>
+          <p className="mt-3 text-[11px] text-slate-500">Filtros por formato, material e preço no catálogo completo.</p>
         </div>
       </div>
     </section>

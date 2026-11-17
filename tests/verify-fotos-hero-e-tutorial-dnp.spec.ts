@@ -43,3 +43,25 @@ test.describe("Foto removida não reaparece na página do produto", () => {
     if (thumbs.length > 0) expect(thumbs).toContain(mainSrc);
   });
 });
+
+test.describe("Vitrine da Home enxuta", () => {
+  test("mostra no máximo 12 modelos (desktop) / 8 (mobile) e o botão Ver mais leva a /armacoes", async ({ page, isMobile }) => {
+    await page.addInitScript(() => {
+      localStorage.setItem(
+        "ventara_cookie_consent_v1",
+        JSON.stringify({ necessary: true, analytics: true, marketing: false, timestamp: new Date().toISOString() })
+      );
+    });
+    await page.goto("/#armacoes");
+    const section = page.locator("#armacoes");
+    await section.scrollIntoViewIfNeeded();
+    await page.waitForTimeout(1500);
+    const visibleCards = await section.locator(".product").evaluateAll(
+      (els) => els.filter((e) => (e as HTMLElement).offsetParent !== null).length
+    );
+    expect(visibleCards).toBeGreaterThan(0);
+    expect(visibleCards).toBeLessThanOrEqual(isMobile ? 8 : 12);
+    const link = page.getByTestId("home-ver-mais-armacoes");
+    await expect(link).toHaveAttribute("href", "/armacoes");
+  });
+});
