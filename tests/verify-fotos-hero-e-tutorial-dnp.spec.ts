@@ -83,3 +83,13 @@ test.describe("Vitrine interativa só com Solar Esportivo masculino", () => {
     expect(insideImage).toBe(0);
   });
 });
+
+test("DNP por foto: tutorial visual vem logo depois do título, antes da comparação", async ({ page }) => {
+  await page.goto("/medicao-por-foto");
+  const ordem = await page.evaluate(() => {
+    const tut = document.querySelector('[data-testid="dnp-tutorial"]');
+    const secs = Array.from(document.querySelectorAll("main > section"));
+    return { tutIndex: secs.findIndex((s) => s === tut), total: secs.length };
+  });
+  expect(ordem.tutIndex).toBe(1); // 0 = título/hero, 1 = tutorial
+});

@@ -166,6 +166,77 @@ export default async function MedicaoPorFotoPage({ searchParams }: MedicaoPorFot
           </div>
         </section>
 
+        {/* TUTORIAL VISUAL: COMO FUNCIONARÁ O PROCESSO */}
+        <section className="py-16 sm:py-24 border-b border-white/10" data-testid="dnp-tutorial">
+          <div className="max-w-[1200px] mx-auto px-4 sm:px-8">
+            <div className="text-center max-w-2xl mx-auto mb-12 sm:mb-14">
+              <span className="text-[11px] font-bold uppercase tracking-widest text-amber-400">
+                TUTORIAL · PASSO A PASSO
+              </span>
+              <h2 className="text-2xl sm:text-4xl font-light text-white tracking-tight mt-1">
+                Como o serviço irá funcionar
+              </h2>
+              <p className="text-xs sm:text-sm text-slate-400 mt-2">
+                Processo simples, rápido e transparente realizado pelo seu próprio celular.
+              </p>
+            </div>
+
+            <ol className="grid grid-cols-1 md:grid-cols-2 gap-6 sm:gap-8 list-none p-0">
+              {DNP_TUTORIAL_STEPS.map((step, index) => (
+                <li
+                  key={step.title}
+                  data-testid={`dnp-step-${index + 1}`}
+                  className={`group rounded-3xl bg-white/[0.03] border border-white/10 hover:border-amber-400/40 transition-all overflow-hidden flex flex-col ${
+                    step.wide ? "md:col-span-2" : ""
+                  }`}
+                >
+                  {step.image ? (
+                    <div
+                      className={`relative bg-black overflow-hidden ${
+                        step.wide ? "aspect-[16/9] md:max-h-[640px]" : "aspect-[4/3]"
+                      }`}
+                    >
+                      <Image
+                        src={step.image}
+                        alt={step.alt ?? ""}
+                        fill
+                        sizes={step.wide ? "(min-width: 1200px) 1136px, 100vw" : "(min-width: 768px) 560px, 100vw"}
+                        className={`object-cover ${
+                          step.objectPosition ?? "object-center"
+                        } transition-transform duration-700 group-hover:scale-[1.03]`}
+                      />
+                      <div className="absolute inset-0 bg-gradient-to-t from-[#06111f]/70 via-transparent to-transparent pointer-events-none" />
+                      <span className="absolute top-4 left-4 w-11 h-11 rounded-2xl bg-amber-400 text-slate-950 flex items-center justify-center font-bold text-lg shadow-lg shadow-amber-400/20">
+                        {index + 1}
+                      </span>
+                      {step.badge && (
+                        <span className="absolute bottom-4 right-4 text-[10px] font-semibold uppercase tracking-wider text-cyan-200 bg-black/55 backdrop-blur-md border border-cyan-300/30 px-3 py-1 rounded-full">
+                          {step.badge}
+                        </span>
+                      )}
+                    </div>
+                  ) : (
+                    <div className="p-6 pb-0 flex items-center gap-3">
+                      <span className="w-11 h-11 rounded-2xl bg-amber-400 text-slate-950 flex items-center justify-center font-bold text-lg shadow-lg shadow-amber-400/20">
+                        {index + 1}
+                      </span>
+                      <Ruler size={20} className="text-amber-400" aria-hidden="true" />
+                    </div>
+                  )}
+                  <div className="p-6">
+                    <h3 className="text-base sm:text-lg font-semibold text-white mb-2">{step.title}</h3>
+                    <p className="text-xs sm:text-sm text-slate-300 leading-relaxed">{step.text}</p>
+                  </div>
+                </li>
+              ))}
+            </ol>
+
+            <p className="text-center text-[11px] text-slate-500 mt-6">
+              Imagens ilustrativas. O valor de DNP mostrado (63,5 mm) é apenas um exemplo.
+            </p>
+          </div>
+        </section>
+
         {/* COMPARAÇÃO CLARA: O QUE É MEDIDO VS O QUE NÃO É MEDIDO */}
         <section className="py-16 sm:py-20 bg-slate-950/60 border-b border-white/10">
           <div className="max-w-[1200px] mx-auto px-4 sm:px-8">
@@ -263,77 +334,6 @@ export default async function MedicaoPorFotoPage({ searchParams }: MedicaoPorFot
                 </div>
               </div>
             </div>
-          </div>
-        </section>
-
-        {/* TUTORIAL VISUAL: COMO FUNCIONARÁ O PROCESSO */}
-        <section className="py-16 sm:py-24 border-b border-white/10" data-testid="dnp-tutorial">
-          <div className="max-w-[1200px] mx-auto px-4 sm:px-8">
-            <div className="text-center max-w-2xl mx-auto mb-12 sm:mb-14">
-              <span className="text-[11px] font-bold uppercase tracking-widest text-amber-400">
-                TUTORIAL · PASSO A PASSO
-              </span>
-              <h2 className="text-2xl sm:text-4xl font-light text-white tracking-tight mt-1">
-                Como o serviço irá funcionar
-              </h2>
-              <p className="text-xs sm:text-sm text-slate-400 mt-2">
-                Processo simples, rápido e transparente realizado pelo seu próprio celular.
-              </p>
-            </div>
-
-            <ol className="grid grid-cols-1 md:grid-cols-2 gap-6 sm:gap-8 list-none p-0">
-              {DNP_TUTORIAL_STEPS.map((step, index) => (
-                <li
-                  key={step.title}
-                  data-testid={`dnp-step-${index + 1}`}
-                  className={`group rounded-3xl bg-white/[0.03] border border-white/10 hover:border-amber-400/40 transition-all overflow-hidden flex flex-col ${
-                    step.wide ? "md:col-span-2" : ""
-                  }`}
-                >
-                  {step.image ? (
-                    <div
-                      className={`relative bg-black overflow-hidden ${
-                        step.wide ? "aspect-[16/9] md:max-h-[640px]" : "aspect-[4/3]"
-                      }`}
-                    >
-                      <Image
-                        src={step.image}
-                        alt={step.alt ?? ""}
-                        fill
-                        sizes={step.wide ? "(min-width: 1200px) 1136px, 100vw" : "(min-width: 768px) 560px, 100vw"}
-                        className={`object-cover ${
-                          step.objectPosition ?? "object-center"
-                        } transition-transform duration-700 group-hover:scale-[1.03]`}
-                      />
-                      <div className="absolute inset-0 bg-gradient-to-t from-[#06111f]/70 via-transparent to-transparent pointer-events-none" />
-                      <span className="absolute top-4 left-4 w-11 h-11 rounded-2xl bg-amber-400 text-slate-950 flex items-center justify-center font-bold text-lg shadow-lg shadow-amber-400/20">
-                        {index + 1}
-                      </span>
-                      {step.badge && (
-                        <span className="absolute bottom-4 right-4 text-[10px] font-semibold uppercase tracking-wider text-cyan-200 bg-black/55 backdrop-blur-md border border-cyan-300/30 px-3 py-1 rounded-full">
-                          {step.badge}
-                        </span>
-                      )}
-                    </div>
-                  ) : (
-                    <div className="p-6 pb-0 flex items-center gap-3">
-                      <span className="w-11 h-11 rounded-2xl bg-amber-400 text-slate-950 flex items-center justify-center font-bold text-lg shadow-lg shadow-amber-400/20">
-                        {index + 1}
-                      </span>
-                      <Ruler size={20} className="text-amber-400" aria-hidden="true" />
-                    </div>
-                  )}
-                  <div className="p-6">
-                    <h3 className="text-base sm:text-lg font-semibold text-white mb-2">{step.title}</h3>
-                    <p className="text-xs sm:text-sm text-slate-300 leading-relaxed">{step.text}</p>
-                  </div>
-                </li>
-              ))}
-            </ol>
-
-            <p className="text-center text-[11px] text-slate-500 mt-6">
-              Imagens ilustrativas. O valor de DNP mostrado (63,5 mm) é apenas um exemplo.
-            </p>
           </div>
         </section>
 
