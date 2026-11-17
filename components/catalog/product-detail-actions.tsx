@@ -1,6 +1,8 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
+import Link from "next/link";
+import Image from "next/image";
 import { swatchBackground } from "@/lib/frame-color-presets";
 import {
   ShoppingBag,
@@ -461,6 +463,25 @@ export function ProductDetailActions({
                 </>
               )}
             </button>
+
+            {/* Botão-banner: explica a medição de DNP (só na compra com grau) */}
+            {purchaseMode === "with_lenses" && (
+              <Link
+                href="/medicao-por-foto"
+                data-testid="pdp-dnp-banner"
+                aria-label="Saiba como é feita a medição da sua visão. Entenda o que é DNP."
+                className="block w-[92%] mx-auto rounded-full transition-transform duration-200 hover:scale-[1.02] active:scale-95"
+              >
+                <Image
+                  src="/images/dnp/botao-saiba-dnp.webp"
+                  alt="Saiba como é feita a medição da sua visão. Entenda o que é DNP."
+                  width={1380}
+                  height={320}
+                  sizes="(min-width: 1024px) 420px, 92vw"
+                  className="w-full h-auto rounded-full"
+                />
+              </Link>
+            )}
 
             {/* Linha com Botão Secundário WhatsApp + Favoritos */}
             <div className="flex items-center gap-2">
