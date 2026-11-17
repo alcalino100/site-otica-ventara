@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import Image from "next/image";
 import {
   Camera,
   CheckCircle2,
@@ -23,6 +24,48 @@ import { PageBackground } from "@/components/ui/page-background";
 import { resolveBackgroundConfig } from "@/lib/content/background-presets";
 import { DraftPreviewBanner } from "@/components/content/draft-preview-banner";
 import { FloatingEditButton } from "@/components/content/floating-edit-button";
+
+interface DnpTutorialStep {
+  title: string;
+  text: string;
+  /** Sem imagem: o cartão vira uma etapa compacta com ícone. */
+  image?: string;
+  alt?: string;
+  badge?: string;
+  wide?: boolean;
+  objectPosition?: string;
+}
+
+const DNP_TUTORIAL_STEPS: DnpTutorialStep[] = [
+  {
+    title: "Posicione-se para a foto frontal",
+    text: "Fique em linha reta, de frente para a câmera, com boa iluminação natural e o rosto centralizado no enquadramento. Segure um cartão magnético padrão na testa: ele serve como escala de referência métrica universal.",
+    image: "/images/dnp/passo-1-posicao.webp",
+    alt: "Modelo digital de rosto e ombros centralizado no enquadramento para a foto frontal",
+    badge: "Enquadramento",
+    objectPosition: "object-top",
+  },
+  {
+    title: "Envie a foto pelo celular",
+    text: "Você tira a foto com a câmera do próprio celular e envia pela nossa página, sem sair de casa. O rosto precisa aparecer inteiro, olhando para frente, sem inclinar a cabeça.",
+    image: "/images/dnp/passo-2-envio.webp",
+    alt: "Pessoa fotografando o próprio rosto com o celular enquanto o sistema marca os olhos",
+    badge: "Captura no celular",
+  },
+  {
+    title: "Calibração submilimétrica da DNP",
+    text: "O algoritmo de inteligência óptica mapeia a distância interpupilar, calcula a DNP do olho direito e do esquerdo e confere a altura de montagem exata na armação que você escolheu.",
+    image: "/images/dnp/passo-3-medicao.webp",
+    alt: "Rosto com armação e marcações digitais mostrando a medida da DNP em milímetros",
+    badge: "Medição da DNP",
+    wide: true,
+  },
+  {
+    title: "Montagem na facetadora",
+    text: "Os dados milimétricos são enviados ao nosso laboratório próprio em Araçatuba. A lente é biselada no centro óptico correto para o seu máximo conforto.",
+    wide: true,
+  },
+];
 
 export const metadata: Metadata = {
   title: "Medição de DNP por Foto | Ótica Ventara Araçatuba",
@@ -223,12 +266,12 @@ export default async function MedicaoPorFotoPage({ searchParams }: MedicaoPorFot
           </div>
         </section>
 
-        {/* COMO FUNCIONARÁ O PROCESSO (3 PASSOS) */}
-        <section className="py-16 sm:py-24 border-b border-white/10">
+        {/* TUTORIAL VISUAL: COMO FUNCIONARÁ O PROCESSO */}
+        <section className="py-16 sm:py-24 border-b border-white/10" data-testid="dnp-tutorial">
           <div className="max-w-[1200px] mx-auto px-4 sm:px-8">
-            <div className="text-center max-w-2xl mx-auto mb-14">
+            <div className="text-center max-w-2xl mx-auto mb-12 sm:mb-14">
               <span className="text-[11px] font-bold uppercase tracking-widest text-amber-400">
-                PASSO A PASSO
+                TUTORIAL · PASSO A PASSO
               </span>
               <h2 className="text-2xl sm:text-4xl font-light text-white tracking-tight mt-1">
                 Como o serviço irá funcionar
@@ -238,46 +281,59 @@ export default async function MedicaoPorFotoPage({ searchParams }: MedicaoPorFot
               </p>
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6 sm:gap-8">
-              {/* Passo 1 */}
-              <div className="p-6 rounded-3xl bg-white/[0.03] border border-white/10 hover:border-amber-400/40 transition-all">
-                <div className="w-12 h-12 rounded-2xl bg-amber-400/10 text-amber-400 flex items-center justify-center font-bold text-lg mb-5 border border-amber-400/20">
-                  1
-                </div>
-                <h3 className="text-base sm:text-lg font-semibold text-white mb-2">
-                  Foto Frontal com Referencial
-                </h3>
-                <p className="text-xs sm:text-sm text-slate-300 leading-relaxed">
-                  Você posiciona o rosto em linha reta com boa iluminação natural, segurando um cartão magnético padrão na testa como escala de referência métrica universal.
-                </p>
-              </div>
+            <ol className="grid grid-cols-1 md:grid-cols-2 gap-6 sm:gap-8 list-none p-0">
+              {DNP_TUTORIAL_STEPS.map((step, index) => (
+                <li
+                  key={step.title}
+                  data-testid={`dnp-step-${index + 1}`}
+                  className={`group rounded-3xl bg-white/[0.03] border border-white/10 hover:border-amber-400/40 transition-all overflow-hidden flex flex-col ${
+                    step.wide ? "md:col-span-2" : ""
+                  }`}
+                >
+                  {step.image ? (
+                    <div
+                      className={`relative bg-black overflow-hidden ${
+                        step.wide ? "aspect-[16/9] md:max-h-[640px]" : "aspect-[4/3]"
+                      }`}
+                    >
+                      <Image
+                        src={step.image}
+                        alt={step.alt ?? ""}
+                        fill
+                        sizes={step.wide ? "(min-width: 1200px) 1136px, 100vw" : "(min-width: 768px) 560px, 100vw"}
+                        className={`object-cover ${
+                          step.objectPosition ?? "object-center"
+                        } transition-transform duration-700 group-hover:scale-[1.03]`}
+                      />
+                      <div className="absolute inset-0 bg-gradient-to-t from-[#06111f]/70 via-transparent to-transparent pointer-events-none" />
+                      <span className="absolute top-4 left-4 w-11 h-11 rounded-2xl bg-amber-400 text-slate-950 flex items-center justify-center font-bold text-lg shadow-lg shadow-amber-400/20">
+                        {index + 1}
+                      </span>
+                      {step.badge && (
+                        <span className="absolute bottom-4 right-4 text-[10px] font-semibold uppercase tracking-wider text-cyan-200 bg-black/55 backdrop-blur-md border border-cyan-300/30 px-3 py-1 rounded-full">
+                          {step.badge}
+                        </span>
+                      )}
+                    </div>
+                  ) : (
+                    <div className="p-6 pb-0 flex items-center gap-3">
+                      <span className="w-11 h-11 rounded-2xl bg-amber-400 text-slate-950 flex items-center justify-center font-bold text-lg shadow-lg shadow-amber-400/20">
+                        {index + 1}
+                      </span>
+                      <Ruler size={20} className="text-amber-400" aria-hidden="true" />
+                    </div>
+                  )}
+                  <div className="p-6">
+                    <h3 className="text-base sm:text-lg font-semibold text-white mb-2">{step.title}</h3>
+                    <p className="text-xs sm:text-sm text-slate-300 leading-relaxed">{step.text}</p>
+                  </div>
+                </li>
+              ))}
+            </ol>
 
-              {/* Passo 2 */}
-              <div className="p-6 rounded-3xl bg-white/[0.03] border border-white/10 hover:border-amber-400/40 transition-all">
-                <div className="w-12 h-12 rounded-2xl bg-amber-400/10 text-amber-400 flex items-center justify-center font-bold text-lg mb-5 border border-amber-400/20">
-                  2
-                </div>
-                <h3 className="text-base sm:text-lg font-semibold text-white mb-2">
-                  Calibração Submilimétrica
-                </h3>
-                <p className="text-xs sm:text-sm text-slate-300 leading-relaxed">
-                  O algoritmo de inteligência óptica mapeia a distância interpupilar, calcula a DNP do olho direito e esquerdo e verifica a altura de montagem exata na armação.
-                </p>
-              </div>
-
-              {/* Passo 3 */}
-              <div className="p-6 rounded-3xl bg-white/[0.03] border border-white/10 hover:border-amber-400/40 transition-all">
-                <div className="w-12 h-12 rounded-2xl bg-amber-400/10 text-amber-400 flex items-center justify-center font-bold text-lg mb-5 border border-amber-400/20">
-                  3
-                </div>
-                <h3 className="text-base sm:text-lg font-semibold text-white mb-2">
-                  Montagem na Facetadora
-                </h3>
-                <p className="text-xs sm:text-sm text-slate-300 leading-relaxed">
-                  Os dados milimétricos são enviados ao nosso laboratório próprio em Araçatuba. A lente é biselada no centro óptico correto para seu máximo conforto.
-                </p>
-              </div>
-            </div>
+            <p className="text-center text-[11px] text-slate-500 mt-6">
+              Imagens ilustrativas. O valor de DNP mostrado (63,5 mm) é apenas um exemplo.
+            </p>
           </div>
         </section>
 

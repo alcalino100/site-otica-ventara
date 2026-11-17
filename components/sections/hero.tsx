@@ -33,6 +33,9 @@ interface HeroProps {
   description?: string;
   ctaText?: string;
   ctaLink?: string;
+  /** Dados vindos do servidor: o primeiro HTML já sai com as fotos reais. */
+  initialSlides?: HeroSlide[];
+  initialSettings?: HeroCarouselSettings;
 }
 
 export function Hero({
@@ -42,10 +45,12 @@ export function Hero({
   description,
   ctaText,
   ctaLink,
+  initialSlides,
+  initialSettings,
 }: HeroProps) {
   const { identity, fullAddress } = useSiteSettings();
-  const [slides, setSlides] = useState<HeroSlide[]>(DEFAULT_HERO_SLIDES);
-  const [settings, setSettings] = useState<HeroCarouselSettings>(DEFAULT_HERO_SETTINGS);
+  const [slides, setSlides] = useState<HeroSlide[]>(initialSlides && initialSlides.length > 0 ? initialSlides : DEFAULT_HERO_SLIDES);
+  const [settings, setSettings] = useState<HeroCarouselSettings>(initialSettings ?? DEFAULT_HERO_SETTINGS);
   const [currentIndex, setCurrentIndex] = useState(0);
   const [isPaused, setIsPaused] = useState(false);
   const [prefersReducedMotion, setPrefersReducedMotion] = useState(false);

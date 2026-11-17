@@ -80,7 +80,11 @@ export function normalizeProduct(raw: any): Product {
         stock_quantity: Number(v.stock_quantity ?? 10),
         price_in_cents: typeof v.price_in_cents === "number" ? v.price_in_cents : null,
         compare_at_price_in_cents: typeof v.compare_at_price_in_cents === "number" ? v.compare_at_price_in_cents : null,
-        image_url: v.image_url || null,
+        // Foto da cor só vale se ainda existir na galeria do produto (senão uma foto já removida reaparece)
+        image_url:
+          v.image_url && (images.length === 0 || images.some((img: any) => img.url === v.image_url))
+            ? v.image_url
+            : null,
         is_available: v.is_available !== false,
         sort_order: Number(v.sort_order ?? idx),
         created_at: v.created_at || new Date().toISOString(),
