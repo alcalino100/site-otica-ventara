@@ -61,3 +61,5 @@ export function normalizeFrameShape(raw: unknown): FrameShape | null {
   const exact = FRAME_SHAPES.find((x) => fold(x) === fold(raw));
   return exact ?? "Outro";
 }
+
+export const FRAME_SHAPE_OPTIONS: Array<{ value: FrameShape; label: string }> = FRAME_SHAPES.map((value) => ({ value, label: value }));

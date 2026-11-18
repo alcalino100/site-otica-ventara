@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
+import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { Search, ShoppingBag, Menu, X, Sparkles, Package, ShieldCheck } from "lucide-react";
 import { motion, AnimatePresence } from "motion/react";
@@ -116,9 +117,18 @@ export function Header({
   return (
     <header className={`site-header ${isScrolled ? "scrolled" : ""}`}>
       <div className="max-w-[1400px] mx-auto px-4 sm:px-8 lg:px-10 w-full flex items-center justify-between">
-        <a href="#inicio" className="brand" aria-label="Ótica Ventara, ir para o início">
+        <Link
+          href="/"
+          className="brand"
+          aria-label="Ótica Ventara, ir para o início"
+          onClick={() => {
+            setMobileMenuOpen(false);
+            // Já na home: volta ao topo; nas demais páginas o Link navega para "/"
+            if (pathname === "/") window.scrollTo({ top: 0, behavior: "smooth" });
+          }}
+        >
           <BrandLogo size="sm" tone={isLight ? "light" : undefined} />
-        </a>
+        </Link>
 
         {/* Desktop Navigation com Highlight Dinâmico e Glassmorphism */}
         <nav className="nav hidden lg:flex items-center gap-6 lg:gap-7" aria-label="Navegação principal">

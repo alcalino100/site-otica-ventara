@@ -78,3 +78,14 @@ test.describe("Preço consistente (produto é a fonte única)", () => {
     await expect(page.locator("main").getByText(`R$ ${br}`).first()).toBeVisible();
   });
 });
+
+test("logo do header leva para a home a partir de outras páginas", async ({ page }) => {
+  for (const path of ["/armacoes", "/lentes", "/otica-em-aracatuba"]) {
+    await page.goto(path);
+    const logo = page.locator("header a.brand").first();
+    await expect(logo).toHaveAttribute("href", "/");
+    await logo.click();
+    await expect(page).toHaveURL(/\/(\?.*)?(#.*)?$/, { timeout: 20000 });
+    expect(new URL(page.url()).pathname).toBe("/");
+  }
+});
