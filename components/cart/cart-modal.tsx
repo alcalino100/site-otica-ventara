@@ -617,11 +617,16 @@ export function CartModal({
         setTimeLeftSeconds(15 * 60);
         setView("pix");
       } else if (paymentMethod === "credit_card") {
-        if (data.payment?.checkout_url) {
-          window.open(data.payment.checkout_url, "_blank", "noopener,noreferrer");
+        const url: string | undefined = data.payment?.checkout_url;
+        if (!url) {
+          setErrorMessage(
+            "Não foi possível abrir a página de pagamento com cartão. Tente novamente, escolha Pix ou finalize pelo WhatsApp."
+          );
+          return;
         }
         onClearCart();
-        setView("success");
+        // Mesma aba: window.open depois de um await é bloqueado por Safari/iOS e pelos navegadores de Instagram/WhatsApp
+        window.location.assign(url);
       } else {
         onClearCart();
         setView("success");

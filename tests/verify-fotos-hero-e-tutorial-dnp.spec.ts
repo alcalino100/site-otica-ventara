@@ -163,3 +163,15 @@ test("header: em tablet (768px) o menu vira hambúrguer e a logo não some", asy
   const box = await toggle.boundingBox();
   expect(box!.x + box!.width).toBeLessThanOrEqual(768);
 });
+
+test("touch: campos de formulário têm fonte >= 16px (evita zoom automático do iOS)", async ({ page, isMobile }) => {
+  test.skip(!isMobile, "só em dispositivo touch");
+  await page.goto("/armacoes");
+  const sizes = await page.evaluate(() =>
+    [...document.querySelectorAll("input,select,textarea")]
+      .filter((el) => !["checkbox", "radio", "hidden", "file"].includes((el as HTMLInputElement).type))
+      .map((el) => parseFloat(getComputedStyle(el).fontSize))
+  );
+  expect(sizes.length).toBeGreaterThan(0);
+  for (const s of sizes) expect(s).toBeGreaterThanOrEqual(16);
+});

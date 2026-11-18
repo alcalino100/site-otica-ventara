@@ -1463,3 +1463,12 @@ h1 strong {
     animation: none !important;
   }
 }
+
+/* iOS/Android: campos com fonte menor que 16px fazem o navegador dar zoom ao focar (tela "pulando" no checkout). */
+@media (pointer: coarse) {
+  input:not([type="checkbox"]):not([type="radio"]):not([type="range"]):not([type="file"]),
+  select,
+  textarea {
+    font-size: 16px !important;
+  }
+}
