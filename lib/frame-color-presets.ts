@@ -54,7 +54,12 @@ const SPOTTED = /on[cç]a|animal\s*print/i;
  * para parecer a estampa de verdade.
  */
 export function swatchBackground(name?: string | null, hex?: string | null): string {
-  const base = hex || "#1e293b";
+  // Cor padrão/placeholder (admin não escolheu): usa a cor da lista pronta com o mesmo nome, se houver
+  const PLACEHOLDERS = ["#0f172a", "#1e293b", "#475569"];
+  const preset = name
+    ? FRAME_COLOR_PRESETS.find((p) => p.name.toLowerCase() === name.trim().toLowerCase())
+    : undefined;
+  const base = preset && (!hex || PLACEHOLDERS.includes(hex.toLowerCase())) ? preset.hex : hex || "#1e293b";
   if (name && SPOTTED.test(name)) {
     return [
       "radial-gradient(circle at 28% 30%, transparent 0 4%, rgba(25,14,5,.85) 5% 11%, transparent 12%)",
