@@ -90,6 +90,11 @@ export function Footer({ onOpenLegal, cnpj, address, hours, copyright }: FooterP
                 </a>
               </li>
               <li>
+                <Link href="/otica-em-aracatuba" className="hover:text-amber-300 transition-colors flex items-center gap-1">
+                  <span>Ótica em Araçatuba</span>
+                </Link>
+              </li>
+              <li>
                 <Link href="/entregas" className="hover:text-amber-300 transition-colors flex items-center gap-1">
                   <span>Rede de Entregas</span>
                 </Link>

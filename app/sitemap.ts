@@ -7,6 +7,7 @@ export const revalidate = 3600;
 
 const STATIC_PAGES: Array<{ path: string; priority: number; changeFrequency: "daily" | "weekly" | "monthly" }> = [
   { path: "/", priority: 1, changeFrequency: "daily" },
+  { path: "/otica-em-aracatuba", priority: 0.9, changeFrequency: "monthly" },
   { path: "/armacoes", priority: 0.9, changeFrequency: "daily" },
   { path: "/lentes", priority: 0.9, changeFrequency: "weekly" },
   { path: "/lentes-coloridas", priority: 0.7, changeFrequency: "weekly" },

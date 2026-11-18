@@ -339,6 +339,7 @@ const PAGE_NATIVE_TONES: Record<string, BackgroundTone> = {
   lentes: "light",
   lentesColoridas: "light",
   medicaoPorFoto: "light",
+  oticaAracatuba: "dark",
   rastrearPedido: "light",
   responsavelTecnico: "light",
   politicas: "light",

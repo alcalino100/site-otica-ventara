@@ -51,3 +51,19 @@ test.describe("SEO base", () => {
     await expect(page.locator('meta[name="robots"]')).toHaveAttribute("content", /noindex/);
   });
 });
+
+test.describe("Página local /otica-em-aracatuba", () => {
+  test("tem H1, endereço, mapa, FAQ estruturado e está no sitemap", async ({ page, request }) => {
+    await page.goto("/otica-em-aracatuba");
+    await expect(page.locator("h1")).toContainText("Araçatuba");
+    await expect(page.getByText("Rua Princesa Isabel, 221").first()).toBeVisible();
+    await expect(page.locator('iframe[title*="Mapa"]')).toHaveCount(1);
+    await expect(page).toHaveTitle(/Ótica em Araçatuba/);
+    await expect(page.locator('link[rel="canonical"]')).toHaveAttribute("href", `${SITE}/otica-em-aracatuba`);
+    const ld = (await page.$$eval('script[type="application/ld+json"]', (els) => els.map((e) => e.textContent))).join(" ");
+    expect(ld).toContain("FAQPage");
+    expect(ld).toContain("Optician");
+    const xml = await (await request.get("/sitemap.xml")).text();
+    expect(xml).toContain(`${SITE}/otica-em-aracatuba`);
+  });
+});
