@@ -6,7 +6,6 @@ import { getOptiSyncPageSettings } from "@/lib/optisync-settings";
 import { PageBackground } from "@/components/ui/page-background";
 import { DraftPreviewBanner } from "@/components/content/draft-preview-banner";
 import { FloatingEditButton } from "@/components/content/floating-edit-button";
-import { AnnouncementBar } from "@/components/layout/announcement-bar";
 import { HomeClient } from "@/components/home/home-client";
 import { getHeroData } from "@/lib/hero-server";
 import { getHomeCatalogPicks } from "@/lib/home-picks";
@@ -28,11 +27,10 @@ export default async function Home({ searchParams }: HomePageProps) {
   const { preview } = await searchParams;
   const isDraft = preview === "draft";
 
-  const [homeContent, headerContent, footerContent, announcementContent, heroData, homeCatalogPicks] = await Promise.all([
+  const [homeContent, headerContent, footerContent, heroData, homeCatalogPicks] = await Promise.all([
     getPageContent("home", isDraft ? "draft" : "published"),
     getPageContent("globalHeader", isDraft ? "draft" : "published"),
     getPageContent("globalFooter", isDraft ? "draft" : "published"),
-    getPageContent("globalAnnouncement", isDraft ? "draft" : "published"),
     getHeroData(),
     getHomeCatalogPicks(),
   ]);
@@ -71,11 +69,6 @@ export default async function Home({ searchParams }: HomePageProps) {
   return (
     <>
       <DraftPreviewBanner pageId="home" />
-      <AnnouncementBar
-        enabled={announcementContent.enabled !== false}
-        text={announcementContent.text}
-        linkUrl={announcementContent.linkUrl}
-      />
       <PageBackground config={bgConfig} />
       <HomeClient
         homeContent={homeContent}
