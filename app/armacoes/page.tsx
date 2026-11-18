@@ -6,31 +6,17 @@ import { getArmacoesPageSettings } from "@/lib/armacoes-settings";
 import { getPageContent } from "@/lib/content/repository";
 import { PageBackground } from "@/components/ui/page-background";
 import { resolveBackgroundConfig } from "@/lib/content/background-presets";
+import { JsonLd } from "@/components/seo/json-ld";
+import { buildPageMetadata, breadcrumbJsonLd } from "@/lib/seo";
 import { DraftPreviewBanner } from "@/components/content/draft-preview-banner";
 import { FloatingEditButton } from "@/components/content/floating-edit-button";
 
-export const metadata: Metadata = {
-  title: "Catálogo de Armações e Óculos de Grau e Sol | Óticas Ventara",
+export const metadata: Metadata = buildPageMetadata({
+  title: "Armações de Grau e Óculos de Sol em Araçatuba | Catálogo Ventara",
   description:
-    "Explore a coleção de armações em acetato nobre e metal premium da Ótica Ventara em Araçatuba. Modelos gatinho, redondo, quadrado e solar com parcelamento em até 10x sem juros.",
-  openGraph: {
-    title: "Catálogo de Armações | Óticas Ventara",
-    description:
-      "Design autoral, precisão dióptrica e conforto prolongado. Confira nossa coleção completa.",
-    images: [
-      {
-        url: "/images/catalog-hero.jpg",
-        width: 1200,
-        height: 630,
-        alt: "Catálogo de Armações Óticas Ventara",
-      },
-    ],
-    type: "website",
-  },
-  alternates: {
-    canonical: "/armacoes",
-  },
-};
+    "Catálogo de armações em acetato nobre e metal premium da Ótica Ventara em Araçatuba: gatinho, redondo, quadrado e solar. Parcele em até 10x sem juros.",
+  path: "/armacoes",
+});
 
 export const revalidate = 60;
 
@@ -52,6 +38,7 @@ export default async function ArmacoesPage({ searchParams }: ArmacoesPageProps) 
 
   return (
     <>
+      <JsonLd data={breadcrumbJsonLd([{ name: "Início", path: "/" }, { name: "Armações", path: "/armacoes" }])} />
       <DraftPreviewBanner pageId="armacoes" isDraft={isDraft} />
       <PageBackground config={bgConfig} />
       <Suspense

@@ -8,6 +8,7 @@ import { DraftPreviewBanner } from "@/components/content/draft-preview-banner";
 import { FloatingEditButton } from "@/components/content/floating-edit-button";
 
 export const metadata: Metadata = {
+  robots: { index: false, follow: false },
   title: "Rastreie seu Pedido | Óticas Ventara",
   description:
     "Acompanhe em tempo real a montagem no laboratório óptico e a entrega das suas armações e lentes até o seu endereço.",

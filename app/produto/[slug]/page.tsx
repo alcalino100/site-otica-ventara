@@ -8,6 +8,8 @@ import { getPageContent } from "@/lib/content/repository";
 import { PageBackground } from "@/components/ui/page-background";
 import { resolveBackgroundConfig } from "@/lib/content/background-presets";
 import { DraftPreviewBanner } from "@/components/content/draft-preview-banner";
+import { JsonLd } from "@/components/seo/json-ld";
+import { breadcrumbJsonLd, buildPageMetadata, productJsonLd, trimDescription } from "@/lib/seo";
 import { FloatingEditButton } from "@/components/content/floating-edit-button";
 
 interface ProductPageProps {
@@ -33,19 +35,15 @@ export async function generateMetadata({ params }: ProductPageProps): Promise<Me
     };
   }
 
-  return {
-    title: `${product.name} | Ótica Ventara Eyewear`,
+  const primary = product.images?.find((i) => i.is_primary)?.url || product.images?.[0]?.url;
+  return buildPageMetadata({
+    title: `${product.name} | Armação em Araçatuba | Ótica Ventara`,
     description:
-      product.description ||
-      `Conheça a armação ${product.name} na Ótica Ventara em Araçatuba-SP.`,
-    openGraph: {
-      title: `${product.name} | Ótica Ventara`,
-      description:
-        product.description ||
-        `Armação ${product.name} com design sofisticado e alta precisão.`,
-      url: `https://www.oticasventara.com.br/produto/${product.slug}`,
-    },
-  };
+      trimDescription(product.description) ||
+      `Conheça a armação ${product.name} na Ótica Ventara em Araçatuba-SP. Parcele em até 10x sem juros e monte suas lentes no laboratório próprio.`,
+    path: `/produto/${product.slug}`,
+    image: primary,
+  });
 }
 
 export default async function ProductDetailPage({ params, searchParams }: ProductPageProps) {
@@ -71,6 +69,16 @@ export default async function ProductDetailPage({ params, searchParams }: Produc
 
   return (
     <>
+      <JsonLd
+        data={[
+          productJsonLd(product, `/produto/${product.slug}`),
+          breadcrumbJsonLd([
+            { name: "Início", path: "/" },
+            { name: "Armações", path: "/armacoes" },
+            { name: product.name, path: `/produto/${product.slug}` },
+          ]),
+        ]}
+      />
       <DraftPreviewBanner pageId="produtoTemplate" isDraft={isDraft} />
       <PageBackground config={bgConfig} />
       <ProductDetailView

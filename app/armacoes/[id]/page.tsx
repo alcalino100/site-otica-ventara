@@ -8,6 +8,7 @@ import { getPageContent } from "@/lib/content/repository";
 import { PageBackground } from "@/components/ui/page-background";
 import { resolveBackgroundConfig } from "@/lib/content/background-presets";
 import { DraftPreviewBanner } from "@/components/content/draft-preview-banner";
+import { buildPageMetadata, trimDescription } from "@/lib/seo";
 import { FloatingEditButton } from "@/components/content/floating-edit-button";
 
 interface FrameDetailPageProps {
@@ -33,19 +34,16 @@ export async function generateMetadata({ params }: FrameDetailPageProps): Promis
     };
   }
 
-  return {
-    title: `${product.name} | Armações Óticas Ventara`,
+  const primary = product.images?.find((i) => i.is_primary)?.url || product.images?.[0]?.url;
+  // Mesma armação existe em /produto/[slug]: a página oficial (canonical) é a de /produto, evitando conteúdo duplicado.
+  return buildPageMetadata({
+    title: `${product.name} | Armação em Araçatuba | Ótica Ventara`,
     description:
-      product.description ||
-      `Armação ${product.name} em acetato premium. Fabricação e montagem no laboratório próprio da Ótica Ventara em Araçatuba-SP.`,
-    openGraph: {
-      title: `${product.name} | Óticas Ventara Eyewear`,
-      description:
-        product.description ||
-        `Armação ${product.name} com design sofisticado e alta precisão.`,
-      url: `https://www.oticasventara.com.br/armacoes/${product.slug || product.id}`,
-    },
-  };
+      trimDescription(product.description) ||
+      `Armação ${product.name} em acetato premium. Montagem no laboratório próprio da Ótica Ventara em Araçatuba-SP.`,
+    path: `/produto/${product.slug || product.id}`,
+    image: primary,
+  });
 }
 
 export default async function FrameDetailPage({ params, searchParams }: FrameDetailPageProps) {
