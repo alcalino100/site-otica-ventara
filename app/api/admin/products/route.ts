@@ -1,6 +1,7 @@
 import { requireAdmin } from "@/lib/auth/require-admin";
 import { NextRequest, NextResponse } from "next/server";
 import { revalidateProductPages } from "@/lib/revalidate-products";
+import { normalizeFrameMaterial, normalizeFrameShape, normalizeFrameType } from "@/lib/frame-material";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { isSupabaseConfigured } from "@/lib/supabase/server";
 import { createStaticSupabaseClient } from "@/lib/supabase/static";
@@ -319,9 +320,9 @@ export async function POST(req: NextRequest) {
         compare_at_price_in_cents: body.compare_at_price_in_cents || null,
         is_published: body.is_published ?? true,
         is_featured: body.is_featured ?? false,
-        frame_type: body.frame_type || "Grau",
-        frame_shape: body.frame_shape || "Quadrado",
-        frame_material: body.frame_material || "Acetato Premium",
+        frame_type: normalizeFrameType(body.frame_type),
+        frame_shape: normalizeFrameShape(body.frame_shape) ?? "Quadrado",
+        frame_material: normalizeFrameMaterial(body.frame_material),
         gender: body.gender || "Unissex",
         dimensions_lens_mm: body.dimensions_lens_mm || null,
         dimensions_bridge_mm: body.dimensions_bridge_mm || null,
@@ -591,6 +592,13 @@ export async function PATCH(req: NextRequest) {
     }
 
     const adminSupabase = createAdminClient();
+
+    // Material sempre dentro do que o banco aceita (evita erro de constraint com valores antigos/digitados)
+    if ("frame_material" in updates) {
+      updates.frame_material = updates.frame_material ? normalizeFrameMaterial(updates.frame_material) : null;
+    }
+    if ("frame_shape" in updates) updates.frame_shape = normalizeFrameShape(updates.frame_shape);
+    if ("frame_type" in updates) updates.frame_type = normalizeFrameType(updates.frame_type);
 
     // 1. Atualiza campos cadastrais na tabela 'products'
     const { data: updatedProduct, error: productError } = await adminSupabase

@@ -1,5 +1,6 @@
 "use client";
 
+import { FRAME_MATERIAL_OPTIONS } from "@/lib/frame-material";
 import React, { useState, useEffect, useRef } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
@@ -1100,10 +1101,11 @@ export default function NewProductQuickFlowPage() {
                     onChange={(e) => setFrameMaterial(e.target.value as FrameMaterial)}
                     className="w-full bg-[#0b1728] border border-white/15 rounded-xl px-3 py-2 text-white text-xs focus:outline-none focus:border-amber-400"
                   >
-                    <option value="Acetato Premium">Acetato Premium</option>
-                    <option value="Metal Titânio">Metal Titânio</option>
-                    <option value="Injetado">Injetado Leve</option>
-                    <option value="Madeira / Misto">Madeira / Misto</option>
+                    {FRAME_MATERIAL_OPTIONS.map((opt) => (
+                      <option key={opt.value} value={opt.value}>
+                        {opt.label}
+                      </option>
+                    ))}
                   </select>
                 </div>
 
