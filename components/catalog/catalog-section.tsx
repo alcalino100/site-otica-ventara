@@ -21,6 +21,8 @@ import { ProductCard } from "./product-card";
 import { ProductGridSkeleton } from "./product-grid-skeleton";
 
 interface CatalogSectionProps {
+  /** Modelos escolhidos no admin (ordem importa): aparecem primeiro na vitrine padrão. */
+  pickedIds?: string[];
   products: Product[];
   onSelectProduct: (product: Product) => void;
   onAddToCart: (product: Product) => void;
@@ -42,6 +44,7 @@ export function CatalogSection({
   onAddToCart,
   cartIds,
   isSearchOpen,
+  pickedIds,
   catalogEyebrow = "SELEÇÃO EDITORIAL VENTARA",
   catalogTitle = "Escolhas que",
   catalogTitleHighlight = "combinam com você.",
@@ -187,12 +190,20 @@ export function CatalogSection({
     } else if (sortBy === "name_asc") {
       result.sort((a, b) => a.name.localeCompare(b.name));
     } else {
-      // featured default
-      result.sort((a, b) => (b.is_featured ? 1 : 0) - (a.is_featured ? 1 : 0));
+      // padrão: modelos escolhidos no admin primeiro (na ordem escolhida); sem escolhas, mantém os destaques
+      if (pickedIds && pickedIds.length > 0) {
+        const rank = (id: string) => {
+          const i = pickedIds.indexOf(id);
+          return i === -1 ? Number.MAX_SAFE_INTEGER : i;
+        };
+        result.sort((a, b) => rank(a.id) - rank(b.id));
+      } else {
+        result.sort((a, b) => (b.is_featured ? 1 : 0) - (a.is_featured ? 1 : 0));
+      }
     }
 
     return result;
-  }, [products, filter, selectedShape, selectedMaterial, selectedPriceRange, query, sortBy]);
+  }, [products, filter, selectedShape, selectedMaterial, selectedPriceRange, query, sortBy, pickedIds]);
 
   // Vitrine enxuta da Home: poucas filas e o resto fica no catálogo completo (/armacoes).
   // Desktop: 3 filas de 4 modelos. Mobile: 2 carrosséis de 4 modelos.

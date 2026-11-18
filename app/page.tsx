@@ -9,6 +9,7 @@ import { FloatingEditButton } from "@/components/content/floating-edit-button";
 import { AnnouncementBar } from "@/components/layout/announcement-bar";
 import { HomeClient } from "@/components/home/home-client";
 import { getHeroData } from "@/lib/hero-server";
+import { getHomeCatalogPicks } from "@/lib/home-picks";
 import type { OptiSyncPageSettings } from "@/types/ecommerce";
 
 export const revalidate = 60;
@@ -27,12 +28,13 @@ export default async function Home({ searchParams }: HomePageProps) {
   const { preview } = await searchParams;
   const isDraft = preview === "draft";
 
-  const [homeContent, headerContent, footerContent, announcementContent, heroData] = await Promise.all([
+  const [homeContent, headerContent, footerContent, announcementContent, heroData, homeCatalogPicks] = await Promise.all([
     getPageContent("home", isDraft ? "draft" : "published"),
     getPageContent("globalHeader", isDraft ? "draft" : "published"),
     getPageContent("globalFooter", isDraft ? "draft" : "published"),
     getPageContent("globalAnnouncement", isDraft ? "draft" : "published"),
     getHeroData(),
+    getHomeCatalogPicks(),
   ]);
 
   const bgConfig = resolveBackgroundConfig(homeContent.backgroundPreset, homeContent);
@@ -82,6 +84,7 @@ export default async function Home({ searchParams }: HomePageProps) {
         storeOptisyncBackground={storeOptisyncBackground}
         photochromicSection={photochromicSection}
         heroData={heroData}
+        homeCatalogPicks={homeCatalogPicks}
       />
       <FloatingEditButton pageId="home" />
     </>

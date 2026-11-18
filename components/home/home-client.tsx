@@ -53,6 +53,7 @@ interface HomeClientProps {
   } | null;
   /** Slides do carrossel já resolvidos no servidor (evita piscar os slides antigos ao abrir o site). */
   heroData?: { slides: HeroSlide[]; settings: HeroCarouselSettings };
+  homeCatalogPicks?: string[];
 }
 
 export function HomeClient({
@@ -62,6 +63,7 @@ export function HomeClient({
   storeOptisyncBackground = null,
   photochromicSection = null,
   heroData,
+  homeCatalogPicks,
 }: HomeClientProps) {
   const supabase = createClient();
   // Com banco configurado, não parte do catálogo de demonstração (evita piscar produtos já removidos).
@@ -241,6 +243,7 @@ export function HomeClient({
           onAddToCart={handleAddToCart}
           cartIds={cartIds}
           isSearchOpen={isSearchOpen}
+          pickedIds={homeCatalogPicks}
           catalogEyebrow={homeContent.catalogEyebrow}
           catalogTitle={homeContent.catalogTitle}
           catalogTitleHighlight={homeContent.catalogTitleHighlight}
