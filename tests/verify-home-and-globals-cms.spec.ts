@@ -92,15 +92,14 @@ test.describe("Integração de Conteúdo Dinâmico da Home e Elementos Globais (
   // ========================================================================
   // 3. PÁGINA PÚBLICA (HOME): BARRA DE ANÚNCIO, CABEÇALHO, SEÇÕES E RODAPÉ
   // ========================================================================
-  test("3. Renderização completa da Home pública com barra de anúncio e seções", async ({
+  test("3. Renderização completa da Home pública sem faixa de anúncio e com seções", async ({
     page,
   }) => {
     await page.goto("/");
 
-    // 3.1 Barra de anúncio superior
-    const announcement = page.getByRole("region", { name: "Aviso Promocional" });
-    await expect(announcement).toBeVisible();
-    await expect(announcement).toContainText("Frete Grátis");
+    // 3.1 A faixa de aviso "Frete Grátis" foi removida do site
+    await expect(page.getByRole("region", { name: "Aviso Promocional" })).toHaveCount(0);
+    await expect(page.getByText("Frete Grátis para todo o Brasil")).toHaveCount(0);
 
     // 3.2 Header com tooltip e botão WhatsApp
     const bagBtn = page.getByTitle("Minha Sacola");
