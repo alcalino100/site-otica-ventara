@@ -18,6 +18,7 @@ import { SportsFrameArt, SportsLensColor, SportsFrameColor } from "../catalog/sp
 import { CartProduct } from "@/lib/cart";
 import { DEFAULT_SHOWCASE_MEDIA, DEFAULT_INTERACTIVE_SHOWCASE } from "@/lib/site-settings-constants";
 import { ShowcaseMediaSettings, InteractiveShowcaseSettings, ShowcaseVariationItem } from "@/types/ecommerce";
+import { optimizedImgProps } from "@/lib/image-url";
 
 interface Variation {
   id: string;
@@ -322,10 +323,12 @@ export function InteractiveShowcase({
                 >
                   {/* Fotografia Lifestyle */}
                   <img
-                    src={currentLifestyleImage}
+                    {...optimizedImgProps(currentLifestyleImage, [640, 828, 1080])}
+                    sizes="(min-width: 1024px) 50vw, 100vw"
                     alt={currentData.lifestyleAlt}
                     className="w-full h-full object-cover object-center group-hover:scale-105 transition-transform duration-700"
-                    loading="eager"
+                    loading="lazy"
+                    decoding="async"
                   />
                   {/* Gradiente sutil para leitura perfeita do badge */}
                   <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent" />

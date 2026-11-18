@@ -3,7 +3,11 @@ const nextConfig = {
   reactStrictMode: true,
   poweredByHeader: false,
   compress: true,
+  // Metadados (título/descrição) sempre no <head>, para qualquer rastreador ou auditoria
+  htmlLimitedBots: /.*/,
   images: {
+    formats: ["image/avif", "image/webp"],
+    minimumCacheTTL: 2592000,
     remotePatterns: [
       {
         protocol: "https",

@@ -347,6 +347,7 @@ export function CatalogSection({
                 <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl border border-slate-200 bg-slate-50 hover:bg-white text-slate-700 transition-colors">
                   <Glasses size={14} className="text-slate-400" />
                   <select
+                    aria-label="Filtrar por formato"
                     value={selectedShape}
                     onChange={(e) => setSelectedShape(e.target.value)}
                     className="bg-transparent text-xs font-medium text-slate-800 focus:outline-none cursor-pointer pr-2"
@@ -366,6 +367,7 @@ export function CatalogSection({
                 <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl border border-slate-200 bg-slate-50 hover:bg-white text-slate-700 transition-colors">
                   <Gem size={14} className="text-slate-400" />
                   <select
+                    aria-label="Filtrar por material"
                     value={selectedMaterial}
                     onChange={(e) => setSelectedMaterial(e.target.value)}
                     className="bg-transparent text-xs font-medium text-slate-800 focus:outline-none cursor-pointer pr-2"
@@ -385,6 +387,7 @@ export function CatalogSection({
                 <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl border border-slate-200 bg-slate-50 hover:bg-white text-slate-700 transition-colors">
                   <Tag size={14} className="text-slate-400" />
                   <select
+                    aria-label="Filtrar por faixa de preço"
                     value={selectedPriceRange}
                     onChange={(e) => setSelectedPriceRange(e.target.value)}
                     className="bg-transparent text-xs font-medium text-slate-800 focus:outline-none cursor-pointer pr-2"
@@ -402,6 +405,7 @@ export function CatalogSection({
                 <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl border border-slate-200 bg-slate-50 hover:bg-white text-slate-700 transition-colors">
                   <ArrowUpDown size={14} className="text-slate-400" />
                   <select
+                    aria-label="Ordenar modelos"
                     value={sortBy}
                     onChange={(e) => setSortBy(e.target.value)}
                     className="bg-transparent text-xs font-medium text-slate-800 focus:outline-none cursor-pointer pr-2"
