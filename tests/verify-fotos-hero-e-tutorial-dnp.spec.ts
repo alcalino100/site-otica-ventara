@@ -134,3 +134,13 @@ test("PDP: bolinhas de cor mostram a cor, não a foto", async ({ page }) => {
     await expect(grupo.locator("img")).toHaveCount(0);
   }
 });
+
+test("lentes: divisão Visão Simples / Multifocal filtra", async ({ page }) => {
+  await page.goto("/lentes");
+  const sw = page.getByTestId("lens-type-switch");
+  await expect(sw).toBeVisible();
+  await page.getByTestId("lens-type-multifocal").click();
+  await expect(page.getByTestId("lens-type-multifocal")).toHaveAttribute("aria-pressed", "true");
+  await page.getByTestId("lens-type-multifocal").click();
+  await expect(page.getByTestId("lens-type-multifocal")).toHaveAttribute("aria-pressed", "false");
+});
