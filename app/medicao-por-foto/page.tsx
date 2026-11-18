@@ -1,4 +1,6 @@
 import type { Metadata } from "next";
+import { JsonLd } from "@/components/seo/json-ld";
+import { buildPageMetadata, breadcrumbJsonLd, faqJsonLd } from "@/lib/seo";
 import Link from "next/link";
 import Image from "next/image";
 import {
@@ -72,11 +74,30 @@ const DNP_TUTORIAL_STEPS: DnpTutorialStep[] = [
   },
 ];
 
-export const metadata: Metadata = {
-  title: "Medição de DNP por Foto | Ótica Ventara Araçatuba",
+export const metadata: Metadata = buildPageMetadata({
+  title: "Medição de DNP por Foto | Ótica em Araçatuba | Ventara",
   description:
-    "Entenda como funciona o serviço em estruturação de medição digital de DNP (Distância Nasopupilar) por foto da Ótica Ventara. Alinhamento óptico milimétrico com tecnologia internacional.",
-};
+    "Entenda como funciona a medição digital de DNP (distância nasopupilar) por foto da Ótica Ventara em Araçatuba: alinhamento óptico milimétrico para suas lentes.",
+  path: "/medicao-por-foto",
+});
+
+const DNP_FAQS = [
+  {
+    question: "Por que a DNP não vem escrita na maioria das receitas médicas?",
+    answer:
+      "O médico oftalmologista diagnostica a refração (o grau dos seus olhos). A DNP e a altura dependem diretamente do modelo e formato da armação que você escolher na ótica, por isso a tomada dessas medidas cabe ao laboratório ou ao óptico no momento da escolha dos óculos.",
+  },
+  {
+    question: "O que acontece se a lente for montada com a DNP errada?",
+    answer:
+      "Se o centro da lente não coincidir com a sua pupila, surge o efeito prismático indesejado, com desconforto, tontura, olhos cansados e dificuldade de adaptação, especialmente em graus mais altos e multifocais.",
+  },
+  {
+    question: "Vocês entregam para outras cidades?",
+    answer:
+      "Sim. Atendemos clientes em todo o Brasil: você escolhe a armação no catálogo, envia sua receita oftalmológica e nossos consultores auxiliam na conferência para confecção e envio seguro.",
+  },
+];
 
 export const revalidate = 60;
 
@@ -97,6 +118,15 @@ export default async function MedicaoPorFotoPage({ searchParams }: MedicaoPorFot
 
   return (
     <>
+      <JsonLd
+        data={[
+          faqJsonLd(DNP_FAQS),
+          breadcrumbJsonLd([
+            { name: "Início", path: "/" },
+            { name: "Medição de DNP por Foto", path: "/medicao-por-foto" },
+          ]),
+        ]}
+      />
       <DraftPreviewBanner pageId="medicaoPorFoto" isDraft={isDraft} />
       <PageBackground config={bgConfig} />
       <div className="min-h-screen bg-[#06111f] text-slate-100 flex flex-col selection:bg-amber-400 selection:text-slate-950">
