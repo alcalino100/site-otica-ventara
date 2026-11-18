@@ -67,3 +67,14 @@ test.describe("Página local /otica-em-aracatuba", () => {
     expect(xml).toContain(`${SITE}/otica-em-aracatuba`);
   });
 });
+
+test.describe("Preço consistente (produto é a fonte única)", () => {
+  test("PDP mostra o mesmo preço do produto usado no SEO", async ({ page }) => {
+    await page.goto("/produto/ventara-safari");
+    const ld = (await page.$$eval('script[type="application/ld+json"]', (els) => els.map((e) => e.textContent))).join(" ");
+    const m = ld.match(/"price":"(\d+\.\d{2})"/);
+    expect(m).not.toBeNull();
+    const br = Number(m![1]).toLocaleString("pt-BR", { minimumFractionDigits: 2 });
+    await expect(page.locator("main").getByText(`R$ ${br}`).first()).toBeVisible();
+  });
+});

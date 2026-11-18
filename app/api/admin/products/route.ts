@@ -704,6 +704,15 @@ export async function PATCH(req: NextRequest) {
       }
     }
 
+    // Preço do produto é a fonte única: mantém as cores (variantes) alinhadas para não sobrar preço antigo
+    if ("price_in_cents" in updates || "compare_at_price_in_cents" in updates) {
+      const priceSync: Record<string, unknown> = { updated_at: new Date().toISOString() };
+      if ("price_in_cents" in updates) priceSync.price_in_cents = updatedProduct?.price_in_cents ?? null;
+      if ("compare_at_price_in_cents" in updates) priceSync.compare_at_price_in_cents = updatedProduct?.compare_at_price_in_cents ?? null;
+      const { error: priceSyncError } = await adminSupabase.from("product_variants").update(priceSync).eq("product_id", id);
+      if (priceSyncError) console.error("Falha ao alinhar preço das cores:", priceSyncError.message);
+    }
+
     // Status coerente com is_published
     if (typeof updates.is_published === "boolean") {
       await syncPublishStatus(adminSupabase, id, updates.is_published);
