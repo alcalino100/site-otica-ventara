@@ -320,9 +320,6 @@ export function ProductDetailActions({
                     className="relative block h-full w-full overflow-hidden rounded-full border border-black/10"
                     style={{ background: swatchBackground(v.color_name, v.color_hex) }}
                   >
-                    {v.image_url && (
-                      <img src={v.image_url} alt="" className="h-full w-full scale-[1.8] object-cover object-center" />
-                    )}
                     {unavailable && (
                       <span
                         aria-hidden="true"

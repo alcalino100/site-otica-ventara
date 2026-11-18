@@ -126,3 +126,11 @@ test.describe("Página de lentes: filtro por recursos", () => {
     await expect(filtros.getByRole("button", { name: "Sem tratamento" })).toHaveAttribute("aria-pressed", "true");
   });
 });
+
+test("PDP: bolinhas de cor mostram a cor, não a foto", async ({ page }) => {
+  await page.goto("/produto/ventara-safari");
+  const grupo = page.getByRole("radiogroup", { name: /Cores disponíveis/ });
+  if (await grupo.count()) {
+    await expect(grupo.locator("img")).toHaveCount(0);
+  }
+});
