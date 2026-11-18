@@ -33,6 +33,7 @@ interface DnpTutorialStep {
   alt?: string;
   badge?: string;
   wide?: boolean;
+  fit?: "cover" | "contain";
   objectPosition?: string;
 }
 
@@ -43,7 +44,7 @@ const DNP_TUTORIAL_STEPS: DnpTutorialStep[] = [
     image: "/images/dnp/passo-1-posicao.webp",
     alt: "Modelo digital de rosto e ombros centralizado no enquadramento para a foto frontal",
     badge: "Enquadramento",
-    objectPosition: "object-top",
+    fit: "contain",
   },
   {
     title: "Envie a foto pelo celular",
@@ -205,7 +206,7 @@ export default async function MedicaoPorFotoPage({ searchParams }: MedicaoPorFot
                         alt={step.alt ?? ""}
                         fill
                         sizes={step.wide ? "(min-width: 1200px) 1136px, 100vw" : "(min-width: 768px) 560px, 100vw"}
-                        className={`object-cover ${
+                        className={`${step.fit === "contain" ? "object-contain" : "object-cover"} ${
                           step.objectPosition ?? "object-center"
                         } transition-transform duration-700 group-hover:scale-[1.03]`}
                       />

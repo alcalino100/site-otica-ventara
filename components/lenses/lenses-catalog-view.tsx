@@ -3,21 +3,15 @@
 import React, { useState, useEffect } from "react";
 import Image from "next/image";
 import Link from "next/link";
+import { FlaskConical, Eye, Layers, ShieldCheck, Palette, Award, Zap, Clock, MessageCircle, ArrowRight, ArrowDown, CheckCircle2, SlidersHorizontal, Check } from "lucide-react";
 import {
-  FlaskConical,
-  Eye,
-  Layers,
-  ShieldCheck,
-  Palette,
-  Award,
-  Zap,
-  Clock,
-  MessageCircle,
-  ArrowRight,
-  ArrowDown,
-  CheckCircle2,
-} from "lucide-react";
-import { AdminLensItem, DEFAULT_LENSES, isLensInGeneralCatalog } from "@/lib/lenses-data";
+  AdminLensItem,
+  DEFAULT_LENSES,
+  isLensInGeneralCatalog,
+  LENS_FEATURE_FILTERS,
+  lensMatchesFeatures,
+  type LensFeatureFilter,
+} from "@/lib/lenses-data";
 import { DEFAULT_HOMOLOGATED_BRANDS, DEFAULT_PARTNER_LOGOS } from "@/lib/site-settings-constants";
 import { HomologatedBrand, PartnerLogoItem, LensesSectionSettings } from "@/types/ecommerce";
 import { useSiteSettings } from "@/components/providers/site-settings-provider";
@@ -45,6 +39,7 @@ interface LensesCatalogViewProps {
 export function LensesCatalogView({ content = {} }: LensesCatalogViewProps) {
   const { cleanWhatsAppNumber } = useSiteSettings();
   const [activeCategory, setActiveCategory] = useState<LensCategory>("all");
+  const [selectedFeatures, setSelectedFeatures] = useState<LensFeatureFilter[]>([]);
   const [lenses, setLenses] = useState<AdminLensItem[]>(DEFAULT_LENSES);
   const [homologatedBrands, setHomologatedBrands] = useState<HomologatedBrand[]>(DEFAULT_HOMOLOGATED_BRANDS);
   const [lensesSection, setLensesSection] = useState<LensesSectionSettings | null>(null);
@@ -83,10 +78,23 @@ export function LensesCatalogView({ content = {} }: LensesCatalogViewProps) {
   // Lentes coloridas ficam FORA do catálogo geral (listagem, filtros, contadores e busca da listagem geral)
   const catalogLenses = lenses.filter(isLensInGeneralCatalog);
 
-  const filteredLenses = catalogLenses.filter((l) => {
-    if (activeCategory === "all") return true;
-    return l.category === activeCategory;
-  });
+  const filteredLenses = catalogLenses
+    .filter((l) => {
+      if (activeCategory === "all") return true;
+      return l.category === activeCategory;
+    })
+    .filter((l) => lensMatchesFeatures(l, selectedFeatures))
+    // Lentes em "Super Oferta" aparecem primeiro (sort estável preserva a ordem do admin nas demais)
+    .sort((a, b) => Number(!!b.superOffer) - Number(!!a.superOffer));
+
+  const toggleFeature = (id: LensFeatureFilter) => {
+    setSelectedFeatures((prev) => {
+      if (prev.includes(id)) return prev.filter((f) => f !== id);
+      // "Sem tratamento" exclui os outros recursos e vice-versa
+      if (id === "sem-tratamento") return ["sem-tratamento"];
+      return [...prev.filter((f) => f !== "sem-tratamento"), id];
+    });
+  };
 
   const bannerGraphicSrc =
     lensesSection?.useCustomGraphic && lensesSection?.graphicImageUrl
@@ -307,15 +315,73 @@ export function LensesCatalogView({ content = {} }: LensesCatalogViewProps) {
           </button>
         </div>
 
+        {/* Recursos desejados (multi-seleção): ajuda a achar a lente certa mais rápido */}
+        {activeCategory !== "marcas" && (
+          <div className="flex flex-wrap items-center gap-2" data-testid="lens-feature-filters">
+            <span className="flex items-center gap-1.5 text-xs sm:text-sm font-bold text-slate-800 mr-1">
+              <SlidersHorizontal size={16} className="text-slate-700" aria-hidden="true" />
+              Selecione os recursos que deseja:
+            </span>
+            {LENS_FEATURE_FILTERS.map((feature) => {
+              const active = selectedFeatures.includes(feature.id);
+              return (
+                <button
+                  key={feature.id}
+                  type="button"
+                  aria-pressed={active}
+                  onClick={() => toggleFeature(feature.id)}
+                  className={`inline-flex items-center gap-1.5 rounded-full border px-4 py-2 text-xs font-semibold transition-all cursor-pointer ${
+                    active
+                      ? "bg-amber-50 border-amber-400 text-slate-900 shadow-sm"
+                      : "bg-white border-slate-200 text-slate-700 hover:border-amber-300 hover:bg-amber-50/40"
+                  }`}
+                >
+                  {active && <Check size={13} className="text-amber-600 stroke-[3]" aria-hidden="true" />}
+                  {feature.label}
+                </button>
+              );
+            })}
+            {selectedFeatures.length > 0 && (
+              <button
+                type="button"
+                onClick={() => setSelectedFeatures([])}
+                className="text-xs font-semibold text-slate-500 underline underline-offset-2 hover:text-slate-800 cursor-pointer"
+              >
+                Limpar
+              </button>
+            )}
+          </div>
+        )}
+
         {/* GRADE DE CARDS: RIGOROSAMENTE 2 COLUNAS NO MOBILE E 4 NO DESKTOP CONFORME MOCKUP */}
         {activeCategory !== "marcas" ? (
           <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 sm:gap-6">
+            {filteredLenses.length === 0 && (
+              <p className="col-span-full rounded-2xl border border-dashed border-slate-300 bg-slate-50 p-8 text-center text-sm text-slate-600">
+                Nenhuma lente com esses recursos. Fale com nosso técnico óptico pelo WhatsApp que indicamos a ideal para a sua receita.
+              </p>
+            )}
             {filteredLenses.map((lens) => (
               <article
                 key={lens.id}
                 data-testid="lens-catalog-card"
-                className="group bg-white rounded-3xl p-3 sm:p-5 border border-slate-200/90 hover:border-amber-400 hover:shadow-xl shadow-xs transition-all duration-300 flex flex-col justify-between"
+                data-super-offer={lens.superOffer ? "true" : undefined}
+                className={`group relative bg-white rounded-3xl p-3 sm:p-5 border hover:border-amber-400 hover:shadow-xl transition-all duration-300 flex flex-col justify-between ${
+                  lens.superOffer
+                    ? "border-2 border-amber-400 shadow-lg shadow-amber-400/25 ring-4 ring-amber-100"
+                    : "border-slate-200/90 shadow-xs"
+                }`}
               >
+                {lens.superOffer && (
+                  <span
+                    data-testid="lens-super-offer-ribbon"
+                    className="absolute -top-3 -left-2 z-20 -rotate-6 rounded-lg bg-amber-400 px-3 py-1 text-[11px] sm:text-xs font-black uppercase leading-tight tracking-wide text-slate-950 shadow-md"
+                  >
+                    Super
+                    <br />
+                    Oferta
+                  </span>
+                )}
                 <div>
                   {/* Cápsula com a Imagem do Produto + Selo Preto Superior */}
                   <div className="relative w-full aspect-[4/3] rounded-2xl bg-[#fafafa] p-2 sm:p-3.5 flex items-center justify-center overflow-hidden mb-3 border border-slate-100 group-hover:scale-[1.01] transition-transform">

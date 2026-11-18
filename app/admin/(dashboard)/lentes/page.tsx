@@ -4354,6 +4354,26 @@ export default function AdminLensesPage() {
                 </div>
               )}
 
+              {/* Toggle de Super Oferta */}
+              <div className="p-3 rounded-lg bg-amber-500/10 border border-amber-500/30 flex items-center justify-between">
+                <div>
+                  <span className="text-amber-200 font-semibold block text-xs">Super Oferta</span>
+                  <span className="text-[11px] text-slate-400">
+                    Destaca esta lente na página /lentes: fita &quot;Super Oferta&quot;, borda dourada e topo da lista. Use o campo de prazo para o texto &quot;Promoção em até 1 hora&quot;.
+                  </span>
+                </div>
+                <label className="relative inline-flex items-center cursor-pointer">
+                  <input
+                    type="checkbox"
+                    data-testid="admin-lens-super-offer"
+                    checked={selectedLens.superOffer ?? false}
+                    onChange={(e) => setSelectedLens({ ...selectedLens, superOffer: e.target.checked })}
+                    className="sr-only peer"
+                  />
+                  <div className="w-11 h-6 bg-slate-700 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-amber-500"></div>
+                </label>
+              </div>
+
               {/* Toggle de Badge de Desconto */}
               {selectedLens.originalPrice && selectedLens.originalPrice.trim() !== "" && (
                 <div className="p-3 rounded-lg bg-slate-900/60 border border-slate-800 flex items-center justify-between">

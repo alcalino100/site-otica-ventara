@@ -10,6 +10,8 @@ export interface AdminLensItem {
   startingPrice: string;
   originalPrice?: string;
   showDiscountBadge?: boolean;
+  /** Destaca a lente como "Super Oferta" (fita, borda dourada e topo da lista). */
+  superOffer?: boolean;
   installment: string;
   leadTime: string;
   description: string;
@@ -957,4 +959,39 @@ export function isLensInColorSection(lens: AdminLensItem): boolean {
     return lens.showInColorSection;
   }
   return lens.category === "coloridas";
+}
+
+
+// ---------------------------------------------------------------------------
+// Filtro por recursos/tratamentos (página /lentes)
+// ---------------------------------------------------------------------------
+export type LensFeatureFilter = "antirreflexo" | "filtro-azul" | "fotossensivel" | "sem-tratamento";
+
+export const LENS_FEATURE_FILTERS: { id: LensFeatureFilter; label: string }[] = [
+  { id: "antirreflexo", label: "Antirreflexo" },
+  { id: "filtro-azul", label: "Filtro Azul" },
+  { id: "fotossensivel", label: "Fotossensível" },
+  { id: "sem-tratamento", label: "Sem tratamento" },
+];
+
+function normalizeLensText(value: string): string {
+  return value.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase();
+}
+
+/** Recursos de uma lente, deduzidos do nome, do tratamento e da lista de diferenciais. */
+export function getLensFeatures(lens: AdminLensItem): Set<LensFeatureFilter> {
+  const text = normalizeLensText([lens.name, lens.treatment, ...(lens.features || [])].join(" | "));
+  const found = new Set<LensFeatureFilter>();
+  if (/antirreflex|anti-reflex|\bar\b/.test(text)) found.add("antirreflexo");
+  if (/filtro.{0,12}azul|luz azul|blue/.test(text)) found.add("filtro-azul");
+  if (/fotossens|fotocrom|transition|photo/.test(text)) found.add("fotossensivel");
+  if (found.size === 0 || /sem tratamento/.test(text)) found.add("sem-tratamento");
+  return found;
+}
+
+/** "Sem tratamento" é exclusivo; os demais recursos se somam (a lente precisa ter todos os escolhidos). */
+export function lensMatchesFeatures(lens: AdminLensItem, selected: LensFeatureFilter[]): boolean {
+  if (selected.length === 0) return true;
+  const features = getLensFeatures(lens);
+  return selected.every((f) => features.has(f));
 }
