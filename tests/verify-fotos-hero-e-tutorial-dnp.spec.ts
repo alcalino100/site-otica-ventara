@@ -100,3 +100,29 @@ test("PDP: botão-banner da DNP aparece na compra com grau e leva a /medicao-por
   await expect(banner).toHaveCount(1);
   await expect(banner).toHaveAttribute("href", "/medicao-por-foto");
 });
+
+test.describe("Página de lentes: filtro por recursos", () => {
+  test("Fotossensível e Sem tratamento filtram a lista; Sem tratamento é exclusivo", async ({ page }) => {
+    await page.goto("/lentes");
+    const filtros = page.getByTestId("lens-feature-filters");
+    await expect(filtros).toBeVisible();
+    await expect(filtros.getByRole("button", { name: "Fotossensível" })).toBeVisible();
+    await expect(filtros.getByRole("button", { name: "Sem tratamento" })).toBeVisible();
+    await expect(filtros.getByText("Proteção UV")).toHaveCount(0);
+    await expect(filtros.getByText("Alta Definição")).toHaveCount(0);
+
+    const cards = page.getByTestId("lens-catalog-card");
+    await expect(cards.first()).toBeVisible();
+    const total = await cards.count();
+
+    await filtros.getByRole("button", { name: "Fotossensível" }).click();
+    await page.waitForTimeout(200);
+    const foto = await cards.count();
+    expect(foto).toBeLessThanOrEqual(total);
+
+    await filtros.getByRole("button", { name: "Antirreflexo" }).click();
+    await filtros.getByRole("button", { name: "Sem tratamento" }).click();
+    await expect(filtros.getByRole("button", { name: "Fotossensível" })).toHaveAttribute("aria-pressed", "false");
+    await expect(filtros.getByRole("button", { name: "Sem tratamento" })).toHaveAttribute("aria-pressed", "true");
+  });
+});
