@@ -312,18 +312,18 @@ export function ProductDetailActions({
                   aria-label={`${v.color_name}${unavailable ? " (indisponível)" : ""}`}
                   title={v.color_name}
                   onClick={() => handleVariantChange(v)}
-                  className={`relative h-14 w-14 shrink-0 cursor-pointer rounded-full p-[5px] transition-all active:scale-95 ${
-                    isSelected ? "ring-[3px] ring-slate-950" : "ring-2 ring-slate-200"
+                  className={`relative h-[52px] w-[52px] shrink-0 cursor-pointer rounded-full p-[6px] transition-all duration-200 active:scale-95 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-slate-950 ${
+                    isSelected ? "ring-[3px] ring-black" : "ring-1 ring-stone-200 hover:ring-stone-400"
                   }`}
                 >
                   <span
-                    className="relative block h-full w-full overflow-hidden rounded-full border border-black/10"
+                    className="relative block h-full w-full overflow-hidden rounded-full shadow-[inset_0_-3px_6px_rgba(0,0,0,0.18),inset_0_3px_5px_rgba(255,255,255,0.22)]"
                     style={{ background: swatchBackground(v.color_name, v.color_hex) }}
                   >
                     {unavailable && (
                       <span
                         aria-hidden="true"
-                        className="absolute left-1/2 top-1/2 h-[2px] w-[140%] -translate-x-1/2 -translate-y-1/2 -rotate-45 bg-white shadow-[0_0_2px_rgba(0,0,0,0.45)]"
+                        className="absolute left-1/2 top-1/2 h-[2px] w-[140%] -translate-x-1/2 -translate-y-1/2 -rotate-45 bg-stone-200 shadow-[0_0_1px_rgba(0,0,0,0.35)]"
                       />
                     )}
                   </span>
