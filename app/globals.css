@@ -513,7 +513,7 @@ header.site-header.scrolled {
   color: #c1cbd2;
 }
 
-@media (min-width: 768px) {
+@media (min-width: 1024px) {
   .nav {
     display: flex;
   }

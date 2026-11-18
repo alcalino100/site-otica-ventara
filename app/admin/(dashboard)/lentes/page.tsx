@@ -1,5 +1,6 @@
 "use client";
 
+import { PicksManager } from "@/components/admin/picks-manager";
 import React, { useState, useEffect } from "react";
 import Link from "next/link";
 import {
@@ -977,6 +978,35 @@ export default function AdminLensesPage() {
 
   return (
     <div className="space-y-6 max-w-6xl mx-auto">
+      <PicksManager
+        testId="lens-picks-manager"
+        title="Lentes que aparecem primeiro (Home e página de Lentes)"
+        description="Escolha as lentes que ficam no topo da lista, na ordem que quiser. Sem nenhuma escolhida, vale a ordem de sempre (Super Oferta primeiro)."
+        items={lenses
+          .filter((l) => l.isActive !== false)
+          .map((l) => ({ id: l.id, name: `${l.name} (${l.brandName})`, image: l.boxImage || l.brandLogo }))}
+        initialIds={lensesSection.featuredLensIds ?? []}
+        onFeedback={(message) => {
+          setToastMessage({ message, type: "success" });
+          setTimeout(() => setToastMessage(null), 3000);
+        }}
+        onSave={async (ids) => {
+          const updated = { ...lensesSection, featuredLensIds: ids };
+          try {
+            const res = await fetch("/api/admin/settings", {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({ lenses_section: updated }),
+            });
+            if (!res.ok) return "Não foi possível salvar a ordem das lentes.";
+            setLensesSection(updated);
+            return null;
+          } catch {
+            return "Sem conexão para salvar a ordem das lentes.";
+          }
+        }}
+      />
+
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>

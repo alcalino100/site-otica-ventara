@@ -10,6 +10,7 @@ import {
   isLensInGeneralCatalog,
   LENS_FEATURE_FILTERS,
   lensMatchesFeatures,
+  sortLensesForDisplay,
   type LensFeatureFilter,
 } from "@/lib/lenses-data";
 import { DEFAULT_HOMOLOGATED_BRANDS, DEFAULT_PARTNER_LOGOS } from "@/lib/site-settings-constants";
@@ -78,14 +79,16 @@ export function LensesCatalogView({ content = {} }: LensesCatalogViewProps) {
   // Lentes coloridas ficam FORA do catálogo geral (listagem, filtros, contadores e busca da listagem geral)
   const catalogLenses = lenses.filter(isLensInGeneralCatalog);
 
-  const filteredLenses = catalogLenses
+  const filteredLenses = sortLensesForDisplay(
+    catalogLenses
     .filter((l) => {
       if (activeCategory === "all") return true;
       return l.category === activeCategory;
     })
-    .filter((l) => lensMatchesFeatures(l, selectedFeatures))
-    // Lentes em "Super Oferta" aparecem primeiro (sort estável preserva a ordem do admin nas demais)
-    .sort((a, b) => Number(!!b.superOffer) - Number(!!a.superOffer));
+    .filter((l) => lensMatchesFeatures(l, selectedFeatures)),
+    lensesSection?.featuredLensIds
+  );
+
 
   const toggleFeature = (id: LensFeatureFilter) => {
     setSelectedFeatures((prev) => {

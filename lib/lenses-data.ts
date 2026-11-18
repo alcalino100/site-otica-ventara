@@ -995,3 +995,15 @@ export function lensMatchesFeatures(lens: AdminLensItem, selected: LensFeatureFi
   const features = getLensFeatures(lens);
   return selected.every((f) => features.has(f));
 }
+
+/** Ordem de exibição: lentes escolhidas no admin (na ordem escolhida), depois Super Oferta, depois o resto (ordem estável). */
+export function sortLensesForDisplay<T extends { id: string; superOffer?: boolean }>(lenses: T[], pickedIds?: string[]): T[] {
+  const picks = pickedIds ?? [];
+  const rank = (id: string) => {
+    const i = picks.indexOf(id);
+    return i === -1 ? Number.MAX_SAFE_INTEGER : i;
+  };
+  return [...lenses].sort(
+    (a, b) => rank(a.id) - rank(b.id) || Number(!!b.superOffer) - Number(!!a.superOffer)
+  );
+}

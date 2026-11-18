@@ -17,7 +17,7 @@ import {
   ChevronDown,
   ChevronUp,
 } from "lucide-react";
-import { AdminLensItem, DEFAULT_LENSES, isLensInGeneralCatalog } from "@/lib/lenses-data";
+import { AdminLensItem, DEFAULT_LENSES, isLensInGeneralCatalog, sortLensesForDisplay } from "@/lib/lenses-data";
 import { DEFAULT_HOMOLOGATED_BRANDS, DEFAULT_PARTNER_LOGOS } from "@/lib/site-settings-constants";
 import { HomologatedBrand, LensesSectionSettings } from "@/types/ecommerce";
 import { useSiteSettings } from "@/components/providers/site-settings-provider";
@@ -95,10 +95,13 @@ export function LensesPricingSection({
   // Lentes coloridas ficam FORA do catálogo geral (listagem, filtros e contadores)
   const catalogLenses = lenses.filter(isLensInGeneralCatalog);
 
-  const filteredLenses = catalogLenses.filter((l) => {
-    if (activeCategory === "all") return true;
-    return l.category === activeCategory;
-  });
+  const filteredLenses = sortLensesForDisplay(
+    catalogLenses.filter((l) => {
+      if (activeCategory === "all") return true;
+      return l.category === activeCategory;
+    }),
+    lensesSection?.featuredLensIds
+  );
 
   const bannerGraphicSrc =
     lensesSection?.useCustomGraphic && lensesSection?.graphicImageUrl
@@ -254,69 +257,45 @@ export function LensesPricingSection({
         <div className="max-w-[1400px] mx-auto px-4 sm:px-8 lg:px-10 space-y-6 sm:space-y-8">
           {/* Barra Superior: Filtros em Pílulas e Botões de Modo de Exibição */}
           <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
-            {/* Filtros em Abas de Pílulas */}
-            <div className="flex items-center gap-2 overflow-x-auto pb-1 no-scrollbar">
+            {/* Divisão principal: Visão Simples x Multifocal (clicar de novo volta para todas) */}
+            <div className="flex w-full flex-col gap-3" data-testid="home-lens-type-switch">
+              <div className="grid grid-cols-2 gap-3 sm:gap-4">
+                {([
+                  { id: "visao-simples", title: "Visão Simples", sub: "Para longe ou perto", Icon: Eye },
+                  { id: "multifocal", title: "Multifocal", sub: "Todas as distâncias", Icon: Layers },
+                ] as const).map(({ id, title, sub, Icon }) => {
+                  const active = activeCategory === id;
+                  return (
+                    <button
+                      key={id}
+                      type="button"
+                      aria-pressed={active}
+                      onClick={() => handleCategoryChange(active ? "all" : id)}
+                      className={`flex items-center justify-center gap-3 rounded-full border px-4 py-4 sm:py-5 text-left transition-all cursor-pointer ${
+                        active
+                          ? "bg-amber-400 border-amber-400 text-slate-950 shadow-md"
+                          : "bg-white border-slate-200 text-slate-800 hover:border-amber-300 hover:bg-amber-50/40"
+                      }`}
+                    >
+                      <Icon size={28} strokeWidth={2} className="shrink-0" aria-hidden="true" />
+                      <span className="flex flex-col leading-tight">
+                        <span className="text-sm sm:text-lg font-extrabold">{title}</span>
+                        <span className={`text-[11px] sm:text-sm ${active ? "text-slate-800" : "text-slate-500"}`}>{sub}</span>
+                      </span>
+                    </button>
+                  );
+                })}
+              </div>
               <button
                 type="button"
-                onClick={() => handleCategoryChange("all")}
-                className={`flex items-center gap-2 px-4 sm:px-5 py-2.5 rounded-full text-xs font-bold whitespace-nowrap transition-all cursor-pointer border ${
-                  activeCategory === "all"
-                    ? "bg-amber-400 text-slate-950 border-amber-400 shadow-sm"
-                    : "bg-slate-100 text-slate-700 border-slate-200/80 hover:bg-slate-200/80"
-                }`}
-              >
-                <span>Todas as Lentes ({catalogLenses.length})</span>
-              </button>
-
-              <button
-                type="button"
-                onClick={() => handleCategoryChange("visao-simples")}
-                className={`flex items-center gap-2 px-4 sm:px-5 py-2.5 rounded-full text-xs font-semibold whitespace-nowrap transition-all cursor-pointer border ${
-                  activeCategory === "visao-simples"
-                    ? "bg-amber-400 text-slate-950 border-amber-400 font-bold shadow-sm"
-                    : "bg-slate-100 text-slate-700 border-slate-200/80 hover:bg-slate-200/80"
-                }`}
-              >
-                <Eye size={14} className={activeCategory === "visao-simples" ? "text-slate-950" : "text-slate-600"} />
-                <span>Visão Simples (Monofocais)</span>
-              </button>
-
-              <button
-                type="button"
-                onClick={() => handleCategoryChange("multifocal")}
-                className={`flex items-center gap-2 px-4 sm:px-5 py-2.5 rounded-full text-xs font-semibold whitespace-nowrap transition-all cursor-pointer border ${
-                  activeCategory === "multifocal"
-                    ? "bg-amber-400 text-slate-950 border-amber-400 font-bold shadow-sm"
-                    : "bg-slate-100 text-slate-700 border-slate-200/80 hover:bg-slate-200/80"
-                }`}
-              >
-                <Layers size={14} className={activeCategory === "multifocal" ? "text-slate-950" : "text-slate-600"} />
-                <span>Multifocais (Progressivas)</span>
-              </button>
-
-              <button
-                type="button"
-                onClick={() => handleCategoryChange("tratamentos")}
-                className={`flex items-center gap-2 px-4 sm:px-5 py-2.5 rounded-full text-xs font-semibold whitespace-nowrap transition-all cursor-pointer border ${
-                  activeCategory === "tratamentos"
-                    ? "bg-amber-400 text-slate-950 border-amber-400 font-bold shadow-sm"
-                    : "bg-slate-100 text-slate-700 border-slate-200/80 hover:bg-slate-200/80"
-                }`}
-              >
-                <ShieldCheck size={14} className={activeCategory === "tratamentos" ? "text-slate-950" : "text-slate-600"} />
-                <span>Filtro Azul &amp; Especiais</span>
-              </button>
-
-              <button
-                type="button"
-                onClick={() => handleCategoryChange("marcas")}
-                className={`flex items-center gap-2 px-4 sm:px-5 py-2.5 rounded-full text-xs font-semibold whitespace-nowrap transition-all cursor-pointer border ${
+                onClick={() => handleCategoryChange(activeCategory === "marcas" ? "all" : "marcas")}
+                className={`inline-flex w-fit items-center gap-2 px-4 py-2 rounded-full text-xs font-semibold border cursor-pointer transition-all ${
                   activeCategory === "marcas"
                     ? "bg-amber-400 text-slate-950 border-amber-400 font-bold shadow-sm"
                     : "bg-slate-100 text-slate-700 border-slate-200/80 hover:bg-slate-200/80"
                 }`}
               >
-                <Award size={14} className={activeCategory === "marcas" ? "text-slate-950" : "text-slate-600"} />
+                <Award size={14} aria-hidden="true" />
                 <span>Marcas Homologadas ({homologatedBrands.length})</span>
               </button>
             </div>
