@@ -62,6 +62,7 @@ export async function GET(req: NextRequest) {
           "optisync_page_settings",
           "announcement_bar",
           "benefits_bar",
+          "home_catalog_picks",
         ]);
       data = res.data;
     }
@@ -94,6 +95,7 @@ export async function GET(req: NextRequest) {
     const optisyncSettingsVal = getVal("optisync_page_settings");
     const announcementBarVal = getVal("announcement_bar");
     const benefitsBarVal = getVal("benefits_bar");
+    const homeCatalogPicksVal = getVal("home_catalog_picks");
 
     return NextResponse.json(
       {
@@ -102,6 +104,7 @@ export async function GET(req: NextRequest) {
         shipping: shippingVal || null,
         announcement_bar: announcementBarVal || null,
         benefits_bar: benefitsBarVal || null,
+        home_catalog_picks: Array.isArray(homeCatalogPicksVal) ? homeCatalogPicksVal : homeCatalogPicksVal?.ids || [],
         lab_showcase: labVal ? { ...DEFAULT_LAB_SHOWCASE, ...(labVal as LabShowcaseSettings) } : DEFAULT_LAB_SHOWCASE,
         showcase_media: showcaseVal ? { ...DEFAULT_SHOWCASE_MEDIA, ...(showcaseVal as ShowcaseMediaSettings) } : DEFAULT_SHOWCASE_MEDIA,
         homologated_brands: brandsVal ? (brandsVal as HomologatedBrand[]) : DEFAULT_HOMOLOGATED_BRANDS,
@@ -249,6 +252,10 @@ export async function POST(req: NextRequest) {
 
     if (body.promotional_showcase) {
       await saveSetting("promotional_showcase", "Vitrine Promocional 25% OFF Fundo Branco", body.promotional_showcase);
+    }
+
+    if (Array.isArray(body.home_catalog_picks)) {
+      await saveSetting("home_catalog_picks", "Modelos escolhidos para a vitrine da Home (ordem)", { ids: body.home_catalog_picks });
     }
 
     if (body.lenses_section) {

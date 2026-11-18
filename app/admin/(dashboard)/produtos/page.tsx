@@ -32,6 +32,7 @@ import { Product } from "@/types/ecommerce";
 import { createClient, isSupabaseConfigured } from "@/lib/supabase/client";
 import { DEFAULT_CATALOG } from "@/lib/catalog-data";
 import { adminRequest } from "@/lib/admin-fetch";
+import { HomePicksManager } from "@/components/admin/home-picks-manager";
 import { Skeleton } from "@/components/ui/skeleton";
 
 function getProductIssues(p: Product): string[] {
@@ -534,6 +535,8 @@ function ProductsContent() {
           )}
         </div>
       </div>
+
+      <HomePicksManager products={products} onFeedback={showFeedback} />
 
       {/* BARRA DE FILTROS, BUSCA E STATUS */}
       <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 bg-[#06111f] p-3.5 rounded-2xl border border-white/10">
