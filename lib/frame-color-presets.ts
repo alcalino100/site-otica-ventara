@@ -48,10 +48,27 @@ export const FRAME_COLOR_PRESETS: FrameColorPreset[] = [
 ];
 
 const SPOTTED = /on[cç]a|animal\s*print/i;
+const TORTOISE = /tartaruga|havana|demi|casco/i;
+
+function shade(hex: string, amount: number): string {
+  const m = /^#?([0-9a-f]{6})$/i.exec(hex.trim());
+  if (!m) return hex;
+  const n = parseInt(m[1], 16);
+  const ch = (v: number) => Math.max(0, Math.min(255, Math.round(v + (amount >= 0 ? (255 - v) * amount : v * amount))));
+  const r = ch((n >> 16) & 255);
+  const g = ch((n >> 8) & 255);
+  const b = ch(n & 255);
+  return `#${((1 << 24) + (r << 16) + (g << 8) + b).toString(16).slice(1)}`;
+}
+
+// Mancha irregular e suave (elipse com borda esfumada), para parecer acetato de verdade
+function blotch(x: number, y: number, w: number, h: number, color: string): string {
+  return `radial-gradient(ellipse ${w}% ${h}% at ${x}% ${y}%, ${color} 0%, ${color} 35%, transparent 100%)`;
+}
 
 /**
- * Fundo da bolinha de amostra: cor sólida, e com manchas escuras quando for onça/animal print,
- * para parecer a estampa de verdade.
+ * Fundo da bolinha de amostra. Onça/animal print e tartaruga imitam o acetato (manchas macias
+ * em marrom, laranja e preto sobre um fundo caramelo); as demais cores ganham brilho suave.
  */
 export function swatchBackground(name?: string | null, hex?: string | null): string {
   // Cor padrão/placeholder (admin não escolheu): usa a cor da lista pronta com o mesmo nome, se houver
@@ -60,19 +77,27 @@ export function swatchBackground(name?: string | null, hex?: string | null): str
     ? FRAME_COLOR_PRESETS.find((p) => p.name.toLowerCase() === name.trim().toLowerCase())
     : undefined;
   const base = preset && (!hex || PLACEHOLDERS.includes(hex.toLowerCase())) ? preset.hex : hex || "#1e293b";
-  if (name && SPOTTED.test(name)) {
+
+  if (name && (SPOTTED.test(name) || TORTOISE.test(name))) {
+    const spotted = SPOTTED.test(name);
+    const dark = spotted ? "rgba(28,12,4,.92)" : "rgba(40,18,6,.8)";
+    const warm = shade(base, 0.35);
+    const deep = shade(base, -0.45);
     return [
-      "radial-gradient(circle at 28% 30%, transparent 0 4%, rgba(25,14,5,.85) 5% 11%, transparent 12%)",
-      "radial-gradient(circle at 70% 22%, transparent 0 4%, rgba(25,14,5,.85) 5% 11%, transparent 12%)",
-      "radial-gradient(circle at 50% 56%, transparent 0 4%, rgba(25,14,5,.85) 5% 11%, transparent 12%)",
-      "radial-gradient(circle at 20% 74%, transparent 0 4%, rgba(25,14,5,.85) 5% 11%, transparent 12%)",
-      "radial-gradient(circle at 80% 68%, transparent 0 4%, rgba(25,14,5,.85) 5% 11%, transparent 12%)",
-      "radial-gradient(circle at 52% 18%, transparent 0 4%, rgba(25,14,5,.85) 5% 11%, transparent 12%)",
-      "radial-gradient(circle at 84% 40%, transparent 0 4%, rgba(25,14,5,.85) 5% 11%, transparent 12%)",
-      base,
+      blotch(24, 28, 26, 22, dark),
+      blotch(72, 20, 22, 18, dark),
+      blotch(54, 54, 24, 20, dark),
+      blotch(18, 76, 22, 20, dark),
+      blotch(82, 70, 24, 22, dark),
+      blotch(40, 10, 16, 12, deep),
+      blotch(88, 42, 14, 14, deep),
+      blotch(36, 40, 30, 24, warm),
+      blotch(66, 82, 30, 20, warm),
+      `linear-gradient(135deg, ${warm}, ${base} 55%, ${deep})`,
     ].join(", ");
   }
-  return base;
+  // Cor lisa com brilho (claro em cima, escuro embaixo)
+  return `linear-gradient(145deg, ${shade(base, 0.18)} 0%, ${base} 50%, ${shade(base, -0.22)} 100%)`;
 }
 
 export const FRAME_COLOR_GROUPS = Array.from(new Set(FRAME_COLOR_PRESETS.map((p) => p.group)));
