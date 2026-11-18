@@ -16,8 +16,18 @@ import {
   CheckCircle2,
   ChevronDown,
   ChevronUp,
+  SlidersHorizontal,
+  Check,
 } from "lucide-react";
-import { AdminLensItem, DEFAULT_LENSES, isLensInGeneralCatalog, sortLensesForDisplay } from "@/lib/lenses-data";
+import {
+  AdminLensItem,
+  DEFAULT_LENSES,
+  isLensInGeneralCatalog,
+  LENS_FEATURE_FILTERS,
+  lensMatchesFeatures,
+  sortLensesForDisplay,
+  type LensFeatureFilter,
+} from "@/lib/lenses-data";
 import { DEFAULT_HOMOLOGATED_BRANDS, DEFAULT_PARTNER_LOGOS } from "@/lib/site-settings-constants";
 import { HomologatedBrand, LensesSectionSettings } from "@/types/ecommerce";
 import { useSiteSettings } from "@/components/providers/site-settings-provider";
@@ -60,6 +70,7 @@ export function LensesPricingSection({
   const [homologatedBrands, setHomologatedBrands] = useState<HomologatedBrand[]>(DEFAULT_HOMOLOGATED_BRANDS);
   const [lensesSection, setLensesSection] = useState<LensesSectionSettings | null>(null);
   const [isExpanded, setIsExpanded] = useState(false);
+  const [selectedFeatures, setSelectedFeatures] = useState<LensFeatureFilter[]>([]);
 
   useEffect(() => {
     async function loadData() {
@@ -99,7 +110,7 @@ export function LensesPricingSection({
     catalogLenses.filter((l) => {
       if (activeCategory === "all") return true;
       return l.category === activeCategory;
-    }),
+    }).filter((l) => lensMatchesFeatures(l, selectedFeatures)),
     lensesSection?.featuredLensIds
   );
 
@@ -115,6 +126,16 @@ export function LensesPricingSection({
     : homologatedBrands.slice(0, INITIAL_LIMIT);
 
   const totalItems = activeCategory === "marcas" ? homologatedBrands.length : filteredLenses.length;
+
+  const toggleFeature = (id: LensFeatureFilter) => {
+    setIsExpanded(false);
+    setSelectedFeatures((prev) => {
+      if (prev.includes(id)) return prev.filter((f) => f !== id);
+      // "Sem tratamento" exclui os outros recursos e vice-versa
+      if (id === "sem-tratamento") return ["sem-tratamento"];
+      return [...prev.filter((f) => f !== "sem-tratamento"), id];
+    });
+  };
 
   const handleCategoryChange = (cat: LensCategory) => {
     setActiveCategory(cat);
@@ -298,6 +319,46 @@ export function LensesPricingSection({
                 <Award size={14} aria-hidden="true" />
                 <span>Marcas Homologadas ({homologatedBrands.length})</span>
               </button>
+
+              {activeCategory !== "marcas" && (
+                <div className="flex flex-wrap items-center gap-2" data-testid="home-lens-feature-filters">
+                  <span className="flex items-center gap-1.5 text-xs sm:text-sm font-bold text-slate-800 mr-1">
+                    <SlidersHorizontal size={16} className="text-slate-700" aria-hidden="true" />
+                    Selecione os recursos que deseja:
+                  </span>
+                  {LENS_FEATURE_FILTERS.map((feature) => {
+                    const active = selectedFeatures.includes(feature.id);
+                    return (
+                      <button
+                        key={feature.id}
+                        type="button"
+                        aria-pressed={active}
+                        onClick={() => toggleFeature(feature.id)}
+                        className={`inline-flex items-center gap-1.5 rounded-full border px-4 py-2 text-xs font-semibold transition-all cursor-pointer ${
+                          active
+                            ? "bg-amber-50 border-amber-400 text-slate-900 shadow-sm"
+                            : "bg-white border-slate-200 text-slate-700 hover:border-amber-300 hover:bg-amber-50/40"
+                        }`}
+                      >
+                        {active && <Check size={13} className="text-amber-600 stroke-[3]" aria-hidden="true" />}
+                        {feature.label}
+                      </button>
+                    );
+                  })}
+                  {selectedFeatures.length > 0 && (
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setSelectedFeatures([]);
+                        setIsExpanded(false);
+                      }}
+                      className="text-xs font-semibold text-slate-500 underline underline-offset-2 hover:text-slate-800 cursor-pointer"
+                    >
+                      Limpar
+                    </button>
+                  )}
+                </div>
+              )}
             </div>
           </div>
 
@@ -305,6 +366,11 @@ export function LensesPricingSection({
           <div className="relative">
             <div>
               <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 sm:gap-6">
+                {activeCategory !== "marcas" && filteredLenses.length === 0 && (
+                  <p className="col-span-full rounded-2xl border border-dashed border-slate-300 bg-slate-50 p-8 text-center text-sm text-slate-600">
+                    Nenhuma lente com esses recursos. Fale com nosso técnico óptico pelo WhatsApp que indicamos a ideal para a sua receita.
+                  </p>
+                )}
                 {activeCategory !== "marcas"
                   ? displayedLenses.map((lens) => (
                       <article

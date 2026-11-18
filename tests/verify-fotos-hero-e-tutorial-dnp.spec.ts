@@ -175,3 +175,20 @@ test("touch: campos de formulário têm fonte >= 16px (evita zoom automático do
   expect(sizes.length).toBeGreaterThan(0);
   for (const s of sizes) expect(s).toBeGreaterThanOrEqual(16);
 });
+
+test("home: filtro por recursos funciona na seção de lentes", async ({ page }) => {
+  await page.goto("/");
+  const filtros = page.getByTestId("home-lens-feature-filters");
+  await filtros.scrollIntoViewIfNeeded();
+  await expect(filtros).toBeVisible();
+  await expect(filtros.getByRole("button", { name: "Antirreflexo" })).toBeVisible();
+  await expect(filtros.getByRole("button", { name: "Filtro Azul" })).toBeVisible();
+  await expect(filtros.getByRole("button", { name: "Fotossensível" })).toBeVisible();
+  await filtros.getByRole("button", { name: "Antirreflexo" }).click();
+  await expect(filtros.getByRole("button", { name: "Antirreflexo" })).toHaveAttribute("aria-pressed", "true");
+  await filtros.getByRole("button", { name: "Sem tratamento" }).click();
+  await expect(filtros.getByRole("button", { name: "Antirreflexo" })).toHaveAttribute("aria-pressed", "false");
+  await expect(filtros.getByRole("button", { name: "Sem tratamento" })).toHaveAttribute("aria-pressed", "true");
+  await filtros.getByRole("button", { name: "Limpar" }).click();
+  await expect(filtros.getByRole("button", { name: "Sem tratamento" })).toHaveAttribute("aria-pressed", "false");
+});
