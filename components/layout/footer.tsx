@@ -59,7 +59,7 @@ export function Footer({ onOpenLegal, cnpj, address, hours, copyright }: FooterP
             <h4 className="text-xs font-bold uppercase tracking-wider text-white">Navegação</h4>
             <ul className="space-y-2.5 text-xs text-slate-400">
               <li>
-                <a href="#inicio" className="hover:text-amber-300 transition-colors">
+                <a href="/" className="hover:text-amber-300 transition-colors">
                   Início
                 </a>
               </li>

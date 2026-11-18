@@ -1,6 +1,6 @@
 "use client";
 
-import { FRAME_MATERIAL_OPTIONS, normalizeFrameMaterial, normalizeFrameShape, normalizeFrameType } from "@/lib/frame-material";
+import { FRAME_MATERIAL_OPTIONS, FRAME_SHAPE_OPTIONS, normalizeFrameMaterial, normalizeFrameShape, normalizeFrameType } from "@/lib/frame-material";
 import React, { useState, useEffect } from "react";
 import { useRouter, useParams } from "next/navigation";
 import Link from "next/link";
@@ -548,14 +548,11 @@ export default function EditProductPage() {
                 onChange={(e) => setFrameShape(e.target.value as FrameShape)}
                 className="w-full bg-[#040e17] border border-slate-700 rounded-lg px-3 py-2 text-xs text-white focus:outline-none focus:border-amber-400"
               >
-                <option value="Quadrado">Quadrado</option>
-                <option value="Redondo">Redondo</option>
-                <option value="Gatinho">Gatinho</option>
-                <option value="Aviador">Aviador</option>
-                <option value="Retangular">Retangular</option>
-                <option value="Hexagonal">Hexagonal</option>
-                <option value="Oval">Oval</option>
-                <option value="Outro">Outro</option>
+                {FRAME_SHAPE_OPTIONS.map((opt) => (
+                  <option key={opt.value} value={opt.value}>
+                    {opt.label}
+                  </option>
+                ))}
               </select>
             </div>
 

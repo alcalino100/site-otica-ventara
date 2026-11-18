@@ -1,6 +1,6 @@
 "use client";
 
-import { FRAME_MATERIAL_OPTIONS } from "@/lib/frame-material";
+import { FRAME_MATERIAL_OPTIONS, FRAME_SHAPE_OPTIONS } from "@/lib/frame-material";
 import React, { useState, useEffect, useRef } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
@@ -1116,12 +1116,11 @@ export default function NewProductQuickFlowPage() {
                     onChange={(e) => setFrameShape(e.target.value as FrameShape)}
                     className="w-full bg-[#0b1728] border border-white/15 rounded-xl px-3 py-2 text-white text-xs focus:outline-none focus:border-amber-400"
                   >
-                    <option value="Quadrado">Quadrado</option>
-                    <option value="Redondo">Redondo</option>
-                    <option value="Gatinho">Gatinho</option>
-                    <option value="Retangular">Retangular</option>
-                    <option value="Hexagonal">Hexagonal</option>
-                    <option value="Aviador">Aviador</option>
+                    {FRAME_SHAPE_OPTIONS.map((opt) => (
+                      <option key={opt.value} value={opt.value}>
+                        {opt.label}
+                      </option>
+                    ))}
                   </select>
                 </div>
 
