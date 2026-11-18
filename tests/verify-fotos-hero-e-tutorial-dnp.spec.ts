@@ -144,3 +144,22 @@ test("lentes: divisão Visão Simples / Multifocal filtra", async ({ page }) => 
   await page.getByTestId("lens-type-multifocal").click();
   await expect(page.getByTestId("lens-type-multifocal")).toHaveAttribute("aria-pressed", "false");
 });
+
+test("home: seção de lentes tem a divisão Visão Simples / Multifocal", async ({ page }) => {
+  await page.goto("/");
+  const sw = page.getByTestId("home-lens-type-switch");
+  await sw.scrollIntoViewIfNeeded();
+  await expect(sw).toBeVisible();
+});
+
+test("header: em tablet (768px) o menu vira hambúrguer e a logo não some", async ({ page }) => {
+  await page.setViewportSize({ width: 768, height: 900 });
+  await page.goto("/");
+  const toggle = page.getByLabel("Abrir menu");
+  await expect(toggle).toBeVisible();
+  await expect(page.getByLabel("Navegação principal")).toBeHidden();
+  const logo = page.locator("header a.brand").first();
+  expect((await logo.boundingBox())!.width).toBeGreaterThan(40);
+  const box = await toggle.boundingBox();
+  expect(box!.x + box!.width).toBeLessThanOrEqual(768);
+});

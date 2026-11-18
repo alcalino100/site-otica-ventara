@@ -365,6 +365,8 @@ export interface PartnerLogoItem {
 }
 
 export interface LensesSectionSettings {
+  /** Lentes escolhidas no admin para aparecer primeiro (ordem importa), na Home e em /lentes. */
+  featuredLensIds?: string[];
   sectionTitle: string;
   sectionSubtitle: string;
   badgeTag: string;

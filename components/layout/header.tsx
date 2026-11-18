@@ -121,7 +121,7 @@ export function Header({
         </a>
 
         {/* Desktop Navigation com Highlight Dinâmico e Glassmorphism */}
-        <nav className="nav hidden md:flex items-center gap-6 lg:gap-7" aria-label="Navegação principal">
+        <nav className="nav hidden lg:flex items-center gap-6 lg:gap-7" aria-label="Navegação principal">
           {navItems.map((item) => {
             const isActive = activeSection === item.id;
             const textClass = isLight
@@ -184,7 +184,7 @@ export function Header({
           {/* Botão Rastrear seu Pedido no Mobile - Ícone elegante e harmonioso */}
           <a
             href="/rastreio"
-            className="md:hidden action-btn"
+            className="lg:hidden action-btn"
             title="Rastrear seu pedido"
             aria-label="Rastrear seu pedido"
           >
@@ -232,7 +232,7 @@ export function Header({
 
           <button
             type="button"
-            className="menu-toggle md:hidden action-btn"
+            className="menu-toggle lg:hidden action-btn"
             aria-label={mobileMenuOpen ? "Fechar menu" : "Abrir menu"}
             aria-expanded={mobileMenuOpen}
             onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
@@ -246,7 +246,7 @@ export function Header({
       <AnimatePresence>
         {mobileMenuOpen && (
           <motion.nav
-            className="mobile-nav-panel md:hidden"
+            className="mobile-nav-panel lg:hidden"
             initial={{ opacity: 0, y: -8 }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -8 }}
