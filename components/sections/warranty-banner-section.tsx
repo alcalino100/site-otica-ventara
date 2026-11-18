@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect } from "react";
 import { useSiteSettings } from "../providers/site-settings-provider";
+import { optimizedImgProps } from "@/lib/image-url";
 
 interface WarrantyBannerSectionProps {
   desktopUrl?: string;
@@ -70,7 +71,10 @@ export function WarrantyBannerSection({
           {/* Banner 100% visível e responsivo (proporção 3:1 exata sem cortes nem barras) */}
           <div className="relative aspect-[3/1] w-full overflow-hidden bg-[#07192c]">
             <img
-              src={bannerImages.desktop}
+              {...optimizedImgProps(bannerImages.desktop, [640, 828, 1080, 1920])}
+              sizes="(min-width: 1400px) 1400px, 100vw"
+              fetchPriority="high"
+              decoding="async"
               alt="Lentes com 12 Meses de Garantia OPTiSYNC HD - Fale com nossos consultores"
               className="w-full h-full object-cover sm:object-cover object-center group-hover:scale-105 transition-transform duration-700 ease-out"
             />

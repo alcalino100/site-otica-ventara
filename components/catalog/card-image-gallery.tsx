@@ -3,6 +3,7 @@
 import React, { useState } from "react";
 import Link from "next/link";
 import { focusObjectPosition } from "@/lib/image-focus";
+import { optimizedImgProps } from "@/lib/image-url";
 
 export interface GalleryImage {
   id?: string;
@@ -85,7 +86,8 @@ export function CardImageGallery({
         {currentImg?.url && !isCurrentFailed ? (
           /* eslint-disable-next-line @next/next/no-img-element */
           <img
-            src={currentImg.url}
+            {...optimizedImgProps(currentImg.url, [384, 640, 828])}
+            sizes="(min-width: 1024px) 25vw, (min-width: 640px) 33vw, 50vw"
             alt={currentImg.alt_text || `${productName} foto`}
             onError={() => {
               if (currentImg.url) {

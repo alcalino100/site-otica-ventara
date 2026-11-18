@@ -4,6 +4,7 @@ import React, { useState, useEffect, useRef } from "react";
 import { Product } from "@/types/ecommerce";
 import { FrameArt } from "./frame-art";
 import { Sparkles, ChevronLeft, ChevronRight, ZoomIn } from "lucide-react";
+import { optimizedImgProps } from "@/lib/image-url";
 
 interface ProductGalleryProps {
   product: Product;
@@ -125,7 +126,8 @@ export function ProductGallery({ product, overrideImage: rawOverrideImage }: Pro
                 title={`Ver imagem ${idx + 1}`}
               >
                 <img
-                  src={img.url}
+                  {...optimizedImgProps(img.url, [96, 128, 256])}
+                  sizes="96px"
                   alt={img.alt_text || `${product.name} foto ${idx + 1}`}
                   className="w-full h-full object-cover object-center"
                 />
@@ -150,7 +152,8 @@ export function ProductGallery({ product, overrideImage: rawOverrideImage }: Pro
           >
             {/* Imagem com suporte a Zoom por coordenadas exclusivamente no Desktop */}
             <img
-              src={activeImage}
+              {...optimizedImgProps(activeImage, [640, 828, 1080, 1200])}
+              sizes="(min-width: 1024px) 50vw, 100vw"
               alt={images[activeIdx]?.alt_text || product.name}
               data-testid="pdp-main-image"
               fetchPriority="high"
@@ -299,7 +302,8 @@ export function ProductGallery({ product, overrideImage: rawOverrideImage }: Pro
                 }`}
               >
                 <img
-                  src={img.url}
+                  {...optimizedImgProps(img.url, [96, 128, 256])}
+                  sizes="96px"
                   alt=""
                   className="w-full h-full object-cover object-center"
                 />

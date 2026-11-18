@@ -2,6 +2,7 @@
 
 import React from "react";
 import { cn } from "@/lib/utils";
+import { optimizedImgProps } from "@/lib/image-url";
 
 export interface BrandLogoProps {
   className?: string;
@@ -33,7 +34,8 @@ export function BrandLogo({
   return (
     <div className={cn("inline-flex items-center select-none", className)}>
       <img
-        src={logoSrc}
+        {...optimizedImgProps(logoSrc, [256, 384])}
+        sizes="200px"
         alt="Óticas Ventara Eyewear"
         className={cn(
           "w-auto object-contain transition-all duration-300 drop-shadow-xs",

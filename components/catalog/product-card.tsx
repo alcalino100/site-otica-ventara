@@ -9,6 +9,7 @@ import { PricePromo } from "@/components/ui/price-promo";
 import { buildProductWhatsAppUrl } from "@/lib/whatsapp";
 import { formatProductPricing } from "@/lib/pricing";
 import { focusObjectPosition } from "@/lib/image-focus";
+import { optimizedImgProps } from "@/lib/image-url";
 
 interface ProductCardProps {
   product: Product;
@@ -92,7 +93,8 @@ export function ProductCard({
       >
         {currentImageUrl ? (
           <img
-            src={currentImageUrl}
+            {...optimizedImgProps(currentImageUrl, [384, 640, 828])}
+            sizes="(min-width: 1024px) 25vw, (min-width: 640px) 33vw, 50vw"
             alt={product.name}
             loading="lazy"
             decoding="async"

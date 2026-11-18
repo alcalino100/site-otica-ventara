@@ -6,16 +6,8 @@ import { Header } from "../layout/header";
 import { Footer } from "../layout/footer";
 import { Hero } from "../sections/hero";
 import { WarrantyBannerSection } from "../sections/warranty-banner-section";
-import { WhyChooseSection } from "../sections/why-choose-section";
 import { InteractiveShowcase } from "../sections/interactive-showcase";
 import { CatalogSection } from "../catalog/catalog-section";
-import { PromotionalOffersSection } from "../sections/promotional-offers-section";
-import { LensesPricingSection } from "../sections/lenses-pricing-section";
-import { ColoredLensesShowcase } from "../sections/colored-lenses-showcase";
-import { PhotochromicSection } from "../optisync/photochromic-section";
-import { StoreSection } from "../sections/store-section";
-import { WhatsAppSection } from "../sections/whatsapp-section";
-import { FAQAccordion } from "../sections/faq-accordion";
 import { Toast } from "../ui/toast";
 import { Product, OptiSyncPageSettings, HeroSlide, HeroCarouselSettings } from "@/types/ecommerce";
 import { DEFAULT_CATALOG } from "@/lib/catalog-data";
@@ -23,6 +15,16 @@ import { normalizeProduct } from "@/lib/products";
 import { getStoredCart, saveStoredCart, CartProduct } from "@/lib/cart";
 import { createClient, isSupabaseConfigured } from "@/lib/supabase/client";
 import type { PageBackgroundConfig } from "@/lib/content/background-presets";
+
+// Seções abaixo da dobra: código carregado em pacotes separados (o HTML continua vindo pronto do servidor).
+const PromotionalOffersSection = dynamic(() => import("../sections/promotional-offers-section").then((mod) => mod.PromotionalOffersSection));
+const LensesPricingSection = dynamic(() => import("../sections/lenses-pricing-section").then((mod) => mod.LensesPricingSection));
+const ColoredLensesShowcase = dynamic(() => import("../sections/colored-lenses-showcase").then((mod) => mod.ColoredLensesShowcase));
+const PhotochromicSection = dynamic(() => import("../optisync/photochromic-section").then((mod) => mod.PhotochromicSection));
+const StoreSection = dynamic(() => import("../sections/store-section").then((mod) => mod.StoreSection));
+const WhatsAppSection = dynamic(() => import("../sections/whatsapp-section").then((mod) => mod.WhatsAppSection));
+const FAQAccordion = dynamic(() => import("../sections/faq-accordion").then((mod) => mod.FAQAccordion));
+const WhyChooseSection = dynamic(() => import("../sections/why-choose-section").then((mod) => mod.WhyChooseSection));
 
 // Lazy loading modals to improve First Load JS and initial rendering performance
 const CartModal = dynamic(

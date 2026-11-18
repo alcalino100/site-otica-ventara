@@ -17,6 +17,7 @@ import {
 import { useSiteSettings } from "../providers/site-settings-provider";
 import { PageBackground } from "../ui/page-background";
 import type { PageBackgroundConfig } from "@/lib/content/background-presets";
+import { optimizedImgProps } from "@/lib/image-url";
 
 interface StoreSectionProps {
   eyebrow?: string;
@@ -88,7 +89,10 @@ export function StoreSection({
           <div className="lg:col-span-5 relative rounded-3xl overflow-hidden border border-amber-400/30 bg-[#091a2e] shadow-2xl min-h-[340px] sm:min-h-[460px] flex flex-col group">
             <div className="relative w-full h-full flex-1 overflow-hidden">
               <img
-                src="/images/store/fachada-otica-ventara.jpg"
+                {...optimizedImgProps("/images/store/fachada-otica-ventara.jpg", [640, 828, 1080])}
+                sizes="(min-width: 1024px) 40vw, 100vw"
+                loading="lazy"
+                decoding="async"
                 alt="Fachada Oficial da Loja Óticas Ventara Eyewear na Rua Princesa Isabel 221 em Araçatuba"
                 className="w-full h-full object-cover object-center group-hover:scale-105 transition-transform duration-700"
               />
