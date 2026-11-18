@@ -41,11 +41,11 @@ export function WhatsAppSection({
   return (
     <section className="py-24 bg-gradient-to-b from-[#06111f] to-[#030810] border-b border-white/5 relative overflow-hidden" id="contato">
       <div className="max-w-[1400px] mx-auto px-4 sm:px-8 lg:px-10">
-        <div className="relative rounded-3xl bg-gradient-to-br from-[#091d33] via-[#07192c] to-[#040e18] border border-amber-400/25 p-8 sm:p-14 overflow-hidden shadow-2xl text-center md:text-left">
+        <div className="relative rounded-3xl bg-gradient-to-br from-[#091d33] via-[#07192c] to-[#040e18] border border-amber-400/25 p-8 sm:p-14 overflow-hidden shadow-2xl text-center lg:text-left">
           {/* Subtle gold glow */}
           <div className="absolute top-0 right-0 -mt-16 -mr-16 w-80 h-80 bg-amber-400/10 rounded-full blur-3xl pointer-events-none" />
 
-          <div className="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-10">
+          <div className="relative z-10 flex flex-col lg:flex-row lg:items-center justify-between gap-10">
             <div className="max-w-xl">
               <span className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-amber-400/10 border border-amber-400/20 text-amber-300 text-xs font-semibold uppercase tracking-wider mb-4">
                 <span className="w-2 h-2 rounded-full bg-amber-400 animate-ping" />
@@ -58,7 +58,7 @@ export function WhatsAppSection({
                 {subtitle}
               </p>
 
-              <div className="flex flex-wrap items-center justify-center md:justify-start gap-4 text-xs text-slate-400">
+              <div className="flex flex-wrap items-center justify-center lg:justify-start gap-4 text-xs text-slate-400">
                 <span className="flex items-center gap-1.5">
                   <CheckCircle2 size={15} className="text-amber-400" /> Resposta ágil no WhatsApp
                 </span>
@@ -69,7 +69,7 @@ export function WhatsAppSection({
             </div>
 
             {/* Dual CTAs */}
-            <div className="flex flex-col sm:flex-row md:flex-col gap-3.5 flex-shrink-0 w-full sm:w-auto">
+            <div className="flex flex-col sm:flex-row lg:flex-col gap-3.5 flex-shrink-0 w-full sm:w-auto">
               <button
                 type="button"
                 onClick={handleWhatsApp}

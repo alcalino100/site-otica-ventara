@@ -41,7 +41,7 @@ export function PricePromo({
       ? "text-xl sm:text-3xl font-black"
       : size === "sm"
       ? "text-sm sm:text-lg font-black"
-      : "text-sm sm:text-2xl font-black";
+      : "text-sm sm:text-xl lg:text-2xl font-black";
 
   const originalPriceSizeClass =
     size === "lg"
@@ -77,7 +77,7 @@ export function PricePromo({
 
       {isValid && formattedOriginal ? (
         <div>
-          <div className="flex items-baseline gap-1.5 sm:gap-2">
+          <div className="flex flex-wrap items-baseline gap-x-1.5 gap-y-0 sm:gap-x-2">
             {/* Texto de acessibilidade para leitores de tela */}
             <span className="sr-only">
               De {formattedOriginal} por {formattedCurrent}

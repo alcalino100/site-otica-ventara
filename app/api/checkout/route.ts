@@ -452,6 +452,17 @@ export async function POST(req: NextRequest) {
         },
       });
 
+      // Falha real no Mercado Pago: não pode virar "sucesso" para o cliente (antes abria uma página falsa)
+      if (prefResult.errorMessage && String(prefResult.preferenceId || "").startsWith("PREF-ERR")) {
+        return NextResponse.json(
+          {
+            error:
+              "Não conseguimos abrir o pagamento com cartão agora. Tente novamente em instantes, escolha Pix ou finalize pelo WhatsApp.",
+          },
+          { status: 502 }
+        );
+      }
+
       paymentPayload = {
         ...paymentPayload,
         preference_id: prefResult.preferenceId,

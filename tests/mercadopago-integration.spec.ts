@@ -179,56 +179,48 @@ test.describe("Mercado Pago Integration - Óticas Ventara", () => {
     await expect(testBtn).toBeVisible();
   });
 
-  test("deve permitir fluxo completo de checkout Pix pelo carrinho na interface", async ({
-    page,
-  }) => {
-    // 1. Acessa a página inicial
-    await page.goto("/");
+  test("checkout pelo carrinho (4 etapas): cartão abre o pagamento na MESMA aba", async ({ page }) => {
+    // Resposta simulada do servidor: o que importa é como a tela trata o link do Mercado Pago
+    await page.route("**/api/checkout", async (route) => {
+      await route.fulfill({
+        status: 200,
+        contentType: "application/json",
+        body: JSON.stringify({
+          success: true,
+          order: { id: "o1", reference_code: "VT-TESTE", customer_name: "Cliente Playwright" },
+          payment: { checkout_url: "http://localhost:3000/rastreio?ref=VT-TESTE&simulated=true" },
+        }),
+      });
+    });
 
-    // 2. Localiza e clica no botão de adicionar à seleção da primeira armação
-    const addBtn = page.locator("button[aria-label*='Adicionar'][aria-label*='à seleção']").first();
+    await page.goto("/");
+    const addBtn = page.locator("button[aria-label*='Adicionar'][aria-label*='à seleção']:visible").first();
     await addBtn.scrollIntoViewIfNeeded();
     await expect(addBtn).toBeVisible({ timeout: 10000 });
     await addBtn.click();
 
-    // 3. Abre a sacola pelo botão do header
-    const openCartBtn = page.locator("button[aria-label*='Abrir seleção']");
-    await expect(openCartBtn).toBeVisible();
-    await openCartBtn.click();
+    await page.locator("button[aria-label*='Abrir seleção']").first().click();
+    await page.getByRole("button", { name: /FINALIZAR COMPRA/i }).first().click();
 
-    // 4. Verifica gaveta de checkout aberta e clica no botão Mercado Pago
-    const checkoutCta = page.getByRole("button", {
-      name: /FINALIZAR COMPRA COM MERCADO PAGO/i,
-    });
-    await expect(checkoutCta).toBeVisible({ timeout: 10000 });
-    await checkoutCta.click();
-
-    // 5. Formulário de checkout
-    await expect(page.locator("text=Finalizar Pedido")).toBeVisible();
-    await expect(page.locator("text=1. Seus Dados de Contato")).toBeVisible();
-    await expect(page.locator("text=3. Pagamento Mercado Pago")).toBeVisible();
-
-    // 6. Preenche dados do cliente
-    await page.locator("input[placeholder*='Gustavo Silva']").fill("Cliente Playwright");
+    // Etapa 1: dados
+    await page.locator("input[placeholder*='Carlos Eduardo']").fill("Cliente Playwright");
     await page.locator("input[placeholder*='seu@email.com']").fill("playwright@teste.com");
     await page.locator("input[placeholder*='(18) 99999-9999']").fill("18996155748");
     await page.locator("input[placeholder*='000.000.000-00']").fill("12345678909");
+    await page.getByRole("button", { name: /AVANÇAR PARA A PRÓXIMA ETAPA/i }).click();
 
-    // 7. Seleciona Pix e Retirada na loja
-    await page.getByRole("button", { name: /Retirada na Loja/i }).click();
-    await page.getByRole("button", { name: /Pix Instantâneo/i }).click();
+    // Etapa 2: retirada na loja
+    await page.getByText("Retirada na Loja Física").click();
+    await page.getByRole("button", { name: /AVANÇAR PARA A PRÓXIMA ETAPA/i }).click();
 
-    // 8. Submete pedido
-    const submitBtn = page.getByRole("button", {
-      name: /GERAR PIX NO MERCADO PAGO/i,
-    });
-    await expect(submitBtn).toBeVisible();
-    await submitBtn.click();
+    // Etapa 3: cartão
+    await page.getByText("Cartão de Crédito").first().click();
+    await page.getByRole("button", { name: /AVANÇAR PARA A PRÓXIMA ETAPA/i }).click();
 
-    // 9. Tela de Pix dinâmico
-    await expect(page.locator("text=Pagamento via Pix")).toBeVisible({ timeout: 15000 });
-    await expect(page.locator("text=PEDIDO REGISTRADO: VEN-")).toBeVisible();
-    await expect(page.locator("text=Código Pix (Copia e Cola):")).toBeVisible();
-    await expect(page.locator("button:has-text('Copiar')")).toBeVisible();
+    // Etapa 4: pagar -> navega na mesma aba (window.open era bloqueado no celular)
+    const pagar = page.getByRole("button", { name: /PAGAR COM CARTÃO MERCADO PAGO/i });
+    await expect(pagar).toBeVisible();
+    await pagar.click();
+    await page.waitForURL(/\/rastreio\?ref=VT-TESTE/, { timeout: 15000 });
   });
 });
