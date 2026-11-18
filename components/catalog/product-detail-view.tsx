@@ -65,15 +65,10 @@ export function ProductDetailView({
   const variants = product.variants && product.variants.length > 0 ? product.variants : [];
   const [selectedVariant, setSelectedVariant] = useState<ProductVariant | null>(variants[0] || null);
 
-  const activePriceInCents =
-    selectedVariant && typeof selectedVariant.price_in_cents === "number" && selectedVariant.price_in_cents > 0
-      ? selectedVariant.price_in_cents
-      : product.price_in_cents;
-
-  const activeCompareAtInCents =
-    selectedVariant && typeof selectedVariant.compare_at_price_in_cents === "number" && selectedVariant.compare_at_price_in_cents > 0
-      ? selectedVariant.compare_at_price_in_cents
-      : product.compare_at_price_in_cents;
+  // O preço é do PRODUTO (único campo editável no admin, usado também na listagem, no SEO e no checkout).
+  // Não usamos o preço copiado nas cores: ele fica velho quando o preço é alterado no admin.
+  const activePriceInCents = product.price_in_cents;
+  const activeCompareAtInCents = product.compare_at_price_in_cents;
 
   const pricing = formatProductPricing({
     price_in_cents: activePriceInCents,

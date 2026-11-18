@@ -94,16 +94,9 @@ export function ProductDetailActions({
   const isLowStock = !isOutOfStock && currentStock <= lowStockThreshold;
 
   // Preço e Regras de Parcelamento Unificadas
-  const activePriceInCents =
-    typeof currentVariant.price_in_cents === "number" && currentVariant.price_in_cents > 0
-      ? currentVariant.price_in_cents
-      : product.price_in_cents;
-
-  const activeCompareAtInCents =
-    typeof currentVariant.compare_at_price_in_cents === "number" &&
-    currentVariant.compare_at_price_in_cents > 0
-      ? currentVariant.compare_at_price_in_cents
-      : product.compare_at_price_in_cents;
+  // Preço único do produto (mesmo da listagem, do SEO e do checkout); o preço copiado nas cores pode estar velho.
+  const activePriceInCents = product.price_in_cents;
+  const activeCompareAtInCents = product.compare_at_price_in_cents;
 
   const pricing = formatProductPricing({
     price_in_cents: activePriceInCents,
