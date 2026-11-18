@@ -192,3 +192,23 @@ test("home: filtro por recursos funciona na seção de lentes", async ({ page })
   await filtros.getByRole("button", { name: "Limpar" }).click();
   await expect(filtros.getByRole("button", { name: "Sem tratamento" })).toHaveAttribute("aria-pressed", "false");
 });
+
+test("home: lentes Super Oferta têm a mesma fita e destaque de /lentes", async ({ page }) => {
+  test.setTimeout(90000);
+  // força as lentes como Super Oferta (o dado real vem do admin)
+  await page.route("**/api/lenses*", async (route) => {
+    const res = await route.fetch();
+    const json = await res.json();
+    if (Array.isArray(json.lenses)) json.lenses.forEach((l: any) => { l.superOffer = true; });
+    await route.fulfill({ status: 200, contentType: "application/json", body: JSON.stringify(json) });
+  });
+  await page.goto("/lentes");
+  await expect(page.getByTestId("lens-super-offer-ribbon").first()).toBeVisible({ timeout: 25000 });
+  await page.goto("/");
+  const ribbon = page.getByTestId("home-lens-super-offer-ribbon").first();
+  await ribbon.waitFor({ state: "attached", timeout: 30000 });
+  await ribbon.scrollIntoViewIfNeeded();
+  await expect(ribbon).toBeVisible({ timeout: 15000 });
+  await expect(ribbon).toContainText("Super");
+  await expect(page.locator('[data-testid="home-lens-card"][data-super-offer="true"]').first()).toHaveClass(/ring-amber-100/);
+});

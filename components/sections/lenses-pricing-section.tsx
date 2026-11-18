@@ -375,8 +375,24 @@ export function LensesPricingSection({
                   ? displayedLenses.map((lens) => (
                       <article
                           key={lens.id}
-                          className="group bg-white rounded-3xl p-3 sm:p-5 border border-slate-200/90 hover:border-amber-400 hover:shadow-xl shadow-xs transition-all duration-300 flex flex-col justify-between"
+                          data-testid="home-lens-card"
+                          data-super-offer={lens.superOffer ? "true" : undefined}
+                          className={`group relative bg-white rounded-3xl p-3 sm:p-5 border hover:border-amber-400 hover:shadow-xl transition-all duration-300 flex flex-col justify-between ${
+                            lens.superOffer
+                              ? "border-2 border-amber-400 shadow-lg shadow-amber-400/25 ring-4 ring-amber-100"
+                              : "border-slate-200/90 shadow-xs"
+                          }`}
                         >
+                          {lens.superOffer && (
+                            <span
+                              data-testid="home-lens-super-offer-ribbon"
+                              className="absolute -top-3 -left-2 z-20 -rotate-6 rounded-lg bg-amber-400 px-3 py-1 text-[11px] sm:text-xs font-black uppercase leading-tight tracking-wide text-slate-950 shadow-md"
+                            >
+                              Super
+                              <br />
+                              Oferta
+                            </span>
+                          )}
                           <div>
                             {/* Cápsula com Imagem */}
                             <div className="relative w-full aspect-[4/3] rounded-2xl bg-[#fafafa] p-2 sm:p-3.5 flex items-center justify-center overflow-hidden mb-3 border border-slate-100 group-hover:scale-[1.01] transition-transform">
