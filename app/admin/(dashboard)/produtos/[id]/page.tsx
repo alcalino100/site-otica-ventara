@@ -1,5 +1,6 @@
 "use client";
 
+import { FRAME_MATERIAL_OPTIONS, normalizeFrameMaterial, normalizeFrameShape, normalizeFrameType } from "@/lib/frame-material";
 import React, { useState, useEffect } from "react";
 import { useRouter, useParams } from "next/navigation";
 import Link from "next/link";
@@ -117,9 +118,9 @@ export default function EditProductPage() {
           setComparePriceReal((p.compare_at_price_in_cents / 100).toFixed(2).replace(".", ","));
         }
 
-        if (p.frame_type) setFrameType(p.frame_type as FrameType);
-        if (p.frame_shape) setFrameShape(p.frame_shape as FrameShape);
-        if (p.frame_material) setFrameMaterial(p.frame_material as FrameMaterial);
+        if (p.frame_type) setFrameType(normalizeFrameType(p.frame_type));
+        if (p.frame_shape) setFrameShape(normalizeFrameShape(p.frame_shape) as FrameShape);
+        if (p.frame_material) setFrameMaterial(normalizeFrameMaterial(p.frame_material));
         if (p.gender) setGender(p.gender as FrameGender);
 
         setLensMm(p.dimensions_lens_mm ?? "");
@@ -325,7 +326,7 @@ export default function EditProductPage() {
           is_featured: isFeatured,
           frame_type: frameType,
           frame_shape: frameShape,
-          frame_material: frameMaterial,
+          frame_material: normalizeFrameMaterial(frameMaterial),
           gender,
           dimensions_lens_mm: typeof lensMm === "number" && lensMm > 0 ? lensMm : null,
           dimensions_bridge_mm: typeof bridgeMm === "number" && bridgeMm > 0 ? bridgeMm : null,
@@ -534,7 +535,6 @@ export default function EditProductPage() {
                 <option value="Grau">Grau</option>
                 <option value="Solar">Solar</option>
                 <option value="Clip-on">Clip-on</option>
-                <option value="Infantil">Infantil</option>
               </select>
             </div>
 
@@ -552,8 +552,10 @@ export default function EditProductPage() {
                 <option value="Redondo">Redondo</option>
                 <option value="Gatinho">Gatinho</option>
                 <option value="Aviador">Aviador</option>
-                <option value="Geométrico">Geométrico</option>
                 <option value="Retangular">Retangular</option>
+                <option value="Hexagonal">Hexagonal</option>
+                <option value="Oval">Oval</option>
+                <option value="Outro">Outro</option>
               </select>
             </div>
 
@@ -567,11 +569,11 @@ export default function EditProductPage() {
                 onChange={(e) => setFrameMaterial(e.target.value as FrameMaterial)}
                 className="w-full bg-[#040e17] border border-slate-700 rounded-lg px-3 py-2 text-xs text-white focus:outline-none focus:border-amber-400"
               >
-                <option value="Acetato Premium">Acetato Premium</option>
-                <option value="Metal Nobre">Metal / Aço Cirúrgico</option>
-                <option value="Titânio">Titânio Ultraleve</option>
-                <option value="Injetado Leve">Injetado TR-90</option>
-                <option value="Misto">Misto (Acetato + Metal)</option>
+                {FRAME_MATERIAL_OPTIONS.map((opt) => (
+                  <option key={opt.value} value={opt.value}>
+                    {opt.label}
+                  </option>
+                ))}
               </select>
             </div>
 
