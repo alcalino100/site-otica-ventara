@@ -1,11 +1,14 @@
 "use client";
 
 import React, { useEffect, useRef, useState } from "react";
-import { Hand, RotateCcw, Sparkles, X } from "lucide-react";
+import { Hand, Minus, Plus, RotateCcw, Sparkles, X, ZoomIn } from "lucide-react";
+import { FOCUS_ZOOM_MAX, FOCUS_ZOOM_MIN, normalizeZoomValue } from "@/lib/image-focus";
 
 export interface ImageFocusValue {
   x: number;
   y: number;
+  /** Aproximação (1 = sem zoom, até 3). Ausente = 1. */
+  zoom?: number;
 }
 
 interface ImageFocusEditorProps {
@@ -14,6 +17,7 @@ interface ImageFocusEditorProps {
   /** Posição já salva (%). Sem valor = enquadramento automático do site. */
   initialX?: number | null;
   initialY?: number | null;
+  initialZoom?: number | null;
   /** `null` = voltar ao enquadramento automático. */
   onApply: (focus: ImageFocusValue | null) => void;
   onClose: () => void;
@@ -27,6 +31,7 @@ interface PanFrameProps {
   label: string;
   aspectClass: string;
   position: ImageFocusValue;
+  zoom: number;
   natural: { w: number; h: number } | null;
   onChange: (next: ImageFocusValue) => void;
 }
@@ -35,7 +40,7 @@ interface PanFrameProps {
  * Moldura do card: arraste a foto (dedo ou mouse) para escolher qual parte aparece.
  * Usa o mesmo cálculo do `object-position` do site, então o que se vê aqui é o que o cliente vê.
  */
-function PanFrame({ url, label, aspectClass, position, natural, onChange }: PanFrameProps) {
+function PanFrame({ url, label, aspectClass, position, zoom, natural, onChange }: PanFrameProps) {
   const frameRef = useRef<HTMLDivElement>(null);
   const drag = useRef<{ px: number; py: number; x: number; y: number } | null>(null);
   const [dragging, setDragging] = useState(false);
@@ -46,10 +51,10 @@ function PanFrame({ url, label, aspectClass, position, natural, onChange }: PanF
     if (!el || !natural) return { ox: 0, oy: 0 };
     const { width, height } = el.getBoundingClientRect();
     const scale = Math.max(width / natural.w, height / natural.h);
-    return {
-      ox: Math.max(0, natural.w * scale - width),
-      oy: Math.max(0, natural.h * scale - height),
-    };
+    // Com zoom (escala ao redor do ponto de foco) a foto anda mais por unidade de posição
+    const ox = Math.max(0, natural.w * scale - width) * zoom + width * (zoom - 1);
+    const oy = Math.max(0, natural.h * scale - height) * zoom + height * (zoom - 1);
+    return { ox, oy };
   };
 
   const handlePointerDown = (e: React.PointerEvent<HTMLDivElement>) => {
@@ -112,7 +117,10 @@ function PanFrame({ url, label, aspectClass, position, natural, onChange }: PanF
           alt=""
           draggable={false}
           className="pointer-events-none h-full w-full select-none object-cover"
-          style={{ objectPosition: `${position.x}% ${position.y}%` }}
+          style={{
+            objectPosition: `${position.x}% ${position.y}%`,
+            ...(zoom > 1 ? { scale: String(zoom), transformOrigin: `${position.x}% ${position.y}%` } : {}),
+          }}
         />
         {/* Linhas-guia do centro: ajudam a deixar a armação no meio */}
         <div aria-hidden="true" className="pointer-events-none absolute inset-0">
@@ -134,6 +142,7 @@ export function ImageFocusEditor({
   productName,
   initialX,
   initialY,
+  initialZoom,
   onApply,
   onClose,
 }: ImageFocusEditorProps) {
@@ -141,6 +150,9 @@ export function ImageFocusEditor({
     x: initialX ?? 50,
     y: initialY ?? 50,
   });
+  const [zoom, setZoom] = useState<number>(normalizeZoomValue(initialZoom) ?? 1);
+  const setZoomClamped = (z: number) =>
+    setZoom(Math.round(Math.min(FOCUS_ZOOM_MAX, Math.max(FOCUS_ZOOM_MIN, z)) * 100) / 100);
   const [natural, setNatural] = useState<{ w: number; h: number } | null>(null);
 
   // Lê o tamanho real da foto para calcular quanto ela pode se mover dentro da moldura
@@ -177,9 +189,9 @@ export function ImageFocusEditor({
               Ajustar posição da foto
             </h3>
             <p className="mt-1 text-xs leading-relaxed text-slate-300">
-              {productName ? <strong className="text-white">{productName}</strong> : "Esta foto"} — arraste a foto
-              dentro da moldura até a armação ficar no meio. As duas molduras mostram como o card aparece no
-              celular e no computador.
+              {productName ? <strong className="text-white">{productName}</strong> : "Esta foto"} — use o zoom para aproximar e
+              arraste a foto dentro da moldura até a armação ficar no meio. Vale para os cards e para a página
+              do produto.
             </p>
           </div>
           <button
@@ -198,6 +210,7 @@ export function ImageFocusEditor({
             label="No celular"
             aspectClass="aspect-[5/4]"
             position={position}
+            zoom={zoom}
             natural={natural}
             onChange={setPosition}
           />
@@ -206,9 +219,49 @@ export function ImageFocusEditor({
             label="No computador"
             aspectClass="aspect-[4/3]"
             position={position}
+            zoom={zoom}
             natural={natural}
             onChange={setPosition}
           />
+        </div>
+
+        <div className="mt-4 flex items-center gap-3 rounded-xl border border-white/10 bg-white/5 p-3" data-testid="focus-zoom-control">
+          <ZoomIn size={16} aria-hidden="true" className="shrink-0 text-amber-300" />
+          <span className="text-xs font-semibold text-slate-200">Zoom</span>
+          <button
+            type="button"
+            aria-label="Diminuir zoom"
+            data-testid="focus-zoom-out"
+            onClick={() => setZoomClamped(zoom - 0.25)}
+            disabled={zoom <= FOCUS_ZOOM_MIN}
+            className="flex h-11 w-11 shrink-0 items-center justify-center rounded-lg border border-slate-700 text-slate-200 transition-colors hover:border-amber-400/60 disabled:opacity-40"
+          >
+            <Minus size={16} />
+          </button>
+          <input
+            type="range"
+            aria-label="Zoom da foto"
+            data-testid="focus-zoom-range"
+            min={FOCUS_ZOOM_MIN}
+            max={FOCUS_ZOOM_MAX}
+            step={0.05}
+            value={zoom}
+            onChange={(e) => setZoomClamped(Number(e.target.value))}
+            className="h-2 min-w-0 flex-1 accent-amber-400"
+          />
+          <button
+            type="button"
+            aria-label="Aumentar zoom"
+            data-testid="focus-zoom-in"
+            onClick={() => setZoomClamped(zoom + 0.25)}
+            disabled={zoom >= FOCUS_ZOOM_MAX}
+            className="flex h-11 w-11 shrink-0 items-center justify-center rounded-lg border border-slate-700 text-slate-200 transition-colors hover:border-amber-400/60 disabled:opacity-40"
+          >
+            <Plus size={16} />
+          </button>
+          <span className="w-12 shrink-0 text-right text-xs font-bold tabular-nums text-white" data-testid="focus-zoom-value">
+            {Math.round(zoom * 100)}%
+          </span>
         </div>
 
         <p className="mt-3 text-[11px] text-slate-400" aria-live="polite">
@@ -220,7 +273,10 @@ export function ImageFocusEditor({
           <div className="flex flex-wrap gap-2">
             <button
               type="button"
-              onClick={() => setPosition({ x: 50, y: 50 })}
+              onClick={() => {
+                setPosition({ x: 50, y: 50 });
+                setZoom(1);
+              }}
               className="inline-flex min-h-[44px] items-center gap-1.5 rounded-lg border border-slate-700 px-3 text-xs font-semibold text-slate-200 transition-colors hover:border-amber-400/60 hover:text-white"
             >
               <RotateCcw size={13} aria-hidden="true" /> Centralizar
@@ -243,7 +299,7 @@ export function ImageFocusEditor({
             </button>
             <button
               type="button"
-              onClick={() => onApply(position)}
+              onClick={() => onApply({ ...position, zoom: zoom > 1 ? zoom : undefined })}
               className="min-h-[44px] flex-1 rounded-lg bg-amber-400 px-5 text-xs font-bold text-slate-950 transition-colors hover:bg-amber-300 sm:flex-none"
             >
               Aplicar posição

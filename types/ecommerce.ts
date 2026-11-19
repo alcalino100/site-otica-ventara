@@ -56,6 +56,7 @@ export interface ProductImage {
   /** Posição da foto nos cards (% do object-position); null = enquadramento automático. */
   focus_x?: number | null;
   focus_y?: number | null;
+  focus_zoom?: number | null;
   created_at: string;
 }
 

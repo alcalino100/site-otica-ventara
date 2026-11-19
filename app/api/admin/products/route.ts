@@ -19,11 +19,12 @@ type ProductImageRow = {
   sort_order: number;
   focus_x?: number;
   focus_y?: number;
+  focus_zoom?: number;
 };
 
-const FOCUS_COLUMN_ERROR = /focus_[xy]/i;
+const FOCUS_COLUMN_ERROR = /focus_(x|y|zoom)/i;
 const FOCUS_SQL_WARNING =
-  "As fotos foram salvas, mas a posição ajustada NÃO foi gravada: falta rodar o SQL das colunas focus_x/focus_y no Supabase.";
+  "As fotos foram salvas, mas a posição ajustada NÃO foi gravada: falta rodar o SQL das colunas focus_x/focus_y/focus_zoom no Supabase.";
 
 /**
  * Insere as fotos do produto. Se o banco ainda não tem as colunas focus_x/focus_y,
@@ -39,12 +40,21 @@ async function insertProductImages(
   if (!first.error) return { ok: true, focusDropped: false };
 
   if (FOCUS_COLUMN_ERROR.test(first.error.message)) {
-    const withoutFocus = rows.map(({ focus_x: _x, focus_y: _y, ...rest }) => rest);
-    const retry = await client.from("product_images").insert(withoutFocus);
-    if (!retry.error) {
-      return { ok: true, focusDropped: rows.some((r) => r.focus_x !== undefined) };
+    // 1º tenta manter a posição e descartar só o zoom (banco sem a coluna focus_zoom)
+    const withoutZoom = rows.map(({ focus_zoom: _z, ...rest }) => rest);
+    const zoomDropped = rows.some((r) => r.focus_zoom !== undefined);
+    const retryZoom = await client.from("product_images").insert(withoutZoom);
+    if (!retryZoom.error) return { ok: true, focusDropped: zoomDropped };
+
+    if (FOCUS_COLUMN_ERROR.test(retryZoom.error.message)) {
+      const withoutFocus = rows.map(({ focus_x: _x, focus_y: _y, focus_zoom: _z, ...rest }) => rest);
+      const retry = await client.from("product_images").insert(withoutFocus);
+      if (!retry.error) {
+        return { ok: true, focusDropped: rows.some((r) => r.focus_x !== undefined) };
+      }
+      return { ok: false, focusDropped: false, error: retry.error.message };
     }
-    return { ok: false, focusDropped: false, error: retry.error.message };
+    return { ok: false, focusDropped: false, error: retryZoom.error.message };
   }
   return { ok: false, focusDropped: false, error: first.error.message };
 }

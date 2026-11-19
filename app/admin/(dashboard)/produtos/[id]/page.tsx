@@ -26,7 +26,7 @@ import type { FrameColorPreset } from "@/lib/frame-color-presets";
 import { adminRequest } from "@/lib/admin-fetch";
 import { uploadProductImage } from "@/lib/admin-upload";
 import { normalizeFaceFit, type FaceShapeFit } from "@/lib/face-shapes";
-import { focusForSave, focusObjectPosition, normalizeFocusValue } from "@/lib/image-focus";
+import { focusForSave, focusObjectPosition, normalizeFocusValue, normalizeZoomValue } from "@/lib/image-focus";
 
 interface VariantRow {
   /** id do banco (ausente em cor recém-adicionada) */
@@ -46,6 +46,7 @@ interface ImageItem {
   /** Posição da foto nos cards (% do object-position); vazio = automático. */
   focus_x?: number | null;
   focus_y?: number | null;
+  focus_zoom?: number | null;
 }
 
 export default function EditProductPage() {
@@ -144,6 +145,7 @@ export default function EditProductPage() {
               alt_text: img.alt_text,
               focus_x: normalizeFocusValue(img.focus_x),
               focus_y: normalizeFocusValue(img.focus_y),
+              focus_zoom: normalizeZoomValue(img.focus_zoom),
             }))
           );
         }
@@ -829,11 +831,12 @@ export default function EditProductPage() {
               productName={name || undefined}
               initialX={images[focusEditIdx].focus_x}
               initialY={images[focusEditIdx].focus_y}
+              initialZoom={images[focusEditIdx].focus_zoom}
               onClose={() => setFocusEditIdx(null)}
               onApply={(focus) => {
                 setImages((prev) =>
                   prev.map((img, i) =>
-                    i === focusEditIdx ? { ...img, focus_x: focus?.x ?? null, focus_y: focus?.y ?? null } : img
+                    i === focusEditIdx ? { ...img, focus_x: focus?.x ?? null, focus_y: focus?.y ?? null, focus_zoom: focus?.zoom ?? null } : img
                   )
                 );
                 setFocusEditIdx(null);

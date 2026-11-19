@@ -28,6 +28,43 @@ const PRODUCT = {
 };
 
 test.describe("Admin: ajuste da posição da foto da armação", () => {
+  test("zoom: aproxima a foto, aplica e envia focus_zoom ao salvar", async ({ page, context }) => {
+    await context.addCookies([
+      { name: "pw_bypass_token", value: "ventara-playwright-local-bypass-token", url: "http://localhost:3000" },
+    ]);
+    let savedBody: any = null;
+    await page.route("**/__foto-retrato-teste.svg", (route) =>
+      route.fulfill({ status: 200, contentType: "image/svg+xml", body: PHOTO_SVG })
+    );
+    await page.route(`**/api/admin/products?id=${PRODUCT_ID}`, (route) =>
+      route.fulfill({ status: 200, contentType: "application/json", body: JSON.stringify({ success: true, product: PRODUCT }) })
+    );
+    await page.route("**/api/admin/products", async (route) => {
+      if (route.request().method() === "PATCH") {
+        savedBody = JSON.parse(route.request().postData() || "{}");
+        return route.fulfill({ status: 200, contentType: "application/json", body: JSON.stringify({ success: true, product: PRODUCT }) });
+      }
+      return route.continue();
+    });
+
+    await page.goto(`/admin/produtos/${PRODUCT_ID}`);
+    await page.addStyleTag({ content: '[aria-label*="Consentimento"]{display:none !important}' });
+    await page.getByRole("button", { name: /Ajustar posição/ }).click();
+    const dialog = page.getByRole("dialog", { name: /Ajustar posição da foto/ });
+    await expect(dialog.getByTestId("focus-zoom-value")).toHaveText("100%");
+
+    await dialog.getByTestId("focus-zoom-in").click();
+    await dialog.getByTestId("focus-zoom-in").click();
+    await expect(dialog.getByTestId("focus-zoom-value")).toHaveText("150%");
+    const scale = await dialog.locator("img").first().evaluate((el) => getComputedStyle(el).scale);
+    expect(Number(scale)).toBeCloseTo(1.5, 1);
+
+    await dialog.getByRole("button", { name: "Aplicar posição" }).click();
+    await page.getByRole("button", { name: /Salvar/ }).first().click();
+    await expect.poll(() => savedBody?.images?.[0]?.focus_zoom).toBeCloseTo(1.5, 1);
+    expect(savedBody.images[0].focus_x).toBe(50);
+  });
+
   test("arrasta a foto, aplica e envia focus_x/focus_y ao salvar", async ({ page, context }) => {
     await context.addCookies([
       { name: "pw_bypass_token", value: "ventara-playwright-local-bypass-token", url: "http://localhost:3000" },

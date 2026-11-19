@@ -2,7 +2,7 @@ import { cache } from "react";
 import { Product } from "@/types/ecommerce";
 import { DEFAULT_CATALOG } from "@/lib/catalog-data";
 import { createStaticSupabaseClient, isSupabaseConfigured } from "@/lib/supabase/static";
-import { normalizeFocusValue } from "@/lib/image-focus";
+import { normalizeFocusValue, normalizeZoomValue } from "@/lib/image-focus";
 import { normalizeFaceFit } from "@/lib/face-shapes";
 
 export interface FetchProductsOptions {
@@ -63,6 +63,7 @@ export function normalizeProduct(raw: any): Product {
         sort_order: Number(img.sort_order ?? idx),
         focus_x: normalizeFocusValue(img.focus_x),
         focus_y: normalizeFocusValue(img.focus_y),
+        focus_zoom: normalizeZoomValue(img.focus_zoom),
         created_at: img.created_at || new Date().toISOString(),
       }))
         // Ordem estável: foto principal primeiro, depois a ordem definida no admin
