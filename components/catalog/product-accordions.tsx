@@ -161,7 +161,9 @@ export function ProductAccordions({ product, guideContent }: ProductAccordionsPr
                 </div>
               )}
 
-              {/* Guia "como usar" em 3 passos + vídeo opcional (editável no admin) */}
+              {/* Guia "como usar" em 3 passos + vídeo opcional (editável no admin).
+                  Oculto no mobile: o exemplo 52 · 18 · 145 confundia (parecia as medidas reais do produto). */}
+              <div className="hidden md:block" data-testid="sizing-help-guide-wrapper">
               <SizingHelpGuide
                 title={textOr(guideContent?.sizingHelpTitle, GUIDE_DEFAULTS.title)}
                 subtitle={textOr(guideContent?.sizingHelpSubtitle, GUIDE_DEFAULTS.subtitle)}
@@ -173,6 +175,7 @@ export function ProductAccordions({ product, guideContent }: ProductAccordionsPr
                 videoUrl={typeof guideContent?.sizingVideoUrl === "string" ? guideContent.sizingVideoUrl : ""}
                 videoLabel={textOr(guideContent?.sizingVideoLabel, GUIDE_DEFAULTS.videoLabel)}
               />
+              </div>
 
               {/* Diagrama Autoral SVG Ventara */}
               <FrameMeasurementsDiagram
