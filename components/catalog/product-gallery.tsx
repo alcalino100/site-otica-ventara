@@ -1,5 +1,6 @@
 "use client";
 
+import { focusImageStyle } from "@/lib/image-focus";
 import React, { useState, useEffect, useRef } from "react";
 import { Product } from "@/types/ecommerce";
 import { FrameArt } from "./frame-art";
@@ -83,6 +84,16 @@ export function ProductGallery({ product, overrideImage: rawOverrideImage }: Pro
   };
 
   const activeImage = colorImage || images[activeIdx]?.url;
+  // Enquadramento do admin vale para a foto exibida (inclusive quando vem da cor escolhida)
+  const framedImage = images.find((img) => img.url === activeImage);
+  const framingStyle = focusImageStyle(framedImage);
+  const adminFraming = framingStyle
+    ? {
+        objectPosition: framingStyle.objectPosition as string | undefined,
+        scale: framingStyle.scale as string | undefined,
+        origin: framingStyle.transformOrigin as string | undefined,
+      }
+    : null;
 
   const finePointer = () => typeof window !== "undefined" && window.matchMedia("(hover: hover) and (pointer: fine)").matches;
 
@@ -266,6 +277,12 @@ export function ProductGallery({ product, overrideImage: rawOverrideImage }: Pro
             onPointerCancel={handlePointerCancel}
             style={{ touchAction: scale > 1 ? "none" : "pan-y", cursor: scale > 1 ? "grab" : "zoom-in" }}
           >
+            {/* Ajuste de posição/zoom salvo no admin (camada separada do zoom do visitante) */}
+            <div
+              className="absolute inset-0 pointer-events-none"
+              data-testid="pdp-admin-framing"
+              style={adminFraming ? { scale: adminFraming.scale, transformOrigin: adminFraming.origin } : undefined}
+            >
             <img
               {...optimizedImgProps(activeImage, [640, 828, 1080, 1200])}
               sizes="(min-width: 1024px) 50vw, 100vw"
@@ -275,15 +292,17 @@ export function ProductGallery({ product, overrideImage: rawOverrideImage }: Pro
               draggable={false}
               fetchPriority="high"
               decoding="async"
-              style={
-                scale > 1
+              style={{
+                ...(adminFraming?.objectPosition ? { objectPosition: adminFraming.objectPosition } : {}),
+                ...(scale > 1
                   ? { transform: `translate(${offset.x}px, ${offset.y}px) scale(${scale})`, transformOrigin: "center", transition: "none" }
                   : isZoomed
                     ? { transformOrigin: `${zoomCoords.x}% ${zoomCoords.y}%`, transform: "scale(1.9)" }
-                    : { transform: "scale(1)" }
-              }
+                    : { transform: "scale(1)" }),
+              }}
               className="w-full h-full object-cover object-center transition-transform duration-200 ease-out pointer-events-none"
             />
+            </div>
 
             {/* Controles de zoom discretos (também reposicione arrastando a foto quando ampliada) */}
             <div className="absolute bottom-3 right-3 z-20 flex items-center gap-1.5">

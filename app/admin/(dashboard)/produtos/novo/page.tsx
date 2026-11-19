@@ -59,6 +59,7 @@ interface ImageUploadItem {
   /** Posição da foto nos cards (% do object-position); vazio = automático. */
   focus_x?: number | null;
   focus_y?: number | null;
+  focus_zoom?: number | null;
 }
 
 export default function NewProductQuickFlowPage() {
@@ -774,11 +775,12 @@ export default function NewProductQuickFlowPage() {
                     productName={name || undefined}
                     initialX={images[focusEditIdx].focus_x}
                     initialY={images[focusEditIdx].focus_y}
+              initialZoom={images[focusEditIdx].focus_zoom}
                     onClose={() => setFocusEditIdx(null)}
                     onApply={(focus) => {
                       setImages((prev) =>
                         prev.map((img, i) =>
-                          i === focusEditIdx ? { ...img, focus_x: focus?.x ?? null, focus_y: focus?.y ?? null } : img
+                          i === focusEditIdx ? { ...img, focus_x: focus?.x ?? null, focus_y: focus?.y ?? null, focus_zoom: focus?.zoom ?? null } : img
                         )
                       );
                       setFocusEditIdx(null);
