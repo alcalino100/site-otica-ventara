@@ -146,7 +146,7 @@ export async function POST(req: NextRequest) {
       badge_stock_text: body.badge_stock_text || "Em Estoque · Envio Imediato",
       show_badge_curation: body.show_badge_curation ?? true,
       badge_curation_text: body.badge_curation_text || "Curadoria Autoral Ventara · Acetato Premium",
-      badge_curation_url: body.badge_curation_url || "/catalogo",
+      badge_curation_url: body.badge_curation_url || "/armacoes",
       show_title: body.show_title ?? true,
       title_text: body.title_text || null,
       show_description: body.show_description ?? true,

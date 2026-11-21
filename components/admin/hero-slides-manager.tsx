@@ -134,7 +134,7 @@ export function HeroSlidesManager() {
       badge_stock_text: "Em Estoque · Envio Imediato",
       show_badge_curation: true,
       badge_curation_text: "Curadoria Autoral Ventara · Acetato Premium",
-      badge_curation_url: "/catalogo",
+      badge_curation_url: "/armacoes",
       show_title: true,
       title_text: "Mais que óculos,\né sobre você.",
       show_description: true,
@@ -1243,7 +1243,7 @@ export function HeroSlidesManager() {
                           }
                           disabled={!editingSlide.show_badge_curation}
                           className="w-full px-3 py-1.5 rounded bg-[#030913] border border-white/10 text-xs text-white disabled:opacity-40"
-                          placeholder="/catalogo"
+                          placeholder="/armacoes"
                         />
                       </div>
                     </div>

@@ -836,7 +836,7 @@ export default function AdminBannersPage() {
                 <div className="relative rounded-2xl overflow-hidden min-h-[260px] sm:min-h-[300px] flex items-center p-6 sm:p-8 border border-white/10 shadow-2xl bg-[#02070D]">
                   {/* eslint-disable-next-line @next/next/no-img-element */}
                   <img
-                    src={armacoesHero.hero_bg_image || "/images/catalog-hero.jpg"}
+                    src={armacoesHero.hero_bg_image || "/images/hero/ventara-safari-complete.jpg"}
                     alt="Preview"
                     className="absolute inset-0 w-full h-full object-cover object-center pointer-events-none"
                   />
@@ -912,7 +912,7 @@ export default function AdminBannersPage() {
                 <div className="flex items-center gap-2 overflow-x-auto no-scrollbar pt-1">
                   <span className="text-[10px] text-slate-400 shrink-0">Fotos rápidas:</span>
                   {[
-                    { label: "Catálogo Ótica (Padrão)", path: "/images/catalog-hero.jpg" },
+                    { label: "Catálogo Ótica (Padrão)", path: "/images/hero/ventara-safari-complete.jpg" },
                     { label: "Banner Eyewear Desktop", path: "/images/banners/hero-banner-desktop.jpg" },
                     { label: "Vitrine Lifestyle Solar", path: "/images/lifestyle/male-solar.jpg" },
                     { label: "Vitrine Grau Feminino", path: "/images/lifestyle/female-grau.jpg" },
