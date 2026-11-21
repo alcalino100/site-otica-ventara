@@ -9,6 +9,7 @@ import {
   isPaymentMockAllowed,
 } from "@/lib/mercadopago";
 import { recordPaymentTransaction } from "@/lib/payment-audit";
+import { expireStaleOrders, releaseStockForOrder, reserveStockForOrder } from "@/lib/stock-reservation";
 import crypto from "crypto";
 
 interface CheckoutItemInput {
@@ -91,6 +92,15 @@ export async function POST(req: NextRequest) {
     const hasLiveDb = Boolean(
       process.env.NEXT_PUBLIC_SUPABASE_URL && process.env.SUPABASE_SERVICE_ROLE_KEY
     );
+
+    // Libera estoque/cupom de pedidos que ficaram sem pagamento além do prazo
+    if (hasLiveDb) {
+      try {
+        await expireStaleOrders(adminSupabase);
+      } catch (err) {
+        console.warn("Falha ao expirar pedidos antigos:", err);
+      }
+    }
 
     let dbProducts: Product[] = [];
     const productIds = body.items.map((i) => i.product_id);
@@ -279,6 +289,7 @@ export async function POST(req: NextRequest) {
         .from("orders")
         .update({ status: "cancelled", notes: [orderNotes, reason].filter(Boolean).join(" | "), updated_at: new Date().toISOString() })
         .eq("id", orderId);
+      await releaseStockForOrder(adminSupabase, referenceCode);
       if (consumedCouponId) {
         await adminSupabase
           .from("promotion_coupons")
@@ -353,6 +364,16 @@ export async function POST(req: NextRequest) {
         const { error: itemsErr } = await adminSupabase.from("order_items").insert(itemsToInsert);
         if (itemsErr) {
           console.error("Erro ao registrar itens do pedido:", itemsErr);
+        }
+
+        // Reserva o estoque já na criação do pedido (evita vender a mesma peça duas vezes)
+        const reservation = await reserveStockForOrder(adminSupabase, { id: orderId, reference_code: referenceCode });
+        if (!reservation.ok) {
+          await abortOrder("Estoque insuficiente no momento da reserva");
+          return NextResponse.json(
+            { error: `Estoque insuficiente para ${reservation.missing}. Outro cliente acabou de reservar a última unidade.` },
+            { status: 409 }
+          );
         }
       }
     }
