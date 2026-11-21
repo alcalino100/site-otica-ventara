@@ -9,6 +9,11 @@ import { isPaymentMockAllowed } from "@/lib/mercadopago";
 
 export const dynamic = "force-dynamic";
 
+/** Marca interna nas anotações: pedido arquivado some da lista, mas o histórico financeiro permanece. */
+const ARCHIVED_MARK = "[ARQUIVADO]";
+/** Só pedidos que nunca foram pagos (ou já cancelados) podem ser apagados de vez. */
+const DELETABLE_STATUSES = ["pending", "awaiting_payment", "cancelled"];
+
 export async function GET(req: NextRequest) {
   const auth = await requireAdmin(req);
   if (!auth.authorized) {
@@ -50,9 +55,10 @@ export async function GET(req: NextRequest) {
       });
     }
 
+    const showArchived = req.nextUrl.searchParams.get("arquivados") === "1";
     return NextResponse.json({
       success: true,
-      orders: data,
+      orders: showArchived ? data : data.filter((o: any) => !String(o.notes || "").includes(ARCHIVED_MARK)),
     });
   } catch (err: any) {
     console.error("Erro interno ao buscar pedidos:", err);
@@ -408,13 +414,34 @@ export async function DELETE(req: NextRequest) {
 
     const adminSupabase = createAdminClient();
 
+    const { data: toDelete } = await adminSupabase
+      .from("orders")
+      .select("reference_code, status, notes")
+      .eq("id", id)
+      .maybeSingle();
+
+    // Pedido pago/em produção/enviado/entregue/reembolsado: arquiva (histórico financeiro não se apaga)
+    if (toDelete && !DELETABLE_STATUSES.includes(toDelete.status)) {
+      const notes = String(toDelete.notes || "");
+      if (!notes.includes(ARCHIVED_MARK)) {
+        const { error: archiveError } = await adminSupabase
+          .from("orders")
+          .update({ notes: `${notes} ${ARCHIVED_MARK}`.trim(), updated_at: new Date().toISOString() })
+          .eq("id", id);
+        if (archiveError) {
+          return NextResponse.json({ error: `Erro ao arquivar pedido: ${archiveError.message}` }, { status: 400 });
+        }
+      }
+      return NextResponse.json({
+        success: true,
+        archived: true,
+        message: "Pedido arquivado com sucesso. O histórico financeiro foi preservado.",
+        id,
+      });
+    }
+
     // 0. Pedido em aberto reserva estoque/cupom: devolve antes de apagar (senão a peça ficaria presa)
     try {
-      const { data: toDelete } = await adminSupabase
-        .from("orders")
-        .select("reference_code, status, notes")
-        .eq("id", id)
-        .maybeSingle();
       if (toDelete && ["pending", "awaiting_payment"].includes(toDelete.status)) {
         await releaseStockForOrder(adminSupabase, toDelete.reference_code);
         await restoreCouponFromNotes(adminSupabase, toDelete.notes);

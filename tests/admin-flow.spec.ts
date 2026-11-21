@@ -46,10 +46,11 @@ test.describe("Central Administrativa Modular (/admin)", () => {
     await page.goto("/admin");
     await expect(page).toHaveTitle(/Painel Administrativo/i);
     await expect(page.locator("h1")).toContainText("Central Administrativa da Ótica Ventara");
-    await expect(page.getByText("Produtos Cadastrados")).toBeVisible();
-    await expect(page.getByText("Pedidos Pendentes")).toBeVisible();
-    await expect(page.getByText("Alertas de Estoque Baixo")).toBeVisible();
-    await expect(page.getByText("Módulos Operacionais da Loja")).toBeVisible();
+    await expect(page.getByText(/produtos cadastrados/i).first()).toBeVisible();
+    await expect(page.getByText("Produtos Publicados", { exact: false }).first()).toBeVisible();
+    await expect(page.getByText("Pedidos & WhatsApp").first()).toBeVisible();
+    await expect(page.getByText("Controle de Estoque").first()).toBeVisible();
+    await expect(page.getByText("Módulos do Sistema")).toBeVisible();
   });
 
   test("deve acessar a página de gestão de identidade visual e cores", async ({ page }) => {
@@ -103,16 +104,16 @@ test.describe("Central Administrativa Modular (/admin)", () => {
 
   test("deve carregar o importador CSV com modelo de planilha", async ({ page }) => {
     await page.goto("/admin/produtos/importar");
-    await expect(page.locator("h1")).toContainText("Importador de Produtos");
+    await expect(page.locator("h1")).toContainText("Importação de Armações em Lote");
     await expect(page.getByRole("button", { name: /Baixar Modelo CSV/i })).toBeVisible();
-    await expect(page.getByText("Upload de Arquivo CSV")).toBeVisible();
+    await expect(page.getByText("Selecionar Arquivo CSV").first()).toBeVisible();
   });
 
   test("deve carregar a tela de novo produto e suportar upload via API de admin", async ({ page, request }) => {
     await page.goto("/admin/produtos/novo");
-    await expect(page.locator("h1")).toContainText("Cadastrar Nova Armação");
-    await expect(page.getByText("Fotografia, Estoque e Publicação")).toBeVisible();
-    await expect(page.getByRole("button", { name: /Salvar e Publicar/i })).toBeVisible();
+    await expect(page.locator("h1")).toContainText("Cadastrar Novo Produto");
+    await expect(page.getByText("Passo 1: Fotos da Armação")).toBeVisible();
+    await expect(page.getByRole("button", { name: /Salvar Rascunho/i }).first()).toBeVisible();
 
     // Testa a rota de upload do servidor com buffer de imagem válido
     const dummyImageBuffer = Buffer.from(
@@ -160,14 +161,15 @@ test.describe("Central Administrativa Modular (/admin)", () => {
   test("deve exibir catálogo homogêneo e sincronizado no painel administrativo", async ({ page }) => {
     await page.goto("/admin/produtos");
     await expect(page.locator("h1")).toContainText("Gestão de Produtos");
-    const table = page.getByRole("table");
-    await expect(table.getByText("Ventara Essencial")).toBeVisible();
-    await expect(table.getByText("Ventara Aurora")).toBeVisible();
-    await expect(table.getByText("Ventara Urbano")).toBeVisible();
-    await expect(table.getByText("Ventara Horizonte")).toBeVisible();
-    await expect(table.getByText("Ventara Kids Flex")).toBeVisible();
-    await expect(table.getByText("Ventara Kids Solar UV400")).toBeVisible();
-    await expect(table.getByText("Ventara Onça")).toBeVisible();
+    // No celular o catálogo vira cards (sem <table>); no desktop é tabela
+    const table = (await page.getByRole("table").count()) > 0 ? page.getByRole("table") : page.locator("main");
+    await expect(table.getByText("Ventara Essencial").first()).toBeVisible();
+    await expect(table.getByText("Ventara Aurora").first()).toBeVisible();
+    await expect(table.getByText("Ventara Urbano").first()).toBeVisible();
+    await expect(table.getByText("Ventara Horizonte").first()).toBeVisible();
+    await expect(table.getByText("Ventara Kids Flex").first()).toBeVisible();
+    await expect(table.getByText("Ventara Kids Solar UV400").first()).toBeVisible();
+    await expect(table.getByText("Ventara Onça").first()).toBeVisible();
   });
 
   test("deve cadastrar, atualizar status e excluir produto permanentemente do banco via API admin", async ({ request }) => {

@@ -163,6 +163,10 @@ export default function AdminOrdersPage() {
     }
   };
 
+  // Só pedido nunca pago (ou já cancelado) é apagado de vez; os demais são arquivados
+  const isDeletableOrder = (o: { status?: string }) =>
+    ["pending", "awaiting_payment", "cancelled"].includes(String(o.status));
+
   const handleDeleteOrder = async () => {
     if (!orderToDelete) return;
     setIsDeleting(true);
@@ -178,7 +182,9 @@ export default function AdminOrdersPage() {
       setOrders((prev) => prev.filter((o) => o.id !== orderToDelete.id));
       setDeleteFeedback({
         type: "success",
-        text: `Pedido ${orderToDelete.reference_code} excluído com sucesso!`,
+        text: data.archived
+          ? `Pedido ${orderToDelete.reference_code} arquivado com sucesso! O histórico foi preservado.`
+          : `Pedido ${orderToDelete.reference_code} excluído com sucesso!`,
       });
       setOrderToDelete(null);
       setTimeout(() => setDeleteFeedback(null), 4000);
@@ -920,7 +926,7 @@ export default function AdminOrdersPage() {
               </div>
               <div>
                 <h3 className="text-base font-bold text-white tracking-tight">
-                  Excluir Pedido Permanentemente
+                  {isDeletableOrder(orderToDelete) ? "Excluir Pedido Permanentemente" : "Arquivar Pedido"}
                 </h3>
                 <p className="text-xs text-slate-400 mt-1 leading-relaxed">
                   Tem certeza de que deseja excluir o pedido{" "}
@@ -931,7 +937,9 @@ export default function AdminOrdersPage() {
                   <strong className="text-white">
                     {orderToDelete.customer_name}
                   </strong>
-                  ? Esta ação removerá o pedido do banco de dados e não poderá ser desfeita.
+                  ? {isDeletableOrder(orderToDelete)
+                    ? "Esta ação removerá o pedido do banco de dados e não poderá ser desfeita."
+                    : "Este pedido já foi pago, então ele será arquivado: some da lista, mas o histórico financeiro e o rastreio do cliente continuam preservados."}
                 </p>
               </div>
             </div>
@@ -952,11 +960,11 @@ export default function AdminOrdersPage() {
                 className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-rose-600 hover:bg-rose-500 active:scale-95 text-white font-bold text-xs uppercase tracking-wider transition-all shadow-lg shadow-rose-950/50 cursor-pointer disabled:opacity-50"
               >
                 {isDeleting ? (
-                  <span>Excluindo...</span>
+                  <span>{isDeletableOrder(orderToDelete) ? "Excluindo..." : "Arquivando..."}</span>
                 ) : (
                   <>
                     <Trash2 size={14} />
-                    <span>Confirmar Exclusão</span>
+                    <span>{isDeletableOrder(orderToDelete) ? "Confirmar Exclusão" : "Confirmar Arquivamento"}</span>
                   </>
                 )}
               </button>
