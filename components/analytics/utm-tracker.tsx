@@ -1,5 +1,6 @@
 "use client";
 
+import { trackEvent } from "@/lib/tracking/client";
 import React, { useEffect, useRef, Suspense } from "react";
 import { usePathname, useSearchParams } from "next/navigation";
 
@@ -101,6 +102,7 @@ function UTMTrackerCore() {
 
       const link = target.closest("a");
       if (link && link.href && (link.href.includes("wa.me") || link.href.includes("api.whatsapp.com"))) {
+        void trackEvent("contact");
         let activeUtm: any = {};
         try {
           const stored = sessionStorage.getItem("ventara_utm_data");

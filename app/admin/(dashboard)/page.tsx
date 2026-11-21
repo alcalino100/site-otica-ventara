@@ -245,6 +245,13 @@ export default function AdminDashboardOverview() {
       actionText: "Ver Métricas",
     },
     {
+      title: "Pixel Meta & Google Ads",
+      description: "Conexões, eventos enviados (visualização, carrinho, compra) e auditoria do que foi disparado.",
+      icon: TrendingUp,
+      href: "/admin/marketing",
+      actionText: "Configurar Rastreamento",
+    },
+    {
       title: "Entrega & Retirada",
       description: "Configuração de retirada no Centro de Araçatuba e regras de frete.",
       icon: Truck,

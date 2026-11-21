@@ -1,5 +1,6 @@
 "use client";
 
+import { trackEvent } from "@/lib/tracking/client";
 import React, { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "motion/react";
 import {
@@ -88,6 +89,8 @@ export function LensLeadModal({
       // Salva silenciosamente mesmo se offline
       console.warn("Aviso ao registrar lead:", err);
     }
+
+    void trackEvent("lead");
 
     // 2. Monta a mensagem personalizada para o WhatsApp
     const catLabel = frameType === "Solar" ? "Óculos Solar" : "Armação de Grau";

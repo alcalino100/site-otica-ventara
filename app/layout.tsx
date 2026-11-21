@@ -2,6 +2,7 @@ import type { Metadata } from 'next';
 import { SITE_URL, SITE_NAME, DEFAULT_OG_IMAGE } from '@/lib/seo';
 import './globals.css';
 import { UTMTracker } from '@/components/analytics/utm-tracker';
+import { TrackingProvider } from '@/components/analytics/tracking-provider';
 import { WhatsAppFloatingButton } from '@/components/ui/whatsapp-floating-button';
 import { LiveFloatingButton } from '@/components/ui/live-floating-button';
 import { SiteSettingsProvider } from '@/components/providers/site-settings-provider';
@@ -45,6 +46,7 @@ export default function RootLayout({
       <body>
         <SiteSettingsProvider>
           <UTMTracker />
+          <TrackingProvider />
           {children}
           <CookieConsentBanner />
           <WhatsAppFloatingButton />

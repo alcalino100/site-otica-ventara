@@ -29,6 +29,8 @@ interface CheckoutRequestBody {
   coupon_code?: string;
   notes?: string;
   items: CheckoutItemInput[];
+  /** Dados de rastreamento do navegador (só vale com consentimento de marketing) */
+  tracking?: { fbp?: string; fbc?: string; consent?: boolean; url?: string };
 }
 
 function generateOrderReference(): string {
@@ -344,6 +346,22 @@ export async function POST(req: NextRequest) {
             { status: 500 }
           );
         }
+      }
+
+      // Contexto de rastreamento para a compra server-side (API de Conversões). Melhor esforço: não bloqueia o checkout.
+      try {
+        const t = body.tracking;
+        await adminSupabase.from("tracking_order_context").upsert({
+          order_id: orderId,
+          fbp: typeof t?.fbp === "string" ? t.fbp.slice(0, 120) : null,
+          fbc: typeof t?.fbc === "string" ? t.fbc.slice(0, 200) : null,
+          client_ip: ip === "local-ip" ? null : ip.split(",")[0].trim(),
+          user_agent: (req.headers.get("user-agent") || "").slice(0, 300),
+          event_source_url: typeof t?.url === "string" ? t.url.slice(0, 500) : null,
+          marketing_consent: t?.consent === true,
+        });
+      } catch {
+        /* tabela pode não existir ainda */
       }
 
       if (orderData) {
