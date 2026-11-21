@@ -7,6 +7,7 @@ import {
   verifyMercadoPagoWebhookSignature,
 } from "@/lib/mercadopago";
 import { updatePaymentTransactionStatus } from "@/lib/payment-audit";
+import { releaseStockForOrder, reserveStockForOrder, restoreCouponFromNotes } from "@/lib/stock-reservation";
 import crypto from "crypto";
 
 export const dynamic = "force-dynamic";
@@ -142,7 +143,7 @@ export async function POST(req: NextRequest) {
       const adminSupabase = createAdminClient();
       let query = adminSupabase
         .from("orders")
-        .select("id, reference_code, status, payment_gateway_id, total_in_cents");
+        .select("id, reference_code, status, payment_gateway_id, total_in_cents, notes");
       query = orderId ? query.eq("id", orderId) : query.eq("reference_code", orderReference as string);
 
       const { data: order, error: findError } = await query.maybeSingle();
@@ -180,6 +181,22 @@ export async function POST(req: NextRequest) {
           if (updateError) {
             console.error("Erro ao atualizar status do pedido no webhook:", updateError);
             return NextResponse.json({ error: "Falha ao atualizar pedido no banco." }, { status: 500 });
+          }
+
+          // Estoque/cupom acompanham o resultado do pagamento
+          if (newStatus === "paid" && order.status === "cancelled") {
+            // Pago depois de expirar (cartão): a reserva tinha sido devolvida, reserva de novo
+            const res = await reserveStockForOrder(adminSupabase, { id: order.id, reference_code: order.reference_code });
+            if (!res.ok) {
+              console.error(`[webhook] Pedido ${order.reference_code} pago, mas sem estoque para ${res.missing}`);
+              await adminSupabase
+                .from("orders")
+                .update({ notes: [order.notes, "ATENÇÃO: pago após expirar e sem estoque — verificar com o cliente"].filter(Boolean).join(" | ") })
+                .eq("id", order.id);
+            }
+          } else if (newStatus === "cancelled") {
+            await releaseStockForOrder(adminSupabase, order.reference_code);
+            await restoreCouponFromNotes(adminSupabase, order.notes);
           }
         } else {
           return NextResponse.json(
