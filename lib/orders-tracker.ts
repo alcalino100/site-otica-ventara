@@ -294,9 +294,11 @@ export function buildTrackingPayload(order: any): TrackedOrderResponse {
       : nameParts[0];
 
   const shippingAddr = order.shipping_address || {};
-  const formattedShippingAddress = shippingAddr.street
-    ? `${shippingAddr.street}${shippingAddr.number ? `, ${shippingAddr.number}` : ""}${shippingAddr.complement ? ` (${shippingAddr.complement})` : ""}${shippingAddr.neighborhood ? ` - ${shippingAddr.neighborhood}` : ""}${shippingAddr.city ? `, ${shippingAddr.city}` : ""}${shippingAddr.state ? `-${shippingAddr.state}` : ""}`
-    : "Endereço cadastrado no pedido (Envio pelos Correios / Transportadora)";
+  // Privacidade (LGPD): a consulta pública mostra só bairro/cidade, nunca rua e número.
+  const formattedShippingAddress =
+    shippingAddr.city || shippingAddr.neighborhood
+      ? `${shippingAddr.neighborhood ? `${shippingAddr.neighborhood}, ` : ""}${shippingAddr.city || ""}${shippingAddr.state ? `-${shippingAddr.state}` : ""}`
+      : "Endereço cadastrado no pedido (Envio pelos Correios / Transportadora)";
 
   const cleanTrackingNumber = isPickup ? null : order.tracking_number || null;
 
