@@ -5,6 +5,7 @@ import { isSupabaseConfigured } from "@/lib/supabase/server";
 import { revalidatePath } from "next/cache";
 import { DEMO_ORDERS, resetDemoOrders } from "@/lib/orders-tracker";
 import { releaseStockForOrder, restoreCouponFromNotes } from "@/lib/stock-reservation";
+import { isPaymentMockAllowed } from "@/lib/mercadopago";
 
 export const dynamic = "force-dynamic";
 
@@ -35,11 +36,17 @@ export async function GET(req: NextRequest) {
       `)
       .order("created_at", { ascending: false });
 
+    if (error) {
+      console.warn("Aviso ao buscar pedidos no Supabase:", error.message);
+      // Em produção nunca mostra pedidos de demonstração no lugar dos reais
+      if (!isPaymentMockAllowed()) {
+        return NextResponse.json({ success: false, error: "Não foi possível carregar os pedidos agora.", orders: [] }, { status: 500 });
+      }
+    }
     if (error || !data || data.length === 0) {
-      if (error) console.warn("Aviso ao buscar pedidos no Supabase:", error.message);
       return NextResponse.json({
         success: true,
-        orders: Object.values(DEMO_ORDERS),
+        orders: isPaymentMockAllowed() ? Object.values(DEMO_ORDERS) : [],
       });
     }
 
@@ -49,6 +56,9 @@ export async function GET(req: NextRequest) {
     });
   } catch (err: any) {
     console.error("Erro interno ao buscar pedidos:", err);
+    if (!isPaymentMockAllowed()) {
+      return NextResponse.json({ success: false, error: "Não foi possível carregar os pedidos agora.", orders: [] }, { status: 500 });
+    }
     return NextResponse.json({ success: true, orders: Object.values(DEMO_ORDERS) });
   }
 }
@@ -185,8 +195,12 @@ export async function PATCH(req: NextRequest) {
       const matchedDemo = Object.values(DEMO_ORDERS).find(
         (d: any) => d.id === id || d.reference_code === id
       );
-      if (matchedDemo) {
+      if (matchedDemo && isPaymentMockAllowed()) {
         return NextResponse.json({ success: true, order: matchedDemo });
+      }
+      // Antes devolvia "sucesso" mesmo sem gravar: o admin achava que o status tinha mudado
+      if (!isPaymentMockAllowed()) {
+        return NextResponse.json({ error: `Não foi possível atualizar o pedido: ${error.message}` }, { status: 500 });
       }
     }
 
@@ -286,11 +300,23 @@ export async function POST(req: NextRequest) {
       notes: delivery_type === "pickup" ? `[RETIRADA NA LOJA] ${notes || ""}`.trim() : (notes || null),
     };
 
-    const { data: createdOrder, error: orderError } = await adminSupabase
+    let { data: createdOrder, error: orderError } = await adminSupabase
       .from("orders")
       .insert(orderPayload)
       .select()
       .single();
+
+    // Código de referência repetido (únicos): tenta de novo com outro código
+    for (let i = 0; i < 3 && orderError?.code === "23505"; i++) {
+      orderPayload.reference_code = `VEN-${Math.floor(100000 + Math.random() * 900000)}`;
+      ({ data: createdOrder, error: orderError } = await adminSupabase.from("orders").insert(orderPayload).select().single());
+    }
+
+    if (orderError && !isPaymentMockAllowed()) {
+      // Em produção nunca finge que gravou: o pedido simplesmente não existiria no banco
+      console.error("Erro ao persistir pedido:", orderError.message);
+      return NextResponse.json({ error: `Não foi possível registrar o pedido: ${orderError.message}` }, { status: 500 });
+    }
 
     if (orderError) {
       console.warn("Aviso ao persistir pedido no Supabase:", orderError.message);
@@ -375,7 +401,27 @@ export async function DELETE(req: NextRequest) {
       );
     }
 
+    // Pedido que nunca foi gravado (criado só em memória): não há o que apagar no banco
+    if (String(id).startsWith("local-")) {
+      return NextResponse.json({ success: true, message: "Pedido excluído com sucesso.", id });
+    }
+
     const adminSupabase = createAdminClient();
+
+    // 0. Pedido em aberto reserva estoque/cupom: devolve antes de apagar (senão a peça ficaria presa)
+    try {
+      const { data: toDelete } = await adminSupabase
+        .from("orders")
+        .select("reference_code, status, notes")
+        .eq("id", id)
+        .maybeSingle();
+      if (toDelete && ["pending", "awaiting_payment"].includes(toDelete.status)) {
+        await releaseStockForOrder(adminSupabase, toDelete.reference_code);
+        await restoreCouponFromNotes(adminSupabase, toDelete.notes);
+      }
+    } catch (err) {
+      console.warn("Aviso ao devolver estoque antes de excluir pedido:", err);
+    }
 
     // 1. Remove itens associados primeiro para garantir integridade referencial
     await adminSupabase.from("order_items").delete().eq("order_id", id);
