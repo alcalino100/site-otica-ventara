@@ -322,7 +322,7 @@ export const DEFAULT_HERO_SLIDES: HeroSlide[] = [
     badge_stock_text: "Em Estoque · Envio Imediato",
     show_badge_curation: true,
     badge_curation_text: "Curadoria Autoral Ventara · Acetato Premium",
-    badge_curation_url: "/catalogo",
+    badge_curation_url: "/armacoes",
     show_title: true,
     title_text: "Mais que óculos,\né sobre você.",
     show_description: true,

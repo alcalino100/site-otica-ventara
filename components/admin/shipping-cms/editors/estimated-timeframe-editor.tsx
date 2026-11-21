@@ -49,9 +49,9 @@ export function EstimatedTimeframeEditor({
           </div>
           <input
             type="text"
-            value={data.href || "/catalogo"}
+            value={data.href || "/armacoes"}
             onChange={(e) => updateField("href", e.target.value)}
-            placeholder="Ex: /catalogo"
+            placeholder="Ex: /armacoes"
             className="w-full px-3 py-2 rounded-xl bg-slate-950 border border-slate-800 text-xs font-mono text-slate-200 focus:outline-hidden focus:border-amber-400"
           />
         </div>

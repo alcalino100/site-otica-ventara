@@ -535,7 +535,7 @@ export function Hero({
                   {currentSlide.show_badge_curation && (
                     <div data-testid="hero-badge-curation" className="mt-2 max-w-full">
                       <Link
-                        href={currentSlide.badge_curation_url || "/catalogo"}
+                        href={currentSlide.badge_curation_url || "/armacoes"}
                         className="inline-flex items-center justify-between gap-3 px-5 py-2.5 rounded-full bg-slate-950/90 hover:bg-slate-900 active:scale-[0.97] backdrop-blur-md border border-amber-400/30 hover:border-amber-400 text-amber-300 hover:text-amber-200 text-xs font-semibold shadow-xl transition-all duration-150 group max-w-full"
                         style={{ touchAction: "manipulation" }}
                       >

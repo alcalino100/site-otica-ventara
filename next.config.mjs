@@ -19,6 +19,10 @@ const nextConfig = {
       },
     ],
   },
+  async redirects() {
+    // Rota antiga/inexistente: o catálogo de armações é /armacoes
+    return [{ source: "/catalogo", destination: "/armacoes", permanent: true }];
+  },
   async headers() {
     return [
       {

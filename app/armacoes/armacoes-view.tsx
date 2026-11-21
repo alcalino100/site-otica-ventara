@@ -343,7 +343,7 @@ export function ArmacoesView({
           <div className="absolute inset-0 z-0 overflow-hidden pointer-events-none">
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img
-              src={heroSettings.hero_bg_image || "/images/catalog-hero.jpg"}
+              src={heroSettings.hero_bg_image || "/images/hero/ventara-safari-complete.jpg"}
               alt={heroSettings.hero_title || "Armações Ventara Eyewear"}
               className="w-full h-full object-cover object-center transition-all duration-700"
             />

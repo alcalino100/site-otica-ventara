@@ -136,7 +136,7 @@ export const DEFAULT_SHIPPING_CMS_SECTIONS: ShippingCmsSection[] = [
     data: {
       title: "Prazo Estimado",
       text: "Consulte o prazo no checkout (média de 24h a 48h úteis após montagem técnica)",
-      href: "/catalogo",
+      href: "/armacoes",
     } as SectionEstimatedTimeframeData,
   },
   {

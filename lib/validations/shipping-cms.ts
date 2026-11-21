@@ -113,7 +113,7 @@ export const SectionRegionalDeliverySchema = z.object({
 export const SectionEstimatedTimeframeSchema = z.object({
   title: cleanTextSchema(80),
   text: cleanTextSchema(300),
-  href: safeUrlSchema.default("/catalogo"),
+  href: safeUrlSchema.default("/armacoes"),
 });
 
 export const SectionNationalDeliverySchema = z.object({

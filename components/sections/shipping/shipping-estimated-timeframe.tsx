@@ -13,7 +13,7 @@ interface ShippingEstimatedTimeframeProps {
 export function ShippingEstimatedTimeframe({
   title = "Prazo Estimado",
   text = "Consulte o prazo no checkout (média de 24h a 48h úteis após montagem técnica)",
-  href = "/catalogo",
+  href = "/armacoes",
 }: ShippingEstimatedTimeframeProps) {
   if (!text) return null;
 
