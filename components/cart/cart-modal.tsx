@@ -200,7 +200,7 @@ export function CartModal({
     expiresAt: string;
   } | null>(null);
   const [copiedPix, setCopiedPix] = useState(false);
-  const [timeLeftSeconds, setTimeLeftSeconds] = useState(15 * 60);
+  const [timeLeftSeconds, setTimeLeftSeconds] = useState(30 * 60);
 
   // Regras de Frete e Cupom
   const { shipping, identity } = useSiteSettings();
@@ -612,9 +612,11 @@ export function CartModal({
           qrCode: data.payment.pix_copia_e_cola,
           qrCodeBase64: data.payment.pix_qr_code_base64 || null,
           ticketUrl: data.payment.ticket_url,
-          expiresAt: data.payment.expires_at || new Date(Date.now() + 15 * 60 * 1000).toISOString(),
+          expiresAt: data.payment.expires_at || new Date(Date.now() + 30 * 60 * 1000).toISOString(),
         });
-        setTimeLeftSeconds(15 * 60);
+        // Usa o prazo real do Pix (o Mercado Pago expira em 30 min), não um valor fixo
+        const expiresMs = new Date(data.payment.expires_at || "").getTime() - Date.now();
+        setTimeLeftSeconds(Number.isFinite(expiresMs) && expiresMs > 0 ? Math.floor(expiresMs / 1000) : 30 * 60);
         setView("pix");
       } else if (paymentMethod === "credit_card") {
         const url: string | undefined = data.payment?.checkout_url;
