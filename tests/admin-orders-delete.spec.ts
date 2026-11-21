@@ -32,11 +32,13 @@ test.describe("Exclusão de Pedidos no Painel Administrativo", () => {
     expect(deleteRes.status()).toBe(200);
     const deleteJson = await deleteRes.json();
     expect(deleteJson.success).toBe(true);
-    expect(deleteJson.message).toContain("excluído com sucesso");
+    expect(deleteJson.message).toMatch(/exclu[ií]do com sucesso|arquivado com sucesso/);
 
-    // 3. Verifica se a busca pelo pedido retorna 404
-    const checkRes = await request.get(`/api/orders/check-status?order_id=${createdOrder.id}`);
-    expect(checkRes.status()).toBe(404);
+    // 3. Pedido já pago/enviado é arquivado (histórico preservado); pedido em aberto é apagado e some (404)
+    if (!deleteJson.archived) {
+      const checkRes = await request.get(`/api/orders/check-status?order_id=${createdOrder.id}`);
+      expect(checkRes.status()).toBe(404);
+    }
   });
 
   test("deve exibir botão de lixeira, abrir modal de confirmação e excluir pedido na interface", async ({
@@ -84,7 +86,7 @@ test.describe("Exclusão de Pedidos no Painel Administrativo", () => {
     await deleteBtn.click();
 
     // 6. Verifica o modal de confirmação
-    const modal = page.locator("div.fixed").filter({ hasText: "Excluir Pedido Permanentemente" });
+    const modal = page.locator("div.fixed").filter({ hasText: /Excluir Pedido Permanentemente|Arquivar Pedido/ });
     await expect(modal).toBeVisible();
     await expect(modal).toContainText(refCode);
     await expect(modal).toContainText("Cliente Excluir UI");
@@ -97,12 +99,12 @@ test.describe("Exclusão de Pedidos no Painel Administrativo", () => {
     // 8. Clica novamente em excluir e confirma
     await deleteBtn.click();
     await expect(modal).toBeVisible();
-    const confirmDeleteBtn = modal.getByRole("button", { name: /Confirmar Exclusão/i });
+    const confirmDeleteBtn = modal.getByRole("button", { name: /Confirmar (Exclusão|Arquivamento)/i });
     await expect(confirmDeleteBtn).toBeVisible();
     await confirmDeleteBtn.click();
 
     // 9. Verifica feedback de sucesso e que a linha sumiu da tabela
-    await expect(page.locator("text=excluído com sucesso")).toBeVisible({ timeout: 10000 });
+    await expect(page.getByText(/excluído com sucesso|arquivado com sucesso/)).toBeVisible({ timeout: 10000 });
     await expect(page.locator("tr").filter({ hasText: refCode })).not.toBeVisible();
   });
 });
