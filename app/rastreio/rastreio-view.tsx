@@ -233,7 +233,7 @@ export function RastreioView({ content }: RastreioViewProps) {
             </div>
             <input
               type="text"
-              placeholder="Digite o código (ex: VEN-10294) ou seu CPF..."
+              placeholder="Digite o código do pedido (ex: VEN-2611-A1B2C3), CPF ou telefone completo"
               value={query}
               onChange={(e) => setQuery(e.target.value)}
               className={`flex-1 bg-transparent px-2 py-2 text-xs sm:text-sm focus:outline-none uppercase font-mono ${inputClass}`}
