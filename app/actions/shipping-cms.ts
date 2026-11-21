@@ -1,8 +1,7 @@
 "use server";
 
-import { headers } from "next/headers";
 import { revalidatePath, revalidateTag } from "next/cache";
-import { createServerSupabaseClient } from "@/lib/supabase/server";
+import { requireAdmin } from "@/lib/auth/require-admin";
 import {
   getShippingCmsDocument,
   saveDraftShippingCms,
@@ -13,36 +12,19 @@ import {
 import { ShippingCmsDocument, ShippingCmsHistoryRecord } from "@/types/shipping-cms";
 
 /**
- * Validação segura de sessão do administrador para Server Actions.
+ * Validação segura de sessão do administrador para Server Actions:
+ * login no Supabase + perfil em admin_profiles (mesma regra das rotas /api/admin).
  */
 async function verifyAdminSession(): Promise<{ authorized: boolean; userId: string; error?: string }> {
-  try {
-    const headerStore = await headers();
-    const isPlaywrightTest = headerStore.get("x-playwright-test") === "true";
-
-    if (isPlaywrightTest) {
-      return { authorized: true, userId: "test-admin@ventara.com.br" };
-    }
-
-    const supabase = await createServerSupabaseClient();
-    const {
-      data: { user },
-      error,
-    } = await supabase.auth.getUser();
-
-    if (error || !user) {
-      return {
-        authorized: false,
-        userId: "",
-        error: "Sessão expirada ou não autenticada. Por favor, faça login novamente.",
-      };
-    }
-
-    return { authorized: true, userId: user.email || user.id };
-  } catch (err: any) {
-    console.error("[ShippingCMS Actions] Erro na verificação de autenticação:", err);
-    return { authorized: false, userId: "", error: "Falha ao validar credenciais administrativas." };
+  const auth = await requireAdmin();
+  if (!auth.authorized) {
+    return {
+      authorized: false,
+      userId: "",
+      error: "Sessão expirada ou sem permissão administrativa. Faça login novamente.",
+    };
   }
+  return { authorized: true, userId: auth.user.email || auth.user.id };
 }
 
 /**

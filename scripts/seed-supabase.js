@@ -6,7 +6,10 @@
 const { createClient } = require("@supabase/supabase-js");
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || "https://yfokjztrhecjlijvmvmr.supabase.co";
-const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY || "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inlmb2tqenRyaGVjamxpanZtdm1yIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc5MjUyODU0NywiZXhwIjoyMTA4MTA0NTQ3fQ.G4s3-GD1psw_jkd1uTh_CVdX7K132Ka_1QH--CWElHA";
+const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
+if (!serviceRoleKey) {
+  throw new Error("Defina SUPABASE_SERVICE_ROLE_KEY no ambiente antes de rodar este script.");
+}
 
 const supabase = createClient(supabaseUrl, serviceRoleKey);
 
