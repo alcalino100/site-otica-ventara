@@ -100,6 +100,7 @@ export function AdminHeader() {
   const allNavModules = [
     { href: "/admin", label: "Dashboard", icon: LayoutDashboard, minRole: "editor", group: "overview" },
     { href: "/admin/metricas", label: "Métricas & UTMs", icon: BarChart3, minRole: "admin", group: "overview" },
+    { href: "/admin/marketing", label: "Pixel & Google Ads", icon: Radio, minRole: "admin", group: "overview" },
     { href: "/admin/produtos", label: "Produtos", icon: Package, minRole: "editor", group: "catalog" },
     { href: "/admin/lentes", label: "Lentes & Preços", icon: Eye, minRole: "editor", group: "catalog" },
     { href: "/admin/categorias", label: "Categorias", icon: FolderTree, minRole: "admin", group: "catalog" },

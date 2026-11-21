@@ -1,3 +1,4 @@
+import { dispatchPurchaseForOrder } from "@/lib/tracking/server";
 import { NextRequest, NextResponse } from "next/server";
 import { createAdminClient } from "@/lib/supabase/admin";
 import {
@@ -143,7 +144,7 @@ export async function POST(req: NextRequest) {
       const adminSupabase = createAdminClient();
       let query = adminSupabase
         .from("orders")
-        .select("id, reference_code, status, payment_gateway_id, total_in_cents, notes");
+        .select("id, reference_code, status, payment_gateway_id, total_in_cents, notes, customer_email, customer_phone");
       query = orderId ? query.eq("id", orderId) : query.eq("reference_code", orderReference as string);
 
       const { data: order, error: findError } = await query.maybeSingle();
@@ -181,6 +182,11 @@ export async function POST(req: NextRequest) {
           if (updateError) {
             console.error("Erro ao atualizar status do pedido no webhook:", updateError);
             return NextResponse.json({ error: "Falha ao atualizar pedido no banco." }, { status: 500 });
+          }
+
+          // Compra aprovada → evento Purchase pelo servidor (API de Conversões), sem nunca derrubar o webhook
+          if (newStatus === "paid") {
+            await dispatchPurchaseForOrder(adminSupabase, order);
           }
 
           // Estoque/cupom acompanham o resultado do pagamento

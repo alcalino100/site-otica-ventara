@@ -26,6 +26,7 @@ const SEGMENT_LABELS: Record<string, string> = {
   configuracoes: "Configurações Gerais",
   usuarios: "Usuários",
   metricas: "Métricas & UTMs",
+  marketing: "Pixel & Google Ads",
 };
 
 /**

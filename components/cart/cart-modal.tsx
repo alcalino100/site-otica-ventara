@@ -1,5 +1,6 @@
 "use client";
 
+import { trackEvent, getCheckoutTrackingContext } from "@/lib/tracking/client";
 import React, { useState, useEffect, useRef } from "react";
 import { motion, AnimatePresence } from "motion/react";
 import {
@@ -270,6 +271,12 @@ export function CartModal({
           const data = await res.json();
           if (data.is_paid || data.status === "paid") {
             if (pollingRef.current) clearInterval(pollingRef.current);
+            // Mesmo event_id do servidor (webhook) para a Meta deduplicar
+            void trackEvent("purchase", {
+              value: (createdOrder.total_in_cents ?? 0) / 100 || undefined,
+              eventId: `purchase_${createdOrder.id}`,
+              onceKey: `purchase_${createdOrder.id}`,
+            });
             onClearCart();
             setView("success");
           }
@@ -528,6 +535,23 @@ export function CartModal({
     return true;
   };
 
+  // Rastreamento: início do checkout (uma vez por abertura da tela de checkout)
+  const checkoutTrackedRef = useRef(false);
+  useEffect(() => {
+    if (!isOpen || view !== "checkout") {
+      if (view !== "checkout") checkoutTrackedRef.current = false;
+      return;
+    }
+    if (checkoutTrackedRef.current || items.length === 0) return;
+    checkoutTrackedRef.current = true;
+    void trackEvent("initiate_checkout", {
+      value: subtotalCents / 100,
+      numItems: items.reduce((n, it) => n + (it.quantity || 1), 0),
+      contentIds: items.map((it) => it.productId || it.id).slice(0, 20),
+    });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isOpen, view, items.length]);
+
   const handleNextStep = () => {
     if (validateStep(checkoutStep)) {
       if (checkoutStep < 4) {
@@ -552,6 +576,7 @@ export function CartModal({
 
     setIsSubmitting(true);
     setErrorMessage(null);
+    void trackEvent("add_payment_info", { value: totalCents / 100 });
 
     try {
       const itemsPayload = items.map((it) => {
@@ -594,6 +619,7 @@ export function CartModal({
           payment_method: paymentMethod,
           coupon_code: appliedCoupon ? appliedCoupon.code : undefined,
           items: itemsPayload,
+          tracking: getCheckoutTrackingContext(),
         }),
       });
 

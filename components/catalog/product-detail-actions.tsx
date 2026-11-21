@@ -1,5 +1,6 @@
 "use client";
 
+import { trackEvent } from "@/lib/tracking/client";
 import React, { useState, useEffect } from "react";
 import Link from "next/link";
 import Image from "next/image";
@@ -97,6 +98,11 @@ export function ProductDetailActions({
   // Preço único do produto (mesmo da listagem, do SEO e do checkout); o preço copiado nas cores pode estar velho.
   const activePriceInCents = product.price_in_cents;
   const activeCompareAtInCents = product.compare_at_price_in_cents;
+
+  // Rastreamento: visualização do produto (uma vez por produto aberto)
+  useEffect(() => {
+    void trackEvent("view_content", { value: product.price_in_cents / 100, contentIds: [product.id] });
+  }, [product.id, product.price_in_cents]);
 
   const pricing = formatProductPricing({
     price_in_cents: activePriceInCents,
@@ -230,6 +236,7 @@ export function ProductDetailActions({
     if (isOutOfStock) return;
     const item = createCartItem();
     const updated = addToCart(item);
+    void trackEvent("add_to_cart", { value: activePriceInCents / 100, contentIds: [product.id], numItems: 1 });
     setCartItems(updated);
     setIsAdded(true);
     if (onAddedNotification) {
@@ -245,6 +252,7 @@ export function ProductDetailActions({
     if (isOutOfStock) return;
     const item = createCartItem();
     const updated = addToCart(item);
+    void trackEvent("add_to_cart", { value: activePriceInCents / 100, contentIds: [product.id], numItems: 1 });
     setCartItems(updated);
     setCartModalView("checkout");
     setIsCartOpen(true);

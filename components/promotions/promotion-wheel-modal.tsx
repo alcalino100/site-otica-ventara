@@ -1,5 +1,6 @@
 "use client";
 
+import { trackEvent } from "@/lib/tracking/client";
 import React, { useState, useEffect, useRef } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -174,6 +175,7 @@ export function PromotionWheelModal({
         throw new Error((responseJson as any).error || "Não foi possível revelar seu benefício.");
       }
 
+      void trackEvent("lead");
       setResultData(responseJson);
       setTargetSegmentIndex(responseJson.winning_segment_index);
 
