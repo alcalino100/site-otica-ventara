@@ -6,6 +6,7 @@ import { Product, ProductVariant, ShippingAddress } from "@/types/ecommerce";
 import {
   createMercadoPagoPixPayment,
   createMercadoPagoPreference,
+  isPaymentMockAllowed,
 } from "@/lib/mercadopago";
 import { recordPaymentTransaction } from "@/lib/payment-audit";
 import crypto from "crypto";
@@ -214,6 +215,7 @@ export async function POST(req: NextRequest) {
     // 4.1 Validação e Aplicação de Cupom de Desconto
     let discountInCents = 0;
     let appliedCouponCode: string | null = null;
+    let consumedCouponId: string | null = null;
 
     if (body.coupon_code && body.coupon_code.trim()) {
       const codeClean = body.coupon_code.trim().toUpperCase();
@@ -246,6 +248,7 @@ export async function POST(req: NextRequest) {
                 used_by_operator: `Pedido Online (${body.customer_email})`,
               })
               .eq("id", couponRow.id);
+            consumedCouponId = couponRow.id;
           }
         } catch (err) {
           console.warn("Erro ao consultar cupom no Supabase:", err);
@@ -268,6 +271,21 @@ export async function POST(req: NextRequest) {
     }
 
     const totalInCents = Math.max(0, subtotalInCents + shippingFeeInCents - discountInCents);
+
+    // Se o pagamento não puder ser criado, cancela o pedido e devolve o cupom ao cliente
+    const abortOrder = async (reason: string) => {
+      if (!hasLiveDb) return;
+      await adminSupabase
+        .from("orders")
+        .update({ status: "cancelled", notes: [orderNotes, reason].filter(Boolean).join(" | "), updated_at: new Date().toISOString() })
+        .eq("id", orderId);
+      if (consumedCouponId) {
+        await adminSupabase
+          .from("promotion_coupons")
+          .update({ status: "issued", used_at: null, used_by_operator: null })
+          .eq("id", consumedCouponId);
+      }
+    };
 
     const referenceCode = generateOrderReference();
     const paymentMethod = body.payment_method || "pix";
@@ -358,7 +376,9 @@ export async function POST(req: NextRequest) {
         },
       });
 
-      if (hasLiveDb && pixResult.paymentId) {
+      const pixFailed = pixResult.isMock || Boolean(pixResult.errorMessage);
+
+      if (hasLiveDb && pixResult.paymentId && !pixFailed) {
         await adminSupabase
           .from("orders")
           .update({
@@ -391,6 +411,18 @@ export async function POST(req: NextRequest) {
           shipping: shippingFeeInCents,
         },
       });
+
+      // Nunca mostrar um Pix inventado ao cliente: falha real no Mercado Pago vira erro (só testes aceitam simulação)
+      if (pixFailed && !isPaymentMockAllowed()) {
+        await abortOrder("Falha ao gerar Pix no Mercado Pago");
+        return NextResponse.json(
+          {
+            error:
+              "Não conseguimos gerar o Pix agora. Tente novamente em instantes, escolha cartão ou finalize pelo WhatsApp.",
+          },
+          { status: 502 }
+        );
+      }
 
       paymentPayload = {
         ...paymentPayload,
@@ -453,7 +485,12 @@ export async function POST(req: NextRequest) {
       });
 
       // Falha real no Mercado Pago: não pode virar "sucesso" para o cliente (antes abria uma página falsa)
-      if (prefResult.errorMessage && String(prefResult.preferenceId || "").startsWith("PREF-ERR")) {
+      const prefFailed = prefResult.isMock && !isPaymentMockAllowed();
+      if (
+        prefFailed ||
+        (prefResult.errorMessage && String(prefResult.preferenceId || "").startsWith("PREF-ERR"))
+      ) {
+        await abortOrder("Falha ao abrir pagamento com cartão no Mercado Pago");
         return NextResponse.json(
           {
             error:

@@ -1,5 +1,6 @@
 import crypto from "crypto";
 import { createAdminClient } from "@/lib/supabase/admin";
+export { verifyMercadoPagoWebhookSignature } from "@/lib/mercadopago-signature";
 
 export interface MercadoPagoCredentials {
   accessToken: string | null;
@@ -374,14 +375,11 @@ export async function createMercadoPagoPreference(
         name: firstName,
         surname: lastName,
         email: input.customer.email.trim().toLowerCase(),
-        phone: {
-          area_code: cleanPhone.slice(0, 2) || "18",
-          number: cleanPhone.slice(2) || "996155748",
-        },
-        identification: {
-          type: "CPF",
-          number: cleanDoc.length === 11 ? cleanDoc : "00000000000",
-        },
+        // Só envia telefone/CPF quando válidos (valores falsos podem derrubar o pagamento no antifraude)
+        ...(cleanPhone.length >= 10
+          ? { phone: { area_code: cleanPhone.slice(0, 2), number: cleanPhone.slice(2) } }
+          : {}),
+        ...(cleanDoc.length === 11 ? { identification: { type: "CPF", number: cleanDoc } } : {}),
       },
       back_urls: {
         success: `${siteUrl}/rastreio?ref=${input.referenceCode}&status=success`,
@@ -469,45 +467,14 @@ export async function getMercadoPagoPayment(paymentId: string | number): Promise
 }
 
 /**
- * Validação de Assinatura Criptográfica Webhook Mercado Pago (x-signature)
- */
-export function verifyMercadoPagoWebhookSignature(
-  xSignatureHeader: string | null,
-  dataId: string | null,
-  secret: string | null
-): boolean {
-  if (!secret) return true; // Se o lojista não configurou secret, permite processar
-  if (!xSignatureHeader || !dataId) return false;
-
-  try {
-    // Formato do x-signature: ts=1700000000,v1=5349348923...
-    const parts = xSignatureHeader.split(",").reduce((acc, part) => {
-      const [key, val] = part.split("=");
-      if (key && val) acc[key.trim()] = val.trim();
-      return acc;
-    }, {} as Record<string, string>);
-
-    const ts = parts["ts"];
-    const v1 = parts["v1"];
-
-    if (!ts || !v1) return false;
-
-    const manifest = `id:${dataId};request-id:;ts:${ts};`;
-    const computed = crypto
-      .createHmac("sha256", secret)
-      .update(manifest)
-      .digest("hex");
-
-    return crypto.timingSafeEqual(Buffer.from(v1), Buffer.from(computed));
-  } catch {
-    return false;
-  }
-}
-
-/**
  * Gera string no padrão Pix Banco Central (EMVCo) estruturada para testes
  */
 function generateMockPixString(referenceCode: string, amount: number): string {
   const valStr = amount.toFixed(2);
   return `00020126580014BR.GOV.BCB.PIX0136${crypto.randomUUID()}520400005303986540${valStr}5802BR5914OTICAS VENTARA6009ARACATUBA62070503${referenceCode.slice(0, 10)}6304`;
+}
+
+/** Simulações (Pix/cartão de mentira) só em desenvolvimento ou nos testes automatizados — nunca em produção real. */
+export function isPaymentMockAllowed(): boolean {
+  return Boolean(process.env.PLAYWRIGHT_TEST) || process.env.NODE_ENV === "development";
 }
