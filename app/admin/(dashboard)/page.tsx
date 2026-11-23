@@ -18,6 +18,7 @@ import {
   FileSpreadsheet,
   Sparkles,
   TrendingUp,
+  BellRing,
   Search,
   Tag,
   Download,
@@ -243,6 +244,13 @@ export default function AdminDashboardOverview() {
       icon: TrendingUp,
       href: "/admin/metricas",
       actionText: "Ver Métricas",
+    },
+    {
+      title: "Recuperação & Avisos",
+      description: "Aviso por e-mail a cada venda e lista de carrinhos abandonados para trazer o cliente de volta.",
+      icon: BellRing,
+      href: "/admin/recuperacao",
+      actionText: "Abrir Recuperação",
     },
     {
       title: "Cupons de Desconto",

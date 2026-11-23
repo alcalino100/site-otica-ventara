@@ -1,5 +1,6 @@
 "use client";
 
+import { restoreCartFromToken } from "@/lib/cart-recovery-client";
 import React, { useState, useEffect } from "react";
 import dynamic from "next/dynamic";
 import { Header } from "../layout/header";
@@ -84,6 +85,20 @@ export function HomeClient({
   useEffect(() => {
     const loaded = getStoredCart();
     setCartItems(loaded);
+
+    // Link do e-mail de recuperação (/?retomar=TOKEN): devolve os itens e abre o carrinho
+    const token = new URLSearchParams(window.location.search).get("retomar");
+    if (token) {
+      void restoreCartFromToken(token, (items) => {
+        const current = getStoredCart();
+        const merged = [...current, ...items.filter((it) => !current.some((c) => c.id === it.id))];
+        saveStoredCart(merged);
+        setCartItems(getStoredCart());
+        setCartInitialView("items");
+        setIsCartOpen(true);
+      });
+      window.history.replaceState(null, "", window.location.pathname);
+    }
   }, []);
 
   // Tenta carregar produtos publicados do Supabase se existirem

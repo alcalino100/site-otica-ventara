@@ -28,6 +28,7 @@ const SEGMENT_LABELS: Record<string, string> = {
   metricas: "Métricas & UTMs",
   marketing: "Pixel & Google Ads",
   cupons: "Cupons",
+  recuperacao: "Recuperação & Avisos",
 };
 
 /**
