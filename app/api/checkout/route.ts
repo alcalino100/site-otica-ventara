@@ -1,3 +1,4 @@
+import { applyAdminCoupon, releaseAdminCouponForOrder } from "@/lib/coupons";
 import { NextRequest, NextResponse } from "next/server";
 import { rateLimit } from "@/lib/rate-limit";
 import { createAdminClient } from "@/lib/supabase/admin";
@@ -224,61 +225,93 @@ export async function POST(req: NextRequest) {
     const isPickup = body.delivery_type === "store_pickup" && storePickupEnabled;
     const shippingFeeInCents = isPickup || subtotalInCents >= freeShippingThreshold ? 0 : defaultShippingFee;
 
+    // IDs do pedido definidos antes do cupom: o uso do cupom já nasce ligado ao pedido
+    const referenceCode = generateOrderReference();
+    let orderId = crypto.randomUUID();
+
     // 4.1 Validação e Aplicação de Cupom de Desconto
     let discountInCents = 0;
     let appliedCouponCode: string | null = null;
-    let consumedCouponId: string | null = null;
+    let consumedCouponId: string | null = null; // cupom único da roleta
+    let adminCouponUsed = false; // cupom criado no admin (uso reservado em coupon_redemptions)
 
     if (body.coupon_code && body.coupon_code.trim()) {
       const codeClean = body.coupon_code.trim().toUpperCase();
 
       if (hasLiveDb) {
-        try {
-          const { data: couponRow } = await adminSupabase
-            .from("promotion_coupons")
-            .select("*")
-            .eq("code", codeClean)
-            .eq("status", "issued")
-            .maybeSingle();
-
-          if (couponRow && new Date(couponRow.expires_at) >= new Date()) {
-            appliedCouponCode = couponRow.code;
-            if (couponRow.benefit_type === "percentage") {
-              const pct = Number(couponRow.benefit_value) || 10;
-              discountInCents = Math.round((subtotalInCents * pct) / 100);
-            } else {
-              const valCents = Math.round((Number(couponRow.benefit_value) || 0) * 100);
-              discountInCents = Math.min(subtotalInCents, valCents);
-            }
-
-            // Marca cupom como utilizado
-            await adminSupabase
-              .from("promotion_coupons")
-              .update({
-                status: "used",
-                used_at: new Date().toISOString(),
-                used_by_operator: `Pedido Online (${body.customer_email})`,
-              })
-              .eq("id", couponRow.id);
-            consumedCouponId = couponRow.id;
+        // 1) Cupom criado no admin: limites e uso por cliente são checados de forma atômica no banco
+        const adminRes = await applyAdminCoupon(adminSupabase, {
+          code: codeClean,
+          subtotalCents: subtotalInCents,
+          email: body.customer_email,
+          phone: body.customer_phone,
+          document: body.customer_document,
+          orderId,
+          reference: referenceCode,
+        });
+        if (adminRes.found) {
+          if (!adminRes.ok) {
+            return NextResponse.json({ error: adminRes.message, coupon_error: adminRes.reason }, { status: 409 });
           }
-        } catch (err) {
-          console.warn("Erro ao consultar cupom no Supabase:", err);
+          appliedCouponCode = adminRes.code;
+          discountInCents = adminRes.discountInCents;
+          adminCouponUsed = true;
+        } else {
+          // 2) Cupom único da roleta
+          try {
+            const { data: couponRow } = await adminSupabase
+              .from("promotion_coupons")
+              .select("*")
+              .eq("code", codeClean)
+              .eq("status", "issued")
+              .maybeSingle();
+
+            if (couponRow && new Date(couponRow.expires_at) >= new Date()) {
+              appliedCouponCode = couponRow.code;
+              if (couponRow.benefit_type === "percentage") {
+                const pct = Number(couponRow.benefit_value) || 10;
+                discountInCents = Math.round((subtotalInCents * pct) / 100);
+              } else {
+                const valCents = Math.round((Number(couponRow.benefit_value) || 0) * 100);
+                discountInCents = Math.min(subtotalInCents, valCents);
+              }
+
+              // Marca cupom como utilizado (só se ainda estiver emitido: evita uso duplo simultâneo)
+              const { data: claimed } = await adminSupabase
+                .from("promotion_coupons")
+                .update({
+                  status: "used",
+                  used_at: new Date().toISOString(),
+                  used_by_operator: `Pedido Online (${body.customer_email})`,
+                })
+                .eq("id", couponRow.id)
+                .eq("status", "issued")
+                .select("id");
+              if (!claimed || claimed.length === 0) {
+                appliedCouponCode = null;
+                discountInCents = 0;
+              } else {
+                consumedCouponId = couponRow.id;
+              }
+            }
+          } catch (err) {
+            console.warn("Erro ao consultar cupom no Supabase:", err);
+          }
         }
       }
 
-      // Cupons promocionais oficiais de fallback
-      if (!appliedCouponCode) {
-        if (codeClean === "VENTARA10" || codeClean === "BEMVINDO10" || codeClean.startsWith("VEN-10")) {
+      // Códigos de teste (só em ambiente de teste/desenvolvimento; nunca em produção)
+      if (!appliedCouponCode && isPaymentMockAllowed()) {
+        const pct = /^(VENTARA|BEMVINDO)10$|^VEN-10/.test(codeClean) ? 10 : /^(VENTARA|BEMVINDO)15$|^VEN-15/.test(codeClean) ? 15 : /^VENTARA20$|^VEN-20/.test(codeClean) ? 20 : 0;
+        if (pct) {
           appliedCouponCode = codeClean;
-          discountInCents = Math.round((subtotalInCents * 10) / 100);
-        } else if (codeClean === "VENTARA15" || codeClean === "BEMVINDO15" || codeClean.startsWith("VEN-15")) {
-          appliedCouponCode = codeClean;
-          discountInCents = Math.round((subtotalInCents * 15) / 100);
-        } else if (codeClean === "VENTARA20" || codeClean.startsWith("VEN-20")) {
-          appliedCouponCode = codeClean;
-          discountInCents = Math.round((subtotalInCents * 20) / 100);
+          discountInCents = Math.round((subtotalInCents * pct) / 100);
         }
+      }
+
+      // Antes o site ignorava cupom inválido em silêncio; agora avisa o cliente
+      if (!appliedCouponCode) {
+        return NextResponse.json({ error: "Cupom inválido, expirado ou já utilizado.", coupon_error: "invalid" }, { status: 409 });
       }
     }
 
@@ -292,6 +325,7 @@ export async function POST(req: NextRequest) {
         .update({ status: "cancelled", notes: [orderNotes, reason].filter(Boolean).join(" | "), updated_at: new Date().toISOString() })
         .eq("id", orderId);
       await releaseStockForOrder(adminSupabase, referenceCode);
+      if (adminCouponUsed) await releaseAdminCouponForOrder(adminSupabase, orderId);
       if (consumedCouponId) {
         await adminSupabase
           .from("promotion_coupons")
@@ -300,11 +334,9 @@ export async function POST(req: NextRequest) {
       }
     };
 
-    const referenceCode = generateOrderReference();
     const paymentMethod = body.payment_method || "pix";
 
     // 5. Persistência do Pedido no Banco de Dados
-    let orderId = crypto.randomUUID();
 
     const orderNotes = [
       body.notes,
@@ -341,6 +373,10 @@ export async function POST(req: NextRequest) {
           console.warn("Tabela 'orders' ainda não criada no Supabase. Emitindo pedido com fallback.");
         } else {
           console.error("Erro ao registrar pedido:", orderErr);
+          if (adminCouponUsed) await releaseAdminCouponForOrder(adminSupabase, orderId);
+          if (consumedCouponId) {
+            await adminSupabase.from("promotion_coupons").update({ status: "issued", used_at: null, used_by_operator: null }).eq("id", consumedCouponId);
+          }
           return NextResponse.json(
             { error: "Falha ao gravar pedido no banco de dados." },
             { status: 500 }

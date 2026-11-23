@@ -210,6 +210,8 @@ export function CartModal({
     code: string;
     discountType: string;
     discountValue: number;
+    maxDiscountCents?: number | null;
+    minOrderCents?: number;
     message?: string;
   } | null>(null);
   const [isValidatingCoupon, setIsValidatingCoupon] = useState(false);
@@ -400,9 +402,12 @@ export function CartModal({
 
   // Cupom de Desconto
   let discountCents = 0;
-  if (appliedCoupon) {
+  // Pedido mínimo do cupom: abaixo dele o desconto não vale (o servidor também confere)
+  const couponBelowMinimum = !!appliedCoupon && subtotalCents < (appliedCoupon.minOrderCents || 0);
+  if (appliedCoupon && !couponBelowMinimum) {
     if (appliedCoupon.discountType === "percentage") {
       discountCents = Math.round((subtotalCents * appliedCoupon.discountValue) / 100);
+      if (appliedCoupon.maxDiscountCents) discountCents = Math.min(discountCents, appliedCoupon.maxDiscountCents);
     } else {
       discountCents = Math.min(
         subtotalCents,
@@ -448,7 +453,13 @@ export function CartModal({
       const res = await fetch("/api/checkout/validate-coupon", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ code }),
+        body: JSON.stringify({
+          code,
+          subtotal_cents: subtotalCents,
+          email: customerEmail.trim() || undefined,
+          phone: customerPhone.replace(/\D/g, "") || undefined,
+          document: customerDocument.replace(/\D/g, "") || undefined,
+        }),
       });
       const data = await res.json();
       if (data.valid) {
@@ -456,6 +467,8 @@ export function CartModal({
           code: data.code,
           discountType: data.discountType,
           discountValue: data.discountValue,
+          maxDiscountCents: data.maxDiscountCents ?? null,
+          minOrderCents: data.minOrderCents ?? 0,
           message: data.message,
         });
         setCouponFeedback({ type: "success", text: data.message });
@@ -617,7 +630,7 @@ export function CartModal({
           delivery_type: deliveryType,
           shipping_address: shippingAddress,
           payment_method: paymentMethod,
-          coupon_code: appliedCoupon ? appliedCoupon.code : undefined,
+          coupon_code: appliedCoupon && !couponBelowMinimum ? appliedCoupon.code : undefined,
           items: itemsPayload,
           tracking: getCheckoutTrackingContext(),
         }),
@@ -626,6 +639,7 @@ export function CartModal({
       const data = await res.json();
 
       if (!res.ok) {
+        if (data.coupon_error) setAppliedCoupon(null);
         setErrorMessage(data.error || "Não foi possível concluir o checkout. Tente novamente.");
         setIsSubmitting(false);
         return;
@@ -1282,7 +1296,9 @@ export function CartModal({
                           </span>
                           {appliedCoupon ? (
                             <span className="text-[10px] font-bold text-emerald-700 bg-emerald-100 px-2 py-0.5 rounded-full">
-                              {appliedCoupon.code} aplicado (-{discountFormatted})
+                              {couponBelowMinimum
+                                ? `${appliedCoupon.code}: vale a partir de ${((appliedCoupon.minOrderCents || 0) / 100).toLocaleString("pt-BR", { style: "currency", currency: "BRL" })}`
+                                : `${appliedCoupon.code} aplicado (-${discountFormatted})`}
                             </span>
                           ) : (
                             <button

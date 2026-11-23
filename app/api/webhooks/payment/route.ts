@@ -1,3 +1,4 @@
+import { confirmAdminCouponForOrder } from "@/lib/coupons";
 import { dispatchPurchaseForOrder } from "@/lib/tracking/server";
 import { NextRequest, NextResponse } from "next/server";
 import { createAdminClient } from "@/lib/supabase/admin";
@@ -8,7 +9,7 @@ import {
   verifyMercadoPagoWebhookSignature,
 } from "@/lib/mercadopago";
 import { updatePaymentTransactionStatus } from "@/lib/payment-audit";
-import { releaseStockForOrder, reserveStockForOrder, restoreCouponFromNotes } from "@/lib/stock-reservation";
+import { releaseStockForOrder, reserveStockForOrder, releaseCouponsForOrder } from "@/lib/stock-reservation";
 import crypto from "crypto";
 
 export const dynamic = "force-dynamic";
@@ -186,6 +187,7 @@ export async function POST(req: NextRequest) {
 
           // Compra aprovada → evento Purchase pelo servidor (API de Conversões), sem nunca derrubar o webhook
           if (newStatus === "paid") {
+            await confirmAdminCouponForOrder(adminSupabase, order.id);
             await dispatchPurchaseForOrder(adminSupabase, order);
           }
 
@@ -202,7 +204,7 @@ export async function POST(req: NextRequest) {
             }
           } else if (newStatus === "cancelled") {
             await releaseStockForOrder(adminSupabase, order.reference_code);
-            await restoreCouponFromNotes(adminSupabase, order.notes);
+            await releaseCouponsForOrder(adminSupabase, order);
           }
         } else {
           return NextResponse.json(
