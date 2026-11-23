@@ -245,6 +245,13 @@ export default function AdminDashboardOverview() {
       actionText: "Ver Métricas",
     },
     {
+      title: "Cupons de Desconto",
+      description: "Crie cupons com validade, limite de usos e pedido mínimo, e acompanhe quem usou.",
+      icon: Tag,
+      href: "/admin/cupons",
+      actionText: "Gerenciar Cupons",
+    },
+    {
       title: "Pixel Meta & Google Ads",
       description: "Conexões, eventos enviados (visualização, carrinho, compra) e auditoria do que foi disparado.",
       icon: TrendingUp,

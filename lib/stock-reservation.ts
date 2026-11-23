@@ -1,3 +1,4 @@
+import { releaseAdminCouponForOrder } from "@/lib/coupons";
 import type { createAdminClient } from "@/lib/supabase/admin";
 
 type Client = ReturnType<typeof createAdminClient>;
@@ -158,6 +159,12 @@ export async function restoreCouponFromNotes(client: Client, notes: string | nul
     .like("used_by_operator", "Pedido Online%");
 }
 
+/** Devolve o cupom do pedido, seja o único da roleta ou o criado no admin (uso reservado). */
+export async function releaseCouponsForOrder(client: Client, order: { id: string; notes?: string | null }): Promise<void> {
+  await restoreCouponFromNotes(client, order.notes);
+  await releaseAdminCouponForOrder(client, order.id);
+}
+
 /**
  * Cancela pedidos que ficaram sem pagamento além do prazo: devolve estoque e cupom.
  * Chamada de forma oportunista a cada novo checkout (não precisa de cron).
@@ -186,7 +193,7 @@ export async function expireStaleOrders(client: Client): Promise<number> {
       .select("id");
     if (!updated || updated.length === 0) continue; // pago no meio tempo
     await releaseStockForOrder(client, o.reference_code);
-    await restoreCouponFromNotes(client, o.notes);
+    await releaseCouponsForOrder(client, o);
     expired++;
   }
   return expired;

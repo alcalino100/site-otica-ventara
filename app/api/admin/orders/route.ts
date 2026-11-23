@@ -4,7 +4,7 @@ import { createAdminClient } from "@/lib/supabase/admin";
 import { isSupabaseConfigured } from "@/lib/supabase/server";
 import { revalidatePath } from "next/cache";
 import { DEMO_ORDERS, resetDemoOrders } from "@/lib/orders-tracker";
-import { releaseStockForOrder, restoreCouponFromNotes } from "@/lib/stock-reservation";
+import { releaseStockForOrder, releaseCouponsForOrder } from "@/lib/stock-reservation";
 import { isPaymentMockAllowed } from "@/lib/mercadopago";
 
 export const dynamic = "force-dynamic";
@@ -117,7 +117,7 @@ export async function PATCH(req: NextRequest) {
     // Busca pedido anterior para verificar mudança de status e itens
     const { data: currentOrder } = await adminSupabase
       .from("orders")
-      .select("status, reference_code, notes, items:order_items(*)")
+      .select("id, status, reference_code, notes, items:order_items(*)")
       .eq("id", id)
       .single();
 
@@ -125,7 +125,7 @@ export async function PATCH(req: NextRequest) {
     if (status === "cancelled" && currentOrder && currentOrder.status !== "cancelled" && currentOrder.reference_code) {
       try {
         await releaseStockForOrder(adminSupabase, currentOrder.reference_code);
-        await restoreCouponFromNotes(adminSupabase, currentOrder.notes);
+        await releaseCouponsForOrder(adminSupabase, currentOrder);
       } catch (invErr) {
         console.warn("Aviso ao estornar estoque no cancelamento:", invErr);
       }
@@ -416,7 +416,7 @@ export async function DELETE(req: NextRequest) {
 
     const { data: toDelete } = await adminSupabase
       .from("orders")
-      .select("reference_code, status, notes")
+      .select("id, reference_code, status, notes")
       .eq("id", id)
       .maybeSingle();
 
@@ -444,7 +444,7 @@ export async function DELETE(req: NextRequest) {
     try {
       if (toDelete && ["pending", "awaiting_payment"].includes(toDelete.status)) {
         await releaseStockForOrder(adminSupabase, toDelete.reference_code);
-        await restoreCouponFromNotes(adminSupabase, toDelete.notes);
+        await releaseCouponsForOrder(adminSupabase, toDelete);
       }
     } catch (err) {
       console.warn("Aviso ao devolver estoque antes de excluir pedido:", err);
