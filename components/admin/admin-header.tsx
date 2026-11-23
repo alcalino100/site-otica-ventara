@@ -28,6 +28,7 @@ import {
   Eye,
   Radio,
   Tag,
+  BellRing,
   FileText,
 } from "lucide-react";
 import { BrandLogo } from "@/components/ui/brand-logo";
@@ -101,6 +102,7 @@ export function AdminHeader() {
   const allNavModules = [
     { href: "/admin", label: "Dashboard", icon: LayoutDashboard, minRole: "editor", group: "overview" },
     { href: "/admin/metricas", label: "Métricas & UTMs", icon: BarChart3, minRole: "admin", group: "overview" },
+    { href: "/admin/recuperacao", label: "Recuperação & Avisos", icon: BellRing, minRole: "admin", group: "overview" },
     { href: "/admin/cupons", label: "Cupons", icon: Tag, minRole: "admin", group: "overview" },
     { href: "/admin/marketing", label: "Pixel & Google Ads", icon: Radio, minRole: "admin", group: "overview" },
     { href: "/admin/produtos", label: "Produtos", icon: Package, minRole: "editor", group: "catalog" },

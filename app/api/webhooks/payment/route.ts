@@ -1,6 +1,8 @@
+import { notifyOwnerOrder } from "@/lib/notifications";
+import { markCartsRecovered } from "@/lib/abandoned-carts";
 import { confirmAdminCouponForOrder } from "@/lib/coupons";
 import { dispatchPurchaseForOrder } from "@/lib/tracking/server";
-import { NextRequest, NextResponse } from "next/server";
+import { after, NextRequest, NextResponse } from "next/server";
 import { createAdminClient } from "@/lib/supabase/admin";
 import {
   getMercadoPagoCredentials,
@@ -188,7 +190,10 @@ export async function POST(req: NextRequest) {
           // Compra aprovada → evento Purchase pelo servidor (API de Conversões), sem nunca derrubar o webhook
           if (newStatus === "paid") {
             await confirmAdminCouponForOrder(adminSupabase, order.id);
+            await markCartsRecovered(adminSupabase, order);
             await dispatchPurchaseForOrder(adminSupabase, order);
+            // Aviso de venda ao proprietário (depois de responder ao Mercado Pago; idempotente)
+            after(() => notifyOwnerOrder(adminSupabase, order.id, "paid"));
           }
 
           // Estoque/cupom acompanham o resultado do pagamento

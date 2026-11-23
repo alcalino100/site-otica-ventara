@@ -1,5 +1,7 @@
+import { notifyOwnerOrder } from "@/lib/notifications";
+import { linkCartToOrder } from "@/lib/abandoned-carts";
 import { applyAdminCoupon, releaseAdminCouponForOrder } from "@/lib/coupons";
-import { NextRequest, NextResponse } from "next/server";
+import { after, NextRequest, NextResponse } from "next/server";
 import { rateLimit } from "@/lib/rate-limit";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { DEFAULT_CATALOG } from "@/lib/catalog-data";
@@ -32,6 +34,8 @@ interface CheckoutRequestBody {
   items: CheckoutItemInput[];
   /** Dados de rastreamento do navegador (só vale com consentimento de marketing) */
   tracking?: { fbp?: string; fbc?: string; consent?: boolean; url?: string };
+  /** Sessão do carrinho (recuperação de carrinho abandonado) */
+  cart_session?: string;
 }
 
 function generateOrderReference(): string {
@@ -402,6 +406,8 @@ export async function POST(req: NextRequest) {
 
       if (orderData) {
         orderId = orderData.id;
+        await linkCartToOrder(adminSupabase, body.cart_session, orderId);
+        after(() => notifyOwnerOrder(adminSupabase, orderId, "new"));
 
         // Gravação dos itens congelados com validação de UUIDs
         const isUuid = (val: any) =>

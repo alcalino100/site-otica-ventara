@@ -1,5 +1,6 @@
 "use client";
 
+import { captureCart, getCartSession, hasOptedOut, optOutOfReminders } from "@/lib/cart-recovery-client";
 import { trackEvent, getCheckoutTrackingContext } from "@/lib/tracking/client";
 import React, { useState, useEffect, useRef } from "react";
 import { motion, AnimatePresence } from "motion/react";
@@ -548,6 +549,18 @@ export function CartModal({
     return true;
   };
 
+  // Recuperação de carrinho: guarda o carrinho de quem informou contato (só com consentimento de marketing)
+  const [reminderOptOut, setReminderOptOut] = useState(false);
+  useEffect(() => {
+    if (!isOpen || items.length === 0) return;
+    const email = customerEmail.trim();
+    const phone = customerPhone.replace(/\D/g, "");
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(email) && phone.length < 10) return;
+    const t = setTimeout(() => void captureCart({ name: customerName.trim(), email, phone, items }), 2500);
+    return () => clearTimeout(t);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isOpen, items, customerName, customerEmail, customerPhone]);
+
   // Rastreamento: início do checkout (uma vez por abertura da tela de checkout)
   const checkoutTrackedRef = useRef(false);
   useEffect(() => {
@@ -633,6 +646,7 @@ export function CartModal({
           coupon_code: appliedCoupon && !couponBelowMinimum ? appliedCoupon.code : undefined,
           items: itemsPayload,
           tracking: getCheckoutTrackingContext(),
+          cart_session: getCartSession() || undefined,
         }),
       });
 
@@ -1090,6 +1104,27 @@ export function CartModal({
                             className="w-full bg-white border border-slate-300 rounded-xl px-3.5 py-2.5 text-slate-900 placeholder-slate-400 focus:outline-hidden focus:border-amber-500 text-xs font-mono"
                           />
                         </div>
+
+                        {/* Aviso de transparência (LGPD) sobre o lembrete de carrinho */}
+                        <p className="text-[11px] text-slate-500 leading-snug" data-testid="reminder-note">
+                          {reminderOptOut || hasOptedOut()
+                            ? "Combinado: não vamos enviar lembretes sobre este carrinho."
+                            : (
+                              <>
+                                Se você não concluir, podemos guardar seu carrinho para te lembrar por e-mail ou WhatsApp.{" "}
+                                <button
+                                  type="button"
+                                  onClick={() => {
+                                    setReminderOptOut(true);
+                                    void optOutOfReminders();
+                                  }}
+                                  className="underline text-amber-700 font-semibold"
+                                >
+                                  Não quero lembretes
+                                </button>
+                              </>
+                            )}
+                        </p>
                       </div>
                     </div>
                   )}
