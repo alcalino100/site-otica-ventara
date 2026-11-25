@@ -146,7 +146,7 @@ export function buildTrackingPayload(order: any): TrackedOrderResponse {
 
     case "paid":
       statusLabel = "Pagamento Confirmado";
-      statusDesc = "Pagamento aprovado com sucesso. Pedido em fila para validação técnica da receita médica e DNP.";
+      statusDesc = "Pagamento aprovado com sucesso. Suas lentes entram em processo de fabricação no laboratório, seguindo as especificações da sua receita.";
       currentStep = 1;
       break;
 
@@ -216,8 +216,8 @@ export function buildTrackingPayload(order: any): TrackedOrderResponse {
       timestamp: new Date(order.created_at || Date.now()).toLocaleDateString("pt-BR"),
     },
     {
-      title: "Triagem Técnica da Receita & DNP",
-      description: "Conferência milimétrica das dioptrias, DNP e prescrição com o Técnico Óptico.",
+      title: "Em processo de fabricação",
+      description: "Suas lentes estão sendo produzidas em laboratório, seguindo as especificações da sua receita.",
       status:
         currentStep > 1
           ? "completed"
@@ -323,7 +323,9 @@ export function buildTrackingPayload(order: any): TrackedOrderResponse {
       ? `https://rastreamento.correios.com.br/app/index.php?codigo=${cleanTrackingNumber}`
       : null,
     estimated_delivery: isPickup
-      ? "Disponível para retirada imediata no horário comercial (09h às 18h)"
+      ? order.status === "ready_for_pickup"
+        ? "Pronto para retirada · horário comercial (09h às 18h)"
+        : "Avisaremos você quando o pedido estiver pronto para retirada na loja"
       : "Previsão de entrega conforme prazo dos Correios",
     current_step_index: currentStep,
     timeline,
