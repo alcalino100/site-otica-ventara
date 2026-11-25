@@ -409,6 +409,7 @@ export async function POST(req: NextRequest) {
         orderId = orderData.id;
         await linkCartToOrder(adminSupabase, body.cart_session, orderId);
         after(() => notifyOwnerOrder(adminSupabase, orderId, "new"));
+        after(() => notifyCustomerOrder(adminSupabase, orderId, "pending"));
 
         // Gravação dos itens congelados com validação de UUIDs
         const isUuid = (val: any) =>

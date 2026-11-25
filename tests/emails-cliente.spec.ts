@@ -77,9 +77,25 @@ test("busca a foto principal do produto", async () => {
   expect(out[1].image_url).toBeFalsy();
 });
 
+test("aguardando pagamento: envia só se ligado e se o pedido ainda está sem pagar", async () => {
+  const calls: any[] = [];
+  expect(buildCustomerEmail("pending", order).subject).toContain("falta o pagamento");
+  await notifyCustomerOrder(fakeDb({ orders: [{ ...order, status: "pending" }] }), "o-1", "pending", okFetch(calls));
+  expect(calls.length).toBe(0); // desligado
+  const mk = (status: string) => fakeDb({ orders: [{ ...order, status }], notification_settings: on("customer_pending") });
+  await notifyCustomerOrder(mk("paid"), "o-1", "pending", okFetch(calls));
+  await notifyCustomerOrder(mk("cancelled"), "o-1", "pending", okFetch(calls));
+  expect(calls.length).toBe(0); // já pago/cancelado
+  const db = mk("awaiting_payment");
+  await notifyCustomerOrder(db, "o-1", "pending", okFetch(calls));
+  await notifyCustomerOrder(db, "o-1", "pending", okFetch(calls));
+  expect(calls.length).toBe(1);
+  expect(db.tables.email_log[0].kind).toBe("customer_pending");
+});
+
 test("padrão é tudo desligado", () => {
     const s = normalizeSettings({});
-    expect([s.customer_paid, s.customer_unpaid, s.customer_shipped]).toEqual([false, false, false]);
+    expect([s.customer_pending, s.customer_paid, s.customer_unpaid, s.customer_shipped]).toEqual([false, false, false, false]);
   });
 
   test("conteúdo dos 3 modelos, escapando HTML", () => {

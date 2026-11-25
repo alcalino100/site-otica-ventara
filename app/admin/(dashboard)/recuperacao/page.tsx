@@ -11,7 +11,7 @@ interface Cart {
   status: string; contacted_at: string | null; recovery_email_sent_at: string | null; recovered_at: string | null;
   recovered_value_cents: number | null; last_activity_at: string; state: "active" | "abandoned" | "recovered" | "unsubscribed";
 }
-interface Settings { owner_emails: string; notify_paid: boolean; notify_new_order: boolean; recovery_enabled: boolean; recovery_delay_hours: number; recovery_coupon_code: string; customer_paid: boolean; customer_unpaid: boolean; customer_shipped: boolean }
+interface Settings { owner_emails: string; notify_paid: boolean; notify_new_order: boolean; recovery_enabled: boolean; recovery_delay_hours: number; recovery_coupon_code: string; customer_pending: boolean; customer_paid: boolean; customer_unpaid: boolean; customer_shipped: boolean }
 interface Data {
   stats: { abandoned: number; abandoned_value_cents: number; recovered: number; recovered_value_cents: number; reachable: number };
   carts: Cart[]; settings: Settings; email_configured: boolean; cron_configured: boolean;
@@ -26,7 +26,7 @@ const ago = (iso: string) => {
   if (m < 60 * 24) return `há ${Math.floor(m / 60)} h`;
   return `há ${Math.floor(m / 1440)} d`;
 };
-const KIND: Record<string, string> = { sale_paid: "Venda paga", new_order: "Novo pedido", recovery: "Recuperação", test: "Teste", customer_paid: "Cliente: compra confirmada", customer_unpaid: "Cliente: sem pagamento", customer_shipped: "Cliente: pedido pronto/enviado" };
+const KIND: Record<string, string> = { sale_paid: "Venda paga", new_order: "Novo pedido", recovery: "Recuperação", test: "Teste", customer_pending: "Cliente: aguardando pagamento", customer_paid: "Cliente: compra confirmada", customer_unpaid: "Cliente: sem pagamento", customer_shipped: "Cliente: pedido pronto/enviado" };
 const field = "w-full rounded-lg border border-white/15 bg-black/30 px-3 py-2 text-sm text-white placeholder:text-slate-500 focus:border-amber-400 focus:outline-none";
 
 function Toggle({ on, onChange, label, testId }: { on: boolean; onChange: (v: boolean) => void; label: string; testId?: string }) {
@@ -216,8 +216,9 @@ export default function AdminRecuperacaoPage() {
           <h2 className="flex items-center gap-2 !text-lg !font-semibold text-white"><Mail className="h-5 w-5 text-amber-400" /> E-mails para o cliente</h2>
           <p className="text-sm text-slate-300">Mensagens automáticas enviadas ao comprador. Todas começam <b>desligadas</b>: veja a prévia, mande um exemplo para você e só então ligue.</p>
           {([
+            ["pending", "customer_pending", "Pedido recebido (aguardando pagamento)", "Logo depois que o cliente cria o pedido e ainda não pagou."],
             ["paid", "customer_paid", "Compra confirmada", "Quando o pagamento é aprovado."],
-            ["unpaid", "customer_unpaid", "Pedido sem pagamento", "Quando o pedido vence sem ser pago e é cancelado."],
+            ["unpaid", "customer_unpaid", "Pedido vencido sem pagamento", "Quando o pedido vence sem ser pago e é cancelado."],
             ["shipped", "customer_shipped", "Pedido pronto / despachado", "Quando você muda o status do pedido para enviado ou pronto para retirada."],
           ] as const).map(([kind, key, title, desc]) => (
             <div key={kind} className="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-white/10 bg-black/20 p-3">

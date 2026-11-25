@@ -12,6 +12,7 @@ export interface NotificationSettings {
   recovery_enabled: boolean;
   recovery_delay_hours: number;
   recovery_coupon_code: string;
+  customer_pending: boolean;
   customer_paid: boolean;
   customer_unpaid: boolean;
   customer_shipped: boolean;
@@ -27,6 +28,7 @@ export function normalizeSettings(row: Record<string, unknown> | null | undefine
     recovery_enabled: r.recovery_enabled === true,
     recovery_delay_hours: Number.isFinite(hours) && hours >= 1 && hours <= 72 ? Math.round(hours) : 2,
     recovery_coupon_code: typeof r.recovery_coupon_code === "string" ? r.recovery_coupon_code.trim().toUpperCase() : "",
+    customer_pending: r.customer_pending === true,
     customer_paid: r.customer_paid === true,
     customer_unpaid: r.customer_unpaid === true,
     customer_shipped: r.customer_shipped === true,
