@@ -67,7 +67,7 @@ export async function PUT(req: NextRequest) {
   if (String(b.owner_emails || "").trim() && !emails.length) return NextResponse.json({ error: "Nenhum e-mail válido informado." }, { status: 400 });
   if ((s.notify_paid || s.notify_new_order) && !emails.length) return NextResponse.json({ error: "Informe ao menos um e-mail para receber os avisos." }, { status: 400 });
   const { error } = await createAdminClient().from("notification_settings").upsert(
-    { id: "main", owner_emails: emails.join(", "), notify_paid: s.notify_paid, notify_new_order: s.notify_new_order, recovery_enabled: s.recovery_enabled, recovery_delay_hours: s.recovery_delay_hours, recovery_coupon_code: s.recovery_coupon_code || null, customer_paid: s.customer_paid, customer_unpaid: s.customer_unpaid, customer_shipped: s.customer_shipped, updated_at: new Date().toISOString() },
+    { id: "main", owner_emails: emails.join(", "), notify_paid: s.notify_paid, notify_new_order: s.notify_new_order, recovery_enabled: s.recovery_enabled, recovery_delay_hours: s.recovery_delay_hours, recovery_coupon_code: s.recovery_coupon_code || null, customer_pending: s.customer_pending, customer_paid: s.customer_paid, customer_unpaid: s.customer_unpaid, customer_shipped: s.customer_shipped, updated_at: new Date().toISOString() },
     { onConflict: "id" }
   );
   if (error) return NextResponse.json({ error: isMissing(error) ? MISSING : "Não foi possível salvar." }, { status: 500 });

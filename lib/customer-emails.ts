@@ -6,11 +6,11 @@ import { buildWhatsAppUrl } from "./whatsapp";
 type Db = any;
 type Fetch = typeof fetch;
 
-export type CustomerEmailKind = "paid" | "unpaid" | "shipped";
-export const CUSTOMER_KINDS: CustomerEmailKind[] = ["paid", "unpaid", "shipped"];
+export type CustomerEmailKind = "pending" | "paid" | "unpaid" | "shipped";
+export const CUSTOMER_KINDS: CustomerEmailKind[] = ["pending", "paid", "unpaid", "shipped"];
 
-const LOG_KIND: Record<CustomerEmailKind, string> = { paid: "customer_paid", unpaid: "customer_unpaid", shipped: "customer_shipped" };
-const SETTING: Record<CustomerEmailKind, keyof NotificationSettings> = { paid: "customer_paid", unpaid: "customer_unpaid", shipped: "customer_shipped" };
+const LOG_KIND: Record<CustomerEmailKind, string> = { pending: "customer_pending", paid: "customer_paid", unpaid: "customer_unpaid", shipped: "customer_shipped" };
+const SETTING: Record<CustomerEmailKind, keyof NotificationSettings> = { pending: "customer_pending", paid: "customer_paid", unpaid: "customer_unpaid", shipped: "customer_shipped" };
 
 export interface CustomerOrder {
   id: string;
@@ -76,6 +76,25 @@ export function buildCustomerEmail(kind: CustomerEmailKind, order: CustomerOrder
   const ref = order.reference_code || order.id.slice(0, 8);
   const pickup = order.delivery_type === "store_pickup";
   const track = `${siteUrl()}/rastreio`;
+
+  if (kind === "pending") {
+    const pix = order.payment_method === "pix";
+    const html = layout(
+      "Recebemos seu pedido!",
+      p(hello(order)) +
+        p(`Seu pedido <b>${esc(ref)}</b> foi criado e está <b>aguardando o pagamento</b>${pix ? " via Pix" : ""}.`) +
+        itemsTable(order) +
+        p(pix ? "Os itens ficam reservados para você por alguns minutos. Se o código Pix expirou, é só refazer o pedido pelo site." : "Os itens ficam reservados para você por algumas horas. Finalize o pagamento para garantir a compra.") +
+        btn(track, "Ver meu pedido") +
+        p(`<span style="font-size:13px;color:#6b7280">Já pagou? Ignore este e-mail: você recebe a confirmação assim que o pagamento for reconhecido.</span>`).replace("margin:0 0 12px", "margin:16px 0 0"),
+      footer()
+    );
+    return {
+      subject: oneLine(`Recebemos seu pedido ${ref} — falta o pagamento`),
+      html,
+      text: `Recebemos seu pedido ${ref} (${brl(order.total_in_cents)}). Ele aguarda o pagamento.\nAcompanhe: ${track}`,
+    };
+  }
 
   if (kind === "paid") {
     const method = METHOD_LABEL[order.payment_method || ""] || "";
@@ -152,11 +171,13 @@ export async function notifyCustomerOrder(db: Db, orderId: string, kind: Custome
     if (settings[SETTING[kind]] !== true) return;
     const { data: order } = await db
       .from("orders")
-      .select("id, reference_code, customer_name, customer_email, total_in_cents, payment_method, delivery_type, items:order_items(product_id, product_name, color_name, quantity, unit_price_in_cents)")
+      .select("id, status, reference_code, customer_name, customer_email, total_in_cents, payment_method, delivery_type, items:order_items(product_id, product_name, color_name, quantity, unit_price_in_cents)")
       .eq("id", orderId)
       .maybeSingle();
     const to = String(order?.customer_email || "").trim();
     if (!order || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(to)) return;
+    // "Aguardando pagamento" só faz sentido se o pedido ainda não foi pago nem cancelado
+    if (kind === "pending" && !["pending", "awaiting_payment"].includes(String(order.status))) return;
     const full = { ...order, items: await attachItemImages(db, order.items || []) };
     await sendOnce(db, LOG_KIND[kind], orderId, [to], () => buildCustomerEmail(kind, full), fetchImpl);
   } catch (e) {

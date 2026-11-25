@@ -2,6 +2,8 @@ import { NextRequest, NextResponse } from "next/server";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { loadNotificationSettings, sendRecoveryEmail, type CartRow } from "@/lib/notifications";
 import { isEmailConfigured } from "@/lib/email";
+import { expireStaleOrders } from "@/lib/stock-reservation";
+import { notifyCustomerOrder } from "@/lib/customer-emails";
 
 export const dynamic = "force-dynamic";
 export const maxDuration = 60;
@@ -20,7 +22,16 @@ export async function GET(req: NextRequest) {
   }
   const db = createAdminClient();
   const settings = await loadNotificationSettings(db);
-  const result = { sent: 0, failed: 0, skipped: 0, purged: 0, enabled: settings.recovery_enabled };
+  // Vence pedidos sem pagamento (libera estoque/cupom) e avisa o cliente, sem depender de novos checkouts
+  const expiredIds: string[] = [];
+  let expired = 0;
+  try {
+    expired = await expireStaleOrders(db, (id) => expiredIds.push(id));
+    await Promise.all(expiredIds.map((id) => notifyCustomerOrder(db, id, "unpaid")));
+  } catch (e) {
+    console.warn("[cron] expirar pedidos:", e instanceof Error ? e.message : e);
+  }
+  const result = { expired, sent: 0, failed: 0, skipped: 0, purged: 0, enabled: settings.recovery_enabled };
 
   if (settings.recovery_enabled && isEmailConfigured()) {
     const now = Date.now();
