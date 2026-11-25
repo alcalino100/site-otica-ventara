@@ -44,6 +44,12 @@ export async function loadNotificationSettings(db: Db): Promise<NotificationSett
   }
 }
 
+/** A tabela orders não tem coluna delivery_type: a retirada fica nas notas ou no endereço. */
+export function deliveryTypeOf(o: { notes?: string | null; shipping_address?: { delivery_type?: string } | null }): "store_pickup" | "delivery" {
+  const t = o.shipping_address?.delivery_type;
+  return /RETIRADA NA LOJA/i.test(o.notes || "") || t === "pickup" || t === "store_pickup" ? "store_pickup" : "delivery";
+}
+
 export const siteUrl = () => (process.env.NEXT_PUBLIC_SITE_URL || DEFAULT_SITE_URL).replace(/\/$/, "");
 
 async function logEmail(db: Db, row: { kind: string; ref: string | null; to_email: string; status: "sent" | "failed" | "skipped"; error?: string | null }) {
@@ -140,10 +146,11 @@ export async function notifyOwnerOrder(db: Db, orderId: string, kind: "paid" | "
     if (!recipients.length) return;
     const { data: order } = await db
       .from("orders")
-      .select("id, reference_code, customer_name, customer_email, customer_phone, total_in_cents, payment_method, delivery_type, items:order_items(product_name, quantity, unit_price_in_cents)")
+      .select("id, reference_code, customer_name, customer_email, customer_phone, total_in_cents, payment_method, notes, shipping_address, items:order_items(product_name, quantity, unit_price_in_cents)")
       .eq("id", orderId)
       .maybeSingle();
     if (!order) return;
+    order.delivery_type = deliveryTypeOf(order);
     await sendOnce(db, kind === "paid" ? "sale_paid" : "new_order", orderId, recipients, () => buildSaleEmail(order, order.items || [], kind), fetchImpl);
   } catch (e) {
     console.warn("[avisos] notifyOwnerOrder:", e instanceof Error ? e.message : e);

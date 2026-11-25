@@ -14,8 +14,10 @@ function fakeDb(seed: Record<string, Row[]> = {}) {
       let op: "select" | "update" | "delete" | "upsert" = "select";
       let patch: any = null;
       let conflict = "";
+      let broken = false;
       const api: any = {
-        select: () => api,
+        // Como o Postgres: pedir coluna que não existe em orders derruba a consulta (data = null)
+        select: (cols?: string) => ((broken = name === "orders" && /delivery_type/.test(cols || "")), api),
         update: (p: Row) => ((op = "update"), (patch = p), api),
         delete: () => ((op = "delete"), api),
         upsert: (p: Row | Row[], o?: { onConflict?: string }) => ((op = "upsert"), (patch = p), (conflict = o?.onConflict || ""), api),
@@ -25,7 +27,7 @@ function fakeDb(seed: Record<string, Row[]> = {}) {
         is: (k: string, v: any) => (filters.push((r) => (r[k] ?? null) === v), api),
         in: (k: string, v: any[]) => (filters.push((r) => v.includes(r[k])), api),
         limit: () => api,
-        maybeSingle: async () => ({ data: tables[name].filter((r) => filters.every((f) => f(r)))[0] ?? null }),
+        maybeSingle: async () => ({ data: broken ? null : tables[name].filter((r) => filters.every((f) => f(r)))[0] ?? null }),
         then: (res: any) => {
           const hit = tables[name].filter((r) => filters.every((f) => f(r)));
           if (op === "update") hit.forEach((r) => Object.assign(r, patch));
@@ -91,6 +93,14 @@ test("aguardando pagamento: envia só se ligado e se o pedido ainda está sem pa
   await notifyCustomerOrder(db, "o-1", "pending", okFetch(calls));
   expect(calls.length).toBe(1);
   expect(db.tables.email_log[0].kind).toBe("customer_pending");
+});
+
+test("pedido de retirada é reconhecido pelas notas, sem coluna delivery_type", async () => {
+  const calls: any[] = [];
+  const db = fakeDb({ orders: [{ ...order, status: "paid", notes: "[RETIRADA NA LOJA] cliente retira", delivery_type: undefined }], notification_settings: on("customer_shipped") });
+  await notifyCustomerOrder(db, "o-1", "shipped", okFetch(calls));
+  expect(calls.length).toBe(1);
+  expect(calls[0].body.subject).toContain("retirada");
 });
 
 test("padrão é tudo desligado", () => {

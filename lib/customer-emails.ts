@@ -1,5 +1,5 @@
 import { BRAND, brl, esc, layout, oneLine, isEmailConfigured, sendEmail, type SendResult } from "./email";
-import { loadNotificationSettings, siteUrl, sendOnce, type NotificationSettings } from "./notifications";
+import { deliveryTypeOf, loadNotificationSettings, siteUrl, sendOnce, type NotificationSettings } from "./notifications";
 import { buildWhatsAppUrl } from "./whatsapp";
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -171,14 +171,14 @@ export async function notifyCustomerOrder(db: Db, orderId: string, kind: Custome
     if (settings[SETTING[kind]] !== true) return;
     const { data: order } = await db
       .from("orders")
-      .select("id, status, reference_code, customer_name, customer_email, total_in_cents, payment_method, delivery_type, items:order_items(product_id, product_name, color_name, quantity, unit_price_in_cents)")
+      .select("id, status, reference_code, customer_name, customer_email, total_in_cents, payment_method, notes, shipping_address, items:order_items(product_id, product_name, color_name, quantity, unit_price_in_cents)")
       .eq("id", orderId)
       .maybeSingle();
     const to = String(order?.customer_email || "").trim();
     if (!order || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(to)) return;
     // "Aguardando pagamento" só faz sentido se o pedido ainda não foi pago nem cancelado
     if (kind === "pending" && !["pending", "awaiting_payment"].includes(String(order.status))) return;
-    const full = { ...order, items: await attachItemImages(db, order.items || []) };
+    const full = { ...order, delivery_type: deliveryTypeOf(order), items: await attachItemImages(db, order.items || []) };
     await sendOnce(db, LOG_KIND[kind], orderId, [to], () => buildCustomerEmail(kind, full), fetchImpl);
   } catch (e) {
     console.warn("[avisos] notifyCustomerOrder:", e instanceof Error ? e.message : e);
