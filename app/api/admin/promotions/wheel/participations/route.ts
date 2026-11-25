@@ -15,7 +15,7 @@ export async function GET(req: NextRequest) {
     const search = searchParams.get("search") || undefined;
     const status = (searchParams.get("status") as CouponStatus | "all") || "all";
     const page = parseInt(searchParams.get("page") || "1", 10);
-    const pageSize = parseInt(searchParams.get("pageSize") || "10", 10);
+    const pageSize = Math.min(parseInt(searchParams.get("pageSize") || "10", 10) || 10, 1000);
 
     const [participationsData, metrics] = await Promise.all([
       PromotionService.getParticipations({ search, status, page, pageSize }),

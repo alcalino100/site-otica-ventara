@@ -12,6 +12,20 @@ import {
 } from "@/types/promotion-wheel";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { isSupabaseConfigured } from "@/lib/supabase/client";
+import { findExisting, loadAllRecords, markContacted, redeemByCode, saveParticipation, type WheelRecord } from "./wheel-store";
+
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+let testDb: any = null;
+/** Só para testes: injeta um banco falso. */
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+export const __setWheelDbForTests = (db: any) => { testDb = db; };
+
+/** Banco real (service role) quando configurado; senão null e o fluxo usa a memória (dev/CI). */
+function liveDb() {
+  if (testDb) return testDb;
+  if (!isSupabaseConfigured() || !process.env.SUPABASE_SERVICE_ROLE_KEY) return null;
+  try { return createAdminClient(); } catch { return null; }
+}
 
 // Armazenamento em memória (fallback seguro quando Supabase não estiver configurado ou em ambiente de desenvolvimento)
 let inMemoryCampaignConfig: PromotionCampaignConfig = { ...DEFAULT_PROMOTION_CONFIG };
@@ -46,6 +60,21 @@ export function generateCouponCode(prefix = "VENTARA-10"): string {
 /**
  * Camada de Serviço para Roleta e Campanhas
  */
+async function loadAll(): Promise<WheelRecord[]> {
+  const db = liveDb();
+  if (db) {
+    try {
+      const rows = await loadAllRecords(db);
+      // junta o que ficou só em memória (caso de falha de gravação)
+      const known = new Set(rows.map((r) => r.coupon_code));
+      return [...rows, ...inMemoryParticipations.filter((p) => !known.has(p.coupon_code))];
+    } catch (e) {
+      console.error("[roleta] leitura do banco falhou, usando memória:", e instanceof Error ? e.message : e);
+    }
+  }
+  return [...inMemoryParticipations];
+}
+
 export const PromotionService = {
   /**
    * Obtém a configuração pública e sanitizada da campanha ativa
@@ -241,12 +270,19 @@ export const PromotionService = {
     }
 
     // 3. Verificação de participação prévia (Deduplicação por telefone normalizado e campanha)
-    const existing = inMemoryParticipations.find(
-      (p) =>
-        p.campaign_id === campaign.id &&
-        (p.lead_phone_normalized === normalizedPhone ||
-          p.lead_phone_masked === maskPhoneForDisplay(normalizedPhone))
-    );
+    const db = liveDb();
+    let existing: PromotionParticipation | null | undefined = null;
+    if (db) {
+      try { existing = await findExisting(db, campaign.id, normalizedPhone); } catch (e) { console.error("[roleta] busca de participação:", e); }
+    }
+    if (!existing) {
+      existing = inMemoryParticipations.find(
+        (p) =>
+          p.campaign_id === campaign.id &&
+          (p.lead_phone_normalized === normalizedPhone ||
+            p.lead_phone_masked === maskPhoneForDisplay(normalizedPhone))
+      );
+    }
 
     if (existing && campaign.triggers.single_entry_per_campaign) {
       // Resposta neutra que devolve o benefício sem duplicar cupons
@@ -331,7 +367,17 @@ export const PromotionService = {
       created_at: new Date().toISOString(),
     };
 
-    inMemoryParticipations.unshift(participationRecord);
+    // Persistência: grava no banco (lead + cupom). Se falhar, mantém em memória para o cliente não ficar sem o cupom.
+    let persisted = false;
+    if (db) {
+      try {
+        await saveParticipation(db, participationRecord, payload.marketingOptIn === true);
+        persisted = true;
+      } catch (e) {
+        console.error("[roleta] falha ao gravar participação no banco:", e instanceof Error ? e.message : e);
+      }
+    }
+    if (!persisted) inMemoryParticipations.unshift(participationRecord);
 
     return {
       success: true,
@@ -379,7 +425,7 @@ export const PromotionService = {
     page: number;
     totalPages: number;
   }> {
-    let list = [...inMemoryParticipations];
+    let list: WheelRecord[] = await loadAll();
 
     if (params?.search) {
       const q = params.search.toLowerCase();
@@ -387,7 +433,8 @@ export const PromotionService = {
         (p) =>
           p.lead_name.toLowerCase().includes(q) ||
           p.coupon_code.toLowerCase().includes(q) ||
-          p.lead_phone_masked.includes(q)
+          p.lead_phone_masked.includes(q) ||
+          (p.lead_phone_normalized || "").includes(q.replace(/\D/g, "") || "\u0000")
       );
     }
 
@@ -410,10 +457,27 @@ export const PromotionService = {
     };
   },
 
+  /** Marca/desmarca que o lead já foi contatado (controle de recuperação). */
+  async setLeadContacted(leadId: string, contacted: boolean): Promise<void> {
+    const db = liveDb();
+    if (db) return markContacted(db, leadId, contacted);
+    const hit = inMemoryParticipations.filter((p) => p.lead_id === leadId);
+    for (const p of hit) p.contacted_at = contacted ? new Date().toISOString() : null;
+  },
+
   /**
    * Resgata um cupom manualmente no balcão da loja física
    */
   async redeemCoupon(code: string, operatorName: string): Promise<PromotionParticipation> {
+    const db = liveDb();
+    if (db) {
+      try {
+        return await redeemByCode(db, code, operatorName);
+      } catch (e) {
+        if (!(e instanceof Error) || !/não localizado/.test(e.message)) throw e;
+        // não achou no banco: tenta a memória abaixo
+      }
+    }
     const item = inMemoryParticipations.find((p) => p.coupon_code.toUpperCase() === code.trim().toUpperCase());
     if (!item) {
       throw new Error("Cupom não localizado.");
@@ -440,9 +504,10 @@ export const PromotionService = {
    * Resumo de métricas analíticas da promoção
    */
   async getMetricsSummary(): Promise<PromotionMetricsSummary> {
-    const totalSubmissions = inMemoryParticipations.length;
-    const totalCouponsIssued = inMemoryParticipations.filter((p) => p.coupon_status !== "cancelled").length;
-    const totalCouponsUsed = inMemoryParticipations.filter((p) => p.coupon_status === "used").length;
+    const all = await loadAll();
+    const totalSubmissions = all.length;
+    const totalCouponsIssued = all.filter((p) => p.coupon_status !== "cancelled").length;
+    const totalCouponsUsed = all.filter((p) => p.coupon_status === "used").length;
 
     const conversionRate = inMemoryOpens > 0 ? (totalSubmissions / inMemoryOpens) * 100 : 0;
     const redemptionRate = totalCouponsIssued > 0 ? (totalCouponsUsed / totalCouponsIssued) * 100 : 0;
@@ -474,9 +539,15 @@ export const PromotionService = {
       "Data Emissão",
       "Data Resgate",
       "Operador Resgate",
+      "Telefone completo",
+      "Aceita marketing",
+      "Já comprou",
+      "Contatado em",
+      "Validade do cupom",
     ];
 
-    const rows = inMemoryParticipations.map((p) => {
+    const all = await loadAll();
+    const rows = all.map((p) => {
       // Protege contra formula injection em Excel (=, +, -, @)
       const sanitize = (val: string | null | undefined) => {
         if (!val) return '""';
@@ -499,6 +570,11 @@ export const PromotionService = {
         sanitize(new Date(p.created_at).toLocaleString("pt-BR")),
         sanitize(p.used_at ? new Date(p.used_at).toLocaleString("pt-BR") : ""),
         sanitize(p.used_by_operator || ""),
+        sanitize(p.lead_phone_normalized || ""),
+        sanitize(p.marketing_opt_in ? "sim" : "não"),
+        sanitize(p.purchased ? "sim" : "não"),
+        sanitize(p.contacted_at ? new Date(p.contacted_at).toLocaleString("pt-BR") : ""),
+        sanitize(p.coupon_expires_at ? new Date(p.coupon_expires_at).toLocaleDateString("pt-BR") : ""),
       ].join(",");
     });
 
