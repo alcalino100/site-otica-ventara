@@ -4,6 +4,9 @@
 
 const ALLOWED_WIDTHS = [64, 96, 128, 256, 384, 640, 750, 828, 1080, 1200, 1920] as const;
 
+/** Qualidade do WebP/AVIF entregue. 75 deixava fotos de armação com aspecto lavado/borrado; 85 mantém nitidez sem pesar. */
+export const IMAGE_QUALITY = 85;
+
 function pickWidth(w: number): number {
   return ALLOWED_WIDTHS.find((x) => x >= w) ?? ALLOWED_WIDTHS[ALLOWED_WIDTHS.length - 1];
 }
@@ -18,7 +21,7 @@ export function canOptimize(src?: string | null): src is string {
 
 export function optimizedSrc(src: string, width: number): string {
   if (!canOptimize(src)) return src;
-  return `/_next/image?url=${encodeURIComponent(src)}&w=${pickWidth(width)}&q=75`;
+  return `/_next/image?url=${encodeURIComponent(src)}&w=${pickWidth(width)}&q=${IMAGE_QUALITY}`;
 }
 
 /** Props prontas para <img>: src de tamanho médio + srcSet responsivo. Combine com `sizes`. */

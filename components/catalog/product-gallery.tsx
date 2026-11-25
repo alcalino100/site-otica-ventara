@@ -284,7 +284,7 @@ export function ProductGallery({ product, overrideImage: rawOverrideImage }: Pro
               style={adminFraming ? { scale: adminFraming.scale, transformOrigin: adminFraming.origin } : undefined}
             >
             <img
-              {...optimizedImgProps(activeImage, [640, 828, 1080, 1200])}
+              {...optimizedImgProps(activeImage, [828, 1080, 1200, 1920])}
               sizes="(min-width: 1024px) 50vw, 100vw"
               alt={images[activeIdx]?.alt_text || product.name}
               data-testid="pdp-main-image"

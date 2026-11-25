@@ -1,5 +1,6 @@
 "use client";
 
+import { isGrauOuClipon } from "@/lib/frame-material";
 import React, { useState, useMemo, useEffect } from "react";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
@@ -193,10 +194,10 @@ export function ArmacoesView({
     return {
       all: initialProducts.length,
       "grau-feminino": initialProducts.filter(
-        (p) => p.frame_type === "Grau" && (p.gender === "Feminino" || p.gender === "Unissex")
+        (p) => isGrauOuClipon(p.frame_type) && (p.gender === "Feminino" || p.gender === "Unissex")
       ).length,
       "grau-masculino": initialProducts.filter(
-        (p) => p.frame_type === "Grau" && (p.gender === "Masculino" || p.gender === "Unissex")
+        (p) => isGrauOuClipon(p.frame_type) && (p.gender === "Masculino" || p.gender === "Unissex")
       ).length,
       solar: initialProducts.filter((p) => p.frame_type === "Solar").length,
       infantil: initialProducts.filter((p) => p.gender === "Infantil").length,
@@ -214,11 +215,11 @@ export function ArmacoesView({
       .filter((product) => {
         // A. Categoria Principal
         if (activeCategory === "grau-feminino") {
-          const isGrau = product.frame_type === "Grau";
+          const isGrau = isGrauOuClipon(product.frame_type);
           const isFem = product.gender === "Feminino" || product.gender === "Unissex";
           if (!isGrau || !isFem) return false;
         } else if (activeCategory === "grau-masculino") {
-          const isGrau = product.frame_type === "Grau";
+          const isGrau = isGrauOuClipon(product.frame_type);
           const isMasc = product.gender === "Masculino" || product.gender === "Unissex";
           if (!isGrau || !isMasc) return false;
         } else if (activeCategory === "solar") {

@@ -87,7 +87,7 @@ export function CardImageGallery({
         {currentImg?.url && !isCurrentFailed ? (
           /* eslint-disable-next-line @next/next/no-img-element */
           <img
-            {...optimizedImgProps(currentImg.url, [384, 640, 828])}
+            {...optimizedImgProps(currentImg.url, [384, 640, 828, 1080])}
             sizes="(min-width: 1024px) 25vw, (min-width: 640px) 33vw, 50vw"
             alt={currentImg.alt_text || `${productName} foto`}
             onError={() => {

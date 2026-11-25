@@ -63,3 +63,6 @@ export function normalizeFrameShape(raw: unknown): FrameShape | null {
 }
 
 export const FRAME_SHAPE_OPTIONS: Array<{ value: FrameShape; label: string }> = FRAME_SHAPES.map((value) => ({ value, label: value }));
+
+/** Clip-on é armação de grau com lente solar acoplável: entra em Grau Feminino/Masculino também. */
+export const isGrauOuClipon = (t?: string | null) => t === "Grau" || t === "Clip-on";

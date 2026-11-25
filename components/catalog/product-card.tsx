@@ -93,7 +93,7 @@ export function ProductCard({
       >
         {currentImageUrl ? (
           <img
-            {...optimizedImgProps(currentImageUrl, [384, 640, 828])}
+            {...optimizedImgProps(currentImageUrl, [384, 640, 828, 1080])}
             sizes="(min-width: 1024px) 25vw, (min-width: 640px) 33vw, 50vw"
             alt={product.name}
             loading="lazy"
