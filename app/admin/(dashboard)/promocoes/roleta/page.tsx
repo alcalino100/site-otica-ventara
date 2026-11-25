@@ -34,6 +34,7 @@ import {
   PromotionMetricsSummary,
   CouponStatus,
 } from "@/types/promotion-wheel";
+import { buildWhatsAppUrl } from "@/lib/whatsapp";
 import { PromotionWheelModal } from "@/components/promotions/promotion-wheel-modal";
 
 export default function AdminPromotionWheelPage() {
@@ -53,6 +54,7 @@ export default function AdminPromotionWheelPage() {
   const [participations, setParticipations] = useState<PromotionParticipation[]>([]);
   const [metrics, setMetrics] = useState<PromotionMetricsSummary | null>(null);
   const [searchQuery, setSearchQuery] = useState("");
+  const [recFilter, setRecFilter] = useState<"recuperar" | "todos" | "contatados" | "compraram">("recuperar");
   const [statusFilter, setStatusFilter] = useState<CouponStatus | "all">("all");
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
@@ -72,7 +74,7 @@ export default function AdminPromotionWheelPage() {
       try {
         const [configRes, partRes] = await Promise.all([
           fetch("/api/admin/promotions/wheel"),
-          fetch("/api/admin/promotions/wheel/participations"),
+          fetch("/api/admin/promotions/wheel/participations?pageSize=1000"),
         ]);
 
         if (configRes.ok) {
@@ -171,7 +173,7 @@ export default function AdminPromotionWheelPage() {
       setRedeemCode("");
 
       // Atualiza lista local de participações
-      const partRes = await fetch("/api/admin/promotions/wheel/participations");
+      const partRes = await fetch("/api/admin/promotions/wheel/participations?pageSize=1000");
       if (partRes.ok) {
         const partData = await partRes.json();
         setParticipations(partData.items || []);
@@ -182,6 +184,38 @@ export default function AdminPromotionWheelPage() {
     } finally {
       setIsRedeeming(false);
     }
+  };
+
+  // Recuperação de leads: marcar contato e montar mensagem de WhatsApp
+  const toggleContacted = async (p: PromotionParticipation, on: boolean) => {
+    const res = await fetch("/api/admin/promotions/wheel/contacted", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ lead_id: p.lead_id, contacted: on }) });
+    if (res.ok) {
+      setParticipations((list) => list.map((x) => (x.lead_id === p.lead_id ? { ...x, contacted_at: on ? new Date().toISOString() : null } : x)));
+    } else {
+      const d = await res.json().catch(() => ({}));
+      notify("error", d.error || "Não foi possível salvar.");
+    }
+  };
+  const recoveryLink = (p: PromotionParticipation) => {
+    const first = (p.lead_name || "").trim().split(/\s+/)[0] || "";
+    const until = p.coupon_expires_at ? new Date(p.coupon_expires_at).toLocaleDateString("pt-BR") : "";
+    const msg = `Olá${first ? ", " + first : ""}! Aqui é da Óticas Ventara 👓 Seu cupom ${p.coupon_code} (${p.benefit_label}) está ativo${until ? " até " + until : ""}. Posso te ajudar a escolher sua armação?`;
+    return buildWhatsAppUrl(msg, p.lead_phone_normalized);
+  };
+  const isRecoverable = (p: PromotionParticipation) => p.coupon_status === "issued" && !p.purchased;
+  const visibleParticipations = participations.filter((p) => {
+    const q = searchQuery.trim().toLowerCase();
+    if (q && !(p.lead_name.toLowerCase().includes(q) || p.coupon_code.toLowerCase().includes(q) || (p.lead_phone_normalized || "").includes(q.replace(/\D/g, "") || "\u0000"))) return false;
+    if (recFilter === "recuperar") return isRecoverable(p) && !p.contacted_at;
+    if (recFilter === "contatados") return !!p.contacted_at;
+    if (recFilter === "compraram") return !!p.purchased;
+    return true;
+  });
+  const recCounts = {
+    recuperar: participations.filter((p) => isRecoverable(p) && !p.contacted_at).length,
+    todos: participations.length,
+    contatados: participations.filter((p) => !!p.contacted_at).length,
+    compraram: participations.filter((p) => !!p.purchased).length,
   };
 
   // Exportar Participações em CSV
@@ -1086,6 +1120,14 @@ export default function AdminPromotionWheelPage() {
                   </div>
                 </div>
 
+                <div className="flex flex-wrap gap-2" data-testid="rec-filters">
+                  {([["recuperar", "Para recuperar"], ["contatados", "Já contatados"], ["compraram", "Já compraram"], ["todos", "Todos"]] as const).map(([k, label]) => (
+                    <button key={k} type="button" data-testid={`rec-${k}`} onClick={() => setRecFilter(k)}
+                      className={`rounded-full border px-3 py-1 text-[11px] font-semibold transition-colors ${recFilter === k ? "border-amber-400 bg-amber-400/15 text-amber-300" : "border-white/10 text-slate-300 hover:bg-white/5"}`}>
+                      {label} <span className="ml-1 font-mono text-slate-400">{recCounts[k]}</span>
+                    </button>
+                  ))}
+                </div>
                 <div className="overflow-x-auto">
                   <table className="w-full text-left text-xs">
                     <thead>
@@ -1094,26 +1136,28 @@ export default function AdminPromotionWheelPage() {
                         <th className="py-2.5 px-3">WhatsApp</th>
                         <th className="py-2.5 px-3">Benefício</th>
                         <th className="py-2.5 px-3">Código Cupom</th>
-                        <th className="py-2.5 px-3">Data</th>
+                        <th className="py-2.5 px-3">Validade</th>
                         <th className="py-2.5 px-3">Status</th>
+                        <th className="py-2.5 px-3">Recuperar</th>
                       </tr>
                     </thead>
                     <tbody className="divide-y divide-white/5 text-slate-300">
-                      {participations.length === 0 ? (
+                      {visibleParticipations.length === 0 ? (
                         <tr>
-                          <td colSpan={6} className="py-8 text-center text-slate-500">
-                            Nenhuma participação registrada até o momento.
+                          <td colSpan={7} className="py-8 text-center text-slate-500">
+                            {participations.length === 0 ? "Nenhuma participação registrada até o momento." : "Nenhum lead neste filtro."}
                           </td>
                         </tr>
                       ) : (
-                        participations.map((p) => (
-                          <tr key={p.id} className="hover:bg-white/[0.02] transition-colors">
-                            <td className="py-3 px-3 font-medium text-white">{p.lead_name}</td>
-                            <td className="py-3 px-3 font-mono text-slate-400">{p.lead_phone_masked}</td>
+                        visibleParticipations.map((p) => (
+                          <tr key={p.id} data-testid={`lead-${p.coupon_code}`} className="hover:bg-white/[0.02] transition-colors">
+                            <td className="py-3 px-3 font-medium text-white">{p.lead_name}<br /><span className={`text-[10px] font-semibold ${p.marketing_opt_in ? "text-emerald-400" : "text-slate-500"}`}>{p.marketing_opt_in ? "aceitou receber ofertas" : "sem aceite de ofertas"}</span></td>
+                            <td className="py-3 px-3 font-mono text-slate-300">{p.lead_phone_normalized || p.lead_phone_masked}</td>
                             <td className="py-3 px-3 font-bold text-amber-400">{p.benefit_label}</td>
                             <td className="py-3 px-3 font-mono font-bold text-slate-200">{p.coupon_code}</td>
                             <td className="py-3 px-3 text-slate-400 text-[11px]">
-                              {new Date(p.created_at).toLocaleDateString("pt-BR")}
+                              {p.coupon_expires_at ? new Date(p.coupon_expires_at).toLocaleDateString("pt-BR") : "—"}<br />
+                              <span className="text-slate-500">girou em {new Date(p.created_at).toLocaleDateString("pt-BR")}</span>
                             </td>
                             <td className="py-3 px-3">
                               <span
@@ -1129,8 +1173,23 @@ export default function AdminPromotionWheelPage() {
                                   ? "Utilizado"
                                   : p.coupon_status === "issued"
                                   ? "Ativo"
+                                  : p.coupon_status === "expired"
+                                  ? "Vencido"
                                   : p.coupon_status}
                               </span>
+                              {p.purchased && <span className="mt-1 block text-[10px] font-semibold text-emerald-400">comprou</span>}
+                            </td>
+                            <td className="py-3 px-3">
+                              <div className="flex flex-wrap items-center gap-1.5">
+                                {p.lead_phone_normalized && !p.purchased && (
+                                  <a href={recoveryLink(p)} target="_blank" rel="noopener noreferrer" data-testid={`wa-${p.coupon_code}`} onClick={() => !p.contacted_at && toggleContacted(p, true)}
+                                    className="inline-flex items-center gap-1 rounded-lg bg-emerald-500/90 px-2.5 py-1 text-[11px] font-bold text-white hover:bg-emerald-400">WhatsApp</a>
+                                )}
+                                <button type="button" data-testid={`contacted-${p.coupon_code}`} onClick={() => toggleContacted(p, !p.contacted_at)}
+                                  className="rounded-lg border border-white/15 px-2 py-1 text-[11px] text-slate-300 hover:bg-white/5">
+                                  {p.contacted_at ? `Contatado ${new Date(p.contacted_at).toLocaleDateString("pt-BR")} · desfazer` : "Marcar contatado"}
+                                </button>
+                              </div>
                             </td>
                           </tr>
                         ))

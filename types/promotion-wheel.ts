@@ -412,6 +412,9 @@ export interface PromotionParticipation {
   created_at: string;
   used_at?: string | null;
   used_by_operator?: string | null;
+  marketing_opt_in?: boolean;
+  contacted_at?: string | null;
+  purchased?: boolean;
 }
 
 /**
