@@ -1,4 +1,5 @@
 import { notifyOwnerOrder } from "@/lib/notifications";
+import { notifyCustomerOrder } from "@/lib/customer-emails";
 import { linkCartToOrder } from "@/lib/abandoned-carts";
 import { applyAdminCoupon, releaseAdminCouponForOrder } from "@/lib/coupons";
 import { after, NextRequest, NextResponse } from "next/server";
@@ -103,7 +104,7 @@ export async function POST(req: NextRequest) {
     // Libera estoque/cupom de pedidos que ficaram sem pagamento além do prazo
     if (hasLiveDb) {
       try {
-        await expireStaleOrders(adminSupabase);
+        await expireStaleOrders(adminSupabase, (oid) => after(() => notifyCustomerOrder(adminSupabase, oid, "unpaid")));
       } catch (err) {
         console.warn("Falha ao expirar pedidos antigos:", err);
       }

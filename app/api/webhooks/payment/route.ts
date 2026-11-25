@@ -1,4 +1,5 @@
 import { notifyOwnerOrder } from "@/lib/notifications";
+import { notifyCustomerOrder } from "@/lib/customer-emails";
 import { markCartsRecovered } from "@/lib/abandoned-carts";
 import { confirmAdminCouponForOrder } from "@/lib/coupons";
 import { dispatchPurchaseForOrder } from "@/lib/tracking/server";
@@ -194,6 +195,7 @@ export async function POST(req: NextRequest) {
             await dispatchPurchaseForOrder(adminSupabase, order);
             // Aviso de venda ao proprietário (depois de responder ao Mercado Pago; idempotente)
             after(() => notifyOwnerOrder(adminSupabase, order.id, "paid"));
+            after(() => notifyCustomerOrder(adminSupabase, order.id, "paid"));
           }
 
           // Estoque/cupom acompanham o resultado do pagamento

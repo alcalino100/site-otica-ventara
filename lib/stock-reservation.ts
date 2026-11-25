@@ -169,7 +169,7 @@ export async function releaseCouponsForOrder(client: Client, order: { id: string
  * Cancela pedidos que ficaram sem pagamento além do prazo: devolve estoque e cupom.
  * Chamada de forma oportunista a cada novo checkout (não precisa de cron).
  */
-export async function expireStaleOrders(client: Client): Promise<number> {
+export async function expireStaleOrders(client: Client, onExpired?: (orderId: string) => void): Promise<number> {
   const now = Date.now();
   const pixCutoff = new Date(now - PIX_RESERVATION_MINUTES * 60_000).toISOString();
   const cardCutoff = new Date(now - CARD_RESERVATION_MINUTES * 60_000).toISOString();
@@ -195,6 +195,7 @@ export async function expireStaleOrders(client: Client): Promise<number> {
     await releaseStockForOrder(client, o.reference_code);
     await releaseCouponsForOrder(client, o);
     expired++;
+    try { onExpired?.(o.id); } catch { /* aviso é opcional */ }
   }
   return expired;
 }

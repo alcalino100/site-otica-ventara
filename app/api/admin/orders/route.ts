@@ -1,5 +1,6 @@
 import { requireAdmin } from "@/lib/auth/require-admin";
-import { NextRequest, NextResponse } from "next/server";
+import { after, NextRequest, NextResponse } from "next/server";
+import { notifyCustomerOrder } from "@/lib/customer-emails";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { isSupabaseConfigured } from "@/lib/supabase/server";
 import { revalidatePath } from "next/cache";
@@ -214,6 +215,11 @@ export async function PATCH(req: NextRequest) {
       revalidatePath("/rastreio");
       revalidatePath("/rastrear-pedido");
     } catch {}
+
+    // Aviso ao cliente: pedido despachado / pronto para retirada (só na mudança real de status; idempotente)
+    if (!error && currentOrder && currentOrder.status !== updatePayload.status && ["shipped", "ready_for_pickup"].includes(String(updatePayload.status))) {
+      after(() => notifyCustomerOrder(adminSupabase, id, "shipped"));
+    }
 
     return NextResponse.json({
       success: true,
