@@ -139,8 +139,8 @@ const SAMPLE: CustomerOrder = {
   payment_method: "pix",
   delivery_type: "delivery",
   items: [
-    { product_name: "Armação Ventara Classic", color_name: "Preto fosco", image_url: "/images/products/ventara-sport-fire.jpg", quantity: 1, unit_price_in_cents: 32990 },
-    { product_name: "Estojo rígido", color_name: "Azul", image_url: "/images/products/ventara-sport-fire.jpg", quantity: 1, unit_price_in_cents: 12990 },
+    { product_name: "Óculos Ventara Sport Fire", color_name: "Preto fosco", image_url: "/images/products/ventara-sport-fire.jpg", quantity: 1, unit_price_in_cents: 32990 },
+    { product_name: "Lentes Optisync HD", color_name: "Incolor", image_url: "/images/lenses/optisync-hd.jpg", quantity: 1, unit_price_in_cents: 12990 },
   ],
 };
 export const sampleCustomerOrder = (over: Partial<CustomerOrder> = {}): CustomerOrder => ({ ...SAMPLE, ...over });

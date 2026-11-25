@@ -61,11 +61,13 @@ test.describe("E-mails ao cliente", () => {
 
   test("visual: logo, cores do site e foto do item", async () => {
   const html = buildCustomerEmail("paid", { ...order, items: [{ product_name: "Safari", quantity: 1, unit_price_in_cents: 45000, image_url: "/images/products/x.jpg" }, { product_name: "Sem foto", quantity: 1, unit_price_in_cents: 100, image_url: "javascript:alert(1)" }] }).html;
-  expect(html).toContain("/images/logo-ventara.png");
+  expect(html).toContain("/images/email/cabecalho.png");
   expect(html).toContain("#06111f");
   expect(html).toContain("#ffd62e");
   expect(html).toContain("/images/products/x.jpg");
   expect(html).not.toContain("javascript:");
+  const s = buildCustomerEmail("paid", sampleCustomerOrder()).html;
+  expect(new Set(s.match(/src="[^"]*\/images\/(?:products|lenses)[^"]*"/g)).size).toBe(2);
 });
 
 test("busca a foto principal do produto", async () => {

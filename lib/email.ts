@@ -76,11 +76,11 @@ const baseUrl = () => (process.env.NEXT_PUBLIC_SITE_URL || "https://www.oticasve
 
 /** Moldura dos e-mails: cabeçalho navy com a logo, faixa dourada, corpo claro. */
 export function layout(title: string, bodyHtml: string, footerHtml = ""): string {
-  const logo = `${baseUrl()}/images/logo-ventara.png`;
-  return `<!doctype html><html lang="pt-BR"><body style="margin:0;background:#eef1f5;font-family:Arial,Helvetica,sans-serif;color:${BRAND.ink}">
+  const logo = `${baseUrl()}/images/email/cabecalho.png`;
+  return `<!doctype html><html lang="pt-BR"><head><meta name="color-scheme" content="light only"><meta name="supported-color-schemes" content="light only"></head><body style="margin:0;background:#eef1f5;font-family:Arial,Helvetica,sans-serif;color:${BRAND.ink}">
 <table role="presentation" width="100%" cellpadding="0" cellspacing="0" bgcolor="#eef1f5"><tr><td align="center" style="padding:24px 12px">
 <table role="presentation" width="100%" style="max-width:560px;background:#ffffff;border-radius:14px;overflow:hidden">
-<tr><td align="center" bgcolor="${BRAND.navy}" style="background:${BRAND.navy};padding:22px 24px"><a href="${baseUrl()}" style="text-decoration:none"><img src="${logo}" width="170" alt="Óticas Ventara" style="display:block;border:0;height:auto;max-width:170px;color:${BRAND.gold};font-size:20px;font-weight:bold"></a></td></tr>
+<tr><td align="center" bgcolor="${BRAND.navy}" style="background:${BRAND.navy};padding:0;font-size:0;line-height:0"><a href="${baseUrl()}" style="text-decoration:none"><img src="${logo}" width="560" alt="Óticas Ventara" style="display:block;border:0;width:100%;max-width:560px;height:auto;background:${BRAND.navy};color:${BRAND.gold};font-size:22px;font-weight:bold;line-height:80px"></a></td></tr>
 <tr><td height="4" bgcolor="${BRAND.gold}" style="background:${BRAND.gold};font-size:0;line-height:0">&nbsp;</td></tr>
 <tr><td style="padding:28px 24px"><h1 style="margin:0 0 16px;font-size:22px;color:${BRAND.navy}">${esc(title)}</h1>${bodyHtml}</td></tr>
 ${footerHtml ? `<tr><td bgcolor="${BRAND.navy}" style="background:${BRAND.navy};padding:18px 24px;color:#b8c4d6;font-size:12px;line-height:1.6">${footerHtml.replace(/<a /g, `<a style="color:${BRAND.gold}" `)}</td></tr>` : ""}
