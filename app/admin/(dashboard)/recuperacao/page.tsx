@@ -11,7 +11,7 @@ interface Cart {
   status: string; contacted_at: string | null; recovery_email_sent_at: string | null; recovered_at: string | null;
   recovered_value_cents: number | null; last_activity_at: string; state: "active" | "abandoned" | "recovered" | "unsubscribed";
 }
-interface Settings { owner_emails: string; notify_paid: boolean; notify_new_order: boolean; recovery_enabled: boolean; recovery_delay_hours: number; recovery_coupon_code: string }
+interface Settings { owner_emails: string; notify_paid: boolean; notify_new_order: boolean; recovery_enabled: boolean; recovery_delay_hours: number; recovery_coupon_code: string; customer_paid: boolean; customer_unpaid: boolean; customer_shipped: boolean }
 interface Data {
   stats: { abandoned: number; abandoned_value_cents: number; recovered: number; recovered_value_cents: number; reachable: number };
   carts: Cart[]; settings: Settings; email_configured: boolean; cron_configured: boolean;
@@ -26,7 +26,7 @@ const ago = (iso: string) => {
   if (m < 60 * 24) return `há ${Math.floor(m / 60)} h`;
   return `há ${Math.floor(m / 1440)} d`;
 };
-const KIND: Record<string, string> = { sale_paid: "Venda paga", new_order: "Novo pedido", recovery: "Recuperação", test: "Teste" };
+const KIND: Record<string, string> = { sale_paid: "Venda paga", new_order: "Novo pedido", recovery: "Recuperação", test: "Teste", customer_paid: "Cliente: compra confirmada", customer_unpaid: "Cliente: sem pagamento", customer_shipped: "Cliente: pedido pronto/enviado" };
 const field = "w-full rounded-lg border border-white/15 bg-black/30 px-3 py-2 text-sm text-white placeholder:text-slate-500 focus:border-amber-400 focus:outline-none";
 
 function Toggle({ on, onChange, label, testId }: { on: boolean; onChange: (v: boolean) => void; label: string; testId?: string }) {
@@ -87,6 +87,20 @@ export default function AdminRecuperacaoPage() {
     setBusy("");
     setMsg(r.ok ? { type: "ok", text: "Configurações salvas." } : { type: "err", text: r.data?.error || r.error || "Não foi possível salvar." });
     if (r.ok) await load(false);
+  };
+
+  const [preview, setPreview] = useState<{ kind: string; subject: string; html: string } | null>(null);
+  const openPreview = async (kind: string) => {
+    const r = await adminRequest(`/api/admin/recovery?preview=${kind}`);
+    if (r.ok && r.data?.html) setPreview({ kind, subject: r.data.subject, html: r.data.html });
+    else setMsg({ type: "err", text: r.data?.error || r.error || "Não foi possível carregar a prévia." });
+  };
+  const testCustomer = async (kind: string) => {
+    const to = (settings?.owner_emails || "").split(/[,;\s]+/)[0];
+    setBusy("tc-" + kind);
+    const r = await adminRequest("/api/admin/recovery", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ action: "test_customer", kind, to }) });
+    setBusy("");
+    setMsg(r.ok ? { type: "ok", text: `Exemplo enviado para ${to}.` } : { type: "err", text: r.data?.error || r.error || "Falha no teste." });
   };
 
   const testEmail = async () => {
@@ -173,6 +187,7 @@ export default function AdminRecuperacaoPage() {
 
       {/* Configurações */}
       {settings && (
+        <>
         <section className="grid gap-6 lg:grid-cols-2">
           <div className="space-y-4 rounded-2xl border border-white/10 bg-[#061423] p-5">
             <h2 className="flex items-center gap-2 !text-lg !font-semibold text-white"><BellRing className="h-5 w-5 text-amber-400" /> Avisos de venda</h2>
@@ -196,6 +211,36 @@ export default function AdminRecuperacaoPage() {
             <p className="text-xs text-slate-500">O envio automático roda 1 vez por dia, às 10h. Cada cliente recebe no máximo 1 lembrete e pode se descadastrar pelo link do e-mail.</p>
           </div>
         </section>
+
+        <section className="space-y-4 rounded-2xl border border-white/10 bg-[#061423] p-5" data-testid="customer-emails">
+          <h2 className="flex items-center gap-2 !text-lg !font-semibold text-white"><Mail className="h-5 w-5 text-amber-400" /> E-mails para o cliente</h2>
+          <p className="text-sm text-slate-300">Mensagens automáticas enviadas ao comprador. Todas começam <b>desligadas</b>: veja a prévia, mande um exemplo para você e só então ligue.</p>
+          {([
+            ["paid", "customer_paid", "Compra confirmada", "Quando o pagamento é aprovado."],
+            ["unpaid", "customer_unpaid", "Pedido sem pagamento", "Quando o pedido vence sem ser pago e é cancelado."],
+            ["shipped", "customer_shipped", "Pedido pronto / despachado", "Quando você muda o status do pedido para enviado ou pronto para retirada."],
+          ] as const).map(([kind, key, title, desc]) => (
+            <div key={kind} className="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-white/10 bg-black/20 p-3">
+              <div className="min-w-0 text-sm text-slate-200"><b className="text-white">{title}</b><br /><span className="text-slate-400">{desc}</span></div>
+              <div className="flex flex-wrap items-center gap-2">
+                <button type="button" onClick={() => openPreview(kind)} data-testid={`preview-${kind}`} className="rounded-lg border border-white/15 px-3 py-1.5 text-xs text-slate-200 hover:bg-white/5">Ver prévia</button>
+                <button type="button" onClick={() => testCustomer(kind)} disabled={!settings.owner_emails.trim() || busy === "tc-" + kind} className="rounded-lg border border-white/15 px-3 py-1.5 text-xs text-slate-200 hover:bg-white/5 disabled:opacity-40">{busy === "tc-" + kind ? "Enviando…" : "Enviar exemplo para mim"}</button>
+                <Toggle on={settings[key]} onChange={(v) => set({ [key]: v } as Partial<Settings>)} label={title} testId={`toggle-customer-${kind}`} />
+              </div>
+            </div>
+          ))}
+          <p className="text-xs text-slate-400">Não esqueça de clicar em <b>Salvar</b> depois de ligar ou desligar. Cada cliente recebe cada e-mail no máximo uma vez por pedido.</p>
+        </section>
+        {preview && (
+          <div className="fixed inset-0 z-[95] flex items-center justify-center bg-black/70 p-4" onClick={() => setPreview(null)}>
+            <div className="flex max-h-[90vh] w-full max-w-xl flex-col overflow-hidden rounded-2xl border border-white/10 bg-[#061423]" onClick={(e) => e.stopPropagation()}>
+              <div className="flex items-center justify-between border-b border-white/10 px-4 py-3 text-sm text-slate-200"><span><b>Assunto:</b> {preview.subject}</span><button type="button" onClick={() => setPreview(null)} className="text-slate-400 hover:text-white">Fechar</button></div>
+              <iframe title="Prévia do e-mail" sandbox="" srcDoc={preview.html} className="h-[70vh] w-full bg-white" data-testid="preview-frame" />
+            </div>
+          </div>
+        )}
+        </>
+
       )}
       {settings && <div className="flex justify-end"><button type="button" data-testid="save-settings" onClick={saveSettings} disabled={busy === "settings"} className="rounded-lg bg-amber-400 px-5 py-2.5 text-sm font-semibold text-slate-950 hover:bg-amber-300 disabled:opacity-60">{busy === "settings" ? "Salvando…" : "Salvar configurações"}</button></div>}
 
