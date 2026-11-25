@@ -70,13 +70,19 @@ export async function sendEmail(
   }
 }
 
-/** Moldura simples e legível para todos os e-mails. */
+/** Cores do site (globals.css): navy #06111f, dourado #ffd62e. */
+export const BRAND = { navy: "#06111f", gold: "#ffd62e", ink: "#0a1b2f" };
+const baseUrl = () => (process.env.NEXT_PUBLIC_SITE_URL || "https://www.oticasventara.com.br").replace(/\/$/, "");
+
+/** Moldura dos e-mails: cabeçalho navy com a logo, faixa dourada, corpo claro. */
 export function layout(title: string, bodyHtml: string, footerHtml = ""): string {
-  return `<!doctype html><html lang="pt-BR"><body style="margin:0;background:#f4f4f5;font-family:Arial,Helvetica,sans-serif;color:#111827">
-<table role="presentation" width="100%" cellpadding="0" cellspacing="0"><tr><td align="center" style="padding:24px 12px">
-<table role="presentation" width="100%" style="max-width:560px;background:#ffffff;border-radius:12px;overflow:hidden">
-<tr><td style="background:#061423;padding:18px 24px;color:#fbbf24;font-size:18px;font-weight:bold">Óticas Ventara</td></tr>
-<tr><td style="padding:24px"><h1 style="margin:0 0 16px;font-size:20px">${esc(title)}</h1>${bodyHtml}</td></tr>
-${footerHtml ? `<tr><td style="padding:16px 24px;background:#f9fafb;color:#6b7280;font-size:12px">${footerHtml}</td></tr>` : ""}
+  const logo = `${baseUrl()}/images/logo-ventara.png`;
+  return `<!doctype html><html lang="pt-BR"><body style="margin:0;background:#eef1f5;font-family:Arial,Helvetica,sans-serif;color:${BRAND.ink}">
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0" bgcolor="#eef1f5"><tr><td align="center" style="padding:24px 12px">
+<table role="presentation" width="100%" style="max-width:560px;background:#ffffff;border-radius:14px;overflow:hidden">
+<tr><td align="center" bgcolor="${BRAND.navy}" style="background:${BRAND.navy};padding:22px 24px"><a href="${baseUrl()}" style="text-decoration:none"><img src="${logo}" width="170" alt="Óticas Ventara" style="display:block;border:0;height:auto;max-width:170px;color:${BRAND.gold};font-size:20px;font-weight:bold"></a></td></tr>
+<tr><td height="4" bgcolor="${BRAND.gold}" style="background:${BRAND.gold};font-size:0;line-height:0">&nbsp;</td></tr>
+<tr><td style="padding:28px 24px"><h1 style="margin:0 0 16px;font-size:22px;color:${BRAND.navy}">${esc(title)}</h1>${bodyHtml}</td></tr>
+${footerHtml ? `<tr><td bgcolor="${BRAND.navy}" style="background:${BRAND.navy};padding:18px 24px;color:#b8c4d6;font-size:12px;line-height:1.6">${footerHtml.replace(/<a /g, `<a style="color:${BRAND.gold}" `)}</td></tr>` : ""}
 </table></td></tr></table></body></html>`;
 }

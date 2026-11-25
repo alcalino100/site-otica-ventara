@@ -122,7 +122,7 @@ export function buildSaleEmail(order: OrderForEmail, items: Array<{ product_name
 <p style="margin:4px 0;font-size:14px"><b>Cliente:</b> ${esc(order.customer_name)}</p>
 <p style="margin:4px 0;font-size:14px"><b>Contato:</b> ${esc(order.customer_phone)}${phone ? ` — <a href="https://wa.me/${esc(phone)}">chamar no WhatsApp</a>` : ""}<br>${esc(order.customer_email)}</p>
 <p style="margin:4px 0;font-size:14px"><b>Pagamento:</b> ${esc(method)} &nbsp; <b>Entrega:</b> ${esc(delivery)}</p>
-<p style="margin:20px 0 0"><a href="${siteUrl()}/admin/pedidos" style="background:#fbbf24;color:#111827;text-decoration:none;font-weight:bold;padding:10px 18px;border-radius:8px;display:inline-block">Abrir pedidos no painel</a></p>`,
+<p style="margin:20px 0 0"><a href="${siteUrl()}/admin/pedidos" style="background:#ffd62e;color:#06111f;text-decoration:none;font-weight:bold;padding:10px 18px;border-radius:999px;display:inline-block">Abrir pedidos no painel</a></p>`,
     "Você recebe este aviso porque seu e-mail está cadastrado em Admin › Recuperação & Avisos."
   );
   const subject = kind === "paid" ? `Venda confirmada ${ref} — ${brl(order.total_in_cents)}` : `Novo pedido ${ref} — ${brl(order.total_in_cents)}`;

@@ -1,12 +1,12 @@
 import { test, expect } from "@playwright/test";
-import { buildCustomerEmail, notifyCustomerOrder, sampleCustomerOrder } from "../lib/customer-emails";
+import { attachItemImages, buildCustomerEmail, notifyCustomerOrder, sampleCustomerOrder } from "../lib/customer-emails";
 import { normalizeSettings } from "../lib/notifications";
 
 type Row = Record<string, any>;
 
 /** Banco falso em memória com os filtros usados (eq, is, in, neq, lte, gte, not, limit). */
 function fakeDb(seed: Record<string, Row[]> = {}) {
-  const tables: Record<string, Row[]> = { notification_settings: [], email_log: [], abandoned_carts: [], cart_suppressions: [], orders: [], ...seed };
+  const tables: Record<string, Row[]> = { notification_settings: [], email_log: [], abandoned_carts: [], cart_suppressions: [], orders: [], product_images: [], ...seed };
   return {
     tables,
     from(name: string) {
@@ -59,7 +59,23 @@ const on = (k: string) => [{ id: "main", [k]: true }];
 test.describe("E-mails ao cliente", () => {
   test.beforeEach(() => { process.env.RESEND_API_KEY = "re_test_key_123456"; });
 
-  test("padrão é tudo desligado", () => {
+  test("visual: logo, cores do site e foto do item", async () => {
+  const html = buildCustomerEmail("paid", { ...order, items: [{ product_name: "Safari", quantity: 1, unit_price_in_cents: 45000, image_url: "/images/products/x.jpg" }, { product_name: "Sem foto", quantity: 1, unit_price_in_cents: 100, image_url: "javascript:alert(1)" }] }).html;
+  expect(html).toContain("/images/logo-ventara.png");
+  expect(html).toContain("#06111f");
+  expect(html).toContain("#ffd62e");
+  expect(html).toContain("/images/products/x.jpg");
+  expect(html).not.toContain("javascript:");
+});
+
+test("busca a foto principal do produto", async () => {
+  const db = fakeDb({ product_images: [{ product_id: "p1", url: "https://cdn/b.jpg", is_primary: false, sort_order: 0 }, { product_id: "p1", url: "https://cdn/a.jpg", is_primary: true, sort_order: 5 }] });
+  const out = await attachItemImages(db, [{ product_id: "p1", product_name: "A" }, { product_id: null, product_name: "B" }]);
+  expect(out[0].image_url).toBe("https://cdn/a.jpg");
+  expect(out[1].image_url).toBeFalsy();
+});
+
+test("padrão é tudo desligado", () => {
     const s = normalizeSettings({});
     expect([s.customer_paid, s.customer_unpaid, s.customer_shipped]).toEqual([false, false, false]);
   });
