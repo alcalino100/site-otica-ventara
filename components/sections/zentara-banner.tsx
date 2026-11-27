@@ -27,14 +27,14 @@ export function ZentaraBanner() {
             Conhecer as lentes Zentara
           </Link>
         </div>
-        <div className="overflow-hidden rounded-3xl border border-violet-500/30 shadow-[0_0_60px_rgba(124,58,237,0.25)]">
+        <div className="overflow-hidden rounded-3xl border border-violet-500/30 bg-black shadow-[0_0_60px_rgba(124,58,237,0.25)]">
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img
-            {...optimizedImgProps("/images/zentara/caixa-zentara.jpg", [640, 828, 1200])}
+            {...optimizedImgProps("/images/zentara/hidrofobico-comparativo.jpg", [640, 828, 1200])}
             sizes="(min-width: 1024px) 560px, 92vw"
-            alt="Caixa das lentes Zentara com comparativo hidrofóbico e lente"
-            width={1536}
-            height={1024}
+            alt="Comparativo: lente sem hidrofóbico e lente Zentara com hidrofóbico sob a chuva"
+            width={1224}
+            height={918}
             loading="lazy"
             className="h-auto w-full"
           />

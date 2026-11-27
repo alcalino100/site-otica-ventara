@@ -36,6 +36,9 @@ test.describe("Página Zentara", () => {
     await page.getByTestId("zentara-indices").scrollIntoViewIfNeeded();
     const overflow = await page.evaluate(() => document.documentElement.scrollWidth - window.innerWidth);
     expect(overflow).toBeLessThanOrEqual(1);
+    await page.evaluate(async () => {
+      for (let y = 0; y < document.body.scrollHeight; y += 500) { window.scrollTo(0, y); await new Promise((r) => setTimeout(r, 80)); }
+    });
     const broken = await page.evaluate(async () => {
       const imgs = Array.from(document.images).filter((i) => i.src.includes("/zentara") || i.src.includes("zentara"));
       await Promise.all(imgs.map((i) => (i.complete ? 0 : new Promise((r) => { i.onload = i.onerror = () => r(0); }))));
