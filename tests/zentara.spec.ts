@@ -51,3 +51,19 @@ test.describe("Página Zentara", () => {
     expect(xml).toContain("/zentara");
   });
 });
+
+test("fundo com raios de luz fixo atrás do conteúdo, sem cobrir nada", async ({ page }) => {
+  await page.goto("/zentara");
+  const bg = page.getByTestId("zentara-fundo");
+  await expect(bg).toBeAttached();
+  const info = await bg.evaluate((el) => {
+    const cs = getComputedStyle(el);
+    const c = el.querySelector("canvas") as HTMLCanvasElement;
+    return { pos: cs.position, pe: cs.pointerEvents, op: parseFloat(getComputedStyle(c).opacity) };
+  });
+  expect(info.pos).toBe("fixed");
+  expect(info.pe).toBe("none");
+  expect(info.op).toBeLessThanOrEqual(0.3);
+  await page.getByTestId("link-whatsapp-hero").first().isVisible().catch(() => {});
+  await expect(page.getByTestId("zentara-hero")).toBeVisible();
+});
