@@ -29,6 +29,7 @@ const SEGMENT_LABELS: Record<string, string> = {
   marketing: "Pixel & Google Ads",
   cupons: "Cupons",
   recuperacao: "Recuperação & Avisos",
+  zentara: "Lentes Zentara",
 };
 
 /**
