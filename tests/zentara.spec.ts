@@ -83,3 +83,23 @@ test("opções de compra Zentara levam ao WhatsApp e banner da home aponta para 
   await cta.scrollIntoViewIfNeeded();
   await expect(cta).toHaveAttribute("href", "/zentara");
 });
+
+test("desktop: 3 cartões lado a lado alinhados; slider da home funciona", async ({ page }) => {
+  await page.addInitScript(consent);
+  await page.setViewportSize({ width: 1280, height: 900 });
+  await page.goto("/zentara");
+  const boxes = await Promise.all(["1.56", "1.67", "1.74"].map(async (n) => {
+    const el = page.getByTestId(`zentara-opcao-${n}`); await el.scrollIntoViewIfNeeded(); return el.boundingBox();
+  }));
+  expect(Math.abs(boxes[0]!.y - boxes[1]!.y)).toBeLessThan(2);
+  expect(Math.abs(boxes[1]!.y - boxes[2]!.y)).toBeLessThan(2);
+  expect(boxes[0]!.x).toBeLessThan(boxes[1]!.x);
+  expect(boxes[1]!.x).toBeLessThan(boxes[2]!.x);
+  expect(Math.abs(boxes[0]!.height - boxes[2]!.height)).toBeLessThan(2);
+  await page.goto("/");
+  const sl = page.getByTestId("zentara-banner-slider");
+  await sl.scrollIntoViewIfNeeded();
+  const range = sl.locator("input[type=range]");
+  await range.fill("20");
+  await expect(range).toHaveValue("20");
+});

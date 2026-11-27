@@ -179,13 +179,13 @@ export default function ZentaraPage() {
         </section>
 
         {/* COMPRAR */}
-        <section id="comprar" className="mx-auto max-w-4xl px-4 py-16 sm:px-6 lg:py-24" data-testid="zentara-comprar">
+        <section id="comprar" className="mx-auto max-w-6xl px-4 py-16 sm:px-6 lg:py-24" data-testid="zentara-comprar">
           <div className="text-center">
             <p className="text-xs font-semibold uppercase tracking-[0.25em] text-fuchsia-300">Super promoção Zentara</p>
             <h2 className="mt-2 text-3xl font-semibold sm:text-4xl">Escolha sua lente</h2>
             <p className="mx-auto mt-3 max-w-xl text-slate-300">Toque na opção desejada e finalize seu pedido direto no nosso WhatsApp.</p>
           </div>
-          <div className="mt-10 grid grid-cols-2 gap-5">
+          <div className="mt-10 grid grid-cols-2 gap-4 md:grid-cols-3 md:gap-6">
             {ZENTARA_OPTIONS.map((o, i) => {
               const last = i === 2;
               const card = (
@@ -200,7 +200,7 @@ export default function ZentaraPage() {
                   </div>
                   <p className="mt-3 text-[11px] font-bold uppercase tracking-wider text-fuchsia-300">Lente</p>
                   <h3 className="text-base font-bold leading-tight sm:text-xl">{o.name}</h3>
-                  <p className="mt-2 flex items-start gap-2 rounded-xl border border-white/10 bg-white/[0.04] p-2 text-xs text-slate-200 sm:text-sm"><Sparkles size={14} className="mt-0.5 shrink-0 text-fuchsia-300" />{o.tagline}</p>
+                  <p className="mt-2 flex items-start gap-2 rounded-xl border border-white/10 bg-white/[0.04] p-2 text-xs text-slate-200 sm:text-sm md:min-h-[3.75rem]"><Sparkles size={14} className="mt-0.5 shrink-0 text-fuchsia-300" />{o.tagline}</p>
                   <ul className="mt-3 space-y-1 text-xs text-slate-300 sm:text-sm">
                     {o.highlights.map((h) => (
                       <li key={h} className="flex items-center gap-1.5"><CheckCircle2 size={14} className="shrink-0 text-fuchsia-300" />{h}</li>
@@ -221,7 +221,7 @@ export default function ZentaraPage() {
                 </div>
               );
               return last ? (
-                <div key={o.id} className="col-span-2 flex justify-center"><div className="w-[calc(50%-0.625rem)]">{card}</div></div>
+                <div key={o.id} className="col-span-2 flex justify-center md:col-span-1"><div className="w-[calc(50%-0.5rem)] md:w-full">{card}</div></div>
               ) : (
                 <div key={o.id}>{card}</div>
               );

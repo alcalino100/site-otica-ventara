@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { optimizedImgProps } from "@/lib/image-url";
+import { ComparisonSlider } from "@/components/zentara/comparison-slider";
 
 /** Faixa de destaque das lentes Zentara na home (fundo roxo, botão roxo). */
 export function ZentaraBanner() {
@@ -27,16 +27,14 @@ export function ZentaraBanner() {
             Conhecer as lentes Zentara
           </Link>
         </div>
-        <div className="overflow-hidden rounded-3xl border border-violet-500/30 bg-black shadow-[0_0_60px_rgba(124,58,237,0.25)]">
-          {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img
-            {...optimizedImgProps("/images/zentara/hidrofobico-comparativo.jpg", [640, 828, 1200])}
-            sizes="(min-width: 1024px) 560px, 92vw"
-            alt="Comparativo: lente sem hidrofóbico e lente Zentara com hidrofóbico sob a chuva"
-            width={1224}
-            height={918}
-            loading="lazy"
-            className="h-auto w-full"
+        <div className="rounded-3xl border border-violet-500/30 p-2 shadow-[0_0_60px_rgba(124,58,237,0.25)]">
+          <ComparisonSlider
+            testId="zentara-banner-slider"
+            beforeSrc="/images/zentara/hidrofobico-sem.jpg"
+            afterSrc="/images/zentara/hidrofobico-com.jpg"
+            beforeLabel="Sem hidrofóbico"
+            afterLabel="Com hidrofóbico"
+            alt="Lente com gotas de água"
           />
         </div>
       </div>
