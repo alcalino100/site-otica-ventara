@@ -9,6 +9,7 @@ import { resolveBackgroundConfig } from "@/lib/content/background-presets";
 import { JsonLd } from "@/components/seo/json-ld";
 import { buildPageMetadata, breadcrumbJsonLd } from "@/lib/seo";
 import { DraftPreviewBanner } from "@/components/content/draft-preview-banner";
+import { OG_IMAGES } from "@/lib/seo";
 import { FloatingEditButton } from "@/components/content/floating-edit-button";
 
 export const metadata: Metadata = buildPageMetadata({
@@ -16,6 +17,7 @@ export const metadata: Metadata = buildPageMetadata({
   description:
     "Catálogo de armações em acetato nobre e metal premium da Ótica Ventara em Araçatuba: gatinho, redondo, quadrado e solar. Parcele em até 10x sem juros.",
   path: "/armacoes",
+  image: OG_IMAGES.armacoes,
 });
 
 export const revalidate = 60;
