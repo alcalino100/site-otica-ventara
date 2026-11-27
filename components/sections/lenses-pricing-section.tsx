@@ -198,6 +198,14 @@ export function LensesPricingSection({
                 <Eye size={16} className="text-slate-900" />
                 <span>{medicaoBtnText}</span>
               </Link>
+
+              <Link
+                href="/zentara"
+                data-testid="link-zentara"
+                className="inline-flex items-center gap-2 px-5 py-3.5 rounded-full bg-violet-600 hover:bg-violet-500 text-white font-semibold text-xs sm:text-sm transition-colors"
+              >
+                <span>Conheça as lentes Zentara</span>
+              </Link>
             </div>
           </div>
         </div>

@@ -79,6 +79,11 @@ export function Footer({ onOpenLegal, cnpj, address, hours, copyright }: FooterP
                 </a>
               </li>
               <li>
+                <a href="/zentara" className="hover:text-amber-300 transition-colors">
+                  Lentes Zentara
+                </a>
+              </li>
+              <li>
                 <a href="/medicao-por-foto" className="text-amber-400 hover:text-amber-300 transition-colors flex items-center gap-1 font-medium">
                   <span>Medição por Foto (DNP)</span>
                   <span className="text-[9px] bg-amber-400/20 text-amber-300 px-1.5 py-0.5 rounded-full border border-amber-400/30">Novo</span>
