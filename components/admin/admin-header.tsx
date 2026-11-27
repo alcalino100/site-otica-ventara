@@ -107,6 +107,7 @@ export function AdminHeader() {
     { href: "/admin/marketing", label: "Pixel & Google Ads", icon: Radio, minRole: "admin", group: "overview" },
     { href: "/admin/produtos", label: "Produtos", icon: Package, minRole: "editor", group: "catalog" },
     { href: "/admin/lentes", label: "Lentes & Preços", icon: Eye, minRole: "editor", group: "catalog" },
+    { href: "/admin/zentara", label: "Lentes Zentara", icon: Sparkles, minRole: "editor", group: "catalog" },
     { href: "/admin/categorias", label: "Categorias", icon: FolderTree, minRole: "admin", group: "catalog" },
     { href: "/admin/estoque", label: "Estoque", icon: Boxes, minRole: "editor", group: "catalog" },
     { href: "/admin/pedidos", label: "Pedidos", icon: ShoppingCart, minRole: "editor", group: "store" },
