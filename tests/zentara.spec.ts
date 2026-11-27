@@ -66,3 +66,17 @@ test("fundo com raios de luz fixo atrás do conteúdo, sem cobrir nada", async (
   await page.getByTestId("link-whatsapp-hero").first().isVisible().catch(() => {});
   await expect(page.getByTestId("zentara-hero")).toBeVisible();
 });
+
+test("opções de compra Zentara levam ao WhatsApp e banner da home aponta para /zentara", async ({ page }) => {
+  await page.addInitScript(consent);
+  await page.goto("/zentara");
+  for (const n of ["1.56", "1.67", "1.74"]) {
+    const href = await page.getByTestId(`zentara-comprar-${n}`).getAttribute("href");
+    expect(href).toContain("wa.me/");
+    expect(decodeURIComponent(href!)).toContain(`Zentara ${n}`);
+  }
+  await page.goto("/");
+  const cta = page.getByTestId("zentara-banner-cta");
+  await cta.scrollIntoViewIfNeeded();
+  await expect(cta).toHaveAttribute("href", "/zentara");
+});

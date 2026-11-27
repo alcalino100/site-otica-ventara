@@ -8,6 +8,7 @@ import { Footer } from "../layout/footer";
 import { Hero } from "../sections/hero";
 import { WarrantyBannerSection } from "../sections/warranty-banner-section";
 import { InteractiveShowcase } from "../sections/interactive-showcase";
+import { ZentaraBanner } from "../sections/zentara-banner";
 import { CatalogSection } from "../catalog/catalog-section";
 import { Toast } from "../ui/toast";
 import { Product, OptiSyncPageSettings, HeroSlide, HeroCarouselSettings } from "@/types/ecommerce";
@@ -252,6 +253,9 @@ export function HomeClient({
           showcaseTitle={homeContent.showcaseTitle}
           showcaseSubtitle={homeContent.showcaseSubtitle}
         />
+
+        {/* 4.1 Lentes Zentara */}
+        <ZentaraBanner />
 
         {/* 5. Catálogo de Óculos */}
         <CatalogSection
