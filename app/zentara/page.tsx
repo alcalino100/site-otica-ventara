@@ -5,7 +5,7 @@ import { Footer } from "@/components/layout/footer";
 import { ZENTARA_OPTIONS } from "@/lib/zentara-options";
 import { LightRays } from "@/components/zentara/light-rays";
 import { ComparisonSlider } from "@/components/zentara/comparison-slider";
-import { buildPageMetadata } from "@/lib/seo";
+import { buildPageMetadata, OG_IMAGES } from "@/lib/seo";
 import { buildWhatsAppUrl } from "@/lib/whatsapp";
 import { optimizedImgProps } from "@/lib/image-url";
 
@@ -14,7 +14,7 @@ export const metadata: Metadata = buildPageMetadata({
   description:
     "Conheça a Zentara, a linha de lentes premium da Óticas Ventara: transparência cristalina, antirreflexo premium, tratamento hidrofóbico, índices até 1.74 e 12 meses de garantia.",
   path: "/zentara",
-  image: "/images/zentara/antirreflexo-com.jpg",
+  image: OG_IMAGES.zentara,
 });
 
 const IMG = "/images/zentara";

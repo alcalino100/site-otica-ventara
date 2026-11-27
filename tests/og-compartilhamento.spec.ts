@@ -14,8 +14,11 @@ test("link das armações mostra o cartão de armações", async ({ page }) => {
 test("link do rastreio mostra o banner de rastreamento", async ({ page }) => {
   expect(await og(page, "/rastreio")).toContain("/images/og/rastreio.jpg");
 });
+test("link da Zentara mostra a logo da lente", async ({ page }) => {
+  expect(await og(page, "/zentara")).toContain("/images/og/zentara.jpg");
+});
 test("imagens de compartilhamento existem e são servidas", async ({ request }) => {
-  for (const f of ["ventara-logo", "ventara-armacoes", "rastreio"]) {
+  for (const f of ["ventara-logo", "ventara-armacoes", "rastreio", "zentara"]) {
     const r = await request.get(`/images/og/${f}.jpg`);
     expect(r.status()).toBe(200);
     expect(r.headers()["content-type"]).toContain("image/jpeg");
