@@ -29,7 +29,7 @@ export const metadata: Metadata = {
       'Armações exclusivas, lentes OPTiSYNC HD de alta precisão e montagem expressa em até 1 hora no laboratório próprio.',
     url: SITE_URL,
     siteName: SITE_NAME,
-    images: [{ url: DEFAULT_OG_IMAGE, alt: 'Fachada da Óticas Ventara em Araçatuba-SP' }],
+    images: [{ url: DEFAULT_OG_IMAGE, alt: 'Óticas Ventara Eyewear' }],
     locale: 'pt_BR',
     type: 'website',
   },

@@ -5,6 +5,7 @@ import { getPageContent } from "@/lib/content/repository";
 import { PageBackground } from "@/components/ui/page-background";
 import { resolveBackgroundConfig } from "@/lib/content/background-presets";
 import { DraftPreviewBanner } from "@/components/content/draft-preview-banner";
+import { OG_IMAGES } from "@/lib/seo";
 import { FloatingEditButton } from "@/components/content/floating-edit-button";
 
 export const metadata: Metadata = {
@@ -16,7 +17,9 @@ export const metadata: Metadata = {
     title: "Rastreie seu Pedido | Óticas Ventara",
     description:
       "Acompanhe em tempo real a montagem no laboratório óptico e a entrega das suas armações e lentes até o seu endereço.",
+    images: [{ url: OG_IMAGES.rastreio, width: 1200, height: 630, alt: "Rastreamento de pedido · Óticas Ventara" }],
   },
+  twitter: { card: "summary_large_image", images: [OG_IMAGES.rastreio] },
 };
 
 interface RastreioPageProps {

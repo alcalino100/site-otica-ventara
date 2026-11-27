@@ -6,7 +6,14 @@ import type { Product } from "@/types/ecommerce";
 
 export const SITE_URL = "https://www.oticasventara.com.br";
 export const SITE_NAME = "Óticas Ventara";
-export const DEFAULT_OG_IMAGE = "/images/store/fachada-otica-ventara.jpg";
+/** Foto da fachada: usada em dados estruturados (JSON-LD). */
+export const STORE_PHOTO = "/images/store/fachada-otica-ventara.jpg";
+/** Cartão de compartilhamento (WhatsApp/redes) da home e padrão das páginas: só a logo. */
+export const DEFAULT_OG_IMAGE = "/images/og/ventara-logo.jpg";
+export const OG_IMAGES = {
+  rastreio: "/images/og/rastreio.jpg",
+  armacoes: "/images/og/ventara-armacoes.jpg",
+} as const;
 
 export const BUSINESS = {
   name: "Óticas Ventara Eyewear",
@@ -110,7 +117,7 @@ export function opticianJsonLd() {
       "Ótica em Araçatuba-SP com armações em acetato e titânio, lentes de grau com laboratório próprio e montagem expressa em até 1 hora.",
     url: SITE_URL,
     logo: absoluteUrl(BUSINESS.logo),
-    image: absoluteUrl(DEFAULT_OG_IMAGE),
+    image: absoluteUrl(STORE_PHOTO),
     telephone: BUSINESS.phone,
     priceRange: "$$",
     address: {
@@ -165,7 +172,7 @@ export function productJsonLd(product: Product, path: string) {
     name: product.name,
     description: trimDescription(product.description, 300) || `Armação ${product.name} na Ótica Ventara em Araçatuba-SP.`,
     sku: product.sku || product.id,
-    image: images.length > 0 ? images : [absoluteUrl(DEFAULT_OG_IMAGE)],
+    image: images.length > 0 ? images : [absoluteUrl(STORE_PHOTO)],
     brand: { "@type": "Brand", name: product.brand?.name || "Ventara" },
     ...(product.category?.name ? { category: product.category.name } : {}),
     offers: {
