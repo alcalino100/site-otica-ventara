@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Droplets, Sparkles, Gem, Cpu, Eye, ShieldCheck, MessageCircle, Bike, Waves, SprayCan, CheckCircle2 } from "lucide-react";
 import { Header } from "@/components/layout/header";
 import { Footer } from "@/components/layout/footer";
+import { ZENTARA_OPTIONS } from "@/lib/zentara-options";
 import { LightRays } from "@/components/zentara/light-rays";
 import { ComparisonSlider } from "@/components/zentara/comparison-slider";
 import { buildPageMetadata } from "@/lib/seo";
@@ -174,6 +175,37 @@ export default function ZentaraPage() {
               ))}
             </div>
             <p className="text-xs text-slate-400">O tratamento hidrofóbico repele a água e facilita a limpeza da lente. Ele não impede totalmente o embaçamento.</p>
+          </div>
+        </section>
+
+        {/* COMPRAR */}
+        <section id="comprar" className="mx-auto max-w-6xl px-4 py-16 sm:px-6 lg:py-24" data-testid="zentara-comprar">
+          <p className="text-xs font-semibold uppercase tracking-[0.25em] text-violet-300">Quero Zentara</p>
+          <h2 className="mt-2 text-3xl font-semibold sm:text-4xl">Escolha sua lente</h2>
+          <p className="mt-3 max-w-2xl text-slate-300">Clique na opção desejada e finalize seu pedido direto no nosso WhatsApp.</p>
+          <div className="mt-10 grid gap-6 md:grid-cols-3">
+            {ZENTARA_OPTIONS.map((o) => (
+              <div key={o.id} data-testid={`zentara-opcao-${o.index}`} className={`flex flex-col rounded-3xl border p-6 ${o.featured ? "border-violet-400 bg-violet-500/15 shadow-[0_0_40px_rgba(139,92,246,0.25)]" : "border-white/10 bg-black/40"}`}>
+                {o.featured && <span className="mb-3 w-fit rounded-full bg-violet-600 px-3 py-1 text-[11px] font-semibold uppercase tracking-wider">Ultrafina</span>}
+                <h3 className="text-xl font-semibold">{o.name}</h3>
+                <p className="mt-1 text-sm text-slate-300">{o.tagline}</p>
+                <ul className="mt-4 space-y-2 text-sm text-slate-200">
+                  {o.highlights.map((h) => (
+                    <li key={h} className="flex items-center gap-2"><CheckCircle2 size={16} className="text-violet-300" />{h}</li>
+                  ))}
+                </ul>
+                <div className="mt-6 text-2xl font-semibold" data-testid={`zentara-preco-${o.index}`}>{o.price || <span className="text-base font-medium text-slate-300">Consulte o valor</span>}</div>
+                <a
+                  href={buildWhatsAppUrl(`Olá! Tenho interesse nas lentes ${o.name}${o.price ? ` (${o.price})` : ""}. Pode me ajudar com o pedido?`)}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  data-testid={`zentara-comprar-${o.index}`}
+                  className="mt-4 inline-flex items-center justify-center gap-2 rounded-full bg-violet-600 px-6 py-3 text-sm font-semibold text-white transition-colors hover:bg-violet-500"
+                >
+                  <MessageCircle size={18} /> Comprar pelo WhatsApp
+                </a>
+              </div>
+            ))}
           </div>
         </section>
 
