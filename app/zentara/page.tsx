@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Droplets, Sparkles, Gem, Cpu, Eye, ShieldCheck, MessageCircle, Bike, Waves, SprayCan, CheckCircle2 } from "lucide-react";
 import { Header } from "@/components/layout/header";
 import { Footer } from "@/components/layout/footer";
+import { LightRays } from "@/components/zentara/light-rays";
 import { ComparisonSlider } from "@/components/zentara/comparison-slider";
 import { buildPageMetadata } from "@/lib/seo";
 import { buildWhatsAppUrl } from "@/lib/whatsapp";
@@ -47,12 +48,12 @@ const Eyebrow = ({ children }: { children: React.ReactNode }) => (
 
 export default function ZentaraPage() {
   return (
-    <div className="flex min-h-screen flex-col bg-black text-white selection:bg-violet-500 selection:text-white font-sans">
+    <div className="relative flex min-h-screen flex-col bg-black text-white selection:bg-violet-500 selection:text-white font-sans">
+      <LightRays />
       <Header theme="dark" />
-      <main className="flex-1 pt-24">
+      <main className="relative z-10 flex-1 pt-24">
         {/* HERO */}
-        <section className="relative overflow-hidden border-b border-white/10 px-4 py-16 sm:px-6 lg:py-24" data-testid="zentara-hero">
-          <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_at_top,rgba(124,58,237,0.35),transparent_60%)]" />
+        <section className="relative border-b border-white/10 px-4 py-16 sm:px-6 lg:py-24" data-testid="zentara-hero">
           <div className="relative mx-auto max-w-4xl text-center space-y-6">
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img {...optimizedImgProps(`${IMG}/logo-zentara.png`, [384, 640, 828])} sizes="(min-width: 640px) 420px, 80vw" alt="Lentes Zentara" width={900} height={257} className="mx-auto h-auto w-[78%] max-w-[420px]" />
@@ -99,7 +100,7 @@ export default function ZentaraPage() {
             </div>
           </div>
 
-          <div className="rounded-3xl border border-white/10 bg-gradient-to-br from-violet-950/50 to-black p-6 sm:p-10" data-testid="trat-transparencia">
+          <div className="rounded-3xl border border-white/10 bg-gradient-to-br from-violet-950/40 to-black/60 p-6 sm:p-10" data-testid="trat-transparencia">
             <div className="grid gap-6 md:grid-cols-2">
               <div className="space-y-3">
                 <Gem className="text-violet-400" size={28} />
@@ -115,7 +116,7 @@ export default function ZentaraPage() {
         </section>
 
         {/* QUALIDADE */}
-        <section className="border-y border-white/10 bg-white/[0.02] px-4 py-16 sm:px-6 lg:py-24" data-testid="zentara-qualidade">
+        <section className="border-y border-white/10 bg-black/30 px-4 py-16 sm:px-6 lg:py-24" data-testid="zentara-qualidade">
           <div className="mx-auto max-w-6xl space-y-10">
             <div className="max-w-2xl space-y-3">
               <Eyebrow>Por que Zentara</Eyebrow>
@@ -158,7 +159,7 @@ export default function ZentaraPage() {
         </section>
 
         {/* DIA A DIA */}
-        <section className="border-t border-white/10 bg-gradient-to-b from-violet-950/30 to-black px-4 py-16 sm:px-6 lg:py-24" data-testid="zentara-dia-a-dia">
+        <section className="border-t border-white/10 bg-black/30 px-4 py-16 sm:px-6 lg:py-24" data-testid="zentara-dia-a-dia">
           <div className="mx-auto max-w-6xl space-y-10">
             <div className="max-w-2xl space-y-3">
               <Eyebrow>No dia a dia</Eyebrow>
@@ -187,7 +188,7 @@ export default function ZentaraPage() {
           </div>
         </section>
       </main>
-      <Footer />
+      <div className="relative z-10"><Footer /></div>
     </div>
   );
 }
