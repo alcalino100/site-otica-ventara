@@ -13,6 +13,7 @@ export const DEFAULT_OG_IMAGE = "/images/og/ventara-logo.jpg";
 export const OG_IMAGES = {
   rastreio: "/images/og/rastreio.jpg",
   armacoes: "/images/og/ventara-armacoes.jpg",
+  zentara: "/images/og/zentara.jpg",
 } as const;
 
 export const BUSINESS = {
