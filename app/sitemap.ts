@@ -10,6 +10,7 @@ const STATIC_PAGES: Array<{ path: string; priority: number; changeFrequency: "da
   { path: "/otica-em-aracatuba", priority: 0.9, changeFrequency: "monthly" },
   { path: "/armacoes", priority: 0.9, changeFrequency: "daily" },
   { path: "/lentes", priority: 0.9, changeFrequency: "weekly" },
+  { path: "/zentara", priority: 0.8, changeFrequency: "monthly" },
   { path: "/lentes-coloridas", priority: 0.7, changeFrequency: "weekly" },
   { path: "/optisync", priority: 0.7, changeFrequency: "monthly" },
   { path: "/medicao-por-foto", priority: 0.7, changeFrequency: "monthly" },
