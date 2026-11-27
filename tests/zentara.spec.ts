@@ -58,12 +58,11 @@ test("fundo com raios de luz fixo atrás do conteúdo, sem cobrir nada", async (
   await expect(bg).toBeAttached();
   const info = await bg.evaluate((el) => {
     const cs = getComputedStyle(el);
-    const c = el.querySelector("canvas") as HTMLCanvasElement;
-    return { pos: cs.position, pe: cs.pointerEvents, op: parseFloat(getComputedStyle(c).opacity) };
+    return { pos: cs.position, pe: cs.pointerEvents, canvas: el.querySelectorAll("canvas").length };
   });
   expect(info.pos).toBe("fixed");
   expect(info.pe).toBe("none");
-  expect(info.op).toBeLessThanOrEqual(0.3);
+  expect(info.canvas).toBe(0);
   await page.getByTestId("link-whatsapp-hero").first().isVisible().catch(() => {});
   await expect(page.getByTestId("zentara-hero")).toBeVisible();
 });
